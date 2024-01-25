@@ -24,8 +24,11 @@ class EventWriter():
     def __enter__(self):
         return self
     
-    def __exit__(self, exc_type, exc_value, traceback):
+    def close():
         raise NotImplementedError
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
 
  
 class EventWriter_RAW(EventWriter):
@@ -73,7 +76,7 @@ f"""% camera_integrator_name Prophesee
 """.encode('utf-8'))
         self.was_initialized = True
         
-    def __exit__(self, exc_type, exc_value, traceback):
+    def close(self, exc_type, exc_value, traceback):
         self.fd.close()
 
     def write(self, events: np.ndarray):
