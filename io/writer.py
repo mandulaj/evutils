@@ -24,7 +24,7 @@ class EventWriter():
     def __enter__(self):
         return self
     
-    def close():
+    def close(self):
         raise NotImplementedError
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -76,7 +76,7 @@ f"""% camera_integrator_name Prophesee
 """.encode('utf-8'))
         self.was_initialized = True
         
-    def close(self, exc_type, exc_value, traceback):
+    def close(self):
         self.fd.close()
 
     def write(self, events: np.ndarray):
@@ -111,6 +111,17 @@ f"""% camera_integrator_name Prophesee
 class EventWriter_CSV(EventWriter):
     def __init__(self, file, width=1280, height=720):
         super().__init__(file, width, height)
+
+    def init(self):
+        self.fd = open(self.file, "w")
+        self.fd.write("t, x, y, p\n")
+
+    def write(self, events: np.ndarray):
+        for ev in events:
+            self.fd.write(f"{ev['t']}, {ev['x']}, {ev['y']}, {ev['p']}\n")
+
+    def close(self):
+        self.fd.close()
 
 class EventWriter_HDF5(EventWriter):
     def __init__(self, file, width=1280, height=720):
