@@ -1,4 +1,4 @@
-from datetime import datetime as dt
+from datetime import datetime
 
 
 import numpy as np
@@ -8,12 +8,20 @@ import numpy as np
 
 
 class EventWriter():
-    def __init__(self, file, width=1280, height=720):
+    def __init__(self, file, width=1280, height=720, dt: datetime = None):
 
         self.file = file
         self.fd = None 
         self.width = width
         self.height = height
+
+        
+
+        if dt is None:
+            self.dt = datetime.now()
+        else:
+            self.dt = dt
+
 
     def init(self):
         raise NotImplementedError
@@ -33,7 +41,7 @@ class EventWriter():
  
 class EventWriter_RAW(EventWriter):
     def __init__(self, file, width=1280, height=720, dt=None, serial="00000000"):
-        super().__init__(file, width, height)
+        super().__init__(file, width, height, dt)
 
         self.was_initialized = False
 
@@ -41,14 +49,9 @@ class EventWriter_RAW(EventWriter):
         self.last_lower12_ts = 0
         self.last_y  = 0 
 
-        if dt is None:
-            recording_datetime = dt.now()
-        else:
-            recording_datetime = dt
-
         self.serial_number = serial
-
-        self.formatted_datetime = recording_datetime.strftime("%Y-%m-%d %H:%M:%S")
+       
+        self.formatted_datetime = self.dt.strftime("%Y-%m-%d %H:%M:%S")
 
         self.init()
 
