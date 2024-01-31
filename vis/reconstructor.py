@@ -13,6 +13,8 @@ from .rpg_e2vid.image_reconstructor import ImageReconstructor
 from .rpg_e2vid.options.inference_options import set_inference_options as rpg_set_inference_options
 from .rpg_e2vid.utils.inference_utils import events_to_voxel_grid, events_to_voxel_grid_pytorch
 
+import subprocess
+import numpy as np
 
 from types import SimpleNamespace
 
@@ -20,17 +22,33 @@ from types import SimpleNamespace
 def set_inference_options(params):
     rpg_set_inference_options(params)
 
+def get_freer_gpu():
+    memory_free_info = subprocess.check_output(['/bin/sh', '-c', 'nvidia-smi --query-gpu=memory.free --format=csv']).decode('ascii').split('\n')[1:-1]
+    memory_free = [int(v.split()[0]) for v in memory_free_info]
+    return np.argmax(memory_free)
+
 
 class Reconstructor():
-    def __init__(self, device, height, width, args):
-        self.device = torch.device(device)
+    DEFAULT_ARGS = {
+        'device': "auto"
+    }
+    def __init__(self, height, width, args={}):
+        self.args = {**Reconstructor.DEFAULT_ARGS, **args}
+        
+
+        if self.args['device'] == "auto":
+            if torch.cuda.is_available():
+                self.device = torch.device("cuda:" + str(get_freer_gpu()))
+            else:
+                self.device = torch.device("cpu")
+        else:
+            self.device = torch.device(self.args['device'])
         self.height = height
         self.width = width
-        self.args = args
 
 
     def get_frame(events):
-        pass
+        raise NotImplementedError
 
 
 
@@ -60,28 +78,28 @@ class RPG_Reconstructor(Reconstructor):
 
     }
 
-    def __init__(self, device, height, width, args={}):
-        args = SimpleNamespace(**{**self.DEFAULT_ARGS, **args})
-        print(args)
+    def __init__(self, height, width, args={}):
+        args = {**RPG_Reconstructor.DEFAULT_ARGS, **args}
 
         from .rpg_e2vid.utils.inference_utils import CropParameters, EventPreprocessor, IntensityRescaler, ImageFilter, ImageDisplay, ImageWriter, UnsharpMaskFilter
 
-        super().__init__(device, height, width, args)
+        super().__init__(height, width, args)
 
+        sn_args = SimpleNamespace(**args)
 
 
         self.model = rpg_load_model("models/E2VID_lightweight.pth.tar")
         self.model.eval().to(self.device)
 
-        self.no_recurrent = args.no_recurrent
+        self.no_recurrent = args['no_recurrent']
 
         self.crop = CropParameters(self.width, self.height, self.model.num_encoders)
         self.last_states_for_each_channel = {'grayscale': None}
 
-        self.event_preprocessor = EventPreprocessor(args)
-        self.intensity_rescaler = IntensityRescaler(args)
-        self.image_filter = ImageFilter(args)
-        self.unsharp_mask_filter = UnsharpMaskFilter(args, device=self.device)
+        self.event_preprocessor = EventPreprocessor(sn_args)
+        self.intensity_rescaler = IntensityRescaler(sn_args)
+        self.image_filter = ImageFilter(sn_args)
+        self.unsharp_mask_filter = UnsharpMaskFilter(sn_args, device=self.device)
         # self.image_writer = ImageWriter(args)
         # self.image_display = ImageDisplay(args)
 
@@ -145,7 +163,7 @@ class RPG_Reconstructor(Reconstructor):
         
 
 
-        if self.args.compute_voxel_grid_on_cpu:
+        if self.args['compute_voxel_grid_on_cpu']:
             event_tensor = events_to_voxel_grid(events,
                                                 num_bins=self.model.num_bins,
                                                 width=self.width,
