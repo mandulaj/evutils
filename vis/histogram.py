@@ -20,6 +20,7 @@ def gen_frame(ev: np.ndarray, width: int, height: int, fill=True):
         if buffer[y, x, p] < 255:
             buffer[y, x, p] += 1
 
+    # If the fill flag is set, we fill the non-zero values with 255
     if fill:
         for x in range(0, width):
             for y in range(0, height):

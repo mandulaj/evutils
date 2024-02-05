@@ -105,9 +105,13 @@ class RPG_Reconstructor(Reconstructor):
 
         # self.start_index = 0
         self.last_ts = 0
+        self.reset_states = False
 
 
     def update_reconstruction(self, event_tensor):
+        if isinstance(event_tensor, np.ndarray):
+            event_tensor = torch.from_numpy(event_tensor)
+        
         with torch.no_grad():
 
             events = event_tensor.unsqueeze(dim=0)
@@ -125,7 +129,7 @@ class RPG_Reconstructor(Reconstructor):
                 new_predicted_frame, states = self.model(events_for_each_channel[channel],
                                                         self.last_states_for_each_channel[channel])
 
-                if self.no_recurrent:
+                if self.no_recurrent or self.reset_states:
                     self.last_states_for_each_channel[channel] = None
                 else:
                     self.last_states_for_each_channel[channel] = states
@@ -157,9 +161,12 @@ class RPG_Reconstructor(Reconstructor):
     def gen_frame(self, e):
         if len(e) == 0:
             events = np.hstack((np.float32(np.array([self.last_ts])[None].T/1e6), np.array([0])[None].T, np.array([0])[None].T, np.array([0])[None].T))
+            self.reset_states = True
         else:
             events = np.hstack((np.float32(e['t'][None].T/1e6), e['x'][None].T, e['y'][None].T, e['p'][None].T))
             self.last_ts = e['t'][-1]
+            self.reset_states = False
+
         
 
 
