@@ -19,28 +19,28 @@ def get_raw_buffer(events: np.ndarray, last_lower12_ts: int, last_upper12_ts: in
         if upper12_ts != last_upper12_ts:
             # write new upper ts2000
             last_upper12_ts = upper12_ts
-            value = 0x8000 | upper12_ts
+            value = 0x8000 | (upper12_ts & 0xFFF)
             buffer[length+1] = (value >> 8) & 0xFF
             buffer[length] = value & 0xFF
             length += 2
         
         if lower12_ts != last_lower12_ts:
             # write new lower ts
-            last_lower12_ts = lower12_ts
-            value = 0x6000 | lower12_ts
+            last_lower12_ts = lower12_ts 
+            value = 0x6000 | (lower12_ts & 0xFFF)
             buffer[length+1] = (value >> 8) & 0xFF
             buffer[length] = value & 0xFF
             length += 2
                             
         if last_y != ev['y']:
-            value = (0x0000 | int(ev['y']))
+            value = (0x0000 | (int(ev['y']) & 0xFFF))
             # write new y
             buffer[length+1] = (value >> 8) & 0xFF
             buffer[length] = value & 0xFF
             length += 2
             last_y = ev['y']
         # write x and p
-        value = 0x2000 | int(ev['x']) | int(ev['p'] << 11)
+        value = 0x2000 | (int(ev['x']) & 0xFFF) | ((int(ev['p']) & 0x01) << 11)
         buffer[length+1] = (value >> 8) & 0xFF
         buffer[length] = value & 0xFF
         length += 2
@@ -88,9 +88,9 @@ class EventWriter_RAW(EventWriter):
 
         self.was_initialized = False
 
-        self.last_upper12_ts = 0
-        self.last_lower12_ts = 0
-        self.last_y  = 0 
+        self.last_upper12_ts = -1
+        self.last_lower12_ts = -1
+        self.last_y  = -1
 
         self.serial_number = serial
        
