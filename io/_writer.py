@@ -10,7 +10,9 @@ class EventWriter():
         self.width = width
         self.height = height
 
-        
+        self.n_written_events = 0
+
+        self.is_initialized = False
 
         if dt is None:
             self.dt = datetime.now()
@@ -32,3 +34,13 @@ class EventWriter():
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
+
+    def __repr__(self) -> str:
+        if self.is_initialized:
+            is_initialized_txt = f"Written {self.n_written_events} events"
+        else:
+            is_initialized_txt = "not initialized"
+        return f"{self.__class__.__name__}(file={self.file} - {is_initialized_txt}, {self.width}x{self.height})"
+    
+    def __len__(self) -> int:
+        return self.n_written_events
