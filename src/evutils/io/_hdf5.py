@@ -39,9 +39,9 @@ class EventWriter_HDF5(EventWriter):
             self.buffer = self.buffer[n_full_buffers * self.buffersize:]
 
     def close(self):
+        self._append_new_events(self.buffer)
         self.ms_to_idx.append(self.x.shape[0])
         self.fd.create_dataset("ms_to_idx", data=self.ms_to_idx, **self.compressor)
-        self._append_new_events(self.buffer)
         self.fd.close()
 
     def _set_ms_idx_for_events(self, events: np.ndarray):
