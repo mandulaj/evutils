@@ -1,12 +1,13 @@
-import h5py
-import hdf5plugin
-import numba as nb
-import numpy as np
 
 from ..types import Events
 from ._reader import EventReader
 from ._writer import EventWriter
 
+import numba as nb
+import numpy as np
+
+import h5py
+import hdf5plugin
 
 
 @nb.njit
