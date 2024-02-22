@@ -50,9 +50,7 @@ class EventWriter_HDF5(EventWriter):
                 continue
             self.ms_to_idx.append(np.where(events_ms == ms)[0].min())
 
-    def initial_dataset_creation(
-        self, event_buffer: np.ndarray
-    ) -> tuple[h5py.Dataset, h5py.Dataset, h5py.Dataset, h5py.Dataset]:
+    def initial_dataset_creation(self, event_buffer: np.ndarray):
         assert len(event_buffer) == self.buffersize, "Events must have the length of the buffer size."
         self.x = self.events.create_dataset("x",
                                             data=event_buffer["x"],
