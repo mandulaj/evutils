@@ -71,12 +71,16 @@ class EventWriter_HDF5(EventWriter):
         if not self.is_initialized:
             return
         
+        self.ms_to_idx.append(self.x.shape[0])
+        
         # Write the ms_to_idx
         self.fd.create_dataset("ms_to_idx", data=self.ms_to_idx, dtype="uint64", **self.compressor)
 
         self.fd['ms_to_idx'].resize((len(self.ms_to_idx),))
         self.fd['ms_to_idx'][:] = self.ms_to_idx
 
+
+        self._append_new_events(self.buffer)
         self.fd.close()
     
     def __get_ms_idx_for_events(self, events: np.ndarray, offset=-1):
