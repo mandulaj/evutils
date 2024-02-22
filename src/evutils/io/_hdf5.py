@@ -14,15 +14,12 @@ class EventWriter_HDF5(EventWriter):
     def __init__(self, file, width=1280, height=720, buffersize=1000):
         super().__init__(file, width, height)
 
-
         self.fd = h5py.File(self.file, "w")
         self.events = self.fd.create_group("events")
-
         self.compressor = hdf5plugin.Blosc(cname="zstd", clevel=5, shuffle=hdf5plugin.Blosc.SHUFFLE)
-        self.buffersize = buffersize
         self.buffer = np.empty(0, dtype=[("x", "uint16"), ("y", "uint16"), ("p", "uint8"), ("t", "uint32")])
+        self.buffersize = buffersize
         self.ms_to_idx = [0]
-
         self.initialized = False
 
     def write(self, events: np.ndarray):
@@ -41,6 +38,8 @@ class EventWriter_HDF5(EventWriter):
 
     def close(self):
         self.ms_to_idx.append(self.x.shape[0])
+        self.fd.create_dataset("ms_to_idx", data=self.ms_to_idx, **self.compressor)
+        self.append_new_events(self.buffer)
         self.fd.close()
 
     def set_ms_idx_for_events(self, events: np.ndarray):
@@ -81,17 +80,15 @@ class EventWriter_HDF5(EventWriter):
         return self.x, self.y, self.p, self.t
 
     def append_new_events(self, events: np.ndarray):
-        assert len(events) == self.buffersize, "Events must have the length of the buffer size."
-        self.x.resize((self.x.shape[0] + self.buffersize), axis=0)
-        self.x[-self.buffersize:] = events["x"]
-        self.y.resize((self.y.shape[0] + self.buffersize), axis=0)
-        self.y[-self.buffersize:] = events["y"]
-        self.p.resize((self.p.shape[0] + self.buffersize), axis=0)
-        self.p[-self.buffersize:] = events["p"]
-        self.t.resize((self.t.shape[0] + self.buffersize), axis=0)
-        self.t[-self.buffersize:] = events["t"]
-
-
+        n_events = events.shape[0]
+        self.x.resize((self.x.shape[0] + n_events), axis=0)
+        self.x[-n_events:] = events["x"]
+        self.y.resize((self.y.shape[0] + n_events), axis=0)
+        self.y[-n_events:] = events["y"]
+        self.p.resize((self.p.shape[0] + n_events), axis=0)
+        self.p[-n_events:] = events["p"]
+        self.t.resize((self.t.shape[0] + n_events), axis=0)
+        self.t[-n_events:] = events["t"]
 
 class EventWriter_HDF5(EventWriter):
     def __init__(self, file, width=1280, height=720):
