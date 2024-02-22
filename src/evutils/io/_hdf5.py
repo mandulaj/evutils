@@ -29,14 +29,14 @@ class EventWriter_HDF5(EventWriter):
         if len(self.buffer) >= self.buffersize:
             n_full_buffers = len(self.buffer) // self.buffersize
             for i in range(n_full_buffers):
-                buffer = self.buffer[i * self.buffersize: (i + 1) * self.buffersize]
+                buffer = self.buffer[i * self.buffersize : (i + 1) * self.buffersize]
                 if not self.initialized:
                     self._initial_dataset_creation(buffer)
                     self.initialized = True
                 else:
                     self._append_new_events(buffer)
                 self.n_buffers += 1
-            self.buffer = self.buffer[n_full_buffers * self.buffersize:]
+            self.buffer = self.buffer[n_full_buffers * self.buffersize :]
 
     def close(self):
         self._append_new_events(self.buffer)
@@ -54,29 +54,18 @@ class EventWriter_HDF5(EventWriter):
 
     def _initial_dataset_creation(self, event_buffer: np.ndarray):
         assert len(event_buffer) == self.buffersize, "Events must have the length of the buffer size."
-        self.x = self.events.create_dataset("x",
-                                            data=event_buffer["x"],
-                                            chunks=(self.buffersize,),
-                                            maxshape=(None,),
-                                            dtype="uint16",
-                                            **self.compressor)
-        self.y = self.events.create_dataset("y",
-                                            data=event_buffer["y"],
-                                            chunks=(self.buffersize,),
-                                            maxshape=(None,),
-                                            dtype="uint16",
-                                            **self.compressor)
-        self.p = self.events.create_dataset("p",
-                                            data=event_buffer["p"],
-                                            chunks=(self.buffersize,),
-                                            maxshape=(None,),
-                                            dtype="uint8",
-                                            **self.compressor)
-        self.t = self.events.create_dataset("t",
-                                            data=event_buffer["t"],
-                                            chunks=(self.buffersize,),
-                                            dtype="uint32",
-                                            maxshape=(None,), **self.compressor)
+        self.x = self.events.create_dataset(
+            "x", data=event_buffer["x"], chunks=(self.buffersize,), maxshape=(None,), dtype="uint16", **self.compressor
+        )
+        self.y = self.events.create_dataset(
+            "y", data=event_buffer["y"], chunks=(self.buffersize,), maxshape=(None,), dtype="uint16", **self.compressor
+        )
+        self.p = self.events.create_dataset(
+            "p", data=event_buffer["p"], chunks=(self.buffersize,), maxshape=(None,), dtype="uint8", **self.compressor
+        )
+        self.t = self.events.create_dataset(
+            "t", data=event_buffer["t"], chunks=(self.buffersize,), dtype="uint32", maxshape=(None,), **self.compressor
+        )
         return self.x, self.y, self.p, self.t
 
     def _append_new_events(self, events: np.ndarray):
