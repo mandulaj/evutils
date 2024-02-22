@@ -23,17 +23,17 @@ class EventWriter_HDF5(EventWriter):
         self.initialized = False
 
     def write(self, events: np.ndarray):
-        self.set_ms_idx_for_events(events)
+        self._set_ms_idx_for_events(events)
         self.buffer = np.append(self.buffer, events)
         if len(self.buffer) >= self.buffersize:
             n_full_buffers = len(self.buffer) // self.buffersize
             for i in range(n_full_buffers):
                 buffer = self.buffer[i * self.buffersize: (i + 1) * self.buffersize]
                 if not self.initialized:
-                    self.initial_dataset_creation(buffer)
+                    self._initial_dataset_creation(buffer)
                     self.initialized = True
                 else:
-                    self.append_new_events(buffer)
+                    self._append_new_events(buffer)
             self.buffer = self.buffer[n_full_buffers * self.buffersize:]
 
     def close(self):
@@ -42,7 +42,7 @@ class EventWriter_HDF5(EventWriter):
         self.append_new_events(self.buffer)
         self.fd.close()
 
-    def set_ms_idx_for_events(self, events: np.ndarray):
+    def _set_ms_idx_for_events(self, events: np.ndarray):
         events_ms = events["t"] // 1000
         unique_ms = np.unique(events_ms)
         for ms in unique_ms:
@@ -50,7 +50,7 @@ class EventWriter_HDF5(EventWriter):
                 continue
             self.ms_to_idx.append(np.where(events_ms == ms)[0].min())
 
-    def initial_dataset_creation(self, event_buffer: np.ndarray):
+    def _initial_dataset_creation(self, event_buffer: np.ndarray):
         assert len(event_buffer) == self.buffersize, "Events must have the length of the buffer size."
         self.x = self.events.create_dataset("x",
                                             data=event_buffer["x"],
@@ -77,7 +77,7 @@ class EventWriter_HDF5(EventWriter):
                                             maxshape=(None,), **self.compressor)
         return self.x, self.y, self.p, self.t
 
-    def append_new_events(self, events: np.ndarray):
+    def _append_new_events(self, events: np.ndarray):
         n_events = events.shape[0]
         self.x.resize((self.x.shape[0] + n_events), axis=0)
         self.x[-n_events:] = events["x"]
