@@ -19,12 +19,13 @@ class EventWriter_HDF5(EventWriter):
         self.compressor = hdf5plugin.Blosc(cname="zstd", clevel=5, shuffle=hdf5plugin.Blosc.SHUFFLE)
         self.buffer = np.empty(0, dtype=[("x", "uint16"), ("y", "uint16"), ("p", "uint8"), ("t", "uint32")])
         self.buffersize = buffersize
+        self.n_buffers = 0
         self.ms_to_idx = [0]
         self.initialized = False
 
     def write(self, events: np.ndarray):
-        self._set_ms_idx_for_events(events)
         self.buffer = np.append(self.buffer, events)
+        self._set_ms_idx_for_events(self.buffer)
         if len(self.buffer) >= self.buffersize:
             n_full_buffers = len(self.buffer) // self.buffersize
             for i in range(n_full_buffers):
@@ -34,6 +35,7 @@ class EventWriter_HDF5(EventWriter):
                     self.initialized = True
                 else:
                     self._append_new_events(buffer)
+                self.n_buffers += 1
             self.buffer = self.buffer[n_full_buffers * self.buffersize:]
 
     def close(self):
@@ -46,9 +48,9 @@ class EventWriter_HDF5(EventWriter):
         events_ms = events["t"] // 1000
         unique_ms = np.unique(events_ms)
         for ms in unique_ms:
-            if ms == self.ms_to_idx[-1]:
+            if ms <= len(self.ms_to_idx) - 1:
                 continue
-            self.ms_to_idx.append(np.where(events_ms == ms)[0].min())
+            self.ms_to_idx.append(self.nbuffers * self.buffersize + np.where(events_ms == ms)[0].min())
 
     def _initial_dataset_creation(self, event_buffer: np.ndarray):
         assert len(event_buffer) == self.buffersize, "Events must have the length of the buffer size."
