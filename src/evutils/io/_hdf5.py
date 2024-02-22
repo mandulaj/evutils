@@ -11,7 +11,7 @@ import hdf5plugin
 
 
 class EventWriter_HDF5(EventWriter):
-    def __init__(self, file, width=1280, height=720, buffersize=1000):
+    def __init__(self, file, width=1280, height=720, buffersize=10000):
         super().__init__(file, width, height)
 
         self.fd = h5py.File(self.file, "w")
