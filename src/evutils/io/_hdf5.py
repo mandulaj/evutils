@@ -41,7 +41,7 @@ class EventWriter_HDF5(EventWriter):
     def close(self):
         self.ms_to_idx.append(self.x.shape[0])
         self.fd.create_dataset("ms_to_idx", data=self.ms_to_idx, **self.compressor)
-        self.append_new_events(self.buffer)
+        self._append_new_events(self.buffer)
         self.fd.close()
 
     def _set_ms_idx_for_events(self, events: np.ndarray):
@@ -50,7 +50,7 @@ class EventWriter_HDF5(EventWriter):
         for ms in unique_ms:
             if ms <= len(self.ms_to_idx) - 1:
                 continue
-            self.ms_to_idx.append(self.nbuffers * self.buffersize + np.where(events_ms == ms)[0].min())
+            self.ms_to_idx.append(self.n_buffers * self.buffersize + np.where(events_ms == ms)[0].min())
 
     def _initial_dataset_creation(self, event_buffer: np.ndarray):
         assert len(event_buffer) == self.buffersize, "Events must have the length of the buffer size."
