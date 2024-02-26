@@ -81,52 +81,49 @@ def get_raw_evt3_buffer(events: np.ndarray, last_lower12_ts: int, last_upper12_t
 
 
 
-# @nb.njit
-def parse_evt3_buffer(buffer: bytes, last_ts_high_high: np.int64, last_ts_high: np.int64, last_ts_low: np.int64, last_y: np.int16):
+@nb.njit
+def parse_evt3_buffer(input_buffer: np.ndarray, events_buffer: np.ndarray, triggers_buffer: np.ndarray, last_ts_high_high: np.int64, last_ts_high: np.int64, last_ts_low: np.int64, last_y: np.int16, ts_initialized: bool):
 
-    events = np.zeros(len(buffer) // 2, dtype=Events)
-    triggers = np.zeros(len(buffer) // 2, dtype=Triggers)
+
     n_events = 0
     n_ext_triggers = 0
     i = 0
 
-    if last_ts_low == -1:
+
+    if not ts_initialized:
         # Find the first EVT_TIME_HIGH
-        while i + 2 <= len(buffer):
-            packet_type = (int(buffer[i+1]) << 8) | int(buffer[i]) & 0xF000
-            if packet_type != EVT3_EVT_TIME_HIGH:
-                i += 2
-            else:
+        while i < len(input_buffer):
+
+            packet_type = input_buffer[i] & 0xF000
+            if packet_type == EVT3_EVT_TIME_HIGH:
+                ts_initialized = True
                 break
-            
+            i += 1
 
 
-    while i + 2 <= len(buffer):
-        value = (int(buffer[i+1]) << 8) | int(buffer[i])
-        packet_type = value & 0xF000
-        packet_value = value & 0x0FFF
+    while i < len(input_buffer):
+        packet_type = input_buffer[i] & 0xF000
+        packet_value = input_buffer[i] & 0x0FFF
         # print(f"{value:04x}")
 
 
 
         # EVT_TIME_HIGH - Updates the higher 12-bit portion of the 24-bit time base ‘1000’
-        if packet_type == EVT3_EVT_TIME_HIGH:
-            new_ts_high = (packet_value << 12)
-
-            if last_ts_high > new_ts_high:
+        if packet_type == EVT3_EVT_TIME_HIGH: 
+            if last_ts_high > packet_value:
                 # Overflow
                 # print("High Overflow detected")
-                last_ts_high_high += 0x100000000
+                last_ts_high_high += 1
 
-            last_ts_high = new_ts_high
+            last_ts_high = packet_value
             # print(f"EVT_TIME_HIGH {last_ts_high} - {packet_value} {packet_value << 12} {value:04x}")
         
         # EVT_TIME_LOW - Updates the lower 12-bit portion of the 24-bit time base ‘0110’
         elif packet_type == EVT3_EVT_TIME_LOW:
-            if last_ts_low > packet_value:
-                # Overflow
-                # print("Overflow detected")
-                last_ts_high += 0x1000
+            # if last_ts_low > packet_value:
+            #     # Overflow
+            #     # print("Overflow detected")
+            #     last_ts_high += 1
             last_ts_low = packet_value
             # print(f"EVT_TIME_LOW {last_ts_low} - {last_ts_high_high | last_ts_high | last_ts_low} {value:04x}")
         
@@ -138,22 +135,22 @@ def parse_evt3_buffer(buffer: bytes, last_ts_high_high: np.int64, last_ts_high: 
         elif packet_type == EVT3_EVT_ADDR_X:
             x = packet_value & 0x7FF
             p = 1 if (packet_value & 0x0800) else 0
-            last_ts = last_ts_high_high | last_ts_high | last_ts_low
+            last_ts = (last_ts_high_high << 24) | (last_ts_high << 12) | last_ts_low
  
             # print(f"Event: {last_ts}, {x}, {last_y}, {p}")
-            events[n_events]['t'] = last_ts 
-            events[n_events]['x'] = x 
-            events[n_events]['y'] = last_y 
-            events[n_events]['p'] = p 
+            events_buffer[n_events]['t'] = last_ts 
+            events_buffer[n_events]['x'] = x 
+            events_buffer[n_events]['y'] = last_y 
+            events_buffer[n_events]['p'] = p 
             
             n_events += 1
         elif packet_type == EVT3_VECT_BASE_X:
-            last_ts = last_ts_high_high | last_ts_high | last_ts_low
+            last_ts = last_ts = (last_ts_high_high << 24) | (last_ts_high << 12) | last_ts_low
             vect_base_x = packet_value & 0x7FF
             vect_base_p = (packet_value & 0x0800) >> 11
 
             
-            if i + 8 > len(buffer):
+            if not i + 4 < len(input_buffer):
                 # print("Warning: Buffer is too small for VECT_BASE_X")
                 # buffer_too_small = True
                 break
@@ -171,28 +168,30 @@ def parse_evt3_buffer(buffer: bytes, last_ts_high_high: np.int64, last_ts_high: 
 
             valid = np.zeros(32, dtype=np.uint8)
             
-            i += 2
-            value12_1 = (int(buffer[i+1]) << 8) | int(buffer[i])
+          
+            value12_1 = input_buffer[i+1]
             if value12_1 & 0xF000 != EVT3_VECT_12:
                 # print(f"Warning: Expected VECT_12, got {value12_1:04x}")
+                i += 2
                 continue
+            
 
             for pos, bit in enumerate(range(0, 12)):
                 valid[bit] = (value12_1 >> pos) & 0x01
             
-            i += 2
-            value12_2 = (int(buffer[i+1]) << 8) | int(buffer[i])
+            value12_2 = input_buffer[i+2]
             if value12_2 & 0xF000 != EVT3_VECT_12:
                 # print(f"Warning: Expected VECT_12, got {value12_1:04x}")
+                i += 3
                 continue
 
             for pos, bit in enumerate(range(12, 24)):
                 valid[bit] = (value12_2 >> pos) & 0x01
 
-            i += 2
-            value8_3 = (int(buffer[i+1]) << 8) | int(buffer[i])
+            value8_3 = input_buffer[i+3]
             if value8_3 & 0xF000 != EVT3_VECT_8:
                 # print(f"Warning: Expected VECT_8, got {value12_1:04x}")
+                i += 4
                 continue
 
             for pos, bit in enumerate(range(24, 32)):
@@ -202,9 +201,9 @@ def parse_evt3_buffer(buffer: bytes, last_ts_high_high: np.int64, last_ts_high: 
             vect_events = vect_events[valid == 1]
 
             # print(vect_events)
-            events[n_events:n_events+len(vect_events)] = vect_events
+            events_buffer[n_events:n_events+len(vect_events)] = vect_events
             n_events += len(vect_events)
-            # exit()
+            i += 3
 
 
         # elif packet_type == EVT3_VECT_12:
@@ -213,15 +212,15 @@ def parse_evt3_buffer(buffer: bytes, last_ts_high_high: np.int64, last_ts_high: 
         #     print(f"VECT_8 {packet_value:04x}")
         elif packet_type == EVT3_EXT_TRIGGER:
             # print(f"EXT_TRIGGER {packet_value:04x}")
-            last_ts = last_ts_high_high | last_ts_high | last_ts_low
+            last_ts = (last_ts_high_high << 24) | (last_ts_high << 12) | last_ts_low
             p = 0x01 & packet_value
             
             # Channel ID bits 8..11
             id = (packet_value >> 8) & 0x0F
 
-            triggers[n_ext_triggers]['t'] = last_ts
-            triggers[n_ext_triggers]['p'] = p
-            triggers[n_ext_triggers]['id'] = id
+            triggers_buffer[n_ext_triggers]['t'] = last_ts
+            triggers_buffer[n_ext_triggers]['p'] = p
+            triggers_buffer[n_ext_triggers]['id'] = id
             
             n_ext_triggers += 1
         elif packet_type == EVT3_OTHERS:
@@ -236,9 +235,9 @@ def parse_evt3_buffer(buffer: bytes, last_ts_high_high: np.int64, last_ts_high: 
         else:
             # print(f"Unknown value {value:04x}")
             pass
-        i += 2
+        i += 1
     
-    return events[:n_events], triggers[:n_ext_triggers], last_ts_high_high, last_ts_high, last_ts_low, last_y, i
+    return n_events, n_ext_triggers, last_ts_high_high, last_ts_high, last_ts_low, last_y, ts_initialized, i
     # else:
     #     return events[:n_events], triggers[:n_ext_triggers], last_ts, last_y, i
         
@@ -246,19 +245,23 @@ def parse_evt3_buffer(buffer: bytes, last_ts_high_high: np.int64, last_ts_high: 
 class EventReader_RAW(EventReader): 
     MAX_EVENTS_READ = 1e12
     MAX_DELTA_T = 1e12
-    def __init__(self, file,  delta_t=10000, n_events=10000, mode="delta_t", buffer_size=4005):
-        super().__init__(file, delta_t, n_events, mode)
+    def __init__(self, file,  delta_t=None, n_events=None, max_events=10000000, mode="auto", buffer_size=1_000_000):
+        super().__init__(file, delta_t, n_events, max_events, mode)
 
-        self.buffer_position = -1
+
         self.buffer_size = buffer_size
-        self.buffer = []
         
         self.last_ts_high_high = 0
         self.last_ts_high = 0
-        self.last_ts_low = np.int64(-1)
-        self.last_y = np.int16(0)
+        self.last_ts_low = 0
+        self.ts_initialized = False
+        self.last_y = 0
         self.format = None
 
+        self.events_buffer = np.empty(self.max_events, dtype=Events)
+        self.events_buffer_len = 0
+        self.triggers_buffer = np.empty(self.max_events, dtype=Triggers)
+        self.triggers_buffer_len = 0
     def init(self):
         self.fd = open(self.file, "rb")
 
@@ -377,6 +380,44 @@ class EventReader_RAW(EventReader):
 
         self.is_initialized = True
 
+
+    def __read_and_parse_buffer(self):
+        # print(f"Reading buffer of size {self.buffer_size}")
+
+        if self.format == "EVT3":
+            input_buffer = np.fromfile(self.fd, dtype=np.uint16, count=self.buffer_size)
+            if len(input_buffer) == 0:
+                self.eof = True
+                return np.array([], dtype=Events), np.array([], dtype=Triggers)
+            
+            n_events, n_triggers, self.last_ts_high_high, self.last_ts_high, self.last_ts_low, self.last_y, self.ts_initialized, msg_processed = parse_evt3_buffer(
+                    input_buffer, 
+                    self.events_buffer[self.events_buffer_len:],
+                    self.triggers_buffer[self.triggers_buffer_len:],
+                    self.last_ts_high_high, 
+                    self.last_ts_high, 
+                    self.last_ts_low, 
+                    self.last_y,
+                    self.ts_initialized)
+            
+            self.events_buffer_len += n_events
+            self.triggers_buffer_len += n_triggers
+            
+            if msg_processed < len(input_buffer):
+                # This happens if We are in the middle of a Vect message and we need to fetch more data
+                missed_bytes = 2 * (len(input_buffer) - msg_processed)
+                # print(f"Missed {missed_bytes} bytes, seeking back")
+                self.fd.seek(-missed_bytes, 1)
+            
+            del input_buffer
+        elif self.format == "EVT2.1":
+            raise NotImplementedError("EVT2.1 not implemented")
+        elif self.format == "EVT2":
+            raise NotImplementedError("EVT2 not implemented")
+        else:
+            raise ValueError(f"Unsupported format {self.format}. Supported formats are {list(EventReader_RAW.FORMATS.keys())}")
+
+
     def read(self, delta_t=None, n_events=None) -> tuple[np.ndarray, np.ndarray]:
         if not self.is_initialized:
             self.init()
@@ -391,54 +432,52 @@ class EventReader_RAW(EventReader):
         
 
         if self.mode == "delta_t":
-            n_events = EventReader_RAW.MAX_EVENTS_READ
+            n_events = self.max_events
         if self.mode == "n_events":
             delta_t = EventReader_RAW.MAX_DELTA_T
-        
     
-        
-        all_events = np.zeros(0, dtype=Events)
-        all_triggers = np.zeros(0, dtype=Triggers)
 
+        over_time = False
 
+    
 
-        while len(all_events) < n_events:
-            
-            if self.buffer_position >= len(self.buffer) or self.buffer_position == -1:
-                self.buffer = self.fd.read(self.buffer_size)
-                self.buffer_position = 0
-
-                if len(self.buffer) == 0:
-                    self.eof = True
-                    break
-
-            if self.format == "EVT3":
-                print("Current Time:", self.last_ts_high_high | self.last_ts_high | self.last_ts_low)
-                # Parse EVT3 format
-
-                # print(self.buffer)
-                events, triggers, self.last_ts_high_high, self.last_ts_high, self.last_ts_low, self.last_y, bytes_processed = parse_evt3_buffer(self.buffer[self.buffer_position:], self.last_ts_high_high, self.last_ts_high, self.last_ts_low, self.last_y)
-                
-                self.buffer_position += bytes_processed
-                if self.buffer_position < len(self.buffer):
-
-                    new_buffer = self.fd.read(self.buffer_size)
-                    if len(new_buffer) == 0:
-                        self.eof = True
-                        
-                    self.buffer = self.buffer[self.buffer_position + bytes_processed:] + new_buffer
-                    self.buffer_position = 0
-
-
-            all_events = np.concatenate((all_events, events))
-            all_triggers = np.concatenate((all_triggers, triggers))
-
-            if len(all_events) > 1 and all_events[-1]['t'] - all_events[0]['t'] > delta_t:
+        while self.events_buffer_len < n_events and self.eof == False:
+            if self.events_buffer_len > 2 and (self.events_buffer[self.events_buffer_len-1]['t'] - self.events_buffer[0]['t']) > delta_t:
+                over_time = True
                 break 
 
-            
-   
-        return all_events, all_triggers
+            # print(f"Buffer size: {len(self.events_buffer)}, {n_events} events needed")
+            self.__read_and_parse_buffer()
+            # print(f"Concattenating {len(self.events_buffer)} {len(events)} events")
+            # self.events_buffer = events
+            # self.triggers_buffer = triggers
+
+           
+         
+            # print(f"Added to buffer Buffer size: {len(self.events_buffer)}")
+
+
+
+
+        
+        if over_time:
+            split_index = np.searchsorted(self.events_buffer['t'][:self.events_buffer_len], self.events_buffer[0]['t'] + delta_t)
+            n_events = split_index
+
+        print(n_events)
+
+        ret_events = self.events_buffer[:n_events].copy()
+        if self.events_buffer_len > n_events:
+
+            new_buffer_len = self.events_buffer_len - n_events
+
+            self.events_buffer[:new_buffer_len] = self.events_buffer[n_events:self.events_buffer_len]
+            self.events_buffer_len = new_buffer_len
+
+        else:
+            self.events_buffer_len = 0
+
+        return ret_events, self.triggers_buffer
 
 
 
