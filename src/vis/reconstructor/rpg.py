@@ -12,43 +12,17 @@ from .rpg_e2vid.utils.loading_utils import load_model as rpg_load_model
 from .rpg_e2vid.image_reconstructor import ImageReconstructor
 from .rpg_e2vid.options.inference_options import set_inference_options as rpg_set_inference_options
 from .rpg_e2vid.utils.inference_utils import events_to_voxel_grid, events_to_voxel_grid_pytorch
+from .rpg_e2vid.utils.inference_utils import CropParameters, EventPreprocessor, IntensityRescaler, ImageFilter, ImageDisplay, ImageWriter, UnsharpMaskFilter
 
-import subprocess
-import numpy as np
 
 from types import SimpleNamespace
+from .base import Reconstructor
 
 
 def set_inference_options(params):
     rpg_set_inference_options(params)
 
-def get_freer_gpu():
-    memory_free_info = subprocess.check_output(['/bin/sh', '-c', 'nvidia-smi --query-gpu=memory.free --format=csv']).decode('ascii').split('\n')[1:-1]
-    memory_free = [int(v.split()[0]) for v in memory_free_info]
-    return np.argmax(memory_free)
 
-
-class Reconstructor():
-    DEFAULT_ARGS = {
-        'device': "auto"
-    }
-    def __init__(self, height, width, args={}):
-        self.args = {**Reconstructor.DEFAULT_ARGS, **args}
-        
-
-        if self.args['device'] == "auto":
-            if torch.cuda.is_available():
-                self.device = torch.device("cuda:" + str(get_freer_gpu()))
-            else:
-                self.device = torch.device("cpu")
-        else:
-            self.device = torch.device(self.args['device'])
-        self.height = height
-        self.width = width
-
-
-    def get_frame(events):
-        raise NotImplementedError
 
 
 
@@ -81,7 +55,6 @@ class RPG_Reconstructor(Reconstructor):
     def __init__(self, height, width, args={}):
         args = {**RPG_Reconstructor.DEFAULT_ARGS, **args}
 
-        from .rpg_e2vid.utils.inference_utils import CropParameters, EventPreprocessor, IntensityRescaler, ImageFilter, ImageDisplay, ImageWriter, UnsharpMaskFilter
 
         super().__init__(height, width, args)
 
@@ -192,31 +165,3 @@ class RPG_Reconstructor(Reconstructor):
 
 
 
-# class Metavision_Reconstructor(Reconstructor):
-#     def __init__(self, device, height, width, args):
-#         super().__init__(device, height, width, args)
-
-
-#         self.model =  EventToVideoLightningModel.load_from_checkpoint("models/e2v.ckpt")
-#         self.model.eval().to(self.device)
-
-#     def gen_frame(self, e):
-
-#         nbins = self.model.hparams.event_volume_depth
-
-
-#         events_th = event_cd_to_torch(e).to(self.device)
-#         start_times = torch.FloatTensor([e['t'][0]]).view(1,).to(self.device)
-
-#         durations = torch.FloatTensor([e['t'][-1] - e['t'][0]]).view(1,).to(self.device)
-#         tensor_th = event_volume(events_th, 1, self.height, self.width, start_times, durations, nbins, 'bilinear')
-#         tensor_th = F.interpolate(tensor_th, size=(self.height, self.width),
-#                                     mode='bilinear', align_corners=True)
-#         tensor_th = tensor_th.view(1, 1, nbins, self.height, self.width)
-
-
-#         state = self.model.model(tensor_th)
-#         gray = self.model.model.predict_gray(state).view(1, 1, self.height, self.width)
-#         gray = normalize_tiles(gray).view(self.height, self.width)
-#         gray_np = gray.detach().cpu().numpy() * 255
-#         return np.uint8(gray_np)
