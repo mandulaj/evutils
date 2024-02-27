@@ -9,6 +9,7 @@ import h5py
 import hdf5plugin
 
 
+from ..types import Events, Triggers
 
 class EventWriter_HDF5(EventWriter):
     def __init__(self, file, width=1280, height=720, buffersize=10000):
@@ -17,7 +18,7 @@ class EventWriter_HDF5(EventWriter):
         self.fd = h5py.File(self.file, "w")
         self.events = self.fd.create_group("events")
         self.compressor = hdf5plugin.Blosc(cname="zstd", clevel=5, shuffle=hdf5plugin.Blosc.SHUFFLE)
-        self.buffer = np.empty(0, dtype=[("x", "uint16"), ("y", "uint16"), ("p", "uint8"), ("t", "uint32")])
+        self.buffer = np.empty(0, dtype=Events)
         self.buffersize = buffersize
         self.n_buffers = 0
         self.ms_to_idx = [0]
@@ -79,6 +80,7 @@ class EventWriter_HDF5(EventWriter):
         self.t.resize((self.t.shape[0] + n_events), axis=0)
         self.t[-n_events:] = events["t"]
 
-class EventWriter_HDF5(EventWriter):
-    def __init__(self, file, width=1280, height=720):
-        super().__init__(file, width, height)
+class EventReader_HDF5(EventReader):
+    def __init__(self, file):
+        super().__init__(file)
+
