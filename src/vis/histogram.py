@@ -29,3 +29,34 @@ def gen_frame(ev: np.ndarray, width: int, height: int, fill=True):
                         buffer[y, x, c] = 255
 
     return buffer
+
+
+@numba.njit
+def wedge_frame(ev, buffer, tl = 30e6):
+    buffer[:] = 0
+
+    ts_norm = (ev['t'] - ev['t'][0])/tl
+
+    # print(len(ev))
+
+    sel = (720-ev['y'])/720 > ts_norm - 0.1
+    ev_sel = ev[sel]
+    # print(len(ev_sel))
+    # print((720-ev['y'])/720, ts_norm, sel)
+
+
+    for e in ev_sel:
+        x = e['x']
+        y = e['y']
+        p = e['p']
+
+
+        if p == 1:
+            p = 0
+        else:
+            p = 2
+        
+        if buffer[y, x, p] < 128:
+            buffer[y, x, p] += 255
+
+    return buffer
