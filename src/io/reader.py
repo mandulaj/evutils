@@ -1,27 +1,19 @@
 
+from ._reader import EventReader
+
+import numpy as np
 
 
-class EventReader():
-    def __init__(self):
-        pass
+
+from ._bin import EventReader_Bin
+from ._csv import EventReader_Csv
+from ._dat import EventReader_Dat
+from ._hdf5 import EventReader_HDF5
+from ._npz import EventReader_Npz
+from ._raw import EventReader_RAW
+from ._txt import EventReader_Txt
 
 
-class EventReader_RAW(EventReader):
-    def __init__(self, file):
-        super().__init__(file)
-
-
-class EventReader_CSV(EventReader):
-    def __init__(self, file):
-        super().__init__(file)
-
-class EventReader_HDF5(EventReader):
-    def __init__(self, file):
-        super().__init__(file)
-
-class EventReader_Bin(EventReader):
-    def __init__(self, file):
-        super().__init__(file)
 
 
 class EventReader_Any(EventReader):
