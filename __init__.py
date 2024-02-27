@@ -1,4 +1,4 @@
+import os
 
-# from .src import io
-# from .src import types
-# from .src import vis 
+__path__[-1] = os.path.join(__path__[0], "src")
+

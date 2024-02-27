@@ -1,7 +1,7 @@
 
-
-
 from ._reader import EventReader
+
+import numpy as np
 
 
 
