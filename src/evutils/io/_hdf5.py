@@ -1,12 +1,11 @@
-
-from ._reader import EventReader
-from ._writer import EventWriter
-
+import h5py
+import hdf5plugin
 import numba as nb
 import numpy as np
 
-import h5py
-import hdf5plugin
+from ..types import Events
+from ._reader import EventReader
+from ._writer import EventWriter
 
 
 @nb.njit
@@ -18,7 +17,6 @@ def get_idx(events, ms_to_idx, last_ms_idx, n_written_events, max_ms, offset):
 
         ms_to_idx[ms] = max(idx + offset + n_written_events, 0)
 
-from ..types import Events, Triggers
 
 class EventWriter_HDF5(EventWriter):
     def __init__(self, file, width=1280, height=720, chunksize=10000):
