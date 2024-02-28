@@ -37,9 +37,9 @@ class EventWriter_Csv(EventWriter):
         if not self.is_initialized:
             self.init()
             
-
         df = pd.DataFrame(events)
-        df.to_csv(self.fd, mode='a', header=False, index=False, columns=self.order)
+        df.to_csv(self.fd, header=False, index=False, columns=self.order)
 
     def close(self):
-        self.fd.close()
+        if self.is_initialized:
+            self.fd.close()
