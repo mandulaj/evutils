@@ -1,15 +1,12 @@
-
-from ._writer import EventWriter
-from ._reader import EventReader
-
-import numpy as np
-import numba as nb
-
 import h5py
 import hdf5plugin
+import numba as nb
+import numpy as np
 
+from ..types import Events
+from ._reader import EventReader
+from ._writer import EventWriter
 
-from ..types import Events, Triggers
 
 class EventWriter_HDF5(EventWriter):
     def __init__(self, file, width=1280, height=720, buffersize=10000):
@@ -80,7 +77,38 @@ class EventWriter_HDF5(EventWriter):
         self.t.resize((self.t.shape[0] + n_events), axis=0)
         self.t[-n_events:] = events["t"]
 
-class EventReader_HDF5(EventReader):
-    def __init__(self, file):
-        super().__init__(file)
 
+class EventReader_HDF5(EventReader):
+    def __init__(self, file, width=1280, height=720):
+        super().__init__(file, width, height)
+
+    def init(self):
+        if self.is_initialized:
+            return
+        self.fd = h5py.File(self.file, "r")
+        self.ms_to_idx = np.asarray(self.fd["ms_to_idx"])
+        self.max_events = self.fd["events"]["x"].shape[0]
+        self.last_ms = len(self.ms_to_idx) - 1
+        self.is_initialized = True
+
+    def read(self, start_ms: int = 0, end_ms: int = -1) -> np.ndarray:
+        if not self.is_initialized:
+            self.init()
+
+        if end_ms == -1:
+            end_ms = self.last_ms
+
+        assert start_ms >= 0, "start_ms must be greater or equal to 0"
+        assert start_ms < end_ms, "start_ms must be smaller than end_ms"
+        assert end_ms <= self.last_ms, f"end_ms must be smaller or equal to the last ms ({self.last_ms})"
+
+        start_idx = self.ms_to_idx[start_ms]
+        end_idx = self.ms_to_idx[end_ms]
+        return self._read_events(start_idx, end_idx)
+
+    def _read_events(self, start_idx: int, end_idx: int) -> np.ndarray:
+        x = self.fd["events"]["x"][start_idx:end_idx]
+        y = self.fd["events"]["y"][start_idx:end_idx]
+        p = self.fd["events"]["p"][start_idx:end_idx]
+        t = self.fd["events"]["t"][start_idx:end_idx]
+        return np.array(list(zip(t, x, y, p)), dtype=Events)
