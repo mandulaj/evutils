@@ -17,7 +17,7 @@ EV-utils is a collection of utilities for working event based data inspired by t
 ## Installation
 
 ```
-git clone --recurse-submodules git@git.ee.ethz.ch:pbl/research/event-camera/ev-utils.git
+git clone --recurse-submodules git@git.ee.ethz.ch:pbl/research/event-camera/evutils.git
 ```
 
 ## Usage 
@@ -27,7 +27,7 @@ git clone --recurse-submodules git@git.ee.ethz.ch:pbl/research/event-camera/ev-u
 The `io` module provides methods for reading and writing events into various event formats. It provides a simple `.read()` and `.write()` interface as well as more advanced interfaces using iterators and slicing.
 
 ```python
-from ev_utils.io.reader import EventReader_RAW
+from evutils.io.reader import EventReader_RAW
 
 
 ev_file = EventReader_RAW("raw_file.raw", delta_t=10e3)
@@ -48,7 +48,7 @@ The `vis` moduels provides several methods for visualizing the events (for examp
 
 
 ```python
-from ev_utils.vis.reconstructor import RPG_Reconstructor
+from evutils.vis.reconstructor import RPG_Reconstructor
 
 reconstructor = RPG_Reconstructor(1280, 720)
 
