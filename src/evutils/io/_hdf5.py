@@ -8,74 +8,110 @@ from ._reader import EventReader
 from ._writer import EventWriter
 
 
+
+@nb.njit
+def get_idx(events, ms_to_idx, last_ms_idx, n_written_events, max_ms, offset):
+    idx = 0
+    for ms in range(last_ms_idx, max_ms+1):
+        while idx < len(events) and events['t'][idx] // 1000 < ms:
+            idx += 1
+
+        ms_to_idx[ms] = max(idx + offset + n_written_events, 0)
+
+
 class EventWriter_HDF5(EventWriter):
-    def __init__(self, file, width=1280, height=720, buffersize=10000):
+    def __init__(self, file, width=1280, height=720, chunksize=10000):
         super().__init__(file, width, height)
 
+        self.chunksize = chunksize
+
+        self.ms_to_idx = np.empty(0, dtype=np.uint64)
+        self.last_ms_idx = 0
+
+
+
+    def init(self):
+        if self.is_initialized:
+            return
+
         self.fd = h5py.File(self.file, "w")
-        self.events = self.fd.create_group("events")
+        self.events_group_h5 = self.fd.create_group("events")
         self.compressor = hdf5plugin.Blosc(cname="zstd", clevel=5, shuffle=hdf5plugin.Blosc.SHUFFLE)
-        self.buffer = np.empty(0, dtype=Events)
-        self.buffersize = buffersize
-        self.n_buffers = 0
-        self.ms_to_idx = [0]
-        self.initialized = False
+
+        self.fd.attrs['width'] = self.width
+        self.fd.attrs['height'] = self.height
+
+        # Create datasets
+        self.events_group_h5.create_dataset("x", shape=(0,), chunks=(self.chunksize, ), maxshape=(None,), 
+                                            dtype="uint16", **self.compressor)
+        self.events_group_h5.create_dataset("y", shape=(0,), chunks=(self.chunksize, ), maxshape=(None,),
+                                             dtype="uint16", **self.compressor)
+        self.events_group_h5.create_dataset("p", shape=(0,), chunks=(self.chunksize, ), maxshape=(None,),
+                                             dtype="uint8", **self.compressor)
+        self.events_group_h5.create_dataset("t", shape=(0,), chunks=(self.chunksize, ), maxshape=(None,),
+                                             dtype="uint32", **self.compressor)
+    
+
+        self.is_initialized = True
 
     def write(self, events: np.ndarray):
-        self.buffer = np.append(self.buffer, events)
-        self._set_ms_idx_for_events(self.buffer)
-        if len(self.buffer) >= self.buffersize:
-            n_full_buffers = len(self.buffer) // self.buffersize
-            for i in range(n_full_buffers):
-                buffer = self.buffer[i * self.buffersize : (i + 1) * self.buffersize]
-                if not self.initialized:
-                    self._initial_dataset_creation(buffer)
-                    self.initialized = True
-                else:
-                    self._append_new_events(buffer)
-                self.n_buffers += 1
-            self.buffer = self.buffer[n_full_buffers * self.buffersize :]
+        if not self.is_initialized:
+            self.init()
+
+        # Generate ms_to_idx
+        self.__get_ms_idx_for_events(events)
+            
+        # Append events
+        self.__append_new_events(events)
+
+
 
     def close(self):
-        self._append_new_events(self.buffer)
-        self.ms_to_idx.append(self.x.shape[0])
-        self.fd.create_dataset("ms_to_idx", data=self.ms_to_idx, **self.compressor)
+        if not self.is_initialized:
+            return
+        
+        # Write the ms_to_idx
+        self.fd.create_dataset("ms_to_idx", data=self.ms_to_idx, dtype="uint64", **self.compressor)
+
+        self.fd['ms_to_idx'].resize((len(self.ms_to_idx),))
+        self.fd['ms_to_idx'][:] = self.ms_to_idx
+
         self.fd.close()
+    
+    def __get_ms_idx_for_events(self, events: np.ndarray, offset=-1):
+        max_ms = int(events["t"][-1] // 1000)
 
-    def _set_ms_idx_for_events(self, events: np.ndarray):
-        events_ms = events["t"] // 1000
-        unique_ms = np.unique(events_ms)
-        for ms in unique_ms:
-            if ms <= len(self.ms_to_idx) - 1:
-                continue
-            self.ms_to_idx.append(self.n_buffers * self.buffersize + np.where(events_ms == ms)[0].min())
+        if max_ms + 1 > len(self.ms_to_idx):
+            self.ms_to_idx.resize(max_ms + 1, refcheck=False)
 
-    def _initial_dataset_creation(self, event_buffer: np.ndarray):
-        assert len(event_buffer) == self.buffersize, "Events must have the length of the buffer size."
-        self.x = self.events.create_dataset(
-            "x", data=event_buffer["x"], chunks=(self.buffersize,), maxshape=(None,), dtype="uint16", **self.compressor
-        )
-        self.y = self.events.create_dataset(
-            "y", data=event_buffer["y"], chunks=(self.buffersize,), maxshape=(None,), dtype="uint16", **self.compressor
-        )
-        self.p = self.events.create_dataset(
-            "p", data=event_buffer["p"], chunks=(self.buffersize,), maxshape=(None,), dtype="uint8", **self.compressor
-        )
-        self.t = self.events.create_dataset(
-            "t", data=event_buffer["t"], chunks=(self.buffersize,), dtype="uint32", maxshape=(None,), **self.compressor
-        )
-        return self.x, self.y, self.p, self.t
+        get_idx(events, self.ms_to_idx, self.last_ms_idx, self.n_written_events, max_ms, offset)
 
-    def _append_new_events(self, events: np.ndarray):
+
+        self.last_ms_idx = max_ms + 1
+
+
+
+
+
+    def __append_new_events(self, events: np.ndarray):
         n_events = events.shape[0]
-        self.x.resize((self.x.shape[0] + n_events), axis=0)
-        self.x[-n_events:] = events["x"]
-        self.y.resize((self.y.shape[0] + n_events), axis=0)
-        self.y[-n_events:] = events["y"]
-        self.p.resize((self.p.shape[0] + n_events), axis=0)
-        self.p[-n_events:] = events["p"]
-        self.t.resize((self.t.shape[0] + n_events), axis=0)
-        self.t[-n_events:] = events["t"]
+        x = self.events_group_h5["x"]
+        y = self.events_group_h5["y"]
+        p = self.events_group_h5["p"]
+        t = self.events_group_h5["t"]
+
+        x.resize((x.shape[0] + n_events), axis=0)
+        y.resize((y.shape[0] + n_events), axis=0)
+        p.resize((p.shape[0] + n_events), axis=0)
+        t.resize((t.shape[0] + n_events), axis=0)
+
+        x[-n_events:] = events["x"]
+        y[-n_events:] = events["y"]
+        p[-n_events:] = events["p"]
+        t[-n_events:] = events["t"]
+
+        self.n_written_events += n_events
+
 
 
 class EventReader_HDF5(EventReader):
