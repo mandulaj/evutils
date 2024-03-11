@@ -473,6 +473,10 @@ class EventReader_RAW(EventReader):
 
         return ret_events
 
+        if self.return_triggers:
+            return ret_events, self.triggers_buffer
+        else:
+            return ret_events
 
 
 
