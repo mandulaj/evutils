@@ -30,3 +30,10 @@ packages = ["evutils"]
 
 [tool.setuptools_scm]
 write_to = "src/evutils/_version.py"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q"
+testpaths = [
+    "tests",
+]
