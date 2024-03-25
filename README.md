@@ -16,8 +16,13 @@ EV-utils is a collection of utilities for working event based data inspired by t
 
 ## Installation
 
+### From Git
 ```
 git clone --recurse-submodules git@git.ee.ethz.ch:pbl/research/event-camera/evutils.git
+
+cd evutils
+pip install . 
+pip install -e . # Use this to install an editable version of the package
 ```
 
 ## Usage 

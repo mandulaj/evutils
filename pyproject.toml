@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "evutils"
+dynamic = ["version"]
+authors = [
+  {name = "Jakub Mandula", email = "jakub.mandula@pbl.ee.ethz.ch"},
+]
+description = "Utilities for event-based vision"
+readme = "README.md"
+license = {file = "LICENSE"}
+dependencies = [
+    "numpy",
+    "torch",
+    "tqdm",
+    "matplotlib",
+    "opencv-python",
+    "numba"
+]
+requires-python = ">= 3.6"
+keywords = ["events", "dvs", "neuromorphic", "vision", "event-based"]
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+packages = ["evutils"]
