@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools","wheel", "setuptools_scm"]
 build-backend = "setuptools.build_meta"
 
 
@@ -26,3 +26,7 @@ keywords = ["events", "dvs", "neuromorphic", "vision", "event-based"]
 [tool.setuptools]
 package-dir = { "" = "src" }
 packages = ["evutils"]
+
+
+[tool.setuptools_scm]
+write_to = "src/evutils/_version.py"
