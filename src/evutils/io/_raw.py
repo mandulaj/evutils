@@ -2,6 +2,7 @@
 
 import numpy as np
 import numba as nb
+from typing import Tuple
 
 import datetime as dt
 
@@ -463,9 +464,8 @@ class EventReader_RAW(EventReader):
         pass
 
     def _read(self, delta_t, n_events) -> np.ndarray:
-
-
-
+        if not self.is_initialized:
+            self.init()
 
         # if self.mode == "delta_t":
         #     n_events = self.max_events
