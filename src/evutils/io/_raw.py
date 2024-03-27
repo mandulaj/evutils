@@ -288,11 +288,11 @@ class EventReader_RAW(EventReader):
     '''
     MAX_EVENTS_READ = 1e12
     MAX_DELTA_T = 1e12
-    def __init__(self, file,  delta_t=None, n_events=None, max_events=10000000, mode="auto", buffer_size=1_000_000):
-        super().__init__(file, delta_t, n_events, max_events, mode)
+    def __init__(self, file,  delta_t=None, n_events=None,  mode="auto", start_ts=0,  max_time=1_000_000_000_000, max_events=10_000_000):
+        super().__init__(file=file, delta_t=delta_t, n_events=n_events, mode=mode, start_ts=start_ts, max_time=max_time, max_events=max_events, width=None, height=None)
 
 
-        self.buffer_size = buffer_size
+        self.buffer_size = max_events
         
         self.last_ts_high_high = 0
         self.last_ts_high = 0
@@ -461,23 +461,15 @@ class EventReader_RAW(EventReader):
             raise ValueError(f"Unsupported format {self.format}. Supported formats are {list(EventReader_RAW.FORMATS.keys())}")
 
 
-    def read(self, delta_t=None, n_events=None) -> tuple[np.ndarray, np.ndarray]:
-        if not self.is_initialized:
-            self.init()
+    def _read(self, delta_t, n_events) -> tuple[np.ndarray, np.ndarray]:
 
 
-        if delta_t is None:
-            delta_t = self.delta_t
-        if n_events is None:
-            n_events = self.n_events
 
 
-        
-
-        if self.mode == "delta_t":
-            n_events = self.max_events
-        if self.mode == "n_events":
-            delta_t = EventReader_RAW.MAX_DELTA_T
+        # if self.mode == "delta_t":
+        #     n_events = self.max_events
+        # if self.mode == "n_events":
+        #     delta_t = EventReader_RAW.MAX_DELTA_T
     
 
         over_time = False
@@ -507,7 +499,6 @@ class EventReader_RAW(EventReader):
             split_index = np.searchsorted(self.events_buffer['t'][:self.events_buffer_len], self.events_buffer[0]['t'] + delta_t)
             n_events = split_index
 
-        print(n_events)
 
         ret_events = self.events_buffer[:n_events].copy()
         if self.events_buffer_len > n_events:
