@@ -133,12 +133,13 @@ class EventReader_HDF5(EventReader):
     def read(self, start_ms: int = 0, end_ms: int = -1) -> np.ndarray:
         if not self.is_initialized:
             self.init()
-
+        if start_ms > len(self.ms_to_idx) - 1:
+            return np.array([], dtype=Events)
         if end_ms == -1 or end_ms > self.last_ms:
             end_ms = self.last_ms
 
         assert start_ms >= 0, "start_ms must be greater or equal to 0"
-        assert start_ms < end_ms, "start_ms must be smaller than end_ms"
+        assert start_ms <= end_ms, "start_ms must be smaller than end_ms"
 
         start_idx = self.ms_to_idx[start_ms]
         end_idx = self.ms_to_idx[end_ms]
