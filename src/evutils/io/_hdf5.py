@@ -134,7 +134,7 @@ class EventReader_HDF5(EventReader):
         if not self.is_initialized:
             self.init()
         if start_ms > len(self.ms_to_idx) - 1:
-            print(f"Start time {start_ms} is greater than the highest available ms time {len(self.ms_to_idx) - 1}"
+            print(f"Start time {start_ms} is greater than the highest available ms time {len(self.ms_to_idx) - 1}")
             return np.array([], dtype=Events)
         if end_ms == -1 or end_ms > self.last_ms:
             end_ms = self.last_ms
