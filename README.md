@@ -51,6 +51,11 @@ This provides several standard types for representing Events in numpy arrays
 
 The `vis` moduels provides several methods for visualizing the events (for example as histograms), but also provides a streamlined interface for more complex visualization techneques, such as using the [E2Vid](https://github.com/uzh-rpg/rpg_e2vid) reconstructor.
 
+You need to download the pretrained weights:
+```bash
+wget "http://rpg.ifi.uzh.ch/data/E2VID/models/E2VID_lightweight.pth.tar" -O models/E2VID_lightweight.pth.tar
+```
+
 
 ```python
 from evutils.vis.reconstructor import RPG_Reconstructor
