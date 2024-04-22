@@ -66,8 +66,8 @@ class RPG_Reconstructor(Reconstructor):
         'display': False,
         'compute_voxel_grid_on_cpu': False,
         'use_cuda': True,
-        'dataset_name': 'reconstruction'
-
+        'dataset_name': 'reconstruction',
+        'model_path': "models/E2VID_lightweight.pth.tar"
     }
 
     def __init__(self, height, width, args={}):
@@ -78,8 +78,7 @@ class RPG_Reconstructor(Reconstructor):
 
         sn_args = SimpleNamespace(**args)
 
-
-        self.model = rpg_load_model("models/E2VID_lightweight.pth.tar")
+        self.model = rpg_load_model(sn_args.model_path)
         self.model.eval().to(self.device)
 
         self.no_recurrent = args['no_recurrent']
