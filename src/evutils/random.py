@@ -42,3 +42,27 @@ def random_events_generator(n_events: int, width: int = 1280, height: int = 720,
         chunk_end_ts += chunk_ts_len
 
         yield events
+
+
+def event_jitter_n(events: np.ndarray, mean: float = 0.0, std: float = 1.0, sort: bool = True) -> np.ndarray:
+    '''Adds a random jitter to the timestamps of the events'''
+
+    events["t"] += np.round(np.random.normal(mean, std, len(events))).astype(np.int64)
+
+    if sort:
+        events = np.sort(events, order="t")
+
+    return events
+
+
+def event_jitter(events: np.ndarray, jitter: int = 1.0, sort: bool = True) -> np.ndarray:
+    '''Adds a random jitter to the timestamps of the events'''
+
+    events["t"] += np.random.randint(-jitter, jitter, len(events))
+
+    if sort:
+        events = np.sort(events, order="t")
+
+    return events
+
+
