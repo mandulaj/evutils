@@ -101,7 +101,6 @@ class EventReader_Csv(EventReader):
         buffer = self.chunk_reader.get_chunk(n_events)
         
         buffer = np.array(buffer.to_records(index=False), dtype=Events)
-        print(buffer)
 
         if len(buffer) == 0:
             self.eof = True
