@@ -61,6 +61,13 @@ img = reconstructor.gen_frame(events)
 
 ```
 
+## Running tests
+
+You can run tests on using the pytest utility:
+```bash
+pytest -s
+```
+
 
 ## Acknowledgements
 

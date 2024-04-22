@@ -402,7 +402,6 @@ class EventReader_RAW(EventReader):
             
             self.events_buffer_len += n_events
             self.triggers_buffer_len += n_triggers
-            
             if msg_processed < len(input_buffer):
                 # This happens if We are in the middle of a Vect message and we need to fetch more data
                 missed_bytes = 2 * (len(input_buffer) - msg_processed)
@@ -417,8 +416,10 @@ class EventReader_RAW(EventReader):
         else:
             raise ValueError(f"Unsupported format {self.format}. Supported formats are {list(EventReader_RAW.FORMATS.keys())}")
 
+    def _read_with_triggers(self, delta_t, n_events) -> tuple[np.ndarray, np.ndarray]:
+        pass
 
-    def _read(self, delta_t, n_events) -> tuple[np.ndarray, np.ndarray]:
+    def _read(self, delta_t, n_events) -> np.ndarray:
 
 
 
@@ -457,7 +458,7 @@ class EventReader_RAW(EventReader):
             n_events = split_index
 
 
-        ret_events = self.events_buffer[:n_events].copy()
+        ret_events = self.events_buffer[:self.events_buffer_len].copy()
         if self.events_buffer_len > n_events:
 
             new_buffer_len = self.events_buffer_len - n_events
@@ -468,7 +469,9 @@ class EventReader_RAW(EventReader):
         else:
             self.events_buffer_len = 0
 
-        return ret_events, self.triggers_buffer
+
+
+        return ret_events
 
 
 

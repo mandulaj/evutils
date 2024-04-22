@@ -10,7 +10,6 @@ class EventReader():
     DEFAULT_N_EVENTS = 10_000
     DEFAULT_DELTA_T = 10_000
     def __init__(self, file, delta_t=None, n_events=None,  mode="auto", start_ts=0, max_time=1_000_000_000_000, max_events=10_000_000, width=None, height=None):
-        print("EventReader constructor")
 
         self.file = Path(file)
         self.eof = False
@@ -130,16 +129,6 @@ class EventReader():
             delta_t = self.delta_t
         if n_events is None:
             n_events = self.n_events
-
-        # if self.mode == "delta_t":
-        #     n_events = self.max_events
-        #     self._read(delta_t, n_events)
-        # elif self.mode == "n_events":
-        #     delta_t = self.max_time
-        # elif self.mode == "mixed":
-        #     pass
-        # elif self.mode == "all":
-        #     pass
 
         return self._read(delta_t, n_events)
 
