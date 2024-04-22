@@ -2,3 +2,10 @@ __pycache__
 build
 *.egg-info
 _version.py
+
+# Event types
+*.csv
+*.h5
+*.raw
+*.dat
+*.txt
