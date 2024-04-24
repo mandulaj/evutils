@@ -25,7 +25,15 @@ pip install .
 pip install -e . # Use this to install an editable version of the package
 ```
 
-## Usage 
+## API Usage 
+
+### `augment`
+
+Event augmentations
+
+### `dataset`
+
+Wrappers for various dataset loaders
 
 ### `io`
 
@@ -41,6 +49,13 @@ events = ev_file.read()
 
 ```
 
+### `utils`
+
+Various utility functions
+
+### `random`
+
+Generating random events and adding noise to event recordings
 
 ### `types`
 
