@@ -21,7 +21,7 @@ dependencies = [
     "numba",
     "pandas",
 ]
-requires-python = ">= 3.6"
+requires-python = ">= 3.9"
 keywords = ["events", "dvs", "neuromorphic", "vision", "event-based"]
 
 [tool.setuptools]
