@@ -13,14 +13,14 @@ description = "Utilities for event-based vision"
 readme = "README.md"
 license = {file = "LICENSE"}
 dependencies = [
-    "numpy",
-    "torch",
-    "tqdm",
-    "matplotlib",
-    "opencv-python",
-    "numba"
+    "numpy>=1.18",
+    "torch>=1.6",
+    "tqdm>=4.41",
+    "matplotlib>=3.1",
+    "opencv-python>=4.2",
+    "numba>=0.51",
 ]
-requires-python = ">= 3.6"
+requires-python = ">= 3.8"
 keywords = ["events", "dvs", "neuromorphic", "vision", "event-based"]
 
 [tool.setuptools]
