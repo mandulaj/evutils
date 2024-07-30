@@ -17,10 +17,10 @@ from ._txt import EventWriter_Txt
 
 
 
-class EventWriter_Any(EventWriter):
+# class EventWriter_Any(EventWriter):
 
-    def __init__(self, file, width=1280, height=720):
-        super().__init__(file, width, height)
+#     def __init__(self, file, width=1280, height=720):
+#         super().__init__(file, width, height)
 
 
 

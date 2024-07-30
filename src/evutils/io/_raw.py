@@ -242,7 +242,50 @@ def parse_evt3_buffer(input_buffer: np.ndarray, events_buffer: np.ndarray, trigg
     #     return events[:n_events], triggers[:n_ext_triggers], last_ts, last_y, i
         
 
-class EventReader_RAW(EventReader): 
+class EventReader_RAW(EventReader):
+    '''
+    Class for reading RAW files from Prophesee cameras
+
+    Parameters
+    ----------
+    file : str
+        Path to the RAW file
+    delta_t : int, optional
+        Time window in microseconds, by default None
+    n_events : int, optional
+        Number of events to read, by default None
+    max_events : int, optional
+        Maximum number of events to read at once, by default 10000000
+    mode : {"auto", "delta_t", "n_events", "mixed", "all" }, optional
+        Mode of operation, by default "auto"
+    buffer_size : int, optional
+        Size of the buffer to read events, by default 1_000_000
+    
+    Returns
+    -------
+    out : EventReader_RAW
+        EventReader_RAW instance
+
+    Raises
+    ------
+    ValueError
+        If the format in the header is not supported
+
+    Notes
+    -----
+    The class supports EVT3, EVT2.1 and EVT2 formats
+
+    References
+    ----------
+    [1] Prophesee RAW file format documentation https://docs.prophesee.ai/stable/data/file_formats/raw.html#chapter-data-file-formats-raw
+
+    Examples
+    --------
+    >>> reader = EventReader_RAW("events.raw", delta_t=10000)
+    >>> for events, triggers in reader:
+    >>>     print(events)
+
+    '''
     MAX_EVENTS_READ = 1e12
     MAX_DELTA_T = 1e12
     def __init__(self, file,  delta_t=None, n_events=None, max_events=10000000, mode="auto", buffer_size=1_000_000):
@@ -508,6 +551,44 @@ class EventReader_RAW(EventReader):
 
  
 class EventWriter_RAW(EventWriter):
+    '''
+    Class for writing RAW files from Prophesee cameras
+
+    Parameters
+    ----------
+    file : str
+        Path to the RAW file
+    width : int, optional
+        Width of the frame, by default 1280
+    height : int, optional
+        Height of the frame, by default 720
+    dt : datetime, optional
+        Timestamp of the recording (default is the current time)
+    serial : str, optional
+        Serial number of the camera, by default "00000000"
+    format : {"EVT3", "EVT2.1", "EVT2"} 
+        Format of the file, by default "EVT3"
+
+    Raises
+    ------
+    ValueError
+        If the format is not supported
+
+    Notes
+    -----
+    The class supports EVT3, EVT2.1 and EVT2 formats
+
+    References
+    ----------
+    [1] Prophesee RAW file format documentation https://docs.prophesee.ai/stable/data/file_formats/raw.html#chapter-data-file-formats-raw
+
+    Examples
+    --------
+
+    >>> writer = EventWriter_RAW("events.raw", width=1280, height=720, dt=dt.datetime.now(), serial="00000000", format="EVT3")
+    >>> writer.write(events)
+
+    '''
     FORMATS = {"EVT3": "evt 3.0", "EVT2.1": "evt 2.1", "EVT2": "evt 2.1"}
     def __init__(self, file, width=1280, height=720, dt=None, serial="00000000", format="EVT3"):
         super().__init__(file, width, height, dt)

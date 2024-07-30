@@ -4,6 +4,27 @@ import numpy as np
 
 @numba.njit
 def gen_frame(ev: np.ndarray, width: int, height: int, fill=True):
+    '''
+    Generate a frame from the events
+
+    Parameters
+    ----------
+    ev : np.ndarray
+        Array of events in the :class:`~evutils.types.Events` format
+    width : int
+        Width of the frame
+    height : int
+        Height of the frame
+    fill : bool, optional
+        If True, the non-zero values are set to 255, by default True
+    
+    Returns
+    -------
+    out : np.ndarray
+        A numpy array with the frame (height, width, 3)
+
+
+    '''
 
     buffer = np.zeros((height, width, 3), dtype=np.uint8)
 
@@ -33,6 +54,25 @@ def gen_frame(ev: np.ndarray, width: int, height: int, fill=True):
 
 @numba.njit
 def wedge_frame(ev, buffer, tl = 30e6):
+    '''
+    Generate a wedge frame frame from the events
+
+    Parameters
+    ----------
+    ev : np.ndarray
+        Array of events in the :class:`~evutils.types.Events` format
+    buffer : np.ndarray
+        A numpy array with the frame (height, width, 3)
+    tl : int, optional
+        Duration of the frame in us, by default 30e6
+    
+    Returns
+    -------
+    out : np.ndarray
+        A numpy array with the wedge frame (height, width, 3)
+
+
+    '''
     buffer[:] = 0
 
     ts_norm = (ev['t'] - ev['t'][0])/tl

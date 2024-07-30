@@ -13,6 +13,18 @@ def get_freer_gpu():
 
 
 class Reconstructor():
+    '''
+    Base class for reconstructing frames from events
+
+    Parameters
+    ----------
+    height : int
+        Height of the frame
+    width : int
+        Width of the frame
+    args : dict, optional
+        Additional arguments for the reconstructor, by default {}
+    '''
     DEFAULT_ARGS = {
         'device': "auto"
     }
@@ -31,5 +43,20 @@ class Reconstructor():
         self.width = width
 
 
-    def get_frame(events):
+    def get_frame(events: np.ndarray) -> np.ndarray:
+        '''
+        Reconstruct a frame from events
+
+        Parameters
+        ----------
+        events : np.ndarray
+            Array of events in the :class:`~evutils.types.Events` format
+
+
+        Returns
+        -------
+        np.ndarray
+            A numpy array with the frame (height, width, channels)
+
+        '''
         raise NotImplementedError

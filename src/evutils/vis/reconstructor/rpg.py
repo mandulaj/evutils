@@ -27,6 +27,24 @@ def set_inference_options(params):
 
 
 class RPG_Reconstructor(Reconstructor):
+    '''
+    Reconstructor using the E2VID model from RPG
+
+    Parameters
+    ----------
+    height : int
+        Height of the frame
+    width : int
+        Width of the frame
+    args : dict, optional
+        Additional arguments for the RPG E2Vid reconstructor, by default {}
+
+
+    References
+    ----------
+    [1] High Speed and High Dynamic Range Video with an Event Camera https://github.com/uzh-rpg/rpg_e2vid
+    '''
+
     DEFAULT_ARGS = {
         'no_recurrent': False,
         'no_normalize': False,
@@ -81,7 +99,7 @@ class RPG_Reconstructor(Reconstructor):
         self.reset_states = False
 
 
-    def update_reconstruction(self, event_tensor):
+    def _update_reconstruction(self, event_tensor):
         if isinstance(event_tensor, np.ndarray):
             event_tensor = torch.from_numpy(event_tensor)
         
@@ -157,7 +175,7 @@ class RPG_Reconstructor(Reconstructor):
                                                         device=self.device)
 
         # num_events_in_window = events.shape[0]
-        out = self.update_reconstruction(event_tensor)
+        out = self._update_reconstruction(event_tensor)
 
         # self.start_index += num_events_in_window
 
