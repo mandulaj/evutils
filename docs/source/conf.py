@@ -7,6 +7,7 @@ import os
 import sys                                                                                                        
 sys.path.insert(0, os.path.abspath('../../src'))  
 
+
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
@@ -19,6 +20,7 @@ release = 'v0.1.0'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 extensions = [                                                                                                    
     'sphinx.ext.autodoc',
+    'sphinx.ext.mathjax',  # Add this extension
     'sphinx.ext.autosummary',  # Create neat summary tables     
     'sphinx.ext.viewcode',  # Add links to highlighted source code                                                                           
     'sphinx.ext.napoleon',  # For Google style docstrings                                                         
@@ -26,7 +28,7 @@ extensions = [
 ]      
 
 templates_path = ['_templates']
-exclude_patterns = ['rpg_e2vid/*']
+exclude_patterns = ['evutils/vis/reconstructor/rpg_e2vid/*']
 
 autosummary_generate = True  # Turn on sphinx.ext.autosummary
 
@@ -34,5 +36,5 @@ autosummary_generate = True  # Turn on sphinx.ext.autosummary
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'alabaster'
+html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
