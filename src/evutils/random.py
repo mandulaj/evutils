@@ -55,9 +55,11 @@ def event_jitter_n(events: np.ndarray, mean: float = 0.0, std: float = 1.0, sort
     return events
 
 
-def event_jitter(events: np.ndarray, jitter: int = 1.0, sort: bool = True) -> np.ndarray:
+def event_jitter(events: np.ndarray, jitter: int = 1, sort: bool = True) -> np.ndarray:
     '''Adds a random jitter to the timestamps of the events'''
 
+    jitter = int(jitter)
+    
     events["t"] += np.random.randint(-jitter, jitter, len(events))
 
     if sort:

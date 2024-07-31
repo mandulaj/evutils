@@ -39,7 +39,5 @@ def test_event_jitter():
     assert not is_monotonically_increasing(ev_jitter)
 
     ev_s_jitter = event_jitter(ev.copy(), jitter=100, sort=True)
-
-    print(np.diff(ev_s_jitter["t"]))
     
     assert is_monotonically_increasing(ev_s_jitter)

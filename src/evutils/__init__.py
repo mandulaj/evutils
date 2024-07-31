@@ -8,4 +8,4 @@ except ImportError:
     __version__ = "0.0.0"
 
 
-__all__ = ['dataset', 'io', 'utils', 'vis', 'random', 'types', '__version__']
+__all__ = ['augment', 'dataset', 'io', 'utils', 'vis', 'random', 'types', '__version__']
