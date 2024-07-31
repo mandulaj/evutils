@@ -1,10 +1,10 @@
-evutils.types
-=============
+evutils.random
+==============
 
 Module contents
 ---------------
 
-.. automodule:: evutils.types
+.. automodule:: evutils.random
    :members:
    :undoc-members:
    :show-inheritance:

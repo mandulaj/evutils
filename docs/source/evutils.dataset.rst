@@ -1,10 +1,10 @@
-evutils.types
-=============
+evutils.dataset
+===============
 
 Module contents
 ---------------
 
-.. automodule:: evutils.types
+.. automodule:: evutils.dataset
    :members:
    :undoc-members:
    :show-inheritance:

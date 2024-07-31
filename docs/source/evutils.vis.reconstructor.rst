@@ -1,5 +1,5 @@
-evutils.vis.reconstructor package
-=================================
+evutils.vis.reconstructor
+=========================
 
 
 Module contents

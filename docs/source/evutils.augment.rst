@@ -1,10 +1,10 @@
-evutils.types
-=============
+evutils.augment
+===============
 
 Module contents
 ---------------
 
-.. automodule:: evutils.types
+.. automodule:: evutils.augment
    :members:
    :undoc-members:
    :show-inheritance:

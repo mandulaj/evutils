@@ -1,5 +1,5 @@
-evutils.vis package
-===================
+evutils.vis
+===========
 
 Subpackages
 -----------

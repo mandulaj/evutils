@@ -1,5 +1,5 @@
-evutils.io package
-==================
+evutils.io
+==========
 
 Tools for reading and writing event data from and to various file formats and other interactions with files.
 
