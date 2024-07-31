@@ -64,10 +64,15 @@ except ImportError as e:
 
 
 
-# class EventWriter_Any(EventWriter):
+class EventWriter_Any(EventWriter):
+    '''
+    EventReader_Any: A class to automatically detect the format of the file and write it accordingly.
 
-#     def __init__(self, file, width=1280, height=720):
-#         super().__init__(file, width, height)
+    '''
+
+    def __init__(self, file, width=1280, height=720):
+        super().__init__(file, width, height)
+        raise NotImplementedError("EventWriter_Any not implemented yet")
 
 
 

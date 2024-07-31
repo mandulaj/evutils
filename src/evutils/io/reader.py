@@ -63,23 +63,13 @@ except ImportError as e:
 
 
 
-# class EventReader_Any(EventReader):
+class EventReader_Any(EventReader):
+    '''
+    EventReader_Any: A class to automatically detect the format of the file and read it accordingly.
+    '''
 
-#     def __init__(self, file):
-#         super().__init__(file)
+    def __init__(self, file):
+        super().__init__(file)
+        raise NotImplementedError("EventReader_Any is not implemented yet")
 
 
-
-# class EventsIterator():
-#     def __init__(self, reader, delta_t=30e3, mode='mixed', n_events=1e9, relative_timestamps=False):
-#         self.reader = reader
-#         self.delta_t = delta_t
-#         self.mode = mode
-#         self.n_events = n_events
-#         self.relative_timestamps = relative_timestamps
-
-#     def __iter__(self):
-#         return self
-    
-#     def __next__(self):
-#         pass
