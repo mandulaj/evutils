@@ -292,7 +292,7 @@ class EventReader_RAW(EventReader):
         super().__init__(file=file, delta_t=delta_t, n_events=n_events, mode=mode, start_ts=start_ts, max_time=max_time, max_events=max_events, width=None, height=None)
 
 
-        self.buffer_size = max_events
+        self.raw_buffer_size = max_events
         
         self.last_ts_high_high = 0
         self.last_ts_high = 0
@@ -428,7 +428,7 @@ class EventReader_RAW(EventReader):
         # print(f"Reading buffer of size {self.buffer_size}")
 
         if self.format == "EVT3":
-            input_buffer = np.fromfile(self.fd, dtype=np.uint16, count=self.buffer_size)
+            input_buffer = np.fromfile(self.fd, dtype=np.uint16, count=self.raw_buffer_size)
             if len(input_buffer) == 0:
                 self.eof = True
                 return np.array([], dtype=Events), np.array([], dtype=Triggers)
@@ -516,10 +516,6 @@ class EventReader_RAW(EventReader):
 
         return ret_events
 
-        if self.return_triggers:
-            return ret_events, self.triggers_buffer
-        else:
-            return ret_events
 
 
 
@@ -530,7 +526,7 @@ class EventReader_RAW(EventReader):
         
 
         if self.buffer_position > len(self.buffer) or self.buffer_position == -1:
-            self.buffer = self.fd.read(2 * self.buffer_size)
+            self.buffer = self.fd.read(2 * self.raw_buffer_size)
             self.buffer_position = 0
 
         if len(self.buffer) == 0:
