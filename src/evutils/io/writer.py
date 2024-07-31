@@ -29,7 +29,7 @@ except ImportError as e:
             raise ImportError("EventWriter_Dat not available: " +  error)
 
 try:
-    from  ._hdf5 import EventWriter_HDF5
+    from ._hdf5 import EventWriter_HDF5
 except ImportError as e:
     error = str(e)
     class EventWriter_HDF5(EventWriter):

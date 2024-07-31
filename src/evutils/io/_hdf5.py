@@ -20,6 +20,21 @@ def get_idx(events, ms_to_idx, last_ms_idx, n_written_events, max_ms, offset):
 
 class EventWriter_HDF5(EventWriter):
     def __init__(self, file, width=1280, height=720, chunksize=10000):
+        '''
+        Write events to a HDF5 file
+
+        Parameters
+        ----------  
+        file : str
+            The file to write to
+        width : int, optional
+            The width of the frame
+        height : int, optional
+            The height of the frame
+        buffersize : int, optional
+            The size of the buffer, default
+        '''
+
         super().__init__(file, width, height)
 
         self.chunksize = chunksize
@@ -118,6 +133,21 @@ class EventWriter_HDF5(EventWriter):
 
 
 class EventReader_HDF5(EventReader):
+    '''
+    Read events from a HDF5 file
+
+    Parameters
+    ----------
+    file : str
+        The file to read from
+    width : int, optional
+        The width of the frame
+    height : int, optional
+        The height of the frame
+            
+    '''
+    
+
     def __init__(self, file, width=1280, height=720):
         super().__init__(file, width, height)
 
