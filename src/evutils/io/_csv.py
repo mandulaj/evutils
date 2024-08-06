@@ -7,6 +7,8 @@ import pandas as pd
 
 from ..types import Events
 
+from typing import Union
+from pathlib import Path
 
 class EventReader_Csv(EventReader):
     '''
@@ -44,7 +46,7 @@ class EventReader_Csv(EventReader):
     
     '''
 
-    def __init__(self, file,  delta_t:int=None, n_events:int=None,  mode:str="auto", start_ts:int=0,  max_time:int=1_000_000_000_000, max_events:int=10_000_000, width:int=None, height:int=None, order=['t', 'x', 'y', 'p'], header:bool=True):
+    def __init__(self, file: Union[Path, str],  delta_t:int=None, n_events:int=None,  mode:str="auto", start_ts:int=0,  max_time:int=1_000_000_000_000, max_events:int=10_000_000, width:int=None, height:int=None, order:list=['t', 'x', 'y', 'p'], header:bool=True):
         super().__init__(file=file, delta_t=delta_t, n_events=n_events, mode=mode, start_ts=start_ts, max_time=max_time, max_events=max_events, width=width, height=height)
         
         # Validate the parameters
@@ -95,7 +97,7 @@ class EventReader_Csv(EventReader):
         self.is_initialized = True
 
 
-    def _read(self, delta_t, n_events) -> np.ndarray:
+    def _read(self, delta_t:int, n_events:int) -> np.ndarray:
         # print(f"Reading from csv {delta_t}, {n_events}")
 
         buffer = self.chunk_reader.get_chunk(n_events)
@@ -138,7 +140,7 @@ class EventWriter_Csv(EventWriter):
     
     
     
-    def __init__(self, file, width=1280, height=720, sep=",", order=['t', 'x', 'y', 'p'], header=True):
+    def __init__(self, file:Union[Path, str], width:int=1280, height:int=720, sep:str=",", order:list=['t', 'x', 'y', 'p'], header:bool=True):
         super().__init__(file, width, height)
 
         if len(order) != 4:

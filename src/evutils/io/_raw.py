@@ -2,9 +2,11 @@
 
 import numpy as np
 import numba as nb
-from typing import Tuple
+from typing import Tuple, Union
 
-import datetime as dt
+from pathlib import Path
+
+from datetime import datetime
 
 from ._writer import EventWriter
 from ._reader import EventReader
@@ -289,7 +291,7 @@ class EventReader_RAW(EventReader):
     '''
     MAX_EVENTS_READ = 1e12
     MAX_DELTA_T = 1e12
-    def __init__(self, file,  delta_t=None, n_events=None,  mode="auto", start_ts=0,  max_time=1_000_000_000_000, max_events=10_000_000):
+    def __init__(self, file:Union[Path, str],  delta_t:int=None, n_events:int=None,  mode:str="auto", start_ts:int=0,  max_time:int=1_000_000_000_000, max_events:int=10_000_000):
         super().__init__(file=file, delta_t=delta_t, n_events=n_events, mode=mode, start_ts=start_ts, max_time=max_time, max_events=max_events, width=None, height=None)
 
 
@@ -306,6 +308,7 @@ class EventReader_RAW(EventReader):
         self.events_buffer_len = 0
         self.triggers_buffer = np.empty(self.max_events, dtype=Triggers)
         self.triggers_buffer_len = 0
+
     def init(self):
         self.fd = open(self.file, "rb")
 
@@ -314,7 +317,7 @@ class EventReader_RAW(EventReader):
         is_header = True
 
         self.header = {
-            "date": dt.datetime.now(),
+            "date": datetime.now(),
             "evt": None,
             "format": None,
             "generation": None,
@@ -349,7 +352,7 @@ class EventReader_RAW(EventReader):
             try:
                 if key in self.header.keys():
                     if key == "date":
-                        value = dt.datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+                        value = datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
                     elif key == "height" or key == "width" or key == "system_id":
                         value = int(value)
 
@@ -460,10 +463,10 @@ class EventReader_RAW(EventReader):
         else:
             raise ValueError(f"Unsupported format {self.format}. Supported formats are {list(EventReader_RAW.FORMATS.keys())}")
 
-    def _read_with_triggers(self, delta_t, n_events) -> tuple[np.ndarray, np.ndarray]:
+    def _read_with_triggers(self, delta_t:int, n_events:int) -> tuple[np.ndarray, np.ndarray]:
         pass
 
-    def _read(self, delta_t, n_events) -> np.ndarray:
+    def _read(self, delta_t:int, n_events:int) -> np.ndarray:
         if not self.is_initialized:
             self.init()
 
@@ -579,12 +582,12 @@ class EventWriter_RAW(EventWriter):
     Examples
     --------
 
-    >>> writer = EventWriter_RAW("events.raw", width=1280, height=720, dt=dt.datetime.now(), serial="00000000", format="EVT3")
+    >>> writer = EventWriter_RAW("events.raw", width=1280, height=720, dt=datetime.now(), serial="00000000", format="EVT3")
     >>> writer.write(events)
 
     '''
     FORMATS = {"EVT3": "evt 3.0", "EVT2.1": "evt 2.1", "EVT2": "evt 2.1"}
-    def __init__(self, file, width=1280, height=720, dt=None, serial="00000000", format="EVT3"):
+    def __init__(self, file:Union[Path, str], width:int=1280, height:int=720, dt:datetime=None, serial:str="00000000", format:str="EVT3"):
         super().__init__(file, width, height, dt)
 
         if format not in self.FORMATS.keys():

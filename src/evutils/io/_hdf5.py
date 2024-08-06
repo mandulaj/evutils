@@ -7,6 +7,8 @@ from ..types import Events
 from ._reader import EventReader
 from ._writer import EventWriter
 
+from typing import Union
+from pathlib import Path
 
 @nb.njit
 def get_idx(events, ms_to_idx, last_ms_idx, n_written_events, max_ms, offset):
@@ -19,7 +21,7 @@ def get_idx(events, ms_to_idx, last_ms_idx, n_written_events, max_ms, offset):
 
 
 class EventWriter_HDF5(EventWriter):
-    def __init__(self, file, width=1280, height=720, chunksize=10000):
+    def __init__(self, file:Union[Path, str], width:int=1280, height:int=720, chunksize:int=10000):
         '''
         Write events to a HDF5 file
 
@@ -148,7 +150,7 @@ class EventReader_HDF5(EventReader):
     '''
     
 
-    def __init__(self, file, width=1280, height=720):
+    def __init__(self, file:Union[Path, str], width:int=1280, height:int=720):
         super().__init__(file, width, height)
 
     def init(self):

@@ -1,6 +1,6 @@
 
 import numpy as np
-from typing import Tuple
+from typing import Tuple, Union
 
 from pathlib import Path
 
@@ -35,9 +35,12 @@ class EventReader():
     READING_MODES = ["delta_t", "n_events", "mixed", "all", "auto"]
     DEFAULT_N_EVENTS = 10_000
     DEFAULT_DELTA_T = 10_000
-    def __init__(self, file, delta_t=None, n_events=None,  mode="auto", start_ts=0, max_time=1_000_000_000_000, max_events=10_000_000, width=None, height=None):
+    def __init__(self, file: Union[str, Path], delta_t:int=None, n_events:int=None,  mode:str="auto", start_ts:int=0, max_time:int=1_000_000_000_000, max_events:int=10_000_000, width:int=None, height:int=None):
 
-        self.file = Path(file)
+        # if file is not a Path, convert it to a Path
+        if not isinstance(file, Path):
+            file = Path(file)
+        self.file = file
         self.eof = False
         self.fd = None 
         self.width = width

@@ -2,6 +2,10 @@
 from datetime import datetime
 import numpy as np
 
+from typing import Union
+
+from pathlib import Path
+
 class EventWriter():
     '''
     Base class for writing events to different file formats
@@ -24,8 +28,10 @@ class EventWriter():
         If the method is not implemented in the subclass
 
     '''
-    def __init__(self, file, width=1280, height=720, dt: datetime = None):
+    def __init__(self, file:Union[Path, str], width:int=1280, height:int=720, dt: datetime = None):
 
+        if not isinstance(file, Path):
+            file = Path(file)
         self.file = file
         self.fd = None 
         self.width = width
@@ -57,6 +63,12 @@ class EventWriter():
         ----------
         events : np.ndarray
             Buffer of events to write
+        '''
+        raise NotImplementedError
+    
+    def flush(self):
+        '''
+        Flush the buffer to the file
         '''
         raise NotImplementedError
     
