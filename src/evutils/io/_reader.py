@@ -236,7 +236,10 @@ class EventReader():
         if not self.is_initialized:
             self.init()
         while not self.is_eof():
-            yield self._read(self.delta_t, self.n_events)
+            try:
+                yield self._read(self.delta_t, self.n_events)
+            except StopIteration:
+                break
 
     def shape(self) -> tuple[int, int]:
         return self.width, self.height
