@@ -2,6 +2,7 @@ __pycache__
 build
 *.egg-info
 _version.py
+data
 
 # Event types
 *.csv
@@ -9,3 +10,4 @@ _version.py
 *.raw
 *.dat
 *.txt
+*.tmp_index
