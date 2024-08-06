@@ -46,3 +46,18 @@ def test_RAW_writer(tmp_path, test_events):
     events = reader.read()
 
     assert np.array_equal(events, test_events)
+
+
+def test_RAW_real_read(real_event_files):
+    # from evutils.io.reader import EventReader_RAW
+
+    print(real_event_files)
+    print("Hello")
+    assert True
+
+    # reader = EventReader_RAW(real_event_files['evt3'])
+    # events = reader.read()
+
+    # assert len(events) > 0
+    # assert len(events) == 1000
+    # assert np.array_equal(events, test_events)

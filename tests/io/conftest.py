@@ -34,3 +34,58 @@ def dummy_file_factory(tmp_path):
         return test_file_path
     # Yield the path to the test file
     return _filefactory
+
+
+
+@pytest.fixture(scope='session')
+def event_files(tmp_path_factory, test_events):
+    event_file_paths = {}
+
+    temp_dir = tmp_path_factory.mktemp("data")       
+    event_file_paths['csv'] = temp_dir / "events.csv"
+    event_file_paths['csv_noheader'] = temp_dir / "events_noheader.csv"
+    event_file_paths['csv_shuffled_columns'] = temp_dir / "events_noheader_xypt.csv"
+    event_file_paths['evt2'] = temp_dir / "events_evt2.raw"
+    event_file_paths['evt21'] = temp_dir / "events_evt21.raw"
+    event_file_paths['evt3'] = temp_dir / "events_evt3.raw"
+    event_file_paths['hdf5'] = temp_dir / "events.h5"
+    event_file_paths['dat'] = temp_dir / "events.dat"
+    event_file_paths['npz'] = temp_dir / "events.npz"
+    event_file_paths['bin'] = temp_dir / "events.bin"
+    event_file_paths['txt'] = temp_dir / "events.txt"
+    
+
+    from evutils.io.writer import EventWriter_Csv
+    with EventWriter_Csv(event_file_paths['csv']) as writer:
+        writer.write(test_events)
+    
+    from evutils.io.writer import EventWriter_RAW
+    with EventWriter_RAW(event_file_paths['evt3'], format="EVT3") as writer:
+        writer.write(test_events)
+    
+    # event_file_paths['hdf5'] = temp_dir / "events.h5"
+    # from evutils.io.writer import EventWriter_HDF5
+    # with EventWriter_HDF5(event_file_paths['hdf5']) as writer:
+    #     writer.write(test_events)
+    
+    
+    return event_file_paths
+
+
+@pytest.fixture()
+def real_event_files(cache):
+    event_file_paths = {}
+
+    temp_dir = cache.mkdir("event_files")
+
+
+    event_file_paths['evt3'] = temp_dir / "events_evt3.raw"
+
+
+    print(temp_dir)
+
+    return event_file_paths
+
+    # Download file if it does not exist
+           
+
