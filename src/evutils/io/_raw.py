@@ -563,8 +563,8 @@ class EventWriter_RAW(EventWriter):
         Timestamp of the recording (default is the current time)
     serial : str, optional
         Serial number of the camera, by default "00000000"
-    format : {"EVT3", "EVT2.1", "EVT2"} 
-        Format of the file, by default "EVT3"
+    format : {"evt3", "evt21", "evt2"} 
+        Format of the file, by default "evt3"
 
     Raises
     ------
@@ -582,19 +582,20 @@ class EventWriter_RAW(EventWriter):
     Examples
     --------
 
-    >>> writer = EventWriter_RAW("events.raw", width=1280, height=720, dt=datetime.now(), serial="00000000", format="EVT3")
+    >>> writer = EventWriter_RAW("events.raw", width=1280, height=720, dt=datetime.now(), serial="00000000", format="evt3")
     >>> writer.write(events)
 
     '''
-    FORMATS = {"EVT3": "evt 3.0", "EVT2.1": "evt 2.1", "EVT2": "evt 2.1"}
-    def __init__(self, file:Union[Path, str], width:int=1280, height:int=720, dt:datetime=None, serial:str="00000000", format:str="EVT3"):
+    FORMATS = {"evt3": "evt 3.0", "evt21": "evt 2", "evt2": "evt 2.1"}
+    def __init__(self, file:Union[Path, str], width:int=1280, height:int=720, dt:datetime=None, serial:str="00000000", format:str="evt3"):
         super().__init__(file, width, height, dt)
 
+        format = format.lower().replace(".", "")
         if format not in self.FORMATS.keys():
             raise ValueError(f"Unsupported format {format}. Supported formats are {list(EventWriter_RAW.FORMATS.keys())}")
         self.format = format
-        self.system_id = 49
 
+        self.system_id = 49
 
         self.last_upper12_ts = -1
         self.last_lower12_ts = -1
@@ -636,12 +637,16 @@ f"""% camera_integrator_name Prophesee
         if not self.is_initialized:
             self.init()
 
-        if self.format == "EVT3":
+        if self.format == "evt3":
             buffer, self.last_lower12_ts, self.last_upper12_ts, self.last_y = get_raw_evt3_buffer(
                 events, 
                 self.last_lower12_ts, 
                 self.last_upper12_ts, 
                 self.last_y)
+        elif self.format == "evt21":
+            raise NotImplementedError("EVT2.1 not implemented")
+        elif self.format == "evt2":
+            raise NotImplementedError("EVT2 not implemented")
         else:
             raise NotImplementedError(f"Unsupported format {self.format}. Supported formats are {list(EventWriter_RAW.FORMATS.keys())}")
 
