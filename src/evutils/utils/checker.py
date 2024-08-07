@@ -1,14 +1,14 @@
 
 import numpy as np
 
-from ..types import Events
+from ..types import Event_dtype
 
 
 class EventsChecker():
     """ Class to check if events are valid. """
     
     def __init__(self, events: np.ndarray):
-        if events.dtype != Events:
+        if events.dtype != Event_dtype:
             raise ValueError("events must be of type Events")
 
         self.events = events

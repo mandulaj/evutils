@@ -1,7 +1,7 @@
 import pytest
 import os
 import tempfile
-from evutils.types import Events
+from evutils.types import Event_dtype
 
 import numpy as np
 
@@ -13,7 +13,7 @@ def test_events():
     N_EVENTS = 1000
     np.random.seed(42)
 
-    test_events = np.zeros(N_EVENTS, dtype=Events)
+    test_events = np.zeros(N_EVENTS, dtype=Event_dtype)
     test_events['t'] = np.random.randint(0, 10000, N_EVENTS)
     test_events.sort(order='t')
     test_events['x'] = np.random.randint(0, 1280, N_EVENTS)

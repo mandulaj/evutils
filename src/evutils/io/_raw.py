@@ -11,7 +11,7 @@ from datetime import datetime
 from ._writer import EventWriter
 from ._reader import EventReader
 
-from ..types import Events, Triggers
+from ..types import Event_dtype, Trigger_dtype
 
 EVT3_EVT_ADDR_Y = 0x0000
 EVT3_EVT_ADDR_X = 0x2000
@@ -163,7 +163,7 @@ def parse_evt3_buffer(input_buffer: np.ndarray, events_buffer: np.ndarray, trigg
             # print("VECT_BASE_X", vect_base_x, vect_base_p, last_ts)
 
 
-            vect_events = np.empty(32, dtype=Events)
+            vect_events = np.empty(32, dtype=Event_dtype)
             vect_events['p'][:] = vect_base_p
             vect_events['y'][:] = last_y
             vect_events['t'][:] = last_ts
@@ -304,9 +304,9 @@ class EventReader_RAW(EventReader):
         self.last_y = 0
         self.format = None
 
-        self.events_buffer = np.empty(self.max_events, dtype=Events)
+        self.events_buffer = np.empty(self.max_events, dtype=Event_dtype)
         self.events_buffer_len = 0
-        self.triggers_buffer = np.empty(self.max_events, dtype=Triggers)
+        self.triggers_buffer = np.empty(self.max_events, dtype=Trigger_dtype)
         self.triggers_buffer_len = 0
 
     def init(self):
@@ -435,7 +435,7 @@ class EventReader_RAW(EventReader):
             input_buffer = np.fromfile(self.fd, dtype=np.uint16, count=self.raw_buffer_size)
             if len(input_buffer) == 0:
                 self.eof = True
-                return np.array([], dtype=Events), np.array([], dtype=Triggers)
+                return np.array([], dtype=Event_dtype), np.array([], dtype=Trigger_dtype)
             
             n_events, n_triggers, self.last_ts_high_high, self.last_ts_high, self.last_ts_low, self.last_y, self.ts_initialized, msg_processed = parse_evt3_buffer(
                     input_buffer, 
@@ -524,7 +524,7 @@ class EventReader_RAW(EventReader):
 
 
 
-        return np.array([], dtype=Events), not self.eof
+        return np.array([], dtype=Event_dtype), not self.eof
 
         
 
@@ -534,7 +534,7 @@ class EventReader_RAW(EventReader):
 
         if len(self.buffer) == 0:
             self.eof = True
-            return np.array([], dtype=Events), False
+            return np.array([], dtype=Event_dtype), False
 
         print(self.buffer)
 

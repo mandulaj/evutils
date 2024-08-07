@@ -1,12 +1,12 @@
 
 from typing import Generator
-from .types import Events
+from .types import Event_dtype
 import numpy as np 
 
 def random_events(n_events: int, width: int = 1280, height: int = 720, start_ts: int = 0, end_ts: int = 10_000_000) -> np.ndarray:
     '''Generates n_events random events with x and y coordinates in the range [0, width) and [0, height) respectively'''
     
-    events = np.empty(n_events, dtype=Events)
+    events = np.empty(n_events, dtype=Event_dtype)
     events["x"] = np.random.randint(0, width, n_events)
     events["y"] = np.random.randint(0, height, n_events)
     events["p"] = np.random.randint(0, 2, n_events)

@@ -3,7 +3,7 @@ import hdf5plugin
 import numba as nb
 import numpy as np
 
-from ..types import Events
+from ..types import Event_dtype
 from ._reader import EventReader
 from ._writer import EventWriter
 
@@ -167,7 +167,7 @@ class EventReader_HDF5(EventReader):
             self.init()
         if start_ms > len(self.ms_to_idx) - 1:
             print(f"Start time {start_ms} is greater than the highest available ms time {len(self.ms_to_idx) - 1}")
-            return np.array([], dtype=Events)
+            return np.array([], dtype=Event_dtype)
         if end_ms == -1 or end_ms > self.last_ms:
             end_ms = self.last_ms
 
@@ -183,4 +183,4 @@ class EventReader_HDF5(EventReader):
         y = self.fd["events"]["y"][start_idx:end_idx]
         p = self.fd["events"]["p"][start_idx:end_idx]
         t = self.fd["events"]["t"][start_idx:end_idx]
-        return np.array(list(zip(t, x, y, p)), dtype=Events)
+        return np.array(list(zip(t, x, y, p)), dtype=Event_dtype)

@@ -5,7 +5,7 @@ from ._reader import EventReader
 import numpy as np
 import pandas as pd
 
-from ..types import Events
+from ..types import Event_dtype
 
 from typing import Union
 from pathlib import Path
@@ -102,7 +102,7 @@ class EventReader_Csv(EventReader):
 
         buffer = self.chunk_reader.get_chunk(n_events)
         
-        buffer = np.array(buffer.to_records(index=False), dtype=Events)
+        buffer = np.array(buffer.to_records(index=False), dtype=Event_dtype)
 
         if len(buffer) == 0:
             self.eof = True
