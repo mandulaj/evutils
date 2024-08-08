@@ -9,3 +9,11 @@ except ImportError:
 
 
 __all__ = ['augment', 'dataset', 'io', 'utils', 'vis', 'random', 'types', '__version__']
+
+from . import augment
+from . import dataset
+from . import io
+from . import utils
+from . import vis
+from . import random
+from . import types
