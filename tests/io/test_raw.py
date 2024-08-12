@@ -19,6 +19,7 @@ def test_RAW_writer_import():
     assert EventWriter_RAW is not None
     test_writer = EventWriter_RAW("test.raw")
     assert test_writer is not None
+    test_writer.close()
 
 
 def test_RAW_reader_import(dummy_file_factory):
@@ -31,7 +32,7 @@ def test_RAW_reader_import(dummy_file_factory):
     assert EventReader_RAW is not None
     test_reader = EventReader_RAW(test_file)
     assert test_reader is not None
-
+    test_reader.close()
 
 ### Test RAW writer
 
@@ -42,9 +43,9 @@ def test_RAW_writer(tmp_path, test_events):
     d = tmp_path / "sub"
     d.mkdir()
     p = d / "test.raw"
-    writer = EventWriter_RAW(p)
-    writer.write(test_events)
-    writer.close()
+    with EventWriter_RAW(p) as writer:
+        writer.write(test_events)
+    
 
     # Check if the file is created
     assert p.is_file()
@@ -53,8 +54,8 @@ def test_RAW_writer(tmp_path, test_events):
     assert p.stat().st_size > 0
 
     # Check if the file can be read
-    reader = EventReader_RAW(p)
-    events = reader.read()
+    with EventReader_RAW(p) as reader:
+        events = reader.read()
 
     assert np.array_equal(events, test_events)
 
@@ -67,9 +68,8 @@ def test_RAW_writer_evt2(tmp_path, test_events):
     return
 
     p = tmp_path / "evt2.raw"
-    writer = EventWriter_RAW(p, format='evt2')
-    writer.write(test_events)
-    writer.close()
+    with EventWriter_RAW(p, format='evt2') as writer:
+        writer.write(test_events)
 
     # Check if the file is created
     assert p.is_file()
@@ -78,8 +78,8 @@ def test_RAW_writer_evt2(tmp_path, test_events):
     assert p.stat().st_size > 0
 
     # Check if the file can be read
-    reader = EventReader_RAW(p)
-    events = reader.read()
+    with EventReader_RAW(p) as reader:
+        events = reader.read()
 
     assert np.array_equal(events, test_events)
 
@@ -98,9 +98,8 @@ def test_RAW_writer_evt3(tmp_path, test_events):
     d = tmp_path / "sub"
     d.mkdir()
     p = d / "test.evt3"
-    writer = EventWriter_RAW(p)
-    writer.write(test_events)
-    writer.close()
+    with EventWriter_RAW(p) as writer:
+        writer.write(test_events)
 
     # Check if the file is created
     assert p.is_file()
@@ -109,8 +108,8 @@ def test_RAW_writer_evt3(tmp_path, test_events):
     assert p.stat().st_size > 0
 
     # Check if the file can be read
-    reader = EventReader_RAW(p)
-    events = reader.read()
+    with EventReader_RAW(p) as reader:
+        events = reader.read()
 
     assert np.array_equal(events, test_events)
 
@@ -120,13 +119,13 @@ def test_RAW_real_read(real_event_files):
 
 
     for format in ['evt3']:
-        reader = EventReader_RAW(real_event_files[format])
-        assert reader.is_initialized == False
-        events = reader.read()
-        assert reader.is_initialized == True
+        with EventReader_RAW(real_event_files[format]) as reader:
+            assert reader.is_initialized == False
+            events = reader.read()
+            assert reader.is_initialized == True
 
-        assert format == reader.format
-        assert reader.shape() == (1280, 720)
+            assert format == reader.format
+            assert reader.shape() == (1280, 720)
 
 
     # assert len(events) > 0
@@ -142,10 +141,11 @@ def test_RAW_nevents_read(real_event_files):
     for format in ['evt3']:
 
         for length in [10, 100, 1000]:
-            reader = EventReader_RAW(real_event_files[format], n_events=length)
-            events = reader.read()
+            
+            with EventReader_RAW(real_event_files[format], n_events=length) as reader:
+                events = reader.read()
 
-            assert len(events) == length
+                assert len(events) == length
 
 def test_RAW_delta_t_read(real_event_files):
     from evutils.io.reader import EventReader_RAW
@@ -155,9 +155,9 @@ def test_RAW_delta_t_read(real_event_files):
     for format in ['evt3']:
 
         for delta_t in [10, 100, 1000]:
-            reader = EventReader_RAW(real_event_files[format], delta_t=delta_t)
-            events = reader.read()
+            with EventReader_RAW(real_event_files[format], delta_t=delta_t) as reader:
+                events = reader.read()
 
-            assert len(events) > 0
-            assert len(events) == 1000
-            # assert np.array_equal(events, test_events)
+                assert len(events) > 0
+                assert len(events) == 1000
+                # assert np.array_equal(events, test_events)
