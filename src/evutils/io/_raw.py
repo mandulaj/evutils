@@ -292,6 +292,7 @@ class EventReader_RAW(EventReader):
     MAX_EVENTS_READ = 1e12
     MAX_DELTA_T = 1e12
     FORMATS = {"evt3": "evt 3.0", "evt21": "evt 2.1", "evt2": "evt 2"}
+    EVT_FORMATS = {"3.0": "evt3", "2.1": "evt21", "2.0": "evt2"}
 
     def __init__(self, file:Union[Path, str],  delta_t:int=None, n_events:int=None,  mode:str="auto", start_ts:int=0,  max_time:int=1_000_000_000_000, max_events:int=10_000_000):
         super().__init__(file=file, delta_t=delta_t, n_events=n_events, mode=mode, start_ts=start_ts, max_time=max_time, max_events=max_events, width=None, height=None)
@@ -377,10 +378,10 @@ class EventReader_RAW(EventReader):
                     self.width = int(s.split("=")[1])
                 else:
                     s = s.lower().replace(".", "")
-                    if s in self.FORMATS.keys():
+                    if s in EventReader_RAW.FORMATS.keys():
                         self.format = s
                     else:
-                        print(f"Unknown format {s}, supported formats are {list(self.FORMATS.keys())}")
+                        print(f"Unknown format {s}, supported formats are {list(EventReader_RAW.FORMATS.keys())}")
         
         if self.header["geometry"] is not None:
             split = self.header["geometry"].split("x")
@@ -396,9 +397,8 @@ class EventReader_RAW(EventReader):
         
         if self.header['evt'] is not None:
 
-            EVT_FORMATS = {"3.0": "evt3", "2.1": "evt21", "2.0": "evt2"}
-            if self.header['evt'] in EVT_FORMATS.keys():
-                format = EVT_FORMATS[self.header['evt']]
+            if self.header['evt'] in EventReader_RAW.EVT_FORMATS.keys():
+                format = EventReader_RAW.EVT_FORMATS[self.header['evt']]
 
                 if self.format is not None and self.format != format:
                     print(f"Warning: evt in header {self.header['evt']} does not match evt")
@@ -408,7 +408,7 @@ class EventReader_RAW(EventReader):
 
             else:
                 print(f"Unknown evt version {self.header['evt']}")
-                print(f"Supported evt versions are: {list(EVT_FORMATS.keys())}")
+                print(f"Supported evt versions are: {list(EventReader_RAW.EVT_FORMATS.keys())}")
         
 
         if self.format is None:
@@ -593,7 +593,7 @@ class EventWriter_RAW(EventWriter):
         super().__init__(file, width, height, dt)
 
         format = format.lower().replace(".", "")
-        if format not in self.FORMATS.keys():
+        if format not in EventWriter_RAW.FORMATS.keys():
             raise ValueError(f"Unsupported format {format}. Supported formats are {list(EventWriter_RAW.FORMATS.keys())}")
         self.format = format
 
