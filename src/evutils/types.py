@@ -29,7 +29,7 @@ Event_dtype = np.dtype([('t', np.int64), ('x', np.uint16), ('y', np.uint16), ('p
 Trigger_dtype = np.dtype([('t', np.int64), ('p', np.uint8), ('id', np.uint8)])
 
 
-class Event(ctypes.Structures):
+class Event(ctypes.Structure):
     _fields_ = [("t", ctypes.c_int64),
                 ("x", ctypes.c_uint16),
                 ("y", ctypes.c_uint16),
@@ -44,6 +44,9 @@ def is_monotonically_increasing(events: np.ndarray) -> bool:
 
 
 class Events(np.ndarray):
+    '''
+    Events
+    '''
     def __new__(cls, input_array):
         obj = np.asarray(input_array, dtype=Event_dtype).view(cls)
         print("Creating Events")
