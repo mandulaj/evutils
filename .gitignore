@@ -11,3 +11,5 @@ data
 *.dat
 *.txt
 *.tmp_index
+
+test.py
