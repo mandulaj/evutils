@@ -4,6 +4,7 @@ import tempfile
 from evutils.types import Event_dtype
 
 import numpy as np
+import subprocess
 
 @pytest.fixture(scope='session')
 def test_events():
@@ -79,10 +80,23 @@ def real_event_files(cache):
     temp_dir = cache.mkdir("event_files")
 
 
-    event_file_paths['evt3'] = temp_dir / "events_evt3.raw"
+    event_file_paths['evt3'] = temp_dir / "hand_evt3.raw"
+    event_file_paths['evt21'] = temp_dir / "hand_evt21.raw"
+    event_file_paths['evt2'] = temp_dir / "hand_evt2.raw"
 
+    for key, path in event_file_paths.items():
+        if not path.exists():
+            
+            # Download files with wget:
+            tar_url = "https://drive.usercontent.google.com/download?id=18LbJljYr5dqBmbrkm0EJs0EcddCqMKTv&confirm=t"
+            tar_file = temp_dir / "hand.tar.gz"
 
-    print(temp_dir)
+            # Download the tar file
+            subprocess.run(["wget", str(tar_url), "-O",  str(tar_file)])
+
+            # Extract the tar file
+            subprocess.run(["tar", "zxv", "-C", str(temp_dir), "-f", str(tar_file)])
+            break
 
     return event_file_paths
 

@@ -116,14 +116,48 @@ def test_RAW_writer_evt3(tmp_path, test_events):
 
 
 def test_RAW_real_read(real_event_files):
-    # from evutils.io.reader import EventReader_RAW
+    from evutils.io.reader import EventReader_RAW
 
-    print(real_event_files)
-    assert True
 
-    # reader = EventReader_RAW(real_event_files['evt3'])
-    # events = reader.read()
+    for format in ['evt3']:
+        reader = EventReader_RAW(real_event_files[format])
+        assert reader.is_initialized == False
+        events = reader.read()
+        assert reader.is_initialized == True
+
+        assert format == reader.format
+        assert reader.shape() == (1280, 720)
+
 
     # assert len(events) > 0
     # assert len(events) == 1000
     # assert np.array_equal(events, test_events)
+
+
+def test_RAW_nevents_read(real_event_files):
+    from evutils.io.reader import EventReader_RAW
+
+    return
+
+    for format in ['evt3']:
+
+        for length in [10, 100, 1000]:
+            reader = EventReader_RAW(real_event_files[format], n_events=length)
+            events = reader.read()
+
+            assert len(events) == length
+
+def test_RAW_delta_t_read(real_event_files):
+    from evutils.io.reader import EventReader_RAW
+
+    return
+
+    for format in ['evt3']:
+
+        for delta_t in [10, 100, 1000]:
+            reader = EventReader_RAW(real_event_files[format], delta_t=delta_t)
+            events = reader.read()
+
+            assert len(events) > 0
+            assert len(events) == 1000
+            # assert np.array_equal(events, test_events)
