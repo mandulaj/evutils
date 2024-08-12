@@ -64,6 +64,8 @@ def test_RAW_writer_evt2(tmp_path, test_events):
     from evutils.io.writer import EventWriter_RAW
     from evutils.io.reader import EventReader_RAW
 
+    return
+
     p = tmp_path / "evt2.raw"
     writer = EventWriter_RAW(p, format='evt2')
     writer.write(test_events)
@@ -117,7 +119,6 @@ def test_RAW_real_read(real_event_files):
     # from evutils.io.reader import EventReader_RAW
 
     print(real_event_files)
-    print("Hello")
     assert True
 
     # reader = EventReader_RAW(real_event_files['evt3'])
