@@ -33,7 +33,7 @@ class EventReader():
 
     '''
     READING_MODES = ["delta_t", "n_events", "mixed", "all", "auto"]
-    DEFAULT_N_EVENTS = 10_000
+    DEFAULT_N_EVENTS = 1_000_000
     DEFAULT_DELTA_T = 10_000
     def __init__(self, file: Union[str, Path], delta_t:int=None, n_events:int=None,  mode:str="auto", start_ts:int=0, max_time:int=1_000_000_000_000, max_events:int=10_000_000, width:int=None, height:int=None):
 
@@ -269,3 +269,14 @@ class EventReader():
         if self.fd is None:
             return 0
         return self.fd.tell()
+    
+    def progress(self) -> int:
+        '''
+        Get the current progress in the file
+
+        Returns
+        -------
+        int
+            The current progress in the file 0-1
+        '''
+        return self.tell() / self.file_size() 
