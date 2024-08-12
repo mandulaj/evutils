@@ -300,6 +300,7 @@ class EventReader_RAW(EventReader):
 
         self.raw_buffer_size = max_events
         
+        # EVT specific variables
         self.last_ts_high_high = 0
         self.last_ts_high = 0
         self.last_ts_low = 0
@@ -434,9 +435,17 @@ class EventReader_RAW(EventReader):
         # print(f"Reading buffer of size {self.buffer_size}")
 
         if self.format == "evt3":
+
+            # Read the buffer as uint16
             input_buffer = np.fromfile(self.fd, dtype=np.uint16, count=self.raw_buffer_size)
-            if len(input_buffer) == 0:
+            print(f"Reading buffer of size {len(input_buffer)}/{self.raw_buffer_size}")
+
+            
+            # We have reached the end of the file, but not nessarily the end of the buffer
+            if len(input_buffer) < self.raw_buffer_size:
                 self.eof = True
+            
+            if len(input_buffer) == 0:
                 return np.array([], dtype=Event_dtype), np.array([], dtype=Trigger_dtype)
             
             n_events, n_triggers, self.last_ts_high_high, self.last_ts_high, self.last_ts_low, self.last_y, self.ts_initialized, msg_processed = parse_evt3_buffer(
@@ -472,13 +481,9 @@ class EventReader_RAW(EventReader):
         if not self.is_initialized:
             self.init()
 
-        # if self.mode == "delta_t":
-        #     n_events = self.max_events
-        # if self.mode == "n_events":
-        #     delta_t = EventReader_RAW.MAX_DELTA_T
-    
-
         over_time = False
+
+        # print(f"Reading {n_events} events with delta_t {delta_t}")
 
     
 
