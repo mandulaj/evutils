@@ -291,6 +291,8 @@ class EventReader_RAW(EventReader):
     '''
     MAX_EVENTS_READ = 1e12
     MAX_DELTA_T = 1e12
+    FORMATS = {"evt3": "evt 3.0", "evt21": "evt 2.1", "evt2": "evt 2"}
+
     def __init__(self, file:Union[Path, str],  delta_t:int=None, n_events:int=None,  mode:str="auto", start_ts:int=0,  max_time:int=1_000_000_000_000, max_events:int=10_000_000):
         super().__init__(file=file, delta_t=delta_t, n_events=n_events, mode=mode, start_ts=start_ts, max_time=max_time, max_events=max_events, width=None, height=None)
 
@@ -374,11 +376,11 @@ class EventReader_RAW(EventReader):
                 elif s.startswith("width"):
                     self.width = int(s.split("=")[1])
                 else:
-                    if s in ["EVT2", "EVT2.1", "EVT3"]:
+                    s = s.lower().replace(".", "")
+                    if s in self.FORMATS.keys():
                         self.format = s
                     else:
-                        print(f"Unknown format {s}")
-                        print(f"Supported formats are: EVT2, EVT2.1, EVT3")
+                        print(f"Unknown format {s}, supported formats are {list(self.FORMATS.keys())}")
         
         if self.header["geometry"] is not None:
             split = self.header["geometry"].split("x")
@@ -394,9 +396,9 @@ class EventReader_RAW(EventReader):
         
         if self.header['evt'] is not None:
 
-            FORMATS = {"3.0": "EVT3", "2.1": "EVT2.1", "2.0": "EVT2"}
-            if self.header['evt'] in FORMATS.keys():
-                format = FORMATS[self.header['evt']]
+            EVT_FORMATS = {"3.0": "evt3", "2.1": "evt21", "2.0": "evt2"}
+            if self.header['evt'] in EVT_FORMATS.keys():
+                format = EVT_FORMATS[self.header['evt']]
 
                 if self.format is not None and self.format != format:
                     print(f"Warning: evt in header {self.header['evt']} does not match evt")
@@ -406,12 +408,12 @@ class EventReader_RAW(EventReader):
 
             else:
                 print(f"Unknown evt version {self.header['evt']}")
-                print(f"Supported evt versions are: {list(FORMATS.keys())}")
+                print(f"Supported evt versions are: {list(EVT_FORMATS.keys())}")
         
 
         if self.format is None:
             print(f"Error: Format not found in header, trying to use EVT3")
-            self.format = "EVT3"
+            self.format = "evt3"
 
         if self.width is None or self.height is None:
             if self.header['sensor_name'] == "IMX636":
@@ -431,7 +433,7 @@ class EventReader_RAW(EventReader):
     def __read_and_parse_buffer(self):
         # print(f"Reading buffer of size {self.buffer_size}")
 
-        if self.format == "EVT3":
+        if self.format == "evt3":
             input_buffer = np.fromfile(self.fd, dtype=np.uint16, count=self.raw_buffer_size)
             if len(input_buffer) == 0:
                 self.eof = True
@@ -456,9 +458,9 @@ class EventReader_RAW(EventReader):
                 self.fd.seek(-missed_bytes, 1)
             
             del input_buffer
-        elif self.format == "EVT2.1":
+        elif self.format == "evt21":
             raise NotImplementedError("EVT2.1 not implemented")
-        elif self.format == "EVT2":
+        elif self.format == "evt2":
             raise NotImplementedError("EVT2 not implemented")
         else:
             raise ValueError(f"Unsupported format {self.format}. Supported formats are {list(EventReader_RAW.FORMATS.keys())}")
@@ -586,7 +588,7 @@ class EventWriter_RAW(EventWriter):
     >>> writer.write(events)
 
     '''
-    FORMATS = {"evt3": "evt 3.0", "evt21": "evt 2", "evt2": "evt 2.1"}
+    FORMATS = {"evt3": "evt 3.0", "evt21": "evt 2.1", "evt2": "evt 2"}
     def __init__(self, file:Union[Path, str], width:int=1280, height:int=720, dt:datetime=None, serial:str="00000000", format:str="evt3"):
         super().__init__(file, width, height, dt)
 
