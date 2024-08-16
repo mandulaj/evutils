@@ -146,7 +146,14 @@ class EventReader():
         Initialize the reader, can be used explicitly or implicitly by the read method.
         '''
         raise NotImplementedError
+
+    def _read_delta_t(self, delta_t:int) -> np.ndarray:
+        '''Reads the next delta_t events from the file'''
+        raise NotImplementedError
     
+    def _read_n_events(self, n_events:int) -> np.ndarray:
+        '''Reads the next n_events events from the file'''
+        raise NotImplementedError
 
     def _read(self, delta_t:int, n_events:int) -> np.ndarray:
         '''Reads the next n_events or delta_t events from the file, which ever comes first and returns them as a numpy array'''
@@ -186,6 +193,9 @@ class EventReader():
 
         return self._read(delta_t, n_events)
 
+    def reset(self):
+        '''Reset reader back to the beginning of the file'''
+        raise NotImplementedError
 
     def __enter__(self):
         return self
