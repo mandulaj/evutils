@@ -4,6 +4,18 @@ from ._writer import EventWriter
 import numpy as np
 import warnings
  
+
+try:
+    from ._aedat import EventWriter_Aedat
+except ImportError as e:
+    error = str(e)
+    warnings.warn("EventWriter_Aedat not available: " +  error)
+
+    class EventWriter_Aedat(EventWriter):
+        def __init__(self, file):
+            raise ImportError("EventWriter_Aedat not available: " +  error)
+
+
 try:
     from ._bin import EventWriter_Bin
 except ImportError as e:

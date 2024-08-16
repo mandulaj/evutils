@@ -4,6 +4,18 @@ from ._reader import EventReader
 import numpy as np
 import warnings
 
+
+try:
+    from ._aedat import EventReader_Aedat
+except ImportError as e:
+    error = str(e)
+    warnings.warn("EventReader_Aedat not available: " +  error)
+
+    class EventReader_Aedat(EventReader):
+        def __init__(self, file):
+            raise ImportError("EventReader_Aedat not available: " +  error)
+
+
 try:
     from ._bin import EventReader_Bin
 except ImportError as e:
