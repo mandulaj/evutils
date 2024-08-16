@@ -3,7 +3,7 @@ requires = [
   "setuptools>=68.2",
   "wheel", 
   "setuptools_scm>=8.1.0",
-  "sphynx>=8.0.0",]
+  "sphinx>=8.0.0",]
 build-backend = "setuptools.build_meta"
 
 
