@@ -1,6 +1,6 @@
 
 from ._reader import EventReader
-
+from ._reader import EventRingBuffer
 import numpy as np
 import warnings
 

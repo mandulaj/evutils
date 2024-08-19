@@ -4,7 +4,73 @@ from typing import Tuple, Union
 
 from pathlib import Path
 
+from ..types import Event_dtype
+
 import os
+
+
+class EventRingBuffer():
+    def __init__(self, size:int, dtype=Event_dtype):
+        self.size = size
+        self.buffer = np.empty(size, dtype=dtype)
+        self.dtype = dtype
+        self.start = 0
+        self.end = 0
+    
+    def __len__(self) -> int:
+        return self.end - self.start
+    
+    @property
+    def capacity(self) -> int:
+        return self.size - self.end
+    
+    def append(self, data):
+        if len(data) > self.capacity:
+            self.rotate() # Try rotating to get more space
+
+        if self.capacity > len(data):
+            self.buffer[self.end:self.end+len(data)] = np.array(data, dtype=self.dtype)
+            self.end += len(data)
+        else:
+            raise ValueError(f"Ring Buffer is full, can't append {len(data)} elememnts when {self.capacity} space left.")
+
+    def advance(self, items:int):
+        if self.start + items > self.size:
+            raise ValueError(f"Cant advance beyond the buffer size {self.end}+{items}<{self.size}")
+        self.start += items
+
+    def view(self) -> np.ndarray:
+        return self.buffer[self.start:self.end]
+    
+    def reset(self):
+        self.start = 0
+        self.end = 0
+
+    def rotate(self):
+        cur_len = len(self)
+        self.buffer[0:cur_len] = self.view()
+        self.start = 0
+        self.end = cur_len
+
+    def __getitem__(self, key):
+        if isinstance(key, slice):
+            
+            # Deal if negative indexes
+            start_idx = self.start + key.start if key.start >= 0 else self.end + key.start
+            end_idx = self.start + key.stop if key.stop >= 0 else self.end + key.stop
+
+            assert start_idx < end_idx
+
+            return self.buffer[start_idx: end_idx: key.step]
+        elif isinstance(key, int):
+
+            idx = self.start + key if key >= 0 else self.end + key
+            
+            return self.buffer[idx]
+        else:
+            raise ValueError(f"Unsupported key in Ringbuffer {type(key)}")
+
+        
 
 class EventReader():
     '''
@@ -43,9 +109,10 @@ class EventReader():
         self.file = file
         self.eof = False
         self.fd = None 
+
         self.width = width
         self.height = height
-        self.start_ts = start_ts
+        self.start_ts = start_ts # Offset to start reading events. 0 is start of file
 
         # Maximum number of events to read and maximum time to read in a chunk
         self.max_events = max_events
@@ -69,8 +136,8 @@ class EventReader():
             raise TypeError("start_ts must be an integer")
         
 
-
-        self.mode = mode
+        
+        self.mode = mode.lower()
 
         # if mode is auto, we will try to infer the mode from the parameters
         if self.mode == "auto":
@@ -130,20 +197,32 @@ class EventReader():
         if n_events <= 0:
             raise ValueError("n_events must be positive")
         
-
+        # delta_t and n_events to read on each call
         self.delta_t = delta_t
         self.n_events = n_events
 
         self.is_initialized = False
 
-        self.n_read_events = 0
-        self.buffer_len = 0
-        self.buffer = None
+        # Internal buffer - must be initialized in the init method
+        self.buffer = EventRingBuffer(max_events)
+
+        self.n_read_events = 0 # Number of events read (not includeing events stored in buffer)
 
     
     def init(self):
         '''
         Initialize the reader, can be used explicitly or implicitly by the read method.
+        '''
+        raise NotImplementedError
+    
+    def _read_chunk(self) -> int:
+        '''
+        Reach a chunk from the file and stores it in internal buffer for further processing
+
+        Returns
+        -------
+        int
+            Number of events read from file. If file is empty, 0 is returned
         '''
         raise NotImplementedError
 
@@ -191,7 +270,39 @@ class EventReader():
         if n_events is None:
             n_events = self.n_events
 
-        return self._read(delta_t, n_events)
+        buf_to_send = None
+
+
+        start_ts = 0
+        end_ts = start_ts + delta_t # Final end_ts if we raech delta_t
+        end_idx = 0 # Where do we slice the internal ring buffer?
+        
+
+        # Gather events while we have less than delta_t time and n_events
+        while True:
+
+            events_read = self._read_chunk()
+            if events_read == 0:
+                # We have ran out of events to read
+                break
+            end_idx += events_read 
+
+            # Check n_events condition
+            if len(self.buffer) > n_events:
+                end_idx = n_events
+                break
+            
+            # # Check delta_t condition
+            if self.buffer[-1]['t'] > end_ts:
+                end_idx = np.searchsorted(self.buffer.view()['t'], end_ts)
+                break
+
+        # Grab the events to be returend and advance the buffers
+        buf_to_send = self.buffer[:end_idx].copy()
+        self.buffer.advance(end_idx)
+        self.n_read_events += end_idx
+
+        return buf_to_send
 
     def reset(self):
         '''Reset reader back to the beginning of the file'''
