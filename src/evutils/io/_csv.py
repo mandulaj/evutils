@@ -1,16 +1,17 @@
 
-from ._writer import EventWriter
-from ._reader import EventReader
+
 
 import numpy as np
 import pandas as pd
 
 from ..types import Event_dtype
 
+from ._common import EventFileReader_Base, EventFileWriter_Base
+
 from typing import Union
 from pathlib import Path
 
-class EventReader_Csv(EventReader):
+class EventFileReader_Csv(EventFileReader_Base):
     '''
     A reader for CSV files with events.
 
@@ -46,9 +47,9 @@ class EventReader_Csv(EventReader):
     
     '''
 
-    def __init__(self, file: Union[Path, str],  delta_t:int=None, n_events:int=None,  mode:str="auto", start_ts:int=0,  max_time:int=1_000_000_000_000, max_events:int=10_000_000, width:int=None, height:int=None, order:list=['t', 'x', 'y', 'p'], header:bool=True):
-        super().__init__(file=file, delta_t=delta_t, n_events=n_events, mode=mode, start_ts=start_ts, max_time=max_time, max_events=max_events, width=width, height=height)
-        
+    def __init__(self, file: Path,  order:list=['t', 'x', 'y', 'p'], header:bool=True):
+        super().__init__(file)
+
         # Validate the parameters
         if len(order) != 4:
             raise ValueError("Order must be a list of 4 strings")
@@ -59,6 +60,7 @@ class EventReader_Csv(EventReader):
         self.header = header
 
         self.chunk_reader = None
+
 
     def init(self):
         self.fd = open(self.file, "r")
@@ -97,7 +99,7 @@ class EventReader_Csv(EventReader):
         self.is_initialized = True
 
 
-    def _read(self, delta_t:int, n_events:int) -> np.ndarray:
+    def read(self, delta_t:int, n_events:int) -> np.ndarray:
         # print(f"Reading from csv {delta_t}, {n_events}")
 
         buffer = self.chunk_reader.get_chunk(n_events)
@@ -112,7 +114,7 @@ class EventReader_Csv(EventReader):
 
 
 
-class EventWriter_Csv(EventWriter):
+class EventFileWriter_Csv(EventFileWriter_Base):
     '''
     A writer for CSV files with events.
 
@@ -140,8 +142,9 @@ class EventWriter_Csv(EventWriter):
     
     
     
-    def __init__(self, file:Union[Path, str], width:int=1280, height:int=720, sep:str=",", order:list=['t', 'x', 'y', 'p'], header:bool=True):
-        super().__init__(file, width, height)
+    def __init__(self, file: Path, width:int=1280, height:int=720, sep:str=",", order:list=['t', 'x', 'y', 'p'], header:bool=True):
+        super().__init__(file)
+
 
         if len(order) != 4:
             raise ValueError("Order must be a list of 4 strings")

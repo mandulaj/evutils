@@ -9,6 +9,9 @@ from ..types import Event_dtype
 import os
 
 
+
+
+
 class EventRingBuffer():
     def __init__(self, size:int, dtype=Event_dtype):
         self.size = size
@@ -74,7 +77,7 @@ class EventRingBuffer():
 
 class EventReader():
     '''
-    Base class for reading events from different file formats
+    Class for reading events from different file formats
 
     Parameters
     ----------
@@ -101,15 +104,20 @@ class EventReader():
     READING_MODES = ["delta_t", "n_events", "mixed", "all", "auto"]
     DEFAULT_N_EVENTS = 1_000_000
     DEFAULT_DELTA_T = 10_000
-    def __init__(self, file: Union[str, Path], delta_t:int=None, n_events:int=None,  mode:str="auto", start_ts:int=0, max_time:int=1_000_000_000_000, max_events:int=10_000_000, width:int=None, height:int=None):
+    def __init__(self, file: Union[str, Path], 
+                 delta_t:int=None, 
+                 n_events:int=None,  
+                 mode:str="auto", 
+                 start_ts:int=0, 
+                 max_time:int=1_000_000_000_000, 
+                 max_events:int=10_000_000, 
+                 width:int=None, height:int=None):
 
         # if file is not a Path, convert it to a Path
         if not isinstance(file, Path):
             file = Path(file)
         self.file = file
-        self.eof = False
-        self.fd = None 
-
+    
         self.width = width
         self.height = height
         self.start_ts = start_ts # Offset to start reading events. 0 is start of file
@@ -136,7 +144,6 @@ class EventReader():
             raise TypeError("start_ts must be an integer")
         
 
-        
         self.mode = mode.lower()
 
         # if mode is auto, we will try to infer the mode from the parameters
@@ -208,36 +215,24 @@ class EventReader():
 
         self.n_read_events = 0 # Number of events read (not includeing events stored in buffer)
 
+        # File feader for differnt file types
+        self.file_reader = self._create_file_reader()
+
     
     def init(self):
         '''
         Initialize the reader, can be used explicitly or implicitly by the read method.
         '''
-        raise NotImplementedError
+        self.file_reader.init()
     
-    def _read_chunk(self) -> int:
-        '''
-        Reach a chunk from the file and stores it in internal buffer for further processing
+    def _create_file_reader(self):
+        reader_mapping = {
+            # ".raw": ,
+        }
 
-        Returns
-        -------
-        int
-            Number of events read from file. If file is empty, 0 is returned
-        '''
-        raise NotImplementedError
-
-    def _read_delta_t(self, delta_t:int) -> np.ndarray:
-        '''Reads the next delta_t events from the file'''
-        raise NotImplementedError
+        return reader_mapping
     
-    def _read_n_events(self, n_events:int) -> np.ndarray:
-        '''Reads the next n_events events from the file'''
-        raise NotImplementedError
-
-    def _read(self, delta_t:int, n_events:int) -> np.ndarray:
-        '''Reads the next n_events or delta_t events from the file, which ever comes first and returns them as a numpy array'''
-        raise NotImplementedError
-    
+   
     def read(self, delta_t:int=None, n_events:int=None) -> np.ndarray:
         '''
         Read a chunk of events from the file
@@ -281,7 +276,7 @@ class EventReader():
         # Gather events while we have less than delta_t time and n_events
         while True:
 
-            events_read = self._read_chunk()
+            events_read = self.file_reader.read_chunk()
             if events_read == 0:
                 # We have ran out of events to read
                 break
@@ -306,7 +301,7 @@ class EventReader():
 
     def reset(self):
         '''Reset reader back to the beginning of the file'''
-        raise NotImplementedError
+        self.file_reader.reset()
 
     def __enter__(self):
         return self
@@ -325,11 +320,7 @@ class EventReader():
         return self.eof
 
     def close(self):
-        '''
-        Close the file and release the resources
-        '''
-        if self.is_initialized and self.fd is not None:
-            self.fd.close()
+        self.file_reader.close()
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
