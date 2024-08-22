@@ -2,14 +2,14 @@
 
 import numpy as np
 import numba as nb
-from typing import Tuple, Union
+from typing import Tuple, Union, List
 
 from pathlib import Path
 
 from datetime import datetime
 
-from ._writer import EventWriter
-from ._reader import EventReader
+from ._common import EventFileReader, EventFileWriter
+
 
 from ..types import Event_dtype, Trigger_dtype
 
@@ -245,7 +245,7 @@ def parse_evt3_buffer(input_buffer: np.ndarray, events_buffer: np.ndarray, trigg
     #     return events[:n_events], triggers[:n_ext_triggers], last_ts, last_y, i
         
 
-class EventReader_RAW(EventReader):
+class EventFileReader_RAW(EventFileReader):
     '''
     Class for reading RAW files from Prophesee cameras
 
@@ -282,23 +282,14 @@ class EventReader_RAW(EventReader):
     ----------
     [1] Prophesee RAW file format documentation https://docs.prophesee.ai/stable/data/file_formats/raw.html#chapter-data-file-formats-raw
 
-    Examples
-    --------
-    >>> reader = EventReader_RAW("events.raw", delta_t=10000)
-    >>> for events, triggers in reader:
-    >>>     print(events)
-
     '''
     MAX_EVENTS_READ = 1e12
     MAX_DELTA_T = 1e12
     FORMATS = {"evt3": "evt 3.0", "evt21": "evt 2.1", "evt2": "evt 2"}
     EVT_FORMATS = {"3.0": "evt3", "2.1": "evt21", "2.0": "evt2"}
 
-    def __init__(self, file:Union[Path, str],  delta_t:int=None, n_events:int=None,  mode:str="auto", start_ts:int=0,  max_time:int=1_000_000_000_000, max_events:int=10_000_000):
-        super().__init__(file=file, delta_t=delta_t, n_events=n_events, mode=mode, start_ts=start_ts, max_time=max_time, max_events=max_events, width=None, height=None)
-
-
-        self.raw_buffer_size = max_events
+    def __init__(self, file:Union[Path, str], chunk_size:int=10_000_000):
+        super().__init__(file=file, chunk_size=chunk_size)
         
         # EVT specific variables
         self.last_ts_high_high = 0
@@ -308,9 +299,9 @@ class EventReader_RAW(EventReader):
         self.last_y = 0
         self.format = None
 
-        self.events_buffer = np.empty(self.max_events, dtype=Event_dtype)
+        self.events_buffer = np.empty(self.chunk_size, dtype=Event_dtype)
         self.events_buffer_len = 0
-        self.triggers_buffer = np.empty(self.max_events, dtype=Trigger_dtype)
+        self.triggers_buffer = np.empty(self.chunk_size, dtype=Trigger_dtype)
         self.triggers_buffer_len = 0
 
     def init(self):
@@ -371,7 +362,7 @@ class EventReader_RAW(EventReader):
 
         # Check Format, height and width:
         if self.header["format"] is not None:
-            split = self.header["format"].split(";")
+            split: List[str] = self.header["format"].split(";")
             for s in split:
                 if s.startswith("height"):
                     self.height = int(s.split("=")[1])
@@ -379,10 +370,10 @@ class EventReader_RAW(EventReader):
                     self.width = int(s.split("=")[1])
                 else:
                     s = s.lower().replace(".", "")
-                    if s in EventReader_RAW.FORMATS.keys():
+                    if s in EventFileReader_RAW.FORMATS.keys():
                         self.format = s
                     else:
-                        print(f"Unknown format {s}, supported formats are {list(EventReader_RAW.FORMATS.keys())}")
+                        print(f"Unknown format {s}, supported formats are {list(EventFileReader_RAW.FORMATS.keys())}")
         
         if self.header["geometry"] is not None:
             split = self.header["geometry"].split("x")
@@ -398,8 +389,8 @@ class EventReader_RAW(EventReader):
         
         if self.header['evt'] is not None:
 
-            if self.header['evt'] in EventReader_RAW.EVT_FORMATS.keys():
-                format = EventReader_RAW.EVT_FORMATS[self.header['evt']]
+            if self.header['evt'] in EventFileReader_RAW.EVT_FORMATS.keys():
+                format = EventFileReader_RAW.EVT_FORMATS[self.header['evt']]
 
                 if self.format is not None and self.format != format:
                     print(f"Warning: evt in header {self.header['evt']} does not match evt")
@@ -409,7 +400,7 @@ class EventReader_RAW(EventReader):
 
             else:
                 print(f"Unknown evt version {self.header['evt']}")
-                print(f"Supported evt versions are: {list(EventReader_RAW.EVT_FORMATS.keys())}")
+                print(f"Supported evt versions are: {list(EventFileReader_RAW.EVT_FORMATS.keys())}")
         
 
         if self.format is None:
@@ -431,18 +422,23 @@ class EventReader_RAW(EventReader):
         self.is_initialized = True
 
 
+    def read_chunk(self, delta_t_hint:int = None, n_events_hint:int = None) -> np.ndarray:
+        assert self.is_initialized, "Reader is not initialized"
+
+        events, triggers = self.__read_and_parse_buffer()
+        return events
+
+
     def __read_and_parse_buffer(self):
         # print(f"Reading buffer of size {self.buffer_size}")
 
         if self.format == "evt3":
 
             # Read the buffer as uint16
-            input_buffer = np.fromfile(self.fd, dtype=np.uint16, count=self.raw_buffer_size)
-            print(f"Reading buffer of size {len(input_buffer)}/{self.raw_buffer_size}")
-
+            input_buffer = np.fromfile(self.fd, dtype=np.uint16, count=self.chunk_size)
             
             # We have reached the end of the file, but not nessarily the end of the buffer
-            if len(input_buffer) < self.raw_buffer_size:
+            if len(input_buffer) < self.chunk_size:
                 self.eof = True
             
             if len(input_buffer) == 0:
@@ -450,21 +446,23 @@ class EventReader_RAW(EventReader):
             
             n_events, n_triggers, self.last_ts_high_high, self.last_ts_high, self.last_ts_low, self.last_y, self.ts_initialized, msg_processed = parse_evt3_buffer(
                     input_buffer, 
-                    self.events_buffer[self.events_buffer_len:],
-                    self.triggers_buffer[self.triggers_buffer_len:],
+                    self.events_buffer,
+                    self.triggers_buffer,
                     self.last_ts_high_high, 
                     self.last_ts_high, 
                     self.last_ts_low, 
                     self.last_y,
                     self.ts_initialized)
             
-            self.events_buffer_len += n_events
-            self.triggers_buffer_len += n_triggers
+            # self.events_buffer_len += n_events
+            # self.triggers_buffer_len += n_triggers
             if msg_processed < len(input_buffer):
                 # This happens if We are in the middle of a Vect message and we need to fetch more data
                 missed_bytes = 2 * (len(input_buffer) - msg_processed)
                 # print(f"Missed {missed_bytes} bytes, seeking back")
                 self.fd.seek(-missed_bytes, 1)
+            
+
             
             del input_buffer
         elif self.format == "evt21":
@@ -472,12 +470,12 @@ class EventReader_RAW(EventReader):
         elif self.format == "evt2":
             raise NotImplementedError("EVT2 not implemented")
         else:
-            raise ValueError(f"Unsupported format {self.format}. Supported formats are {list(EventReader_RAW.FORMATS.keys())}")
-
+            raise ValueError(f"Unsupported format {self.format}. Supported formats are {list(EventFileReader_RAW.FORMATS.keys())}")
+        return self.events_buffer[:n_events], self.triggers_buffer[:n_triggers]
     def _read_with_triggers(self, delta_t:int, n_events:int) -> tuple[np.ndarray, np.ndarray]:
         pass
 
-    def _read(self, delta_t:int, n_events:int) -> np.ndarray:
+    def _read_chunk(self, delta_t:int, n_events:int) -> np.ndarray:
         if not self.is_initialized:
             self.init()
 
@@ -547,15 +545,15 @@ class EventReader_RAW(EventReader):
         print(self.buffer)
 
 
-    
-    def close(self):
-        if self.is_initialized:
-            self.fd.close()
-
+    def reset(self):
+        self.fd.seek(0)
+        self.is_initialized = False
+        self.eof = False
+        
 
 
  
-class EventWriter_RAW(EventWriter):
+class EventFileWriter_RAW(EventFileWriter):
     '''
     Class for writing RAW files from Prophesee cameras
 
@@ -599,8 +597,8 @@ class EventWriter_RAW(EventWriter):
         super().__init__(file, width, height, dt)
 
         format = format.lower().replace(".", "")
-        if format not in EventWriter_RAW.FORMATS.keys():
-            raise ValueError(f"Unsupported format {format}. Supported formats are {list(EventWriter_RAW.FORMATS.keys())}")
+        if format not in EventFileWriter_RAW.FORMATS.keys():
+            raise ValueError(f"Unsupported format {format}. Supported formats are {list(EventFileWriter_RAW.FORMATS.keys())}")
         self.format = format
 
         self.system_id = 49
@@ -656,7 +654,7 @@ f"""% camera_integrator_name Prophesee
         elif self.format == "evt2":
             raise NotImplementedError("EVT2 not implemented")
         else:
-            raise NotImplementedError(f"Unsupported format {self.format}. Supported formats are {list(EventWriter_RAW.FORMATS.keys())}")
+            raise NotImplementedError(f"Unsupported format {self.format}. Supported formats are {list(EventFileWriter_RAW.FORMATS.keys())}")
 
         self.n_written_events += len(events)
 

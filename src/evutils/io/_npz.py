@@ -1,14 +1,13 @@
 
-from ._writer import EventWriter
-from ._reader import EventReader
+from ._common import EventFileReader, EventFileWriter
 
 import numpy as np
 
-class EventReader_Npz(EventReader):
+class EventFileReader_Npz(EventFileReader):
     def __init__(self, file):
         super().__init__(file)
 
 
-class EventWriter_Npz(EventWriter):
+class EventFileWriter_Npz(EventFileWriter):
     def __init__(self, file, width=1280, height=720):
-        super().__init__(file, width, height)
+        super().__init__(file)

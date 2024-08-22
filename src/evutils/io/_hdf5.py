@@ -4,8 +4,9 @@ import numba as nb
 import numpy as np
 
 from ..types import Event_dtype
-from ._reader import EventReader
-from ._writer import EventWriter
+
+from ._common import EventFileReader, EventFileWriter
+
 
 from typing import Union
 from pathlib import Path
@@ -20,7 +21,7 @@ def get_idx(events, ms_to_idx, last_ms_idx, n_written_events, max_ms, offset):
         ms_to_idx[ms] = max(idx + offset + n_written_events, 0)
 
 
-class EventWriter_HDF5(EventWriter):
+class EventFileWriter_HDF5(EventFileWriter):
     def __init__(self, file:Union[Path, str], width:int=1280, height:int=720, chunksize:int=10000):
         '''
         Write events to a HDF5 file
@@ -37,7 +38,7 @@ class EventWriter_HDF5(EventWriter):
             The size of the buffer, default
         '''
 
-        super().__init__(file, width, height)
+        super().__init__(file)
 
         self.chunksize = chunksize
 
@@ -134,7 +135,7 @@ class EventWriter_HDF5(EventWriter):
 
 
 
-class EventReader_HDF5(EventReader):
+class EventFileReader_HDF5(EventFileReader):
     '''
     Read events from a HDF5 file
 
@@ -150,8 +151,9 @@ class EventReader_HDF5(EventReader):
     '''
     
 
-    def __init__(self, file:Union[Path, str], width:int=1280, height:int=720):
-        super().__init__(file, width, height)
+    def __init__(self, file:Union[Path, str]):
+        super().__init__(file)
+
 
     def init(self):
         if self.is_initialized:

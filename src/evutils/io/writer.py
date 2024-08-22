@@ -1,104 +1,129 @@
 
-from ._writer import EventWriter
-
 import numpy as np
 import warnings
- 
+
+from ._common import  EventFileWriter
+
+from pathlib import Path
+
+
+_WRITER_MAPPING = {}
 
 try:
-    from ._aedat import EventWriter_Aedat
+    from ._aedat import EventFileWriter_Aedat
+    _WRITER_MAPPING[".aedat"] = EventFileWriter_Aedat
 except ImportError as e:
     error = str(e)
-    warnings.warn("EventWriter_Aedat not available: " +  error)
+    warnings.warn("EventFileWriter_Aedat not available: " +  error)
 
-    class EventWriter_Aedat(EventWriter):
+    class EventFileWriter_Aedat(EventFileWriter):
         def __init__(self, file):
-            raise ImportError("EventWriter_Aedat not available: " +  error)
+            raise ImportError("EventFileWriter_Aedat not available: " +  error)
 
 
 try:
-    from ._bin import EventWriter_Bin
+    from ._bin import EventFileWriter_Bin
+    _WRITER_MAPPING[".bin"] = EventFileWriter_Bin
 except ImportError as e:
     error = str(e)
-    warnings.warn("EventWriter_Bin not available: " +  error)
+    warnings.warn("EventFileWriter_Bin not available: " +  error)
 
-    class EventWriter_Bin(EventWriter):
+    class EventFileWriter_Bin(EventFileWriter):
         def __init__(self, file, width=1280, height=720):
-            raise ImportError("EventWriter_Bin not available: " +  error)
+            raise ImportError("EventFileWriter_Bin not available: " +  error)
         
 try:
-    from ._csv import EventWriter_Csv
+    from ._csv import EventFileWriter_Csv
+    _WRITER_MAPPING[".csv"] = EventFileWriter_Csv
 except ImportError as e:
     error = str(e)
-    warnings.warn("EventWriter_Csv not available: " +  error)
+    warnings.warn("EventFileWriter_Csv not available: " +  error)
     
-    class EventWriter_Csv(EventWriter):
+    class EventFileWriter_Csv(EventFileWriter):
         def __init__(self, file, width=1280, height=720):
-            raise ImportError("EventWriter_Csv not available: " +  error)
+            raise ImportError("EventFileWriter_Csv not available: " +  error)
 
 try:
-    from ._dat import EventWriter_Dat
+    from ._dat import EventFileWriter_Dat
+    _WRITER_MAPPING[".dat"] = EventFileWriter_Dat
 except ImportError as e:
     error = str(e)
-    warnings.warn("EventWriter_Dat not available: " +  error)
+    warnings.warn("EventFileWriter_Dat not available: " +  error)
 
-    class EventWriter_Dat(EventWriter):
+    class EventFileWriter_Dat(EventFileWriter):
         def __init__(self, file, width=1280, height=720):
-            raise ImportError("EventWriter_Dat not available: " +  error)
+            raise ImportError("EventFileWriter_Dat not available: " +  error)
 
 try:
-    from ._hdf5 import EventWriter_HDF5
+    from ._hdf5 import EventFileWriter_HDF5
+    _WRITER_MAPPING[".h5"] = EventFileWriter_HDF5
+    _WRITER_MAPPING[".hdf5"] = EventFileWriter_HDF5
 except ImportError as e:
     error = str(e)
-    warnings.warn("EventWriter_HDF5 not available: " +  error)
+    warnings.warn("EventFileWriter_HDF5 not available: " +  error)
 
-    class EventWriter_HDF5(EventWriter):
+    class EventFileWriter_HDF5(EventFileWriter):
         def __init__(self, file, width=1280, height=720):
-            raise ImportError("EventWriter_HDF5 not available: " +  error)
+            raise ImportError("EventFileWriter_HDF5 not available: " +  error)
 
 try:
-    from ._npz import EventWriter_Npz
+    from ._npz import EventFileWriter_Npz
+    _WRITER_MAPPING[".npz"] = EventFileWriter_Npz
 except ImportError as e:
     error = str(e)
-    warnings.warn("EventWriter_Npz not available: " +  error)
+    warnings.warn("EventFileWriter_Npz not available: " +  error)
 
-    class EventWriter_Npz(EventWriter):
+    class EventFileWriter_Npz(EventFileWriter):
         def __init__(self, file, width=1280, height=720):
-            raise ImportError("EventWriter_Npz not available: " +  error)
+            raise ImportError("EventFileWriter_Npz not available: " +  error)
 
 try:
-    from ._raw import EventWriter_RAW
+    from ._raw import EventFileWriter_RAW
+    _WRITER_MAPPING[".raw"] = EventFileWriter_RAW
 except ImportError as e:
     error = str(e)
-    warnings.warn("EventWriter_RAW not available: " +  error)
+    warnings.warn("EventFileWriter_RAW not available: " +  error)
 
-    class EventWriter_RAW(EventWriter):
+    class EventFileWriter_RAW(EventFileWriter):
         def __init__(self, file, width=1280, height=720):
-            raise ImportError("EventWriter_RAW not available: " +  error)
+            raise ImportError("EventFileWriter_RAW not available: " +  error)
 
 try:
-    from ._txt import EventWriter_Txt
+    from ._txt import EventFileWriter_Txt
+    _WRITER_MAPPING[".txt"] = EventFileWriter_Txt
 except ImportError as e:
-    warnings.warn("EventWriter_Txt not available: " +  error)
+    warnings.warn("EventFileWriter_Txt not available: " +  error)
 
     error = str(e)
-    class EventWriter_Txt(EventWriter):
+    class EventFileWriter_Txt(EventFileWriter):
         def __init__(self, file, width=1280, height=720):
-            raise ImportError("EventWriter_Txt not available: " +  error)
+            raise ImportError("EventFileWriter_Txt not available: " +  error)
 
-
-
-
-
-class EventWriter_Any(EventWriter):
+def get_file_writer(file: Path) -> EventFileWriter:
     '''
-    EventReader_Any: A class to automatically detect the format of the file and write it accordingly.
+    Get the appropriate reader for the given file
 
+    Parameters
+    ----------
+    file
+        File to read
+
+    Returns
+    -------
+    EventFileReader
+        Reader object for the file
     '''
 
-    def __init__(self, file, width=1280, height=720):
-        super().__init__(file, width, height)
-        raise NotImplementedError("EventWriter_Any not implemented yet")
+
+    ext = file.suffix.lower()
+    if ext not in _WRITER_MAPPING:
+        raise ValueError(f"File extension {ext} not supported, available extensions: {list(_WRITER_MAPPING.keys())}")
+    
+    reader_cls = _WRITER_MAPPING[ext]
+
+    return reader_cls
 
 
 
+
+__all__ = ["EventFileWriter", "EventFileWriter_Aedat", "EventFileWriter_Bin", "EventFileWriter_Csv", "EventFileWriter_Dat", "EventFileWriter_HDF5", "EventFileWriter_Npz", "EventFileWriter_RAW", "EventFileWriter_Txt", "get_file_writer"]

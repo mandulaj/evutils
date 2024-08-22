@@ -6,39 +6,29 @@ import pandas as pd
 
 from ..types import Event_dtype
 
-from ._common import EventFileReader_Base, EventFileWriter_Base
+from ._common import EventFileReader, EventFileWriter
 
 from typing import Union
 from pathlib import Path
 
-class EventFileReader_Csv(EventFileReader_Base):
+class EventFileReader_Csv(EventFileReader):
     '''
     A reader for CSV files with events.
 
     Parameters
     ----------
-    file : str
+    file
         Path to the data file
-    delta_t : int, optional
-        Time interval between events in microseconds, by default None
-    n_events : int, optional
-        Number of events to read in a chunk, by default None
-    mode : {"auto", "delta_t", "n_events", "mixed", "all" }, optional
-        Mode of operation, by default "auto"
-    start_ts : int, optional
-        Start timestamp for the events, by default 0
-    max_time : int, optional
-        Maximum timestamp to read, by default 1_000_000_000_000
-    max_events : int, optional
-        Maximum number of events to read at once, by default 10,000
-    width : int, optional
-        Width of the frame, by default None
-    height : int, optional
-        Height of the frame, by default None
-    order : list, optional
+    order
         Order of the columns in the CSV file, by default ['t', 'x', 'y', 'p']
-    header : bool, optional
+    header
         If True, the first line is considered a header, by default True
+    chunk_size
+        Size of the chunk to read, by default 10_000
+    delimiter
+        Delimiter for the CSV file, by default ","
+    engine
+        Engine to use to read the CSV file, by default 'c'
 
     Raises
     ------
@@ -47,8 +37,8 @@ class EventFileReader_Csv(EventFileReader_Base):
     
     '''
 
-    def __init__(self, file: Path,  order:list=['t', 'x', 'y', 'p'], header:bool=True):
-        super().__init__(file)
+    def __init__(self, file: Path,  order:list=['t', 'x', 'y', 'p'], header:bool=True, chunk_size:int=1_000_000, delimiter:str=",", engine='c'):
+        super().__init__(file, chunk_size)
 
         # Validate the parameters
         if len(order) != 4:
@@ -58,15 +48,14 @@ class EventFileReader_Csv(EventFileReader_Base):
         
         self.order = order
         self.header = header
+        self.delimiter = delimiter
+        self.engine = engine
 
         self.chunk_reader = None
 
-
-    def init(self):
-        self.fd = open(self.file, "r")
-
+    def _skip_header(self):
         # Check first line to see if it is a header
-        first_line = self.fd.readline()
+        first_line: str = self.fd.readline()
 
         # Check if the first line is a header
         # If we find a header, it will take precendence over the order parameter
@@ -93,28 +82,42 @@ class EventFileReader_Csv(EventFileReader_Base):
 
 
 
-        self.chunk_reader = pd.read_csv(self.fd, iterator=True, header=None, names=self.order, engine='c',  dtype={"t":"u8", "p":"u1", "x":"u2","y":"u2"})
+    def init(self):
+        self.fd = open(self.file, "r")
+
+        self._skip_header()
+
+        self.chunk_reader = pd.read_csv(self.fd, iterator=True, header=None, names=self.order, engine=self.engine, delimiter=self.delimiter,  dtype={"t":"u8", "p":"u1", "x":"u2","y":"u2"})
 
         # self.numpy_reader = np.fromtxt(self.fd, delimiter=",", dtype=np.uint64)
         self.is_initialized = True
 
 
-    def read(self, delta_t:int, n_events:int) -> np.ndarray:
-        # print(f"Reading from csv {delta_t}, {n_events}")
+    def read_chunk(self, delta_t_hint:int = None, n_events_hint:int = None) -> np.ndarray:
+        assert self.is_initialized, "Reader is not initialized"
+        # We can use the n_events_hint to read exactly n_events
+        n_events_hint = None
+        if not n_events_hint is None:
+            chunk_size = n_events_hint
+        else:
+            chunk_size = self.chunk_size
 
-        buffer = self.chunk_reader.get_chunk(n_events)
+        try:
+            buffer = self.chunk_reader.get_chunk(chunk_size)
         
-        buffer = np.array(buffer.to_records(index=False), dtype=Event_dtype)
-
-        if len(buffer) == 0:
+            buffer = np.array(buffer[['t', 'x', 'y', 'p']].to_records(index=False), dtype=Event_dtype)
+        except StopIteration:
+            buffer = np.array([], dtype=Event_dtype)
             self.eof = True
+
         return buffer
 
 
+    def reset(self):
+        self.fd.seek(0)
+        self._skip_header()
 
-
-
-class EventFileWriter_Csv(EventFileWriter_Base):
+class EventFileWriter_Csv(EventFileWriter):
     '''
     A writer for CSV files with events.
 

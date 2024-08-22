@@ -1,25 +1,94 @@
 from abc import ABC, abstractmethod
-
 import numpy as np
 from pathlib import Path
 
 import os
+from datetime import datetime
+
+from typing import Optional, IO                                                                                                  
+
 
 class EventFileReader_Base(ABC):
-    def __init__(self, file: Path):
-        self.file = file
-        self.fd = None
-        
-        self.is_initialized = False
-
-
+    @abstractmethod
+    def init(self):
+        '''
+        Initialize the file for reading
+        '''
+        raise NotImplementedError
 
     @abstractmethod
-    def read_chunk(self) -> np.ndarray:
+    def read_chunk(self, delta_t_hint:int = None, n_events_hint:int = None) -> np.ndarray:
         '''
         Read a chunk of events
         '''
         raise NotImplementedError
+    
+    @abstractmethod
+    def close(self):
+        '''
+        Close the file and release the resources
+        '''
+        raise NotImplementedError
+    
+    @abstractmethod
+    def tell(self) -> int:
+        '''
+        Get the current position in the file
+
+        Returns
+        -------
+        int
+            The current position in the file
+        '''
+        raise NotImplementedError
+    
+    @abstractmethod
+    def file_size(self) -> int:
+        '''
+        Get the size of the file in bytes
+
+        Returns
+        -------
+        int
+            The size of the file in bytes
+        '''
+        raise NotImplementedError
+    
+    @abstractmethod
+    def reset(self):
+        '''
+        Reset the file pointer to the beginning of the file
+        '''
+        raise NotImplementedError
+
+
+class EventFileReader(EventFileReader_Base):
+    '''
+    ABC for reading chunks of events from a file format
+
+    Parameters
+    ----------
+    file
+        Path to the data file
+    chunk_size
+        Size of the chunk to read
+    
+    Raises
+    ------
+   
+    NotImplementedError
+        If the method is not implemented in the subclass
+
+    '''
+    def __init__(self, file: Path, chunk_size:int):
+        self.file = file
+        self.fd: Optional[IO] = None
+        
+        self.is_initialized = False
+
+        self.chunk_size = chunk_size
+
+        self.eof = False
     
     def tell(self) -> int:
         '''
@@ -43,22 +112,20 @@ class EventFileReader_Base(ABC):
         int
             The size of the file in bytes
         '''
-
-
         return os.stat(self.file).st_size
     
-    def progress(self) -> int:
+    def set_chunk_size(self, chunk_size:int):
         '''
-        Get the current progress in the file
+        Set the chunk size
 
-        Returns
-        -------
-        int
-            The current progress in the file 0-1
+        Parameters
+        ----------
+        chunk_size
+            Size of the chunk to read
         '''
-        return self.tell() / self.file_size() 
+        self.chunk_size = chunk_size
+        
 
-    
     def close(self):
         '''
         Close the file and release the resources
@@ -66,25 +133,39 @@ class EventFileReader_Base(ABC):
         if self.is_initialized and self.fd is not None:
             self.fd.close()
 
-
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
+    
+    def __repr__(self) -> str:
+            if self.is_initialized:
+                is_initialized_txt = "initialized"
+            else:
+                is_initialized_txt = "not initialized"
+            return f"{self.__class__}(file={self.file} - {is_initialized_txt})"
 
+    def is_eof(self) -> bool:
+        '''
+        Check if the end of the file has been reached
 
+        Returns
+        -------
+        bool
+            True if the end of the file has been reached
+        '''
+        return self.eof
+    
 class EventFileWriter_Base(ABC):
-    def __init__(self, file: Path):
-        self.file = file
-        self.fd = None
-
-        self.n_written_events = 0
-        self.is_initialized = False
-
-
-
+    @abstractmethod
+    def init(self):
+        '''
+        Initialize the file for writing
+        '''
+        raise NotImplementedError
+    
     @abstractmethod
     def write(self, events: np.ndarray) -> np.ndarray:
         '''
-        Read a chunk of events
+        Write a chunk of events
         '''
         raise NotImplementedError
     
@@ -95,6 +176,53 @@ class EventFileWriter_Base(ABC):
         '''
         raise NotImplementedError
     
+    @abstractmethod
+    def close(self):
+        '''
+        Close the file and release the resources
+        '''
+        raise NotImplementedError
+
+
+
+class EventFileWriter(EventFileWriter_Base):
+    '''
+    ABC for writing chunks of events to a file format
+
+    Parameters
+    ----------
+    file : Path
+        Path to the data file
+    width : int, optional
+        Width of the frame, by default 1280 (not relevant for some formats)
+    height : int, optional
+        Height of the frame, by default 720 (not relevant for some formats)
+    dt : datetime, optional
+        Timestamp of the recording (default is the current time, but information is not saved in all formats)
+    
+    
+    Raises
+    ------
+    NotImplementedError
+        If the method is not implemented in the subclass
+
+    '''
+    def __init__(self, file: Path, width:int = 1280, height:int = 720, dt:Optional[datetime]=None ):
+        self.file = file
+        self.fd: Optional[IO]  = None
+
+        self.width = width
+        self.height = height
+
+
+        self.n_written_events = 0
+        self.is_initialized = False
+
+        if dt is None:
+            self.dt = datetime.now()
+        else:
+            self.dt = dt
+
 
     def close(self):
         '''
@@ -114,3 +242,11 @@ class EventFileWriter_Base(ABC):
     
     def __enter__(self):
         return self
+    
+
+    def __repr__(self) -> str:
+        if self.is_initialized:
+            is_initialized_txt = f"Written {self.n_written_events} events"
+        else:
+            is_initialized_txt = "not initialized"
+        return f"{self.__class__.__name__}(file={self.file} - {is_initialized_txt}, {self.width}x{self.height})"
