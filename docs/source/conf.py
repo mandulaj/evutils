@@ -32,9 +32,15 @@ exclude_patterns = ['evutils/vis/reconstructor/rpg_e2vid/*']
 
 autosummary_generate = True  # Turn on sphinx.ext.autosummary
 
+# Type hints
+autodoc_typehints = "description"
+always_use_bars_union = True
+typehints_defaults = "comma"
+
+autodoc_member_order = 'bysource'
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = 'sphinx_rtd_theme'
-html_static_path = ['_static']
+# html_static_path = ['_static']
