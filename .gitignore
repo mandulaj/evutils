@@ -8,8 +8,11 @@ data
 *.csv
 *.h5
 *.raw
+*.bias
 *.dat
 *.txt
 *.tmp_index
-
+*.prof
+*.svg
+*.data
 test.py
