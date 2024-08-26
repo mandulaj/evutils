@@ -1,17 +1,14 @@
 
 
-import numpy as np
-import numba as nb
-from typing import Tuple, Union, List
-
-from pathlib import Path
-
 from datetime import datetime
+from pathlib import Path
+from typing import List, Tuple, Union
 
-from ._common import EventFileReader, EventFileWriter
-
+import numba as nb
+import numpy as np
 
 from ..types import Event_dtype, Trigger_dtype
+from ._common import EventFileReader, EventFileWriter
 
 EVT3_EVT_ADDR_Y = 0x0000
 EVT3_EVT_ADDR_X = 0x2000
@@ -48,16 +45,16 @@ def get_raw_evt3_buffer(events: np.ndarray, last_lower12_ts: int, last_upper12_t
         if upper12_ts != last_upper12_ts:
             last_upper12_ts = upper12_ts
             value = EVT3_EVT_TIME_HIGH | (upper12_ts & 0xFFF)
-            
+
             buffer[i] = value & 0xFF
             buffer[i+1] = (value >> 8) & 0xFF
             i += 2
-        
+
         # EVT_TIME_LOW - Updates the lower 12-bit portion of the 24-bit time base ‘0110’
         if lower12_ts != last_lower12_ts:
-            last_lower12_ts = lower12_ts 
+            last_lower12_ts = lower12_ts
             value = EVT3_EVT_TIME_LOW | (lower12_ts & 0xFFF)
-            
+
             buffer[i] = value & 0xFF
             buffer[i+1] = (value >> 8) & 0xFF
             i += 2
@@ -66,14 +63,14 @@ def get_raw_evt3_buffer(events: np.ndarray, last_lower12_ts: int, last_upper12_t
         if last_y != ev['y']:
             last_y = ev['y']
             value = (EVT3_EVT_ADDR_Y | master_slave | (int(ev['y']) & 0x7FF))
-            
+
             buffer[i] = value & 0xFF
             buffer[i+1] = (value >> 8) & 0xFF
             i += 2
-        
+
         # EVT_ADDR_X - Single valid event, X coordinate and polarity ‘0010’
         value = EVT3_EVT_ADDR_X | (int(ev['x']) & 0x7FF) | ((int(ev['p']) & 0x01) << 11)
-        
+
         buffer[i] = value & 0xFF
         buffer[i+1] = (value >> 8) & 0xFF
         i += 2
@@ -112,7 +109,7 @@ def parse_evt3_buffer(input_buffer: np.ndarray, events_buffer: np.ndarray, trigg
 
 
         # EVT_TIME_HIGH - Updates the higher 12-bit portion of the 24-bit time base ‘1000’
-        if packet_type == EVT3_EVT_TIME_HIGH: 
+        if packet_type == EVT3_EVT_TIME_HIGH:
             if last_ts_high > packet_value:
                 # Overflow
                 # print("High Overflow detected")
@@ -120,7 +117,7 @@ def parse_evt3_buffer(input_buffer: np.ndarray, events_buffer: np.ndarray, trigg
 
             last_ts_high = packet_value
             # print(f"EVT_TIME_HIGH {last_ts_high} - {packet_value} {packet_value << 12} {value:04x}")
-        
+
         # EVT_TIME_LOW - Updates the lower 12-bit portion of the 24-bit time base ‘0110’
         elif packet_type == EVT3_EVT_TIME_LOW:
             # if last_ts_low > packet_value:
@@ -129,7 +126,7 @@ def parse_evt3_buffer(input_buffer: np.ndarray, events_buffer: np.ndarray, trigg
             #     last_ts_high += 1
             last_ts_low = packet_value
             # print(f"EVT_TIME_LOW {last_ts_low} - {last_ts_high_high | last_ts_high | last_ts_low} {value:04x}")
-        
+
         # EVT_ADDR_Y - Y coordinate, and system type (master/slave camera) ‘0000’
         elif packet_type == EVT3_EVT_ADDR_Y:
             last_y = packet_value & 0x7FF
@@ -139,20 +136,20 @@ def parse_evt3_buffer(input_buffer: np.ndarray, events_buffer: np.ndarray, trigg
             x = packet_value & 0x7FF
             p = 1 if (packet_value & 0x0800) else 0
             last_ts = (last_ts_high_high << 24) | (last_ts_high << 12) | last_ts_low
- 
+
             # print(f"Event: {last_ts}, {x}, {last_y}, {p}")
-            events_buffer[n_events]['t'] = last_ts 
-            events_buffer[n_events]['x'] = x 
-            events_buffer[n_events]['y'] = last_y 
-            events_buffer[n_events]['p'] = p 
-            
+            events_buffer[n_events]['t'] = last_ts
+            events_buffer[n_events]['x'] = x
+            events_buffer[n_events]['y'] = last_y
+            events_buffer[n_events]['p'] = p
+
             n_events += 1
         elif packet_type == EVT3_VECT_BASE_X:
             last_ts = last_ts = (last_ts_high_high << 24) | (last_ts_high << 12) | last_ts_low
             vect_base_x = packet_value & 0x7FF
             vect_base_p = (packet_value & 0x0800) >> 11
 
-            
+
             if not i + 4 < len(input_buffer):
                 # print("Warning: Buffer is too small for VECT_BASE_X")
                 # buffer_too_small = True
@@ -170,18 +167,18 @@ def parse_evt3_buffer(input_buffer: np.ndarray, events_buffer: np.ndarray, trigg
             vect_events['x'][:] = np.arange(32) + vect_base_x
 
             valid = np.zeros(32, dtype=np.uint8)
-            
-          
+
+
             value12_1 = input_buffer[i+1]
             if value12_1 & 0xF000 != EVT3_VECT_12:
                 # print(f"Warning: Expected VECT_12, got {value12_1:04x}")
                 i += 2
                 continue
-            
+
 
             for pos, bit in enumerate(range(0, 12)):
                 valid[bit] = (value12_1 >> pos) & 0x01
-            
+
             value12_2 = input_buffer[i+2]
             if value12_2 & 0xF000 != EVT3_VECT_12:
                 # print(f"Warning: Expected VECT_12, got {value12_1:04x}")
@@ -217,14 +214,14 @@ def parse_evt3_buffer(input_buffer: np.ndarray, events_buffer: np.ndarray, trigg
             # print(f"EXT_TRIGGER {packet_value:04x}")
             last_ts = (last_ts_high_high << 24) | (last_ts_high << 12) | last_ts_low
             p = 0x01 & packet_value
-            
+
             # Channel ID bits 8..11
             id = (packet_value >> 8) & 0x0F
 
             triggers_buffer[n_ext_triggers]['t'] = last_ts
             triggers_buffer[n_ext_triggers]['p'] = p
             triggers_buffer[n_ext_triggers]['id'] = id
-            
+
             n_ext_triggers += 1
         elif packet_type == EVT3_OTHERS:
             # print(f"OTHERS {packet_value:04x}")
@@ -239,11 +236,11 @@ def parse_evt3_buffer(input_buffer: np.ndarray, events_buffer: np.ndarray, trigg
             # print(f"Unknown value {value:04x}")
             pass
         i += 1
-    
+
     return n_events, n_ext_triggers, last_ts_high_high, last_ts_high, last_ts_low, last_y, ts_initialized, i
     # else:
     #     return events[:n_events], triggers[:n_ext_triggers], last_ts, last_y, i
-        
+
 
 class EventFileReader_RAW(EventFileReader):
     '''
@@ -263,7 +260,7 @@ class EventFileReader_RAW(EventFileReader):
         Mode of operation, by default "auto"
     buffer_size : int, optional
         Size of the buffer to read events, by default 1_000_000
-    
+
     Returns
     -------
     out : EventReader_RAW
@@ -290,7 +287,7 @@ class EventFileReader_RAW(EventFileReader):
 
     def __init__(self, file:Union[Path, str], chunk_size:int=10_000_000):
         super().__init__(file=file, chunk_size=chunk_size)
-        
+
         # EVT specific variables
         self.last_ts_high_high = 0
         self.last_ts_high = 0
@@ -327,7 +324,7 @@ class EventFileReader_RAW(EventFileReader):
             "plugin_integrator_name": None,
         }
 
-        
+
 
         while is_header:
             pos = self.fd.tell()
@@ -339,7 +336,7 @@ class EventFileReader_RAW(EventFileReader):
                 is_header = False
                 self.fd.seek(pos)
                 break
-            
+
             split = line.decode('utf-8').strip().split(" ")
             key = split[1].lower()
             value = " ".join(split[2:])
@@ -358,7 +355,7 @@ class EventFileReader_RAW(EventFileReader):
                     print(f"Line: {line}")
             except ValueError:
                 print(f"Error parsing line: {line}")
-        
+
 
         # Check Format, height and width:
         if self.header["format"] is not None:
@@ -374,19 +371,19 @@ class EventFileReader_RAW(EventFileReader):
                         self.format = s
                     else:
                         print(f"Unknown format {s}, supported formats are {list(EventFileReader_RAW.FORMATS.keys())}")
-        
+
         if self.header["geometry"] is not None:
             split = self.header["geometry"].split("x")
             if len(split) != 2:
                 raise ValueError(f"Invalid geometry {self.header['geometry']}")
-            
+
             if self.width is not None and self.height is not None:
                 if self.width != int(split[0]) or self.height != int(split[1]):
                     print(f"Warning: Geometry in header {self.header['geometry']} does not match width/height")
                     print(f"Setting width/height to {split[0]}x{split[1]}")
             self.width = int(split[0])
             self.height = int(split[1])
-        
+
         if self.header['evt'] is not None:
 
             if self.header['evt'] in EventFileReader_RAW.EVT_FORMATS.keys():
@@ -396,12 +393,12 @@ class EventFileReader_RAW(EventFileReader):
                     print(f"Warning: evt in header {self.header['evt']} does not match evt")
                     print(f"Setting evt to {format}")
                     self.format = format
-                
+
 
             else:
                 print(f"Unknown evt version {self.header['evt']}")
                 print(f"Supported evt versions are: {list(EventFileReader_RAW.EVT_FORMATS.keys())}")
-        
+
 
         if self.format is None:
             print(f"Error: Format not found in header, trying to use EVT3")
@@ -411,7 +408,7 @@ class EventFileReader_RAW(EventFileReader):
             if self.header['sensor_name'] == "IMX636":
                 self.width = 1280
                 self.height = 720
-        
+
         if self.width is None or self.width < 0 or self.width > 2048:
             print(f"Error: Valid Width not found in header, setting to 2048")
             self.width = 2048
@@ -436,24 +433,24 @@ class EventFileReader_RAW(EventFileReader):
 
             # Read the buffer as uint16
             input_buffer = np.fromfile(self.fd, dtype=np.uint16, count=self.chunk_size)
-            
+
             # We have reached the end of the file, but not nessarily the end of the buffer
             if len(input_buffer) < self.chunk_size:
                 self.eof = True
-            
+
             if len(input_buffer) == 0:
                 return np.array([], dtype=Event_dtype), np.array([], dtype=Trigger_dtype)
-            
+
             n_events, n_triggers, self.last_ts_high_high, self.last_ts_high, self.last_ts_low, self.last_y, self.ts_initialized, msg_processed = parse_evt3_buffer(
-                    input_buffer, 
+                    input_buffer,
                     self.events_buffer,
                     self.triggers_buffer,
-                    self.last_ts_high_high, 
-                    self.last_ts_high, 
-                    self.last_ts_low, 
+                    self.last_ts_high_high,
+                    self.last_ts_high,
+                    self.last_ts_low,
                     self.last_y,
                     self.ts_initialized)
-            
+
             # self.events_buffer_len += n_events
             # self.triggers_buffer_len += n_triggers
             if msg_processed < len(input_buffer):
@@ -461,9 +458,9 @@ class EventFileReader_RAW(EventFileReader):
                 missed_bytes = 2 * (len(input_buffer) - msg_processed)
                 # print(f"Missed {missed_bytes} bytes, seeking back")
                 self.fd.seek(-missed_bytes, 1)
-            
 
-            
+
+
             del input_buffer
         elif self.format == "evt21":
             raise NotImplementedError("EVT2.1 not implemented")
@@ -484,12 +481,12 @@ class EventFileReader_RAW(EventFileReader):
         # print(f"Reading {n_events} events with delta_t {delta_t}")
 
 
-    
+
 
         while self.events_buffer_len < n_events and self.eof == False:
             if self.events_buffer_len > 2 and (self.events_buffer[self.events_buffer_len-1]['t'] - self.events_buffer[0]['t']) > delta_t:
                 over_time = True
-                break 
+                break
 
             # print(f"Buffer size: {len(self.events_buffer)}, {n_events} events needed")
             self.__read_and_parse_buffer()
@@ -497,14 +494,14 @@ class EventFileReader_RAW(EventFileReader):
             # self.events_buffer = events
             # self.triggers_buffer = triggers
 
-           
-         
+
+
             # print(f"Added to buffer Buffer size: {len(self.events_buffer)}")
 
 
 
 
-        
+
         if over_time:
             split_index = np.searchsorted(self.events_buffer['t'][:self.events_buffer_len], self.events_buffer[0]['t'] + delta_t)
             n_events = split_index
@@ -532,7 +529,7 @@ class EventFileReader_RAW(EventFileReader):
 
         return np.array([], dtype=Event_dtype), not self.eof
 
-        
+
 
         if self.buffer_position > len(self.buffer) or self.buffer_position == -1:
             self.buffer = self.fd.read(2 * self.raw_buffer_size)
@@ -549,10 +546,10 @@ class EventFileReader_RAW(EventFileReader):
         self.fd.seek(0)
         self.is_initialized = False
         self.eof = False
-        
 
 
- 
+
+
 class EventFileWriter_RAW(EventFileWriter):
     '''
     Class for writing RAW files from Prophesee cameras
@@ -569,7 +566,7 @@ class EventFileWriter_RAW(EventFileWriter):
         Timestamp of the recording (default is the current time)
     serial : str, optional
         Serial number of the camera, by default "00000000"
-    format : {"evt3", "evt21", "evt2"} 
+    format : {"evt3", "evt21", "evt2"}
         Format of the file, by default "evt3"
 
     Raises
@@ -608,13 +605,13 @@ class EventFileWriter_RAW(EventFileWriter):
         self.last_y  = -1
 
         self.serial_number = serial
-       
+
         self.formatted_datetime = self.dt.strftime("%Y-%m-%d %H:%M:%S")
 
     def init(self):
         if self.is_initialized:
             return
-        
+
         self.fd = open(self.file, "wb")
 
         self.fd.write(
@@ -633,7 +630,7 @@ f"""% camera_integrator_name Prophesee
 % end
 """.encode('utf-8'))
         self.is_initialized = True
-        
+
     def close(self):
         if self.is_initialized:
             self.fd.close()
@@ -645,9 +642,9 @@ f"""% camera_integrator_name Prophesee
 
         if self.format == "evt3":
             buffer, self.last_lower12_ts, self.last_upper12_ts, self.last_y = get_raw_evt3_buffer(
-                events, 
-                self.last_lower12_ts, 
-                self.last_upper12_ts, 
+                events,
+                self.last_lower12_ts,
+                self.last_upper12_ts,
                 self.last_y)
         elif self.format == "evt21":
             raise NotImplementedError("EVT2.1 not implemented")

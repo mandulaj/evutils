@@ -1,11 +1,10 @@
-from abc import ABC, abstractmethod
-import numpy as np
-from pathlib import Path
-
 import os
+from abc import ABC, abstractmethod
 from datetime import datetime
+from pathlib import Path
+from typing import IO, Optional
 
-from typing import Optional, IO                                                                                                  
+import numpy as np
 
 
 class EventFileReader_Base(ABC):
@@ -22,14 +21,14 @@ class EventFileReader_Base(ABC):
         Read a chunk of events
         '''
         raise NotImplementedError
-    
+
     @abstractmethod
     def close(self):
         '''
         Close the file and release the resources
         '''
         raise NotImplementedError
-    
+
     @abstractmethod
     def tell(self) -> int:
         '''
@@ -41,7 +40,7 @@ class EventFileReader_Base(ABC):
             The current position in the file
         '''
         raise NotImplementedError
-    
+
     @abstractmethod
     def file_size(self) -> int:
         '''
@@ -53,7 +52,7 @@ class EventFileReader_Base(ABC):
             The size of the file in bytes
         '''
         raise NotImplementedError
-    
+
     @abstractmethod
     def reset(self):
         '''
@@ -72,10 +71,10 @@ class EventFileReader(EventFileReader_Base):
         Path to the data file
     chunk_size
         Size of the chunk to read
-    
+
     Raises
     ------
-   
+
     NotImplementedError
         If the method is not implemented in the subclass
 
@@ -83,13 +82,13 @@ class EventFileReader(EventFileReader_Base):
     def __init__(self, file: Path, chunk_size:int):
         self.file = file
         self.fd: Optional[IO] = None
-        
+
         self.is_initialized = False
 
         self.chunk_size = chunk_size
 
         self.eof = False
-    
+
     def tell(self) -> int:
         '''
         Get the current position in the file
@@ -102,7 +101,7 @@ class EventFileReader(EventFileReader_Base):
         if self.fd is None:
             return 0
         return self.fd.tell()
-    
+
     def file_size(self) -> int:
         '''
         Get the size of the file in bytes
@@ -113,7 +112,7 @@ class EventFileReader(EventFileReader_Base):
             The size of the file in bytes
         '''
         return os.stat(self.file).st_size
-    
+
     def set_chunk_size(self, chunk_size:int):
         '''
         Set the chunk size
@@ -124,7 +123,7 @@ class EventFileReader(EventFileReader_Base):
             Size of the chunk to read
         '''
         self.chunk_size = chunk_size
-        
+
 
     def close(self):
         '''
@@ -135,7 +134,7 @@ class EventFileReader(EventFileReader_Base):
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
-    
+
     def __repr__(self) -> str:
             if self.is_initialized:
                 is_initialized_txt = "initialized"
@@ -153,7 +152,7 @@ class EventFileReader(EventFileReader_Base):
             True if the end of the file has been reached
         '''
         return self.eof
-    
+
 class EventFileWriter_Base(ABC):
     @abstractmethod
     def init(self):
@@ -161,21 +160,21 @@ class EventFileWriter_Base(ABC):
         Initialize the file for writing
         '''
         raise NotImplementedError
-    
+
     @abstractmethod
-    def write(self, events: np.ndarray) -> np.ndarray:
+    def write(self, events: np.ndarray):
         '''
         Write a chunk of events
         '''
         raise NotImplementedError
-    
+
     @abstractmethod
     def flush(self):
         '''
         Flush the buffer to the file
         '''
         raise NotImplementedError
-    
+
     @abstractmethod
     def close(self):
         '''
@@ -199,8 +198,8 @@ class EventFileWriter(EventFileWriter_Base):
         Height of the frame, by default 720 (not relevant for some formats)
     dt : datetime, optional
         Timestamp of the recording (default is the current time, but information is not saved in all formats)
-    
-    
+
+
     Raises
     ------
     NotImplementedError
@@ -238,11 +237,11 @@ class EventFileWriter(EventFileWriter_Base):
 
     def __len__(self) -> int:
         return self.n_written_events
-    
-    
+
+
     def __enter__(self):
         return self
-    
+
 
     def __repr__(self) -> str:
         if self.is_initialized:
