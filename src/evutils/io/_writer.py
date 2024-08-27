@@ -1,14 +1,14 @@
 
+import io
 from datetime import datetime
+from pathlib import Path
+from typing import Union
+
 import numpy as np
 
-from typing import Union
-from ._common import EventFileWriter_Base
-
 from ..io import writer as ev_writers
+from ._common import EventEncoder_Base
 
-
-from pathlib import Path
 
 class EventWriter():
     '''
@@ -35,11 +35,37 @@ class EventWriter():
     >>> with EventWriter("events.raw", delta_t=10000) as writer:
     >>>     writer.write(events)
     '''
-    def __init__(self, file:Union[Path, str], width:int=1280, height:int=720, dt: datetime = None,  file_writer: Union[EventFileWriter_Base, str]='auto', **kwargs):
+    def __init__(self, file: Path | str | io.BufferedWriter, width:int=1280, height:int=720, dt: datetime|None = None,  file_encoder: EventEncoder_Base | None = None, **kwargs):
 
-        if not isinstance(file, Path):
+        self.file_name:Path|None = None
+
+        # Handle paths as input
+        # if file is not a Path, convert it to a Path
+        if isinstance(file, str):
             file = Path(file)
-        self.file = file
+        if isinstance(file, Path):
+
+            self.file_name = file
+
+            file = self._open_file(file)
+
+        else:
+            # File was passed a io.BufferedReader - we need an explicit file_decoder
+            if file_encoder is None:
+                raise ValueError(f"When using a io.BufferedWriter as file, the file_decoder must be provided explicitly")
+
+        if isinstance(file, io.BufferedWriter):
+            if not file.writable():
+                raise IOError("File is not writable")
+        self.file: io.BufferedWriter = file
+
+        # File decoder for differnt file types
+        if file_encoder is None:
+            assert self.file_name is not None
+            self.file_encoder = self._create_file_encoder(self.file_name, kwargs)
+        else:
+            self.file_encoder = file_encoder
+
         self.width = width
         self.height = height
 
@@ -53,15 +79,17 @@ class EventWriter():
             self.dt = dt
 
         # File writer for differnt file types
-        if isinstance(file_writer, EventFileWriter_Base):
-            self.file_writer = file_writer
-        elif isinstance(file_writer, str) and file_writer == "auto":
-            self.file_writer = self._create_file_writer(file, kwargs)
+        if file_encoder is None:
+            assert self.file_name is not None
+            self.file_writer = self._create_file_encoder(self.file_name, kwargs)
         else:
-            raise ValueError("file_writer must be a EventFileWriter or 'auto'")
+            self.file_writer = file_encoder
 
-    
-    def _create_file_writer(self, file_name:Path, args:dict={}) -> EventFileWriter_Base:
+    def _open_file(self, file_name: Path) -> io.BufferedWriter:
+        return open(str(file_name), 'wb')
+
+
+    def _create_file_encoder(self, file_name:Path, args:dict={}) -> EventEncoder_Base:
         '''
         Create the file writer based on the file extension
 
@@ -70,10 +98,10 @@ class EventWriter():
         EventFileWriter_Base
             The file writer
         '''
-        
-        reader_cls = ev_writers.get_file_writer(file_name)
 
-        return reader_cls(file_name, **args)
+        encoder_cls = ev_writers.get_file_writer(file_name)
+
+        return encoder_cls(self.file, **args)
 
     def init(self):
         '''
@@ -82,7 +110,7 @@ class EventWriter():
         This method can be called explicitly, but it is also called automatically when the first event is written
         '''
         self.file_writer.init()
-    
+
     def write(self, events: np.ndarray) -> int:
         '''
         Write a buffer of events to the file
@@ -91,14 +119,18 @@ class EventWriter():
         ----------
         events
             Buffer of events to write
-        
+
         Returns
         -------
         int
             Number of events written
         '''
-        return self.file_writer.write(events)
-    
+        n_written = self.file_writer.write(events)
+        self.n_written_events += n_written
+
+        return n_written
+
+        self.file = file
     def flush(self):
         '''
         Flush the buffer to the file
@@ -107,14 +139,7 @@ class EventWriter():
 
     def __enter__(self):
         return self
-    
-    def close(self):
-        '''
-        Close the file and release the resources
-        '''
-        self.file_writer.close()
-    def __exit__(self, exc_type, exc_value, traceback):
-        self.close()
+
 
     def __repr__(self) -> str:
         if self.is_initialized:
@@ -122,6 +147,16 @@ class EventWriter():
         else:
             is_initialized_txt = "not initialized"
         return f"{self.__class__.__name__}(file={self.file} - {is_initialized_txt}, {self.width}x{self.height})"
-    
+
     def __len__(self) -> int:
         return self.n_written_events
+
+    def close(self):
+        '''
+        Close the file reader and release the resources
+        '''
+        self.flush()
+        self.file.close()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()

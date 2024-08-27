@@ -1,22 +1,15 @@
 
-import numpy as np
-from typing import Tuple, Union, Any
-
-from pathlib import Path
-
-from ..types import Event_dtype
-
+import io
 import os
+from pathlib import Path
+from typing import Any, Tuple, Union
 
+import numpy as np
 
 from ..io import reader as ev_readers
-
-
-from ._common import EventFileReader_Base
-
-
+from ..types import Event_dtype
+from ._common import EventDecoder_Base
 from .buffer import EventRingBuffer
-
 
 
 class EventReader():
@@ -25,7 +18,7 @@ class EventReader():
 
     Parameters
     ----------
-    file 
+    file
         Path to the data file
     delta_t
         Time window in microseconds, by default None
@@ -44,7 +37,7 @@ class EventReader():
     height
         Height of the frame, by default infered from the file
     file_reader
-        File reader to use, by default "auto"
+        File reader to use, by default None - automatic
     **kwargs
         Additional arguments to pass to the file reader
 
@@ -52,60 +45,75 @@ class EventReader():
     ------
     ValueError
         If the mode is not supported or if the delta_t or n_events are not specified when needed
-    
+
     Examples
     --------
     >>> with EventReader("events.raw", delta_t=10000) as reader:
     >>>     for events in reader:
     >>>         print(events['x'], events['y'])
-    
+
     '''
     READING_MODES = ["delta_t", "n_events", "mixed", "all", "auto"]
     DEFAULT_N_EVENTS = 1_000_000
     DEFAULT_DELTA_T = 10_000
-    def __init__(self, file: Path | str,
-                 delta_t:int=None, 
-                 n_events:int=None,  
-                 mode:str="auto", 
-                 start_ts:int=0, 
-                 max_time:int=1_000_000_000_000, 
-                 max_events:int=10_000_000, 
-                 width:int=None, height:int=None,
-                 file_reader: Union[EventFileReader_Base, str]='auto',
+    def __init__(self, file: Path | str | io.BufferedReader,
+                 delta_t:int|None=None,
+                 n_events:int|None=None,
+                 mode:str="auto",
+                 start_ts:int=0,
+                 max_time:int=1_000_000_000_000,
+                 max_events:int=10_000_000,
+                 width:int | None=None, height:int | None=None,
+                 file_decoder: EventDecoder_Base | None = None,
                  **kwargs):
 
+
+        self.file_name:Path|None = None
+
+        # Handle paths as input
         # if file is not a Path, convert it to a Path
-        if not isinstance(file, Path):
+        if isinstance(file, str):
             file = Path(file)
-        self.file = file
+        if isinstance(file, Path):
+            if not file.exists() or not file.is_file():
+                raise FileNotFoundError(f"File {file} does not exist")
+
+            self.file_name = file
+
+
+            file = self._open_file(file)
+
+        else:
+            # File was passed a io.BufferedReader - we need an explicit file_decoder
+            if file_decoder is None:
+                raise ValueError(f"When using a io.BufferedReader as file, the file_decoder must be provided explicitly")
+
+        if isinstance(file, io.BufferedReader):
+            if not file.readable():
+                raise IOError("File is not readable")
+        self.file: io.BufferedReader = file
+
+        # File decoder for differnt file types
+        if file_decoder is None:
+            assert self.file_name is not None
+            self.file_decoder = self._create_file_decoder(self.file_name, kwargs)
+        else:
+            self.file_decoder = file_decoder
+
+        # This will now be io.BufferedReader
         self.eof = False
-    
+
+        # If not defined explicitly, the width and height are fetch from the file (not all formats support this)
         self.width = width
         self.height = height
         self.start_ts = start_ts # Offset to start reading events. 0 is start of file
 
-        # Maximum number of events to read and maximum time to read in a chunk
-        
-        self.max_events = max_events
-        self.max_time = max_time
 
 
         # Validate the parameters
         if not mode in EventReader.READING_MODES:
             raise ValueError(f"Mode {mode} not supported. Supported modes are: {EventReader.READING_MODES}")
-        
-        if not self.file.exists() or not self.file.is_file():
-            raise FileNotFoundError(f"File {self.file} does not exist")
-        
-        if not isinstance(self.max_events, int):
-            raise TypeError("max_events must be an integer")
-        
-        if not isinstance(self.max_time, int):
-            raise TypeError("max_time must be an integer")
-        
-        if not isinstance(self.start_ts, int):
-            raise TypeError("start_ts must be an integer")
-        
+
 
         self.mode = mode.lower()
 
@@ -118,10 +126,10 @@ class EventReader():
             # If only one of the parameters is specified, we will use that mode, the other will be set to the maximum
             elif delta_t is not None:
                 self.mode = "delta_t"
-                n_events = self.max_events
+                n_events = max_events
             elif n_events is not None:
                 self.mode = "n_events"
-                delta_t = self.max_time
+                delta_t = max_time
             else:
                 # If none of the parameters are specified, we will use the default Values
                 self.mode = "mixed"
@@ -139,15 +147,15 @@ class EventReader():
             delta_t = self.max_time
         elif self.mode == "mixed":
             if delta_t is None:
-                delta_t = self.DEFAULT_DELTA_T  
+                delta_t = self.DEFAULT_DELTA_T
             if n_events is None:
                 n_events = self.DEFAULT_N_EVENTS
 
         elif self.mode == "all":
-            delta_t = self.max_time
-            n_events = self.max_events
+            delta_t = max_time
+            n_events = max_events
 
-        
+
         # Validate the parameters
         if delta_t is None:
             delta_t = self.DEFAULT_DELTA_T
@@ -160,47 +168,47 @@ class EventReader():
         if not isinstance(n_events, int):
             raise TypeError("n_events must be an integer")
 
-        
+
         if delta_t <= 0:
             raise ValueError("delta_t must be positive")
-        
+
         if n_events <= 0:
             raise ValueError("n_events must be positive")
-        
-        if n_events > self.max_events:
-            self.max_events = n_events + 10_000
-        
+
+
         # delta_t and n_events to read on each call
         self.delta_t = delta_t
         self.n_events = n_events
 
+        # Maximum number of events to read and maximum time to read in a chunk
+        self.max_events = max_events if max_events < self.n_events else self.n_events
+        self.max_time = max_time if max_time < self.delta_t else self.delta_t
+
         self.is_initialized = False
 
         # Internal buffer - must be initialized in the init method
-        self.buffer = EventRingBuffer(max_events)
+        self.buffer = EventRingBuffer(2 * max_events)
         self.last_end_idx = 0
 
         self.n_read_events = 0 # Number of events read (not includeing events stored in buffer)
 
-        # File feader for differnt file types
-        if isinstance(file_reader, EventFileReader_Base):
-            self.file_reader = file_reader
-        elif isinstance(file_reader, str) and file_reader == "auto":
-            self.file_reader = self._create_file_reader(self.file, kwargs)
-        else:
-            raise ValueError("file_reader must be a EventFileReader or 'auto'")
 
-    
+
     def init(self):
         '''
         Initialize the reader, can be used explicitly or implicitly by the read method.
         '''
         if self.is_initialized:
             return
-        self.file_reader.init()
+        self.file_decoder.init()
         self.is_initialized = True
-    
-    def _create_file_reader(self, file_name:Path, args:dict={}) -> EventFileReader_Base:
+
+    def _open_file(self, file_name: Path) -> io.BufferedReader:
+        # TODO: Handle compressed files
+        return open(str(file_name), 'rb')
+
+
+    def _create_file_decoder(self, file_name: Path, args:dict={}) -> EventDecoder_Base:
         '''
         Create the file reader based on the file extension
 
@@ -209,18 +217,18 @@ class EventReader():
         EventFileReader_Base
             The file writer
         '''
-        
-        reader_cls = ev_readers.get_file_reader(file_name)
 
-        return reader_cls(file_name, **args)
-    
-        
-    
-   
-    def read(self, delta_t:int=None, n_events:int=None) -> np.ndarray:
+        decoder_cls = ev_readers.get_reader_from_filename(file_name)
+
+        return decoder_cls(self.file, **args)
+
+
+
+
+    def read(self, delta_t:int|None=None, n_events:int|None=None) -> np.ndarray[Any, np.dtype[Any]]:
         '''
         Read events on the files based on the mode and the parameters
-        
+
         Parameters
         ----------
         delta_t
@@ -229,7 +237,7 @@ class EventReader():
             Override the n_events parameter, otherwise the default value is used from the constructor
 
         Returns
-        ------- 
+        -------
         np.ndarray
             A numpy array with the events of type :py:data:`Event_dtype`
 
@@ -246,10 +254,10 @@ class EventReader():
 
         # print(f"Reading {n_events} events or {delta_t} microseconds")
 
-        start_ts = 0 if len(self.buffer) == 0 else self.buffer[0]['t'] # Start timestamp for the events
-        end_ts = start_ts + delta_t # Final end_ts if we raech delta_t
-        end_idx = len(self.buffer) # Where do we slice the internal ring buffer?
-        
+        start_ts:int = 0 if len(self.buffer) == 0 else int(self.buffer[0]['t']) # Start timestamp for the events
+        end_ts:int = start_ts + delta_t # Final end_ts if we raech delta_t
+        end_idx:int = len(self.buffer) # Where do we slice the internal ring buffer?
+
 
         # 1. Try consuming the buffer first
         # 2. If the buffer is empty, read from the file
@@ -266,12 +274,12 @@ class EventReader():
             if len(self.buffer) > 0 and self.buffer[-1]['t'] > end_ts:
                 # print("We have enough time")
                 t = self.buffer.view()['t'].copy()
-                end_idx = np.searchsorted(t, end_ts)
+                end_idx = int(np.searchsorted(t, end_ts))
                 break
 
 
             # TODO: Find better way of hinting the file_reader (delta_t, n_events)
-            events_chunk = self.file_reader.read_chunk(delta_t, n_events)
+            events_chunk = self.file_decoder.read_chunk(delta_t, n_events)
             # print(f"Read a Chunk of {len(events_chunk)} events, {self.n_read_events} total")
             # print(f"Buffer {len(self.buffer)} events")
 
@@ -280,13 +288,13 @@ class EventReader():
                 self.eof = True
                 break
 
-            end_idx += len(events_chunk) 
+            end_idx += len(events_chunk)
             self.buffer.append(events_chunk)
 
 
-            
-            
-        
+
+
+
         # print(f"End idx {end_idx}")
         # Grab the events to be returend and advance the buffers
         output_evbuffer = self.buffer[:end_idx].copy()
@@ -302,15 +310,15 @@ class EventReader():
         '''Reset file reader back to the beginning of the file'''
         self.n_read_events = 0
         self.buffer.reset()
-        self.file_reader.reset()
+        self.file_decoder.reset()
 
     def __enter__(self):
         return self
-    
+
     def is_eof(self) -> bool:
         '''
         Check if the end of the file is reached
-        
+
         Returns
         -------
         bool
@@ -324,8 +332,8 @@ class EventReader():
         '''
         Close the file reader and release the resources
         '''
-        print("Closing")
-        self.file_reader.close()
+        if self.file_name is not None:
+            self.file.close()
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
@@ -336,26 +344,26 @@ class EventReader():
         else:
             is_initialized_txt = "not initialized"
         return f"{self.__class__.__name__}(file={self.file} - {is_initialized_txt}, delta_t={self.delta_t}, n_events={self.n_events}, mode={self.mode})"
-    
+
     def __len__(self) -> int:
         return self.n_read_events
-    
+
     def __iter__(self):
         '''
         Iterate over the events in the file
-        
+
         Yields
         -------
         np.ndarray
             A numpy array with the events
-        
+
         '''
         if not self.is_initialized:
             self.init()
         while not self.is_eof():
             yield self.read()
 
-    def shape(self) -> tuple[int, int]:
+    def shape(self) -> tuple[int|None, int|None]:
         '''
         Get the shape of the frame
 
@@ -365,17 +373,7 @@ class EventReader():
             The shape of the frame (width, height)
         '''
         return self.width, self.height
-    
-    def file_size(self) -> int:
-        '''
-        Get the size of the file in bytes
 
-        Returns
-        -------
-        int
-            The size of the file in bytes
-        '''
-        return self.file_reader.file_size()
 
     def tell(self) -> int:
         '''
@@ -386,15 +384,7 @@ class EventReader():
         int
             The current position in the file
         '''
-        return self.file_reader.tell()
-    
-    def progress(self) -> int:
-        '''
-        Get the current progress in the file
+        return self.file_decoder.tell()
 
-        Returns
-        -------
-        int
-            The current progress in the file 0-1
-        '''
-        return self.tell() / self.file_size() 
+
+
