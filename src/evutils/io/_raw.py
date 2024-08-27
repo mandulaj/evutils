@@ -1,5 +1,6 @@
 
 
+import io
 from datetime import datetime
 from pathlib import Path
 from typing import List, Tuple, Union
@@ -8,7 +9,7 @@ import numba as nb
 import numpy as np
 
 from ..types import Event_dtype, Trigger_dtype
-from ._common import EventFileReader, EventFileWriter
+from ._common import EventDecoder, EventEncoder
 
 EVT3_EVT_ADDR_Y = 0x0000
 EVT3_EVT_ADDR_X = 0x2000
@@ -21,6 +22,7 @@ EVT3_EVT_TIME_HIGH = 0x8000
 EVT3_EXT_TRIGGER = 0xA000
 EVT3_OTHERS = 0xE000
 EVT3_CONTINUED_12 = 0xF000
+
 
 
 @nb.njit
@@ -242,7 +244,7 @@ def parse_evt3_buffer(input_buffer: np.ndarray, events_buffer: np.ndarray, trigg
     #     return events[:n_events], triggers[:n_ext_triggers], last_ts, last_y, i
 
 
-class EventFileReader_RAW(EventFileReader):
+class EventFileReader_RAW(EventDecoder):
     '''
     Class for reading RAW files from Prophesee cameras
 
@@ -285,8 +287,8 @@ class EventFileReader_RAW(EventFileReader):
     FORMATS = {"evt3": "evt 3.0", "evt21": "evt 2.1", "evt2": "evt 2"}
     EVT_FORMATS = {"3.0": "evt3", "2.1": "evt21", "2.0": "evt2"}
 
-    def __init__(self, file:Union[Path, str], chunk_size:int=10_000_000):
-        super().__init__(file=file, chunk_size=chunk_size)
+    def __init__(self, readable:io.BufferedReader, chunk_size:int=10_000_000):
+        super().__init__(readable=readable, chunk_size=chunk_size)
 
         # EVT specific variables
         self.last_ts_high_high = 0
@@ -302,8 +304,6 @@ class EventFileReader_RAW(EventFileReader):
         self.triggers_buffer_len = 0
 
     def init(self):
-        self.fd = open(self.file, "rb")
-
 
         # Try to find the end of the header
         is_header = True
@@ -420,7 +420,8 @@ class EventFileReader_RAW(EventFileReader):
 
 
     def read_chunk(self, delta_t_hint:int = None, n_events_hint:int = None) -> np.ndarray:
-        assert self.is_initialized, "Reader is not initialized"
+        if not self.is_initialized:
+            self.init()
 
         events, triggers = self.__read_and_parse_buffer()
         return events
@@ -428,6 +429,7 @@ class EventFileReader_RAW(EventFileReader):
 
     def __read_and_parse_buffer(self):
         # print(f"Reading buffer of size {self.buffer_size}")
+        assert self.fd is not None
 
         if self.format == "evt3":
 
@@ -469,80 +471,10 @@ class EventFileReader_RAW(EventFileReader):
         else:
             raise ValueError(f"Unsupported format {self.format}. Supported formats are {list(EventFileReader_RAW.FORMATS.keys())}")
         return self.events_buffer[:n_events], self.triggers_buffer[:n_triggers]
-    def _read_with_triggers(self, delta_t:int, n_events:int) -> tuple[np.ndarray, np.ndarray]:
-        pass
-
-    def _read_chunk(self, delta_t:int, n_events:int) -> np.ndarray:
-        if not self.is_initialized:
-            self.init()
-
-        over_time = False
-
-        # print(f"Reading {n_events} events with delta_t {delta_t}")
-
-
-
-
-        while self.events_buffer_len < n_events and self.eof == False:
-            if self.events_buffer_len > 2 and (self.events_buffer[self.events_buffer_len-1]['t'] - self.events_buffer[0]['t']) > delta_t:
-                over_time = True
-                break
-
-            # print(f"Buffer size: {len(self.events_buffer)}, {n_events} events needed")
-            self.__read_and_parse_buffer()
-            # print(f"Concattenating {len(self.events_buffer)} {len(events)} events")
-            # self.events_buffer = events
-            # self.triggers_buffer = triggers
-
-
-
-            # print(f"Added to buffer Buffer size: {len(self.events_buffer)}")
-
-
-
-
-
-        if over_time:
-            split_index = np.searchsorted(self.events_buffer['t'][:self.events_buffer_len], self.events_buffer[0]['t'] + delta_t)
-            n_events = split_index
-
-
-        ret_events = self.events_buffer[:self.events_buffer_len].copy()
-        if self.events_buffer_len > n_events:
-
-            new_buffer_len = self.events_buffer_len - n_events
-
-            self.events_buffer[:new_buffer_len] = self.events_buffer[n_events:self.events_buffer_len]
-            self.events_buffer_len = new_buffer_len
-
-        else:
-            self.events_buffer_len = 0
-
-
-
-        return ret_events
-
-
-
-
-
-
-        return np.array([], dtype=Event_dtype), not self.eof
-
-
-
-        if self.buffer_position > len(self.buffer) or self.buffer_position == -1:
-            self.buffer = self.fd.read(2 * self.raw_buffer_size)
-            self.buffer_position = 0
-
-        if len(self.buffer) == 0:
-            self.eof = True
-            return np.array([], dtype=Event_dtype), False
-
-        print(self.buffer)
 
 
     def reset(self):
+        assert self.fd is not None
         self.fd.seek(0)
         self.is_initialized = False
         self.eof = False
@@ -550,7 +482,7 @@ class EventFileReader_RAW(EventFileReader):
 
 
 
-class EventFileWriter_RAW(EventFileWriter):
+class EventFileWriter_RAW(EventEncoder):
     '''
     Class for writing RAW files from Prophesee cameras
 
@@ -590,8 +522,8 @@ class EventFileWriter_RAW(EventFileWriter):
 
     '''
     FORMATS = {"evt3": "evt 3.0", "evt21": "evt 2.1", "evt2": "evt 2"}
-    def __init__(self, file:Union[Path, str], width:int=1280, height:int=720, dt:datetime=None, serial:str="00000000", format:str="evt3"):
-        super().__init__(file, width, height, dt)
+    def __init__(self, writable: io.BufferedWriter, width:int=1280, height:int=720, dt:datetime|None=None, serial:str="00000000", format:str="evt3"):
+        super().__init__(writable, width, height, dt)
 
         format = format.lower().replace(".", "")
         if format not in EventFileWriter_RAW.FORMATS.keys():
@@ -612,8 +544,6 @@ class EventFileWriter_RAW(EventFileWriter):
         if self.is_initialized:
             return
 
-        self.fd = open(self.file, "wb")
-
         self.fd.write(
 f"""% camera_integrator_name Prophesee
 % date {self.formatted_datetime}
@@ -631,11 +561,9 @@ f"""% camera_integrator_name Prophesee
 """.encode('utf-8'))
         self.is_initialized = True
 
-    def close(self):
-        if self.is_initialized:
-            self.fd.close()
 
-    def write(self, events: np.ndarray):
+    def write(self, events: np.ndarray) -> int:
+        assert self.fd is not None
 
         if not self.is_initialized:
             self.init()
@@ -656,3 +584,5 @@ f"""% camera_integrator_name Prophesee
         self.n_written_events += len(events)
 
         buffer.tofile(self.fd)
+
+        return len(events)
