@@ -1,15 +1,14 @@
+from pathlib import Path
+from typing import Union
+
 import h5py
 import hdf5plugin
 import numba as nb
 import numpy as np
 
 from ..types import Event_dtype
+from ._common import EventDecoder, EventEncoder
 
-from ._common import EventFileReader, EventFileWriter
-
-
-from typing import Union
-from pathlib import Path
 
 @nb.njit
 def get_idx(events, ms_to_idx, last_ms_idx, n_written_events, max_ms, offset):
@@ -21,13 +20,13 @@ def get_idx(events, ms_to_idx, last_ms_idx, n_written_events, max_ms, offset):
         ms_to_idx[ms] = max(idx + offset + n_written_events, 0)
 
 
-class EventFileWriter_HDF5(EventFileWriter):
+class EventFileWriter_HDF5(EventEncoder):
     def __init__(self, file:Union[Path, str], width:int=1280, height:int=720, chunksize:int=10000):
         '''
         Write events to a HDF5 file
 
         Parameters
-        ----------  
+        ----------
         file : str
             The file to write to
         width : int, optional
@@ -59,7 +58,7 @@ class EventFileWriter_HDF5(EventFileWriter):
         self.fd.attrs['height'] = self.height
 
         # Create datasets
-        self.events_group_h5.create_dataset("x", shape=(0,), chunks=(self.chunksize, ), maxshape=(None,), 
+        self.events_group_h5.create_dataset("x", shape=(0,), chunks=(self.chunksize, ), maxshape=(None,),
                                             dtype="uint16", **self.compressor)
         self.events_group_h5.create_dataset("y", shape=(0,), chunks=(self.chunksize, ), maxshape=(None,),
                                              dtype="uint16", **self.compressor)
@@ -67,7 +66,7 @@ class EventFileWriter_HDF5(EventFileWriter):
                                              dtype="uint8", **self.compressor)
         self.events_group_h5.create_dataset("t", shape=(0,), chunks=(self.chunksize, ), maxshape=(None,),
                                              dtype="uint32", **self.compressor)
-    
+
 
         self.is_initialized = True
 
@@ -77,7 +76,7 @@ class EventFileWriter_HDF5(EventFileWriter):
 
         # Generate ms_to_idx
         self.__get_ms_idx_for_events(events)
-            
+
         # Append events
         self.__append_new_events(events)
 
@@ -86,9 +85,9 @@ class EventFileWriter_HDF5(EventFileWriter):
     def close(self):
         if not self.is_initialized:
             return
-        
+
         self.ms_to_idx.append(self.x.shape[0])
-        
+
         # Write the ms_to_idx
         self.fd.create_dataset("ms_to_idx", data=self.ms_to_idx, dtype="uint64", **self.compressor)
 
@@ -98,7 +97,7 @@ class EventFileWriter_HDF5(EventFileWriter):
 
         self._append_new_events(self.buffer)
         self.fd.close()
-    
+
     def __get_ms_idx_for_events(self, events: np.ndarray, offset=-1):
         max_ms = int(events["t"][-1] // 1000)
 
@@ -135,7 +134,7 @@ class EventFileWriter_HDF5(EventFileWriter):
 
 
 
-class EventFileReader_HDF5(EventFileReader):
+class EventFileReader_HDF5(EventDecoder):
     '''
     Read events from a HDF5 file
 
@@ -147,9 +146,9 @@ class EventFileReader_HDF5(EventFileReader):
         The width of the frame
     height : int, optional
         The height of the frame
-            
+
     '''
-    
+
 
     def __init__(self, file:Union[Path, str]):
         super().__init__(file)

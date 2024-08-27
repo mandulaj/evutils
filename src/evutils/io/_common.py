@@ -1,13 +1,14 @@
+import io
 import os
 from abc import ABC, abstractmethod
 from datetime import datetime
 from pathlib import Path
-from typing import IO, Optional
+from typing import IO, Any, Optional
 
 import numpy as np
 
 
-class EventFileReader_Base(ABC):
+class EventDecoder_Base(ABC):
     @abstractmethod
     def init(self):
         '''
@@ -16,16 +17,16 @@ class EventFileReader_Base(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def read_chunk(self, delta_t_hint:int = None, n_events_hint:int = None) -> np.ndarray:
+    def read_chunk(self, delta_t_hint:int|None = None, n_events_hint:int|None = None) -> np.ndarray[Any, np.dtype[Any]]:
         '''
         Read a chunk of events
-        '''
-        raise NotImplementedError
 
-    @abstractmethod
-    def close(self):
-        '''
-        Close the file and release the resources
+        Parameters
+        ----------
+        delta_t_hint
+            If not None, can be used to provide a hit about the delta_t window to be read
+        n_events_hint
+            If not None, can be used to provide a hit about the n_events to be read
         '''
         raise NotImplementedError
 
@@ -42,18 +43,6 @@ class EventFileReader_Base(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def file_size(self) -> int:
-        '''
-        Get the size of the file in bytes
-
-        Returns
-        -------
-        int
-            The size of the file in bytes
-        '''
-        raise NotImplementedError
-
-    @abstractmethod
     def reset(self):
         '''
         Reset the file pointer to the beginning of the file
@@ -61,14 +50,14 @@ class EventFileReader_Base(ABC):
         raise NotImplementedError
 
 
-class EventFileReader(EventFileReader_Base):
+class EventDecoder(EventDecoder_Base):
     '''
     ABC for reading chunks of events from a file format
 
     Parameters
     ----------
-    file
-        Path to the data file
+    readable
+        source to read events from
     chunk_size
         Size of the chunk to read
 
@@ -79,9 +68,8 @@ class EventFileReader(EventFileReader_Base):
         If the method is not implemented in the subclass
 
     '''
-    def __init__(self, file: Path, chunk_size:int):
-        self.file = file
-        self.fd: Optional[IO] = None
+    def __init__(self, readable: io.BufferedReader, chunk_size:int):
+        self.fd = readable
 
         self.is_initialized = False
 
@@ -98,20 +86,8 @@ class EventFileReader(EventFileReader_Base):
         int
             The current position in the file
         '''
-        if self.fd is None:
-            return 0
         return self.fd.tell()
 
-    def file_size(self) -> int:
-        '''
-        Get the size of the file in bytes
-
-        Returns
-        -------
-        int
-            The size of the file in bytes
-        '''
-        return os.stat(self.file).st_size
 
     def set_chunk_size(self, chunk_size:int):
         '''
@@ -125,22 +101,13 @@ class EventFileReader(EventFileReader_Base):
         self.chunk_size = chunk_size
 
 
-    def close(self):
-        '''
-        Close the file and release the resources
-        '''
-        if self.is_initialized and self.fd is not None:
-            self.fd.close()
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        self.close()
 
     def __repr__(self) -> str:
             if self.is_initialized:
                 is_initialized_txt = "initialized"
             else:
                 is_initialized_txt = "not initialized"
-            return f"{self.__class__}(file={self.file} - {is_initialized_txt})"
+            return f"{self.__class__} - {is_initialized_txt})"
 
     def is_eof(self) -> bool:
         '''
@@ -153,7 +120,7 @@ class EventFileReader(EventFileReader_Base):
         '''
         return self.eof
 
-class EventFileWriter_Base(ABC):
+class EventEncoder_Base(ABC):
     @abstractmethod
     def init(self):
         '''
@@ -162,7 +129,7 @@ class EventFileWriter_Base(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def write(self, events: np.ndarray):
+    def write(self, events: np.ndarray[Any, np.dtype[Any]]) -> int:
         '''
         Write a chunk of events
         '''
@@ -175,23 +142,16 @@ class EventFileWriter_Base(ABC):
         '''
         raise NotImplementedError
 
-    @abstractmethod
-    def close(self):
-        '''
-        Close the file and release the resources
-        '''
-        raise NotImplementedError
 
 
-
-class EventFileWriter(EventFileWriter_Base):
+class EventEncoder(EventEncoder_Base):
     '''
-    ABC for writing chunks of events to a file format
+    ABC for writing chunks of events to a io object
 
     Parameters
     ----------
-    file : Path
-        Path to the data file
+    writable
+        Destination for writing events
     width : int, optional
         Width of the frame, by default 1280 (not relevant for some formats)
     height : int, optional
@@ -206,9 +166,9 @@ class EventFileWriter(EventFileWriter_Base):
         If the method is not implemented in the subclass
 
     '''
-    def __init__(self, file: Path, width:int = 1280, height:int = 720, dt:Optional[datetime]=None ):
-        self.file = file
-        self.fd: Optional[IO]  = None
+    def __init__(self, writable: io.BufferedWriter, width:int = 1280, height:int = 720, dt:Optional[datetime]=None ):
+
+        self.fd = writable
 
         self.width = width
         self.height = height
@@ -221,18 +181,6 @@ class EventFileWriter(EventFileWriter_Base):
             self.dt = datetime.now()
         else:
             self.dt = dt
-
-
-    def close(self):
-        '''
-        Close the file and release the resources
-        '''
-        if self.is_initialized and self.fd is not None:
-            self.fd.close()
-
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        self.close()
 
 
     def __len__(self) -> int:
@@ -248,4 +196,7 @@ class EventFileWriter(EventFileWriter_Base):
             is_initialized_txt = f"Written {self.n_written_events} events"
         else:
             is_initialized_txt = "not initialized"
-        return f"{self.__class__.__name__}(file={self.file} - {is_initialized_txt}, {self.width}x{self.height})"
+        return f"{self.__class__.__name__} - {is_initialized_txt}, {self.width}x{self.height})"
+
+    def flush(self):
+        self.fd.flush()
