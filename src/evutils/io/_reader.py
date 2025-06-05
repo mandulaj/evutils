@@ -289,7 +289,7 @@ class EventReader():
         # 1. Try consuming the buffer first
         # 2. If the buffer is empty, read from the file
 
-        print("Buffer size:", len(self.buffer), "Start TS:", start_ts, "End TS:", end_ts, "N events:", n_events)
+        # print("Buffer size:", len(self.buffer), "Start TS:", start_ts, "End TS:", end_ts, "N events:", n_events)
 
         # Gather events while we have less than delta_t time and n_events
         while True:
@@ -302,11 +302,11 @@ class EventReader():
 
             # Check time condition
             if len(self.buffer) > 0 and self.buffer[-1]['t'] > end_ts:
-                print("We have enough time")
+                # print("We have enough time")
                 t = self.buffer.view()['t'] # Does this need to be copies?
                 end_idx = int(np.searchsorted(t, end_ts))
 
-                print(f"End idx by time: {end_idx}, {end_ts}, buffer size: {len(self.buffer)}, {t}")
+                # print(f"End idx by time: {end_idx}, {end_ts}, buffer size: {len(self.buffer)}, {t}")
                 self.current_ts += delta_t
                 break
 
@@ -316,7 +316,7 @@ class EventReader():
             events_chunk = self.file_decoder.read_chunk(delta_t, n_events)
             # print(f"Read a Chunk of {len(events_chunk)} events, {self.n_read_events} total")
             # print(f"Buffer {len(self.buffer)} events")
-            print(f"Events chunk: {len(events_chunk)}")
+            # print(f"Events chunk: {len(events_chunk)}")
 
             # Check if the file_reader has reached the end of the file
             if len(events_chunk) == 0:
@@ -324,10 +324,10 @@ class EventReader():
                 break
 
             self.buffer.append(events_chunk)
-            print(f"Buffer size after append: {len(self.buffer)} end_idx: {end_idx}")
+            # print(f"Buffer size after append: {len(self.buffer)} end_idx: {end_idx}")
 
 
-        print(f"End idx {end_idx}, buffer size: {len(self.buffer)}")
+        # print(f"End idx {end_idx}, buffer size: {len(self.buffer)}")
 
         # print(f"End idx {end_idx}")
         # Grab the events to be returend and advance the buffers
