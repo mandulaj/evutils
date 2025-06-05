@@ -3,6 +3,7 @@ build
 *.egg-info
 _version.py
 data
+models
 
 # Event types
 *.csv
@@ -15,4 +16,7 @@ data
 *.prof
 *.svg
 *.data
+*.png
+*.jpg
 test.py
+
