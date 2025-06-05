@@ -6,11 +6,20 @@ import numpy as np
 from types import SimpleNamespace
 
 
-def get_freer_gpu():
-    memory_free_info = subprocess.check_output(['/bin/sh', '-c', 'nvidia-smi --query-gpu=memory.free --format=csv']).decode('ascii').split('\n')[1:-1]
-    memory_free = [int(v.split()[0]) for v in memory_free_info]
-    return np.argmax(memory_free)
-
+def get_freer_gpu(cuda_string=False):
+    import subprocess
+    try:
+        memory_free_info = subprocess.check_output(['/bin/sh', '-c', 'nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits'], encoding='utf-8').split('\n')
+        memory_free = [int(v) for v in memory_free_info if v.strip()]
+    except Exception as e:
+        print(f"Error retrieving GPU memory info: {e}")
+        return None
+    most_free = max(range(len(memory_free)), key=lambda i: memory_free[i]) if memory_free else None
+    if cuda_string:
+        if most_free is None:
+            return 'cpu'
+        return f"cuda:{most_free}"
+    return most_free
 
 class Reconstructor():
     '''
@@ -34,7 +43,7 @@ class Reconstructor():
 
         if self.args['device'] == "auto":
             if torch.cuda.is_available():
-                self.device = torch.device("cuda:" + str(get_freer_gpu()))
+                self.device = torch.device(get_freer_gpu(cuda_string=True))
             else:
                 self.device = torch.device("cpu")
         else:

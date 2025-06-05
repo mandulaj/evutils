@@ -3,11 +3,6 @@ import torch
 import numpy as np
 import os
 
-# from metavision_core_ml.utils.torch_ops import normalize_tiles, viz_flow
-# from metavision_core_ml.event_to_video.lightning_model import EventToVideoLightningModel
-# from metavision_core_ml.preprocessing.event_to_tensor_torch import event_cd_to_torch, event_volume
-
-
 
 from .rpg_e2vid.utils.loading_utils import load_model as rpg_load_model
 from .rpg_e2vid.image_reconstructor import ImageReconstructor
@@ -68,8 +63,9 @@ class RPG_Reconstructor(Reconstructor):
         'compute_voxel_grid_on_cpu': False,
         'use_cuda': True,
         'dataset_name': 'reconstruction',
-        'model_path': "models/E2VID_lightweight.pth.tar",
-        "model_url": "http://rpg.ifi.uzh.ch/data/E2VID/models/E2VID_lightweight.pth.tar"
+        'model_path': "models/E2VID.pth.tar",
+        # "model_url": "http://rpg.ifi.uzh.ch/data/E2VID/models/E2VID_lightweight.pth.tar"
+        "model_url": "http://rpg.ifi.uzh.ch/data/E2VID/models/E2VID.pth.tar"
     }
 
     def __init__(self, height, width, args={}):
