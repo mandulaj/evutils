@@ -1,5 +1,5 @@
 
-from . import reconstructor, histogram
+from . import reconstructor, plot3d
 
 
-__all__ = ['reconstructor', 'histogram']
+__all__ = ['reconstructor']
