@@ -335,6 +335,10 @@ class EventReader():
         self.buffer.advance(end_idx)
         self.n_read_events += end_idx
 
+
+        if self.normalize_ts:
+            # Normalize the timestamps to start from zero at start_ts
+            output_evbuffer['t'] -= self.first_ts - self.start_ts
         return output_evbuffer
 
     def reset(self):
