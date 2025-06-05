@@ -43,7 +43,7 @@ class Reconstructor():
         self.width = width
 
 
-    def get_frame(events: np.ndarray) -> np.ndarray:
+    def gen_frame(self, events: np.ndarray) -> np.ndarray:
         '''
         Reconstruct a frame from events
 
