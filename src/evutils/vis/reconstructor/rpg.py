@@ -1,6 +1,7 @@
 
 import torch
 import numpy as np
+import os
 
 # from metavision_core_ml.utils.torch_ops import normalize_tiles, viz_flow
 # from metavision_core_ml.event_to_video.lightning_model import EventToVideoLightningModel
@@ -67,7 +68,8 @@ class RPG_Reconstructor(Reconstructor):
         'compute_voxel_grid_on_cpu': False,
         'use_cuda': True,
         'dataset_name': 'reconstruction',
-        'model_path': "models/E2VID_lightweight.pth.tar"
+        'model_path': "models/E2VID_lightweight.pth.tar",
+        "model_url": "http://rpg.ifi.uzh.ch/data/E2VID/models/E2VID_lightweight.pth.tar"
     }
 
     def __init__(self, height, width, args={}):
@@ -75,6 +77,12 @@ class RPG_Reconstructor(Reconstructor):
 
 
         super().__init__(height, width, args)
+
+        # Check local module path and download model if not present
+        if not os.path.exists(args['model_path']):
+            if not os.path.exists(os.path.dirname(args['model_path'])):
+                os.makedirs(os.path.dirname(args['model_path']))
+            self.download_model()
 
         sn_args = SimpleNamespace(**args)
 
@@ -96,6 +104,31 @@ class RPG_Reconstructor(Reconstructor):
         # self.start_index = 0
         self.last_ts = 0
         self.reset_states = False
+
+    def download_model(self):
+        import requests
+        from tqdm import tqdm
+
+        url = self.args['model_url']
+        model_path = self.args['model_path']
+
+        print(f"Downloading model from {url} to {model_path}...")
+
+        response = requests.get(url, stream=True)
+        total_size = int(response.headers.get('content-length', 0))
+
+        with open(model_path, 'wb') as file, tqdm(
+            desc=model_path,
+            total=total_size,
+            unit='iB',
+            unit_scale=True,
+            unit_divisor=1024,
+        ) as bar:
+            for data in response.iter_content(chunk_size=1024):
+                size = file.write(data)
+                bar.update(size)
+
+        print("Model downloaded successfully.")
 
 
     def _update_reconstruction(self, event_tensor):
