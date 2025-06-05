@@ -18,5 +18,8 @@ models
 *.data
 *.png
 *.jpg
-test.py
 
+*.json
+
+test.py
+*.ipynb
