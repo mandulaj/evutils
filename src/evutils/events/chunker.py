@@ -25,17 +25,13 @@ def window_delta_t(events: np.ndarray, delta_t: int = 10_000):
     current_ts = ts[0]
 
     while index_start < len(events):
-
-
         next_index = np.searchsorted(ts[index_start:], current_ts + delta_t)
-        
-
 
         window = events[index_start:index_start + next_index]
         yield window
 
         current_ts += delta_t
-        index_start = next_index
+        index_start += next_index
 
 
 
