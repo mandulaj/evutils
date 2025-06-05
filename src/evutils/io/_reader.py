@@ -30,6 +30,8 @@ class EventReader():
         Mode of operation ```["delta_t", "n_events", "mixed", "all", "auto"]```
     start_ts
         Start timestamp offset for the events, by default 0 (start of the file)
+    normalize_ts
+        Normalize timestamps to start from zero, by default False
     max_time
         Maximum timestamp to read
     width
@@ -61,6 +63,7 @@ class EventReader():
                  n_events:int|None=None,
                  mode:str="auto",
                  start_ts:int=0,
+                 normalize_ts: bool=False,
                  max_time:int=1_000_000_000_000,
                  max_events:int=10_000_000,
                  width:int | None=None, height:int | None=None,
@@ -107,6 +110,9 @@ class EventReader():
         self.width = width
         self.height = height
         self.start_ts = start_ts # Offset to start reading events. 0 is start of file
+        self.first_ts = 0 # First timestamp in the file, used for normalization
+        self.current_ts = self.first_ts
+        self.normalize_ts = normalize_ts # Normalize timestamps to start from zero
 
 
 
@@ -246,6 +252,8 @@ class EventReader():
         if not self.is_initialized:
             self.init()
 
+            
+
         # Override the parameters if they are specified
         if delta_t is None:
             delta_t = self.delta_t
@@ -254,14 +262,34 @@ class EventReader():
 
         # print(f"Reading {n_events} events or {delta_t} microseconds")
 
-        start_ts:int = 0 if len(self.buffer) == 0 else int(self.buffer[0]['t']) # Start timestamp for the events
+        # This is done once at the beginning of the file read
+        if self.n_read_events == 0 and len(self.buffer) == 0:
+            # Fist skip the events that are before the start_ts            
+            # TODO
+
+            events_chunk = self.file_decoder.read_chunk(delta_t, n_events)
+            if len(events_chunk) == 0:
+                # We already reached the end of the file, must have been an empty file
+                self.eof = True
+                return np.array([], dtype=Event_dtype)
+            
+
+            self.first_ts = int(events_chunk[0]['t'])  # First timestamp in the file
+            self.current_ts = self.first_ts
+
+            self.buffer.append(events_chunk)
+    
+        
+        start_ts: int = self.current_ts
         end_ts:int = start_ts + delta_t # Final end_ts if we raech delta_t
         end_idx:int = len(self.buffer) # Where do we slice the internal ring buffer?
+
 
 
         # 1. Try consuming the buffer first
         # 2. If the buffer is empty, read from the file
 
+        print("Buffer size:", len(self.buffer), "Start TS:", start_ts, "End TS:", end_ts, "N events:", n_events)
 
         # Gather events while we have less than delta_t time and n_events
         while True:
@@ -269,40 +297,43 @@ class EventReader():
             # Check n_events condition
             if len(self.buffer) > n_events:
                 end_idx = n_events
+                self.current_ts = self.buffer.view()['t'][n_events]
                 break
 
+            # Check time condition
             if len(self.buffer) > 0 and self.buffer[-1]['t'] > end_ts:
-                # print("We have enough time")
-                t = self.buffer.view()['t'].copy()
+                print("We have enough time")
+                t = self.buffer.view()['t'] # Does this need to be copies?
                 end_idx = int(np.searchsorted(t, end_ts))
+
+                print(f"End idx by time: {end_idx}, {end_ts}, buffer size: {len(self.buffer)}, {t}")
+                self.current_ts += delta_t
                 break
 
+            # We need more events, read from the file
 
             # TODO: Find better way of hinting the file_reader (delta_t, n_events)
             events_chunk = self.file_decoder.read_chunk(delta_t, n_events)
             # print(f"Read a Chunk of {len(events_chunk)} events, {self.n_read_events} total")
             # print(f"Buffer {len(self.buffer)} events")
+            print(f"Events chunk: {len(events_chunk)}")
 
             # Check if the file_reader has reached the end of the file
             if len(events_chunk) == 0:
                 self.eof = True
                 break
 
-            end_idx += len(events_chunk)
             self.buffer.append(events_chunk)
+            print(f"Buffer size after append: {len(self.buffer)} end_idx: {end_idx}")
 
 
-
-
+        print(f"End idx {end_idx}, buffer size: {len(self.buffer)}")
 
         # print(f"End idx {end_idx}")
         # Grab the events to be returend and advance the buffers
         output_evbuffer = self.buffer[:end_idx].copy()
         self.buffer.advance(end_idx)
         self.n_read_events += end_idx
-
-        # print(f"Returning {len(output_evbuffer)} events, TOTAL: {self.n_read_events}")
-        # print(f"{self.buffer.start} {self.buffer.end}")
 
         return output_evbuffer
 
