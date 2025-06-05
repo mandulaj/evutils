@@ -3,7 +3,7 @@ import numpy as np
 
 
 @numba.njit
-def gen_frame(ev: np.ndarray, width: int, height: int, fill=True):
+def histogram(events: np.ndarray, width: int = 1280, height: int = 720, fill=False, dtype=np.uint8):
     '''
     Generate a frame from the events
 
@@ -16,7 +16,9 @@ def gen_frame(ev: np.ndarray, width: int, height: int, fill=True):
     height : int
         Height of the frame
     fill : bool, optional
-        If True, the non-zero values are set to 255, by default True
+        If True, the non-zero values are set to 255, by default False
+    dtype : np.dtype, optional
+        Data type of the output array, by default np.uint8
     
     Returns
     -------
@@ -26,9 +28,13 @@ def gen_frame(ev: np.ndarray, width: int, height: int, fill=True):
 
     '''
 
-    buffer = np.zeros((height, width, 3), dtype=np.uint8)
+    buffer = np.zeros((height, width, 3), dtype=dtype)
 
-    for e in ev:
+    clip = 255
+
+    # clip = 255 if dtype == np.uint8 else 65535
+
+    for e in events:
         x = e['x']
         y = e['y']
         p = e['p']
@@ -38,7 +44,9 @@ def gen_frame(ev: np.ndarray, width: int, height: int, fill=True):
         else:
             p = 2 # Blue
         
-        if buffer[y, x, p] < 255:
+
+
+        if buffer[y, x, p] < clip:
             buffer[y, x, p] += 1
 
     # If the fill flag is set, we fill the non-zero values with 255
@@ -53,7 +61,7 @@ def gen_frame(ev: np.ndarray, width: int, height: int, fill=True):
 
 
 @numba.njit
-def wedge_frame(ev, buffer, tl = 30e6):
+def wedge_histogram(events: np.ndarray, width: int = 1280, height: int = 720, tl: float = 30e6, dtype=np.uint8):   
     '''
     Generate a wedge frame frame from the events
 
@@ -73,14 +81,14 @@ def wedge_frame(ev, buffer, tl = 30e6):
 
 
     '''
-    buffer[:] = 0
+    buffer = np.zeros((height, width, 3), dtype=dtype)
 
-    ts_norm = (ev['t'] - ev['t'][0])/tl
+    ts_norm = (events['t'] - events['t'][0])/tl
 
     # print(len(ev))
 
-    sel = (720-ev['y'])/720 > ts_norm - 0.1
-    ev_sel = ev[sel]
+    sel = (height-events['y'])/height > ts_norm - 0.1
+    ev_sel = events[sel]
     # print(len(ev_sel))
     # print((720-ev['y'])/720, ts_norm, sel)
 
