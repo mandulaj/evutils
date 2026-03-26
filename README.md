@@ -4,9 +4,14 @@ EV Utils
 EV-utils is a collection of utilities for working event based data inspired by the [event_utils](https://github.com/TimoStoff/event_utils) library. This library aims at being camera independent (yet also supporting specific camera vendors) with minimal dependencies but also performent. The library is divided into severla modules some of which can be used without installing all the dependencies. These include:
 
 ```
+└── augment - Event augmentations
+└── dataset - Wrappers for various dataset loaders
+└── events 
 └── io
     ├── reader 
     └── writer
+└── random
+└── torch
 └── types
 └── vis
     ├── histogram
