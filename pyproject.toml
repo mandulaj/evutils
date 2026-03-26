@@ -1,45 +1,28 @@
-[build-system]
-requires = [
-  "setuptools>=68.2",
-  "wheel", 
-  "setuptools_scm>=8.1.0",
-  "sphinx>=8.0.0",]
-build-backend = "setuptools.build_meta"
-
-
 [project]
 name = "evutils"
-dynamic = ["version"]
-authors = [
-  {name = "Jakub Mandula", email = "jakub.mandula@pbl.ee.ethz.ch"},
-]
+version = "0.2.0"
 description = "Utilities for event-based vision"
 readme = "README.md"
 license = {file = "LICENSE"}
+authors = [
+    { name = "Jakub Mandula", email = "jakub.mandula@pbl.ee.ethz.ch" }
+]
+requires-python = ">=3.10"
 dependencies = [
     "numpy>=1.18",
     "torch>=1.6",
     "tqdm>=4.41",
     "matplotlib>=3.1",
     "opencv-python>=4.2",
-    "numba>=0.50",
-    "h5py>=3.0",
-    "hdf5plugin>=4.4",
+    "numba>=0.51",
+    "h5py==3.16.0",
+    "hdf5plugin==6.0.0",
+    "scipy>=1.15.3",
+    "pandas>=2.3.3",
 ]
-requires-python = ">= 3.9"
 keywords = ["events", "dvs", "neuromorphic", "vision", "event-based"]
 
-[tool.setuptools]
-package-dir = { "" = "src" }
-packages = ["evutils"]
 
-
-[tool.setuptools_scm]
-write_to = "src/evutils/_version.py"
-
-[tool.pytest.ini_options]
-minversion = "6.0"
-addopts = "-ra -q"
-testpaths = [
-    "tests",
-]
+[build-system]
+requires = ["uv_build>=0.9.18,<0.10.0"]
+build-backend = "uv_build"
