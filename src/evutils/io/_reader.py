@@ -407,7 +407,10 @@ class EventReader():
         tuple[int, int]
             The shape of the frame (width, height)
         '''
-        return self.width, self.height
+        if self.width is not None and self.height is not None:
+            return self.width, self.height
+        else:
+            return self.file_decoder.shape()
 
 
     def tell(self) -> int:

@@ -77,6 +77,9 @@ class EventDecoder(EventDecoder_Base):
 
         self.eof = False
 
+        self.width = None
+        self.height = None
+
     def tell(self) -> int:
         '''
         Get the current position in the file
@@ -100,6 +103,17 @@ class EventDecoder(EventDecoder_Base):
         '''
         self.chunk_size = chunk_size
 
+    def shape(self) -> tuple[int|None, int|None]:
+        '''
+        Get the shape of the frame (width, height)
+
+        Returns
+        -------
+        tuple[int|None, int|None]
+                The shape of the frame (width, height), or (None, None) if the shape is not known
+        '''
+        return self.width, self.height
+        
 
 
     def __repr__(self) -> str:
