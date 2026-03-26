@@ -12,30 +12,30 @@ import pytest
 ####################################
 
 
-def test_CSV_writer_import():
-    from evutils.io.writer import EventWriter_Csv
-    assert EventWriter_Csv is not None
-    test_writer = EventWriter_Csv("test.csv")
-    assert test_writer is not None
+# def test_CSV_writer_import():
+#     from evutils.io.writer import EventWriter_Csv
+#     assert EventWriter_Csv is not None
+#     test_writer = EventWriter_Csv("test.csv")
+#     assert test_writer is not None
 
-def test_CSV_reader_import(dummy_file_factory):
-    test_file = dummy_file_factory("test.csv")
+# def test_CSV_reader_import(dummy_file_factory):
+#     test_file = dummy_file_factory("test.csv")
 
-    from evutils.io.reader import EventReader_Csv
-    assert EventReader_Csv is not None
-    test_reader = EventReader_Csv(test_file)
-    assert test_reader is not None
+#     from evutils.io.reader import EventReader_Csv
+#     assert EventReader_Csv is not None
+#     test_reader = EventReader_Csv(test_file)
+#     assert test_reader is not None
 
 
 def test_CSV_writer(tmp_path, test_events):
-    from evutils.io.writer import EventWriter_Csv
-    from evutils.io.reader import EventReader_Csv
+    from evutils.io import EventWriter
+    from evutils.io import EventReader
 
 
     d = tmp_path / "sub"
     d.mkdir()
     p = d / "test.csv"
-    writer = EventWriter_Csv(p)
+    writer = EventWriter(p)
     writer.write(test_events)
     writer.close()
 
@@ -51,31 +51,18 @@ def test_CSV_writer(tmp_path, test_events):
         assert len(lines) == len(test_events) + 1
 
 
-    reader = EventReader_Csv(p, n_events=len(test_events))
+    reader = EventReader(p, n_events=len(test_events))
     events = reader.read()
     assert np.array_equal(events, test_events)
 
 def test_CSV_reader_nevents(event_files, test_events):
     csv_file_path = event_files['csv']
 
-    from evutils.io.reader import EventReader_Csv
+    from evutils.io import EventReader
 
     STEP=100
 
-    with EventReader_Csv(csv_file_path, n_events=STEP) as reader:
-
-        for i in range(0, len(test_events), STEP):
-            events = reader.read()
-            assert np.array_equal(events, test_events[i:i+STEP])
-
-def test_CSV_reader_nevents(event_files, test_events):
-    csv_file_path = event_files['csv']
-
-    from evutils.io.reader import EventReader_Csv
-
-    STEP=100
-
-    with EventReader_Csv(csv_file_path, n_events=STEP) as reader:
+    with EventReader(csv_file_path, n_events=STEP) as reader:
 
         for i in range(0, len(test_events), STEP):
             events = reader.read()
@@ -85,12 +72,12 @@ def test_CSV_reader_nevents(event_files, test_events):
 def test_CSV_reader_gen(event_files, test_events):
     csv_file_path = event_files['csv']
 
-    from evutils.io.reader import EventReader_Csv
+    from evutils.io import EventReader
 
     STEP=100
     i = 0
 
-    for ev in EventReader_Csv(csv_file_path, n_events=STEP):
+    for ev in EventReader(csv_file_path, n_events=STEP):
 
         assert np.array_equal(ev, test_events[i:i+STEP])
         i += STEP
