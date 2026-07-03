@@ -1,6 +1,11 @@
+[build-system]
+# scikit-build-core injects cmake/ninja itself when the system lacks them.
+requires = ["scikit-build-core>=0.10"]
+build-backend = "scikit_build_core.build"
+
 [project]
 name = "evutils"
-version = "0.2.0"
+version = "0.3.0"
 description = "Utilities for event-based vision"
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -9,8 +14,7 @@ authors = [
 ]
 requires-python = ">=3.10"
 dependencies = [
-    "numpy>=1.18",
-    "torch>=1.6",
+    "numpy>=2.0.0",
     "tqdm>=4.41",
     "matplotlib>=3.1",
     "opencv-python>=4.2",
@@ -22,10 +26,30 @@ dependencies = [
 ]
 keywords = ["events", "dvs", "neuromorphic", "vision", "event-based"]
 
+[project.optional-dependencies]
+torch = ["torch>=2.0"]
+numba = ["numba>=0.57"]
 
-[build-system]
-requires = ["uv_build>=0.9.18,<0.10.0"]
-build-backend = "uv_build"
+
+
+# --- scikit-build-core (drives CMake) --------------------------------------
+[tool.scikit-build]
+minimum-version = "0.10"
+build-dir = "build/{wheel_tag}"
+# src/ layout: the importable package is src/evutils
+wheel.packages = ["src/evutils"]
+# Don't ship the C sources / CMake files in the wheel; they're build inputs.
+sdist.include = ["csrc", "CMakeLists.txt", "src", "pyproject.toml", "README.md"]
+cmake.version = ">=3.18"
+
+[tool.scikit-build.editable]
+# During development (`uv pip install -e .`), rebuild the C automatically on
+# import so editing a .c file and re-running picks up the change.
+mode = "redirect"
+rebuild = true
+verbose = false
+
+
 
 [dependency-groups]
 dev = [
