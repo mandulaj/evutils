@@ -17,11 +17,13 @@ Anything worth calling out up front.
 
 """
 
+import importlib.metadata
+
 try:
-    from ._version import version as __version__
-except ImportError:
-    # Default version if the _version.py is not generated
-    __version__ = "0.0.0"
+    __version__ = importlib.metadata.version("evutils")
+except importlib.metadata.PackageNotFoundError:
+    # Fallback if the package is run without being installed
+    __version__ = "dev"
 
 
 __all__ = [

@@ -3,7 +3,7 @@ EV Utils
 [![Test](https://github.com/mandulaj/evutils/actions/workflows/test.yaml/badge.svg)](https://github.com/mandulaj/evutils/actions/workflows/test.yaml)
 
 
-EV-utils is a performant collection of utilities for working with event-based vision data. Built with minimal dependencies, it relies on compile C backed for speed while offering a clean, modular Python interface.
+EV-utils is a performant collection of utilities for working with event-based vision data. Built with minimal dependencies, it relies on compiled C backed for speed while offering a clean, modular Python interface.
 
 
 
