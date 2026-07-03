@@ -3,10 +3,10 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-EVutils documentation
-=====================
+EV-utils documentation
+======================
 
-Welcome to the documentation of EVutils.
+Welcome to the documentation of `evutils`.
 
 
 .. toctree::

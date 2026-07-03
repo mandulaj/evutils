@@ -1,4 +1,8 @@
+"""Splitting event streams into chunks.
 
+Slice a continuous event stream into fixed-size windows, either by event
+count or by time interval.
+"""
 
 import numpy as np
 

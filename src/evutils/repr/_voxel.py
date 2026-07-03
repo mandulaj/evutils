@@ -1,7 +1,7 @@
 
 
 
-from .histogram import histogram
+from ._histogram import histogram
 from ..chunking import window_delta_t
 
 

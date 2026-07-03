@@ -1,5 +1,9 @@
 
-import torch
+from evutils.torch import _try_import_torch
+torch = _try_import_torch()
+    
+
+
 import numpy as np
 import os
 

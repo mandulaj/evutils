@@ -1,4 +1,9 @@
+"""Core data types for event streams.
 
+Defines the structured NumPy dtypes used throughout evutils — ``Events``
+(timestamp, x, y, polarity) and ``Triggers`` (timestamp, polarity, id) —
+together with small helpers for checking event arrays.
+"""
 
 
 import ctypes

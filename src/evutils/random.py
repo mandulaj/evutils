@@ -1,3 +1,10 @@
+"""Generation and perturbation of synthetic events.
+
+Create random event arrays for testing and benchmarking
+(``random_events``, ``random_events_generator``) and add random timestamp
+jitter to existing events (``event_jitter``, ``event_jitter_n``).
+"""
+
 
 from typing import Generator
 from .types import Event_dtype
