@@ -1,54 +1,75 @@
-EV Utils
+EV Utils 
 ========
+[![Test](https://github.com/mandulaj/evutils/actions/workflows/test.yaml/badge.svg)](https://github.com/mandulaj/evutils/actions/workflows/test.yaml)
 
-EV-utils is a collection of utilities for working event based data inspired by the [event_utils](https://github.com/TimoStoff/event_utils) library. This library aims at being camera independent (yet also supporting specific camera vendors) with minimal dependencies but also performent. The library is divided into severla modules some of which can be used without installing all the dependencies. These include:
+
+EV-utils is a performant collection of utilities for working with event-based vision data. Built with minimal dependencies, it relies on compile C backed for speed while offering a clean, modular Python interface.
+
+
+
+### Inspirations & Related Work 
+This project draws inspiration from several excellent libraries in the event-based vision ecosystem and attempts to fill in their shortcomings:
+
+* [Tonic](https://github.com/neuromorphs/tonic)
+* [event_utils](https://github.com/TimoStoff/event_utils)
+* [evlib](https://github.com/tallamjr/evlib)
+* [openeb](https://github.com/prophesee-ai/openeb)
+
+
+## Installation
+We recommend installing `evutils` using `uv`.
+### From PyPi
+```bash
+uv add evutils
+```
+
+### From Git
+```bash
+git clone --recurse-submodules https://github.com/mandulaj/evutils.git
+cd evutils
+
+uv pip install -e ".[dev]"
+```
+
+Note: You can also install specific optional dependency groups like `uv add evutils[torch,hdf5]`.
+
+## Architecture
+The library is divided into several discrete modules. Many can be used independently without installing the full suite of dependencies:
 
 ```
-└── augment - Event augmentations
-└── dataset - Wrappers for various dataset loaders
-└── events 
-└── io
+└── augment     - Event augmentations
+└── dataset     - Wrappers for various dataset loaders
+└── events      - Core event handling logic
+└── io          - Event reading and writing interfaces
     ├── reader 
     └── writer
-└── random
-└── torch
-└── types
-└── vis
+└── random      - Random event generation and noise injection
+└── torch       - PyTorch integration (requires evutils[torch])
+└── types       - Standard types for representing Events in NumPy arrays
+└── vis         - Visualization methods
     ├── histogram
     └── reconstructor
 ```
 
+### Quick API overview 
 
-## Installation
-
-### From Git
-```bash
-git clone --recurse-submodules git@git.ee.ethz.ch:pbl/research/event-camera/evutils.git
-
-cd evutils
-pip install . 
-pip install -e . # Use this to install an editable version of the package
-```
-
-## Quick API overview 
-
-### `augment`
+<!-- ### `augment`
 
 Event augmentations
 
 ### `dataset`
 
-Wrappers for various dataset loaders
+Wrappers for various dataset loaders -->
 
-### `io`
+#### `io`: Reading and Writing Events
 
 The `io` module provides methods for reading and writing events into various event formats. It provides a simple `.read()` and `.write()` interface as well as more advanced interfaces using iterators and slicing.
 
 ```python
-from evutils.io.reader import EventReader_RAW
+from evutils.io import EventReader
 
 
-ev_file = EventReader_RAW("raw_file.raw", delta_t=10e3)
+ev_file = EventReader("raw_file.raw", delta_t=10e3)
 
 events = ev_file.read()
 
@@ -71,11 +92,6 @@ This provides several standard types for representing Events in numpy arrays
 
 The `vis` moduels provides several methods for visualizing the events (for example as histograms), but also provides a streamlined interface for more complex visualization techneques, such as using the [E2Vid](https://github.com/uzh-rpg/rpg_e2vid) reconstructor.
 
-You need to download the pretrained weights:
-```bash
-wget "http://rpg.ifi.uzh.ch/data/E2VID/models/E2VID_lightweight.pth.tar" -O models/E2VID_lightweight.pth.tar
-```
-
 
 ```python
 from evutils.vis.reconstructor import RPG_Reconstructor
@@ -88,9 +104,9 @@ img = reconstructor.gen_frame(events)
 
 ## Running tests
 
-You can run tests on using the pytest utility:
+Tests are managed via `pytest`. If you installed the package with the `[dev]` or `[test]` flag, you can run them via:
 ```bash
-pytest -s
+uv run pytest -s
 ```
 
 
