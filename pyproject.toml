@@ -50,6 +50,13 @@ dev = [
 ]
 
 
+[project.urls]
+"Source Code" = "https://github.com/mandulaj/evutils"
+"Documentation" = "https://mandulaj.github.io/evutils/"
+"Bug Tracker" = "https://github.com/mandulaj/evutils/issues"
+"Homepage" = "https://mandulaj.github.io/evutils/"
+
+
 
 # --- scikit-build-core (drives CMake) --------------------------------------
 [tool.scikit-build]
