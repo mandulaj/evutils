@@ -1,10 +1,10 @@
-evutils.events
+evutils.chunking
 ===============
 
 Module contents
 ---------------
 
-.. automodule:: evutils.events
+.. automodule:: evutils.chunking
    :members:
    :undoc-members:
    :show-inheritance:

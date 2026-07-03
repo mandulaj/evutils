@@ -8,10 +8,11 @@ Subpackages
    :maxdepth: 3
 
    evutils.augment
-   evutils.events
+   evutils.chunking
    evutils.dataset
    evutils.io
    evutils.random
+   evutils.repr
    evutils.torch
    evutils.types
    evutils.vis

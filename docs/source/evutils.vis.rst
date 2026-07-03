@@ -9,16 +9,6 @@ Subpackages
 
    evutils.vis.reconstructor
 
-Submodules
-----------
-
-evutils.vis.histogram module
-----------------------------
-
-.. automodule:: evutils.vis.histogram
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 Module contents
 ---------------
