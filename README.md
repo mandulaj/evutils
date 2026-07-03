@@ -30,7 +30,7 @@ pip install .
 pip install -e . # Use this to install an editable version of the package
 ```
 
-## API Usage 
+## Quick API overview 
 
 ### `augment`
 

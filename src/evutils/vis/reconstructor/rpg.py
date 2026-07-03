@@ -16,7 +16,7 @@ from .rpg_e2vid.utils.inference_utils import CropParameters, EventPreprocessor, 
 
 
 from types import SimpleNamespace
-from .base import Reconstructor
+from ._base import Reconstructor
 
 
 def set_inference_options(params):

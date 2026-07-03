@@ -7,23 +7,6 @@ To get started::
     import evutils
     ...
 
-Submodules
-----------
-
-.. toctree::
-   :hidden:
-
-   {% for submodule in visible_submodules %}
-   {{ submodule.include_path }}
-   {% endfor %}
-
-.. list-table::
-   :widths: 30 70
-
-   {% for submodule in visible_submodules %}
-   * - :py:mod:`{{ submodule.short_name }} <{{ submodule.id }}>`
-     - {{ submodule.summary }}
-   {% endfor %}
 
 
 Notes

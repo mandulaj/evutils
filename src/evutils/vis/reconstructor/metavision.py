@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 
-from .base import Reconstructor
+from ._base import Reconstructor
 
 try:
     from metavision_core_ml.utils.torch_ops import normalize_tiles, viz_flow
