@@ -116,3 +116,14 @@ Thanks to all the contributors for supporting this project:
 
 * Elia Franc
 * Jakub Mandula
+
+
+## Cite
+```bibtex
+@PhDThesis{2024mandula_evutils,
+  author        = {Jakub Mandula},
+  title         = {EV-Utils: collection of utilities for working with event-based vision data},
+  school        = {Dept. of Information Technology and Electrical Engineering, ETH Zurich},
+  year          = 2024
+}
+```
