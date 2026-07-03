@@ -1,26 +1,83 @@
-name: Release
+name: Release & Publish Docs
 
 on:
   release:
-    types: [created]
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write      # Required for modern PyPI publishing and GitHub Pages deployment
+  pages: write         # Required for GitHub Pages deployment
 
 jobs:
-  deploy:
+  build-and-publish-pypi:
+    name: Build & Publish to PyPI
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
-          python-version: "3.x"
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install setuptools wheel twine
-      - name: Build and publish
+          enable-cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install build tools
+        run: uv pip install --system build cibuildwheel
+
+      - name: Build source distribution (sdist)
+        run: python -m build --sdist
+
+      - name: Build compiled wheels (cibuildwheel)
+        run: python -m cibuildwheel --output-dir dist
         env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+          CIBW_SKIP: "cp36-* cp37-* cp38-* cp39-* pp* *musllinux*"
+          CIBW_BUILD_FRONTEND: "build[uv]"
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+
+  build-and-publish-docs:
+    name: Build & Publish Sphinx Docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install package and docs dependencies
+        # uv compiles the C extension locally and installs dependencies instantly
+        run: uv pip install --system .[docs]
+
+      - name: Build Sphinx HTML
         run: |
-          python setup.py sdist bdist_wheel
-          twine upload --repository pypi dist/*
+          cd docs
+          make html
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'docs/_build/html'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
