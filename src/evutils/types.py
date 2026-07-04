@@ -88,3 +88,42 @@ class IndexedEvents(Events):
     def _build_internal_index(self):
         self.index = np.argsort(self['t'])
 
+
+
+class EventArray:
+    __slots__ = ['t', 'x', 'y', 'p']
+    _aos_dtype = Event_dtype
+
+    def __init__(self, t, x, y, p):
+        self.t = np.asarray(t, dtype=np.int64)
+        self.x = np.asarray(x, dtype=np.uint16)
+        self.y = np.asarray(y, dtype=np.uint16)
+        self.p = np.asarray(p, dtype=np.uint8)
+      
+    def __getitem__(self, key):
+        if isinstance(key, str):
+            return getattr(self, key)
+        
+        return EventArray(self.t[key], self.x[key], self.y[key], self.p[key])
+
+    def __len__(self):
+        return len(self.t)
+    
+    @classmethod
+    def from_aos(cls, aos_array):
+        """Constructs an EventArray from an array of structures (AoS) numpy array."""
+        return cls(
+            np.ascontiguousarray(aos_array['t']),
+            np.ascontiguousarray(aos_array['x']),
+            np.ascontiguousarray(aos_array['y']),
+            np.ascontiguousarray(aos_array['p'])
+        )
+            
+    def to_aos(self):
+        """Converts the EventArray to an array of structures (AoS) numpy array."""
+        aos_array = np.empty(len(self), dtype=self._aos_dtype)
+        aos_array['t'] = self.t
+        aos_array['x'] = self.x
+        aos_array['y'] = self.y
+        aos_array['p'] = self.p
+        return aos_array

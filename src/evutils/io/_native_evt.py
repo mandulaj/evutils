@@ -23,7 +23,9 @@ from ctypes import (
     POINTER,
     Structure,
     byref,
+    cast,
     c_char_p,
+    c_char,
     c_int,
     c_size_t,
     c_uint8,
@@ -37,22 +39,14 @@ from pathlib import Path
 import numpy as np
 
 __all__ = [
-    "NativeError",
-    "lib",
-    "Event32",
-    "Trigger32",
-    "EventBufferSOA",
-    "EventBuffer",
-    "TriggerBuffer",
-    "Evt3InputBuffer",
-    "Evt3ParserResult",
-    "SoABuffers",
-    "EVENT_DTYPE",
-    "TRIGGER_DTYPE",
-    "EVT3_STATUS_OK",
-    "EVT3_STATUS_INPUT_EXHAUSTED",
-    "EVT3_STATUS_OUTPUT_FULL",
-    "EVT3_STATUS_ERROR",
+    "NativeError", "lib",
+    "Event32", "Trigger32",
+    "EventBufferSOA", "TriggerBufferSOA", "EventBuffer", "TriggerBuffer",
+    "Evt3InputBuffer", "ParserResult",
+    "SoABuffers", "TriggerSoABuffers", "Evt3Input", "Evt3Parser",
+    "EVENT_DTYPE", "TRIGGER_DTYPE",
+    "EVT3_STATUS_OK", "EVT3_STATUS_INPUT_EXHAUSTED",
+    "EVT3_STATUS_OUTPUT_FULL", "EVT3_STATUS_ERROR",
 ]
 
 
@@ -83,6 +77,15 @@ TRIGGER_DTYPE = np.dtype(
 )
 
 
+# SoA column dtypes — these must match timestamp64_t / uint16 / uint8 in types.h.
+_T_DTYPE = np.uint64   # timestamp64_t
+_X_DTYPE = np.uint16
+_Y_DTYPE = np.uint16
+_P_DTYPE = np.uint8
+_ID_DTYPE = np.uint8
+ 
+
+
 # --------------------------------------------------------------------------- #
 # ctypes structs mirroring csrc/include/evutils/*.h
 # --------------------------------------------------------------------------- #
@@ -93,16 +96,6 @@ class Event32(Structure):
 class Trigger32(Structure):
     _fields_ = [("t", c_uint32), ("id", c_uint8), ("p", c_uint8)]
 
-
-class EventBufferSOA(Structure):
-    _fields_ = [
-        ("t", POINTER(c_uint64)),
-        ("x", POINTER(c_uint16)),
-        ("y", POINTER(c_uint16)),
-        ("p", POINTER(c_uint8)),
-        ("capacity", c_size_t),
-        ("size", c_size_t),
-    ]
 
 
 class EventBuffer(Structure):
@@ -117,20 +110,38 @@ class TriggerBuffer(Structure):
     ]
 
 
+class EventBufferSOA(Structure):
+    _fields_ = [
+        ("t", POINTER(c_uint64)), ("x", POINTER(c_uint16)),
+        ("y", POINTER(c_uint16)), ("p", POINTER(c_uint8)),
+        ("capacity", c_size_t), ("size", c_size_t),
+    ]
+ 
+class TriggerBufferSOA(Structure):
+    _fields_ = [
+        ("t", POINTER(c_uint64)), ("id", POINTER(c_uint8)), ("p", POINTER(c_uint8)),
+        ("capacity", c_size_t), ("size", c_size_t),
+    ]
+
+
+
 class Evt3InputBuffer(Structure):
     _fields_ = [("begin", POINTER(c_uint16)), ("end", POINTER(c_uint16))]
 
 
-# Keep these in sync with evt3_parse_status_t in evt3.h.
-EVT3_STATUS_OK = 0
-EVT3_STATUS_INPUT_EXHAUSTED = 1
-EVT3_STATUS_OUTPUT_FULL = 2
-EVT3_STATUS_ERROR = 3
+
+EVUTILS_PARSE_OK = 0
+EVUTILS_PARSE_INPUT_EMPTY = 1
+EVUTILS_PARSE_OUTPUT_FULL = 2
+EVUTILS_PARSE_ERROR = 3
+EVUTILS_PARSE_INCOMPLETE = 4
 
 
-class Evt3ParserResult(Structure):
+class ParserResult(Structure):
+    """Mirror of parser_result_t."""
     _fields_ = [("current", POINTER(c_uint16)), ("status", c_int)]
-
+ 
+ 
 
 # --------------------------------------------------------------------------- #
 # Library discovery + loading (lazy)
@@ -187,39 +198,23 @@ def _find_library() -> str:
 
 
 def _bind(handle: ctypes.CDLL) -> ctypes.CDLL:
-    """Attach argtypes/restypes. Tolerates format modules not yet compiled."""
     handle.evutils_version.argtypes = []
     handle.evutils_version.restype = c_char_p
-
-    handle.evutils_debug_fill_soa.argtypes = [POINTER(EventBufferSOA), c_uint64]
-    handle.evutils_debug_fill_soa.restype = c_size_t
-
-    # EVT3 is bound only once evt3.c (with the lifecycle helpers) is linked in.
-    if hasattr(handle, "EVT3_state_create"):
-        handle.EVT3_state_create.argtypes = []
-        handle.EVT3_state_create.restype = c_void_p
-        handle.EVT3_state_reset.argtypes = [c_void_p]
-        handle.EVT3_state_reset.restype = None
-        handle.EVT3_state_destroy.argtypes = [c_void_p]
-        handle.EVT3_state_destroy.restype = None
-
+    
+    if hasattr(handle, "EVT3_state_size"):
+        handle.EVT3_state_size.argtypes = []
+        handle.EVT3_state_size.restype = c_size_t
+    if hasattr(handle, "EVT3_parse_chunk_soa"):
         handle.EVT3_parse_chunk_soa.argtypes = [
-            c_void_p,
+            c_void_p,                    # opaque evt3_state_t*
             POINTER(Evt3InputBuffer),
             POINTER(EventBufferSOA),
-            POINTER(TriggerBuffer),
+            POINTER(TriggerBufferSOA),
         ]
-        handle.EVT3_parse_chunk_soa.restype = Evt3ParserResult
-
-        handle.EVT3_parse_chunk.argtypes = [
-            c_void_p,
-            POINTER(Evt3InputBuffer),
-            POINTER(EventBuffer),
-            POINTER(TriggerBuffer),
-        ]
-        handle.EVT3_parse_chunk.restype = Evt3ParserResult
+        handle.EVT3_parse_chunk_soa.restype = ParserResult
     return handle
-
+ 
+ 
 
 _LIB: ctypes.CDLL | None = None
 
@@ -236,56 +231,126 @@ def lib() -> ctypes.CDLL:
     return _LIB
 
 
-# --------------------------------------------------------------------------- #
-# numpy <-> C SoA bridge (the piece EventReader will build on)
-# --------------------------------------------------------------------------- #
-class SoABuffers:
-    """Owns four numpy column arrays and a ctypes ``EventBufferSOA`` aimed at
-    them. C parsers fill the arrays in place; ``view()`` returns the populated
-    prefix as zero-copy slices.
 
-    The numpy arrays are kept alive for as long as this object lives, which
-    keeps the C-side pointers valid. Do not let a ``view()`` slice outlive the
-    ``SoABuffers`` it came from.
-    """
-
+# --------------------------------------------------------------------------- #
+# numpy <-> C SoA bridges
+# --------------------------------------------------------------------------- #
+class EventSoABuffers:
+    """Owns the four event columns and a ctypes event_buffer_soa_t aimed at them.
+    Keep this object alive as long as any view() slice is in use."""
+ 
     __slots__ = ("capacity", "t", "x", "y", "p", "c")
-
+ 
     def __init__(self, capacity: int):
         self.capacity = int(capacity)
-        self.t = np.empty(self.capacity, dtype=np.uint64)
-        self.x = np.empty(self.capacity, dtype=np.uint16)
-        self.y = np.empty(self.capacity, dtype=np.uint16)
-        self.p = np.empty(self.capacity, dtype=np.uint8)
-        self.c = EventBufferSOA()
-        self._rebind()
 
-    def _rebind(self) -> None:
+        self.t = np.empty(self.capacity, dtype=_T_DTYPE)
+        self.x = np.empty(self.capacity, dtype=_X_DTYPE)
+        self.y = np.empty(self.capacity, dtype=_Y_DTYPE)
+        self.p = np.empty(self.capacity, dtype=_P_DTYPE)
+
+        self.c = EventBufferSOA()
         self.c.t = self.t.ctypes.data_as(POINTER(c_uint64))
         self.c.x = self.x.ctypes.data_as(POINTER(c_uint16))
         self.c.y = self.y.ctypes.data_as(POINTER(c_uint16))
         self.c.p = self.p.ctypes.data_as(POINTER(c_uint8))
         self.c.capacity = self.capacity
         self.c.size = 0
-
+ 
     @property
     def size(self) -> int:
         return int(self.c.size)
-
+ 
     def reset(self) -> None:
         self.c.size = 0
-
+ 
     def view(self):
-        """Return (t, x, y, p) slices covering the events written so far."""
         n = self.size
         return self.t[:n], self.x[:n], self.y[:n], self.p[:n]
+ 
+ 
+class TriggerSoABuffers:
+    """Owns the three trigger columns and a ctypes trigger_buffer_soa_t."""
+ 
+    __slots__ = ("capacity", "t", "id", "p", "c")
+ 
+    def __init__(self, capacity: int):
+        self.capacity = int(capacity)
+
+        self.t = np.empty(self.capacity, dtype=_T_DTYPE)
+        self.id = np.empty(self.capacity, dtype=_ID_DTYPE)
+        self.p = np.empty(self.capacity, dtype=_P_DTYPE)
+
+        self.c = TriggerBufferSOA()
+        self.c.t = self.t.ctypes.data_as(POINTER(c_uint64))
+        self.c.id = self.id.ctypes.data_as(POINTER(c_uint8))
+        self.c.p = self.p.ctypes.data_as(POINTER(c_uint8))
+        self.c.capacity = self.capacity
+        self.c.size = 0
+ 
+    @property
+    def size(self) -> int:
+        return int(self.c.size)
+ 
+    def reset(self) -> None:
+        self.c.size = 0
+ 
+    def view(self):
+        n = self.size
+        return self.t[:n], self.id[:n], self.p[:n]
+ 
+ 
+class Evt3Input:
+    """Wraps a contiguous uint16 array (e.g. an mmap viewed with np.frombuffer)
+    as an evt3_input_buffer_t. No copy is made; keep the array alive."""
+ 
+    __slots__ = ("arr", "c")
+ 
+    def __init__(self, words: np.ndarray):
+        if words.dtype != np.uint16 or not words.flags["C_CONTIGUOUS"]:
+            raise NativeError("Evt3Input needs a C-contiguous uint16 array")
+        self.arr = words
+        base = words.ctypes.data
+        self.c = Evt3InputBuffer()
+        self.c.begin = cast(base, POINTER(c_uint16))
+        self.c.end = cast(base + words.nbytes, POINTER(c_uint16))  # one-past-last
+ 
+    def consumed(self, result: "ParserResult") -> int:
+        """Number of uint16 words consumed, from a returned result.current."""
+        cur = cast(result.current, c_void_p).value or self.arr.ctypes.data
+        return (cur - self.arr.ctypes.data) // 2
+ 
+ 
+class Evt3Parser:
+    """Owns an opaque evt3_state_t handle from EVT3_state_create. Python never
+    looks inside it, so changing the C struct layout needs only a recompile.
+ 
+    Because the handle must be freed, use it as a context manager or call
+    close() explicitly; a finalizer is a best-effort backstop.
+ 
+        with Evt3Parser() as p:
+            res = p.parse_chunk_soa(inp, events, triggers)   # state carried across calls
+            p.reset()                                        # start a fresh stream
+    """
+ 
+    __slots__ = ("_state", "_buf")
+ 
+    def __init__(self):
+        handle = lib()
+
+        self._buf = (c_char * int(handle.EVT3_state_size()))()  # zero-initialised
+        self._state = cast(self._buf, c_void_p)
 
 
-def make_trigger_buffer(capacity: int):
-    """Allocate a numpy-backed trigger buffer; returns (TriggerBuffer, ndarray)."""
-    arr = np.empty(capacity, dtype=TRIGGER_DTYPE)
-    buf = TriggerBuffer()
-    buf.triggers = arr.ctypes.data_as(POINTER(Trigger32))
-    buf.capacity = capacity
-    buf.size = 0
-    return buf, arr
+    def reset(self) -> None:
+        ctypes.memset(self._buf, 0, len(self._buf))
+        
+ 
+    def parse_chunk_soa(self, inp: Evt3Input, events: EventSoABuffers,
+                        triggers: TriggerSoABuffers) -> ParserResult:
+        return lib().EVT3_parse_chunk_soa(
+            self._state, byref(inp.c), byref(events.c), byref(triggers.c)
+        )
+ 
+    def __enter__(self):
+        return self

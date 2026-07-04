@@ -12,8 +12,6 @@ endif()
 
 # --- Sources ----------------------------------------------------------------
 # Compile every .c under csrc/. CONFIGURE_DEPENDS re-globs when files are
-# added/removed so dropping in evt3.c / evt2.c / ... needs no edit here.
-# (If you prefer an explicit list for reproducibility, replace this glob.)
 file(GLOB EVUTILS_SOURCES CONFIGURE_DEPENDS
      "${CMAKE_CURRENT_SOURCE_DIR}/csrc/*.c")
 
