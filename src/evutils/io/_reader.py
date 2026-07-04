@@ -38,10 +38,10 @@ class EventReader():
         Width of the frame, by default infered from the file
     height
         Height of the frame, by default infered from the file
-    file_reader
-        File reader to use, by default None - automatic
+    file_decoder
+        File decoder to use, by default None - automatic
     **kwargs
-        Additional arguments to pass to the file reader
+        Additional arguments to pass to the file decoder
 
     Raises
     ------
