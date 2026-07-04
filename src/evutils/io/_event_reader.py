@@ -6,7 +6,7 @@ from typing import Any, Tuple, Union
 
 import numpy as np
 
-from ..io import reader as ev_readers
+from ..io import _decoders as ev_decoders
 from ..types import Event_dtype
 from ._common import EventDecoder_Base
 from .buffer import EventRingBuffer
@@ -224,7 +224,7 @@ class EventReader():
             The file writer
         '''
 
-        decoder_cls = ev_readers.get_reader_from_filename(file_name)
+        decoder_cls = ev_decoders.get_reader_from_filename(file_name)
 
         return decoder_cls(self.file, **args)
 

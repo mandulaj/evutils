@@ -6,7 +6,7 @@ from typing import Union
 
 import numpy as np
 
-from ..io import writer as ev_writers
+from ..io import _encoders as ev_encoders
 from ._common import EventEncoder_Base
 
 
@@ -99,7 +99,7 @@ class EventWriter():
             The file writer
         '''
 
-        encoder_cls = ev_writers.get_file_writer(file_name)
+        encoder_cls = ev_encoders.get_file_writer(file_name)
 
         return encoder_cls(self.file, **args)
 

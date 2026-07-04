@@ -88,6 +88,10 @@ try:
     from ._raw import EventFileReader_RAW
 
     _READER_MAPPING[".raw"] = EventFileReader_RAW
+    _READER_MAPPING[".evt"] = EventFileReader_RAW
+    _READER_MAPPING[".evt3"] = EventFileReader_RAW
+    _READER_MAPPING[".evt2"] = EventFileReader_RAW
+    _READER_MAPPING[".evt21"] = EventFileReader_RAW
 except ImportError as e:
     error = str(e)
     warnings.warn("EventFileReader_RAW not available: " +  error)
