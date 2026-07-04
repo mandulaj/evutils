@@ -10,7 +10,7 @@ import ctypes
 
 import numpy as np
 
-__all__ = ['Event_dtype', 'Trigger_dtype']
+__all__ = ['Event_dtype', 'Trigger_dtype', 'Event', 'Events', 'IndexedEvents', 'EventArray', 'is_monotonically_increasing']
 
 
 #: A structured numpy dtype for event data.
@@ -91,6 +91,7 @@ class IndexedEvents(Events):
 
 
 class EventArray:
+    """A container for storing event data in an array-of-structures format."""
     __slots__ = ['t', 'x', 'y', 'p']
     _aos_dtype = Event_dtype
 
