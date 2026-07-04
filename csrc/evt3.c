@@ -259,23 +259,25 @@ parser_result_t EVT3_parse_chunk_soa(
     const uint16_t *restrict current = input_buffer->begin;
     const uint16_t * end_offset = input_buffer->end - EVT3_INPUT_PADDING;
 
-    // event_t* restrict events = event_buffer->events;
+    // Event output buffers
+    const size_t events_capacity = event_buffer->capacity;
+    const size_t events_capacity_offset = events_capacity - 64; // We need to keep some space for vector messages
+    size_t n_events_read = event_buffer->size;
+
     timestamp_t* restrict out_ts = event_buffer->t;
     uint16_t* restrict out_x = event_buffer->x;
     uint16_t* restrict out_y = event_buffer->y;
     uint8_t* restrict out_p = event_buffer->p;
-
-    const size_t events_capacity = event_buffer->capacity;
-    const size_t events_capacity_offset = events_capacity - 64; // We need to keep some space for vector messages
-    size_t n_events_read = event_buffer->size;
     
-    timestamp_t* restrict trigger_ts = trigger_buffer->t;
-    uint8_t* restrict trigger_id = trigger_buffer->id;
-    uint8_t* restrict trigger_p = trigger_buffer->p;
-
+    // Trigger output buffers
     const size_t triggers_capacity = trigger_buffer->capacity;
     size_t n_triggers_read = trigger_buffer->size;
 
+    timestamp_t* restrict trigger_ts = trigger_buffer->t;
+    uint8_t* restrict trigger_id = trigger_buffer->id;
+    uint8_t* restrict trigger_p = trigger_buffer->p;
+    
+    // State variables
     evt3_state_t local_state = *state;
 
     parse_status_t status = EVUTILS_PARSE_OK;
@@ -374,7 +376,7 @@ parser_result_t EVT3_parse_chunk_soa(
 
 
     return (parser_result_t){
-        .current = current,
+        .current = (const void *)current,
         .status = status
     };
 }
@@ -441,7 +443,7 @@ parser_result_t EVT3_parse_chunk(
 
     // Hoist variables for better optimization
     const uint16_t *restrict current = input_buffer->begin;
-    const uint16_t * end_offset = input_buffer->end - EVT3_INPUT_PADDING;
+    const uint16_t *restrict end_offset = input_buffer->end - EVT3_INPUT_PADDING;
 
     event_t* restrict events = event_buffer->events;
     const size_t events_capacity = event_buffer->capacity;
@@ -549,7 +551,7 @@ parser_result_t EVT3_parse_chunk(
 
 
     return (parser_result_t){
-        .current = current,
+        .current = (const void *)current,
         .status = status
     };
 }

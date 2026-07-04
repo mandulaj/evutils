@@ -18,7 +18,7 @@ typedef enum {
 
 
 typedef struct parser_result_s {
-    const uint16_t *current;
+    const void *current;
     parse_status_t status;
 } parser_result_t;
 
