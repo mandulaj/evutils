@@ -7,8 +7,8 @@ backend from the file extension. Backends that need optional dependencies
 degrade gracefully and only raise on use.
 """
 
-from ._reader import EventReader
-from ._writer import EventWriter
+from ._event_reader import EventReader
+from ._event_writer import EventWriter
 
 
 __all__ = ["EventReader", "EventWriter"]
