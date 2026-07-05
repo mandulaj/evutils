@@ -38,6 +38,8 @@ from pathlib import Path
 
 import numpy as np
 
+from ..types import EventArray
+
 __all__ = [
     "NativeError", "lib",
     "Event32", "Trigger32",
@@ -321,15 +323,34 @@ class EventSoABuffers:
     @property
     def size(self) -> int:
         return int(self.c.size)
- 
+
     def reset(self) -> None:
         self.c.size = 0
- 
+
+    def grow(self, new_capacity: int) -> None:
+        """Enlarge the columns to ``new_capacity``, preserving the first ``size``
+        elements, and re-aim the ctypes struct at the new storage. Used by the
+        single-buffer decode path when the parser fills the output."""
+        new_capacity = int(new_capacity)
+        if new_capacity <= self.capacity:
+            return
+        n = self.size
+        for name, dtype, field, ptr in (
+            ("t", _T_DTYPE, "t", c_uint64), ("x", _X_DTYPE, "x", c_uint16),
+            ("y", _Y_DTYPE, "y", c_uint16), ("p", _P_DTYPE, "p", c_uint8),
+        ):
+            grown = np.empty(new_capacity, dtype=dtype)
+            grown[:n] = getattr(self, name)[:n]
+            setattr(self, name, grown)
+            setattr(self.c, field, grown.ctypes.data_as(POINTER(ptr)))
+        self.capacity = new_capacity
+        self.c.capacity = new_capacity
+
     def view(self):
         n = self.size
         return self.t[:n], self.x[:n], self.y[:n], self.p[:n]
- 
- 
+
+
 class TriggerSoABuffers:
     """Owns the three trigger columns and a ctypes trigger_buffer_soa_t."""
  
@@ -352,10 +373,28 @@ class TriggerSoABuffers:
     @property
     def size(self) -> int:
         return int(self.c.size)
- 
+
     def reset(self) -> None:
         self.c.size = 0
- 
+
+    def grow(self, new_capacity: int) -> None:
+        """Enlarge the columns to ``new_capacity``, preserving the first ``size``
+        elements, and re-aim the ctypes struct at the new storage."""
+        new_capacity = int(new_capacity)
+        if new_capacity <= self.capacity:
+            return
+        n = self.size
+        for name, dtype, ptr in (
+            ("t", _T_DTYPE, c_uint64), ("id", _ID_DTYPE, c_uint8),
+            ("p", _P_DTYPE, c_uint8),
+        ):
+            grown = np.empty(new_capacity, dtype=dtype)
+            grown[:n] = getattr(self, name)[:n]
+            setattr(self, name, grown)
+            setattr(self.c, name, grown.ctypes.data_as(POINTER(ptr)))
+        self.capacity = new_capacity
+        self.c.capacity = new_capacity
+
     def view(self):
         n = self.size
         return self.t[:n], self.id[:n], self.p[:n]
@@ -590,3 +629,148 @@ class AerParser:
 
     def __enter__(self):
         return self
+
+
+# --------------------------------------------------------------------------- #
+# SoA buffer -> EventArray helpers
+# --------------------------------------------------------------------------- #
+def events_view(ev: EventSoABuffers) -> EventArray:
+    """Zero-copy :class:`EventArray` over the first ``ev.size`` decoded events.
+
+    Timestamps are *reinterpreted* ``uint64 -> int64`` (positive, in range) rather
+    than converted, so no data is copied. The result aliases ``ev``'s reusable
+    columns and is only valid until the next parse into ``ev`` -- callers that need
+    to retain it must ``.copy()`` (the EventReader copies when it appends to its
+    ring buffer)."""
+    n = ev.size
+    return EventArray(ev.t[:n].view(np.int64), ev.x[:n], ev.y[:n], ev.p[:n])
+
+
+# --------------------------------------------------------------------------- #
+# Single parser step, appending into a caller-provided buffer
+# --------------------------------------------------------------------------- #
+def parse_step(words, offset, make_input, parser, events, triggers, *,
+               tail_pad: int = 0, word_dtype=None):
+    """Run the parser once, *appending* into ``events`` (from ``events.size``)
+    up to ``events.c.capacity``, and advance through ``words``.
+
+    This is the decode-in-place primitive behind ``EventReader``'s windowed
+    read: the caller (its :class:`EventAccumulator`) hands the parser its own
+    reused storage, so decoding writes straight into the accumulator with no
+    intermediate copy. Returns ``(appended, new_offset)``. ``appended == 0`` with
+    ``new_offset == len(words)`` means the input is exhausted; ``appended == 0``
+    with progress means the step consumed only state/timing words (caller should
+    step again).
+    """
+    n_words = len(words)
+    if offset >= n_words:
+        return 0, n_words
+    before = events.size
+    inp = make_input(words[offset:])
+    res = parser.parse_chunk_soa(inp, events, triggers)
+    if res.status == EVUTILS_PARSE_ERROR:
+        raise RuntimeError(f"parse error near word {offset}")
+    consumed = inp.consumed(res)
+    if consumed == 0:
+        # Trailing < tail_pad words need end-of-input look-ahead padding (EVT3).
+        if tail_pad and word_dtype is not None:
+            tail = words[offset:]
+            if len(tail):
+                scratch = np.zeros(len(tail) + tail_pad, dtype=word_dtype)
+                scratch[: len(tail)] = tail
+                parser.parse_chunk_soa(make_input(scratch), events, triggers)
+        return events.size - before, n_words
+    return events.size - before, offset + consumed
+
+
+# --------------------------------------------------------------------------- #
+# Single-buffer full decode (the read_all fast path)
+# --------------------------------------------------------------------------- #
+def decode_all_soa(words, start_offset, make_input, parser, *,
+                   est_events_per_word: float = 1.0, tail_pad: int = 0,
+                   word_dtype=None, trigger_cap: int = 1 << 12):
+    """Decode ``words[start_offset:]`` fully into a single, growing SoA buffer.
+
+    This is the zero-extra-copy path behind ``EventReader.read_all`` /
+    ``EventDecoder.read_all``. The native parsers append at ``event_buffer->size``
+    and stop just short of capacity, so we hand them one big output buffer and
+    keep calling until the input is drained, growing the buffer geometrically if
+    an estimate turns out too small. The returned :class:`EventArray` *views* the
+    decoded columns directly -- timestamps are reinterpreted ``uint64 -> int64``
+    (values are positive and fit), so there is no per-chunk copy and no final
+    ``concatenate``.
+
+    Parameters
+    ----------
+    words
+        Contiguous numpy array of the format's native word width (the whole
+        payload viewed zero-copy over the mmap/buffer).
+    start_offset
+        Word offset to start decoding from.
+    make_input
+        Callable ``view -> <Format>Input`` wrapping a word slice for the parser.
+    parser
+        The native parser instance (state carried across calls).
+    est_events_per_word
+        Initial output-capacity estimate as events per input word. Chosen per
+        format to avoid growth in the common case (growth is correct but copies).
+    tail_pad
+        Number of zero words the parser needs as end-of-input look-ahead
+        padding (EVT3 only). When the parser can no longer make progress on the
+        trailing ``< tail_pad`` words, they are flushed through a zero-padded copy.
+    word_dtype
+        dtype of ``words`` (needed to build the zero-padded tail scratch).
+    trigger_cap
+        Initial trigger-buffer capacity (grown if exceeded).
+
+    Returns
+    -------
+    (EventArray, int)
+        The decoded events and the word offset reached (== len(words)).
+    """
+    n_words = len(words) if words is not None else 0
+    if n_words == 0 or start_offset >= n_words:
+        return EventArray.empty(), n_words
+
+    remaining = n_words - start_offset
+    cap = int(remaining * est_events_per_word) + 1024
+    ev = EventSoABuffers(cap)
+    tr = TriggerSoABuffers(max(trigger_cap, 1))
+    offset = start_offset
+
+    while offset < n_words:
+        # Keep headroom: the parsers append at `size` and reserve up to 64 slots.
+        if ev.capacity - ev.size < 128:
+            ev.grow(int(ev.capacity * 1.5) + (1 << 16))
+        if tr.capacity - tr.size < 64:
+            tr.grow(tr.capacity * 2 + 64)
+
+        inp = make_input(words[offset:])
+        res = parser.parse_chunk_soa(inp, ev, tr)
+        if res.status == EVUTILS_PARSE_ERROR:
+            raise RuntimeError(f"parse error near word {offset}")
+
+        consumed = inp.consumed(res)
+        if consumed == 0:
+            # No progress: the trailing < tail_pad words can't be parsed in place
+            # because of end-of-input look-ahead. Flush them through a zero-padded
+            # scratch (appending into the same buffer).
+            if tail_pad and word_dtype is not None:
+                tail = words[offset:]
+                if len(tail):
+                    if ev.capacity - ev.size < len(tail) + 128:
+                        ev.grow(ev.size + len(tail) + (1 << 16))
+                    scratch = np.zeros(len(tail) + tail_pad, dtype=word_dtype)
+                    scratch[: len(tail)] = tail
+                    parser.parse_chunk_soa(make_input(scratch), ev, tr)
+            offset = n_words
+            break
+        offset += consumed
+
+    n = ev.size
+    if n == 0:
+        return EventArray.empty(), offset
+    # Zero-copy hand-off: the EventArray keeps the (possibly slightly oversized)
+    # column arrays alive; t is a bit-reinterpretation, not a conversion.
+    out = EventArray(ev.t[:n].view(np.int64), ev.x[:n], ev.y[:n], ev.p[:n])
+    return out, offset

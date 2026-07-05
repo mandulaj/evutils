@@ -38,6 +38,9 @@ from ._native_evt import (
     Evt21Input,
     Evt21Parser,
     TriggerSoABuffers,
+    decode_all_soa,
+    events_view,
+    parse_step,
 )
 from ._source import ByteSource
 
@@ -71,6 +74,7 @@ class EventDecoder_EVT(EventDecoder):
 
     FORMATS = {"evt3": "evt 3.0", "evt21": "evt 2.1", "evt2": "evt 2"}
     EVT_FORMATS = {"3.0": "evt3", "2.1": "evt21", "2.0": "evt2"}
+    _TAIL_PAD = 8  # >= parser look-ahead padding (EVT3_INPUT_PADDING)
 
     def __init__(self, source: ByteSource, chunk_size: int = 1_000_000):
         super().__init__(source, chunk_size)
@@ -224,6 +228,29 @@ class EventDecoder_EVT(EventDecoder):
         self._triggers = TriggerSoABuffers(max(cap // 16, 1))
         self._is_initialized = True
 
+    @property
+    def _tail_pad(self) -> int:
+        return self._TAIL_PAD if self._format == "evt3" else 0
+
+    def parse_step(self, events, triggers) -> int:
+        '''Run the parser once, *appending* decoded events into ``events`` (from
+        ``events.size``) up to ``events.c.capacity``. Advances the internal word
+        offset and sets EOF when the input is drained. Returns the number of
+        events appended (0 => either exhausted, or a pure state/timing step;
+        callers loop until progress or :meth:`is_eof`).'''
+        if not self._is_initialized:
+            self.init()
+        if self._words is None or self._offset >= len(self._words):
+            self._eof = True
+            return 0
+        appended, self._offset = parse_step(
+            self._words, self._offset, self._input_cls, self._parser,
+            events, triggers, tail_pad=self._tail_pad, word_dtype=self._word_dtype,
+        )
+        if self._offset >= len(self._words):
+            self._eof = True
+        return appended
+
     def read_chunk(self, delta_t_hint: int | None = None,
                    n_events_hint: int | None = None) -> np.ndarray:
         if not self._is_initialized:
@@ -235,62 +262,50 @@ class EventDecoder_EVT(EventDecoder):
             return _EMPTY_EVENTS
 
         ev, tr = self._events, self._triggers
+        ev.reset()
+        tr.reset()
 
         # Parse until we produce something or genuinely exhaust the input. A
         # window can consume words yet emit no events (pure timing packets), so
         # we must not treat an empty result as EOF unless the input is drained.
-        while self._offset < len(self._words):
-            ev.reset()
-            tr.reset()
-            view = self._words[self._offset:]
-            inp = self._input_cls(view)
-            res = self._parser.parse_chunk_soa(inp, ev, tr)
-            if res.status == EVUTILS_PARSE_ERROR:
-                raise RuntimeError(f"{self._format} parse error near word {self._offset}")
-
-            consumed = inp.consumed(res)
-            if consumed == 0:
-                # EVT3 keeps a few words of look-ahead padding, so it will not
-                # consume the final <PADDING words of the stream. Flush that tail
-                # through a zero-padded scratch copy (zero words are harmless
-                # state updates) so trailing events aren't stranded. EVT2/EVT2.1
-                # have no look-ahead, so consumed==0 there just means EOF.
-                if self._format == "evt3":
-                    self._flush_tail(view, ev, tr)
-                self._offset = len(self._words)
-                break
-            self._offset += consumed
-            if ev.size or tr.size:
-                break
-
-        if self._offset >= len(self._words):
-            self._eof = True
-
-
+        appended = 0
+        while appended == 0 and self._offset < len(self._words):
+            appended = self.parse_step(ev, tr)
 
         n = ev.size
         if n == 0:
             return _EMPTY_EVENTS
-        t, x, y, p = ev.view()
-        # The SoA view aliases reusable native buffers; .copy() makes the
-        # returned EventArray independent (and converts t uint64 -> int64).
-        return EventArray(t, x, y, p).copy()
+        # Zero-copy view aliasing the reusable native buffers; valid only until
+        # the next read_chunk. The EventReader copies it into its accumulator
+        # immediately, so no independent copy is needed here.
+        return events_view(ev)
 
-    _TAIL_PAD = 8  # >= parser look-ahead padding (EVT3_INPUT_PADDING)
+    # Initial output-capacity estimate (events per input word) for the
+    # single-buffer read_all() path. EVT2 is an exact upper bound (<=1 event per
+    # 32-bit word); EVT3/EVT2.1 vary with vector density, so decode_all_soa grows
+    # the buffer if the estimate is too small.
+    _READ_ALL_EST = {"evt3": 1.0, "evt2": 1.0, "evt21": 1.5}
 
-    def _flush_tail(self, view: np.ndarray, ev, tr) -> None:
-        """Parse the trailing ``view`` words through a zero-padded copy so the
-        parser's end-of-input look-ahead doesn't strand real events."""
-        if len(view) == 0:
-            return
-        scratch = np.zeros(len(view) + self._TAIL_PAD, dtype=np.uint16)
-        scratch[: len(view)] = view
-        ev.reset()
-        tr.reset()
-        inp = Evt3Input(scratch)
-        res = self._parser.parse_chunk_soa(inp, ev, tr)
-        if res.status == EVUTILS_PARSE_ERROR:
-            raise RuntimeError(f"EVT3 parse error in tail near word {self._offset}")
+    def read_all(self) -> EventArray:
+        """Decode the whole remaining payload into one buffer (no per-chunk copy).
+
+        See :func:`evutils.io._native_evt.decode_all_soa`. Note this materialises
+        every event at once; for very large recordings that do not fit in memory,
+        iterate with :meth:`read_chunk` (via ``EventReader``) instead.
+        """
+        if not self._is_initialized:
+            self.init()
+        if self._words is None or self._offset >= len(self._words):
+            self._eof = True
+            return _EMPTY_EVENTS
+
+        out, self._offset = decode_all_soa(
+            self._words, self._offset, self._input_cls, self._parser,
+            est_events_per_word=self._READ_ALL_EST.get(self._format, 1.0),
+            tail_pad=self._tail_pad, word_dtype=self._word_dtype,
+        )
+        self._eof = True
+        return out
 
     def reset(self) -> None:
         self._offset = 0

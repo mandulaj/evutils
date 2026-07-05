@@ -10,7 +10,7 @@ from ..types import Event_dtype, EventArray
 
 from . import decoders as ev_decoders
 from ._source import ByteSource, make_source
-from .buffer import EventRingBuffer
+from .buffer import EventAccumulator
 
 
 class EventReader():
@@ -179,11 +179,17 @@ class EventReader():
 
         self._is_initialized = False
 
-        # Slicing ring buffer, allocated lazily on first read() so that the
-        # read_all() fast path never pays for it.
-        self._buffer: EventRingBuffer | None = None
-        self._ring_capacity = 2 * max_events
-        self._last_end_idx = 0
+        # Windowed reads decode straight into this reused accumulator (no
+        # intermediate copy); only the returned window is copied out. Allocated
+        # lazily on first read() so the read_all() fast path never pays for it.
+        # Granularity of a single decode step, and a native fast path flag.
+        self._buffer: EventAccumulator | None = None
+        self._step = 1 << 20
+        # Hold the largest window we might be asked for, plus room for one decode
+        # step of overshoot before the front is rotated out. (np.empty is lazy, so
+        # a large capacity only costs pages actually written.)
+        self._acc_capacity = max(self._n_events, max_events) + 2 * self._step
+        self._native_fill = hasattr(self._file_decoder, "parse_step")
 
         self._n_read_events = 0 # Number of events read (not includeing events stored in buffer)
 
@@ -197,6 +203,29 @@ class EventReader():
             return
         self._file_decoder.init()
         self._is_initialized = True
+
+    def _pull(self, acc: EventAccumulator, delta_t: int, n_events: int) -> int:
+        '''Pull more events into the accumulator, returning the number added
+        (0 => end of stream). Native decoders decode straight into the
+        accumulator's storage (no copy); others have their ``read_chunk`` output
+        appended.'''
+        dec = self._file_decoder
+        if self._native_fill:
+            while True:
+                if dec.is_eof():
+                    return 0
+                ev, tr = acc.prepare(self._step)
+                added = dec.parse_step(ev, tr)
+                if added > 0:
+                    return added
+                if dec.is_eof():
+                    return 0
+                # else: consumed only state/timing words; step again.
+        chunk = dec.read_chunk(delta_t, n_events)
+        if len(chunk) == 0:
+            return 0
+        acc.append(chunk)
+        return len(chunk)
 
     def read(self, delta_t:int|None=None, n_events:int|None=None) -> EventArray:
         '''
@@ -219,9 +248,10 @@ class EventReader():
         if not self._is_initialized:
             self.init()
 
-        # Allocate the slicing ring buffer on first use.
+        # Allocate the staging accumulator on first use.
         if self._buffer is None:
-            self._buffer = EventRingBuffer(self._ring_capacity)
+            self._buffer = EventAccumulator(self._acc_capacity)
+        acc = self._buffer
 
         # Override the parameters if they are specified
         if delta_t is None:
@@ -229,67 +259,48 @@ class EventReader():
         if n_events is None:
             n_events = self._n_events
 
-        # print(f"Reading {n_events} events or {delta_t} microseconds")
-
-        # This is done once at the beginning of the file read
-        if self._n_read_events == 0 and len(self._buffer) == 0:
-            # Fist skip the events that are before the start_ts
-            # TODO
-
-            events_chunk = self._file_decoder.read_chunk(delta_t, n_events)
-            if len(events_chunk) == 0:
-                # We already reached the end of the file, must have been an empty file
+        # Establish the first timestamp once, at the very start of the stream.
+        if self._n_read_events == 0 and len(acc) == 0:
+            if self._pull(acc, delta_t, n_events) == 0:
                 self._eof = True
                 return EventArray.empty()
-
-            self._first_ts = int(events_chunk.t[0])  # First timestamp in the file
+            self._first_ts = int(acc.t_window()[0])
             self._current_ts = self._first_ts
-
-            self._buffer.append(events_chunk)
 
         start_ts: int = self._current_ts
         end_ts: int = start_ts + delta_t  # Final end_ts if we reach delta_t
-        end_idx: int = len(self._buffer)  # Where do we slice the internal ring buffer?
+        end_idx: int = len(acc)
 
         # Gather events until we hit the n_events count, the delta_t time window,
         # or the end of the stream. Work directly on the SoA `t` column.
         while True:
-
             # n_events cutoff
-            if len(self._buffer) > n_events:
+            if len(acc) > n_events:
                 end_idx = n_events
-                self._current_ts = int(self._buffer.view().t[n_events])
+                self._current_ts = int(acc.t_window()[n_events])
                 break
 
             # time (delta_t) cutoff
-            t = self._buffer.view().t
+            t = acc.t_window()
             if len(t) > 0 and t[-1] > end_ts:
                 end_idx = int(np.searchsorted(t, end_ts))
                 self._current_ts += delta_t
                 break
 
-            # Not enough buffered yet: pull another chunk from the decoder.
-            events_chunk = self._file_decoder.read_chunk(delta_t, n_events)
-
-            # End of the stream reached.
-            if len(events_chunk) == 0:
+            # Not enough buffered yet: pull more from the decoder.
+            if self._pull(acc, delta_t, n_events) == 0:
                 self._eof = True
-                # Return everything gathered so far. We only get here when
-                # neither the n_events nor the time cutoff was met, so the whole
-                # (sub-n_events) buffer is the correct final slice -- including
-                # events appended in earlier iterations of this loop.
-                end_idx = len(self._buffer)
+                # Neither cutoff met, so the whole remaining buffer is the slice.
+                end_idx = len(acc)
                 break
 
-            self._buffer.append(events_chunk)
-
-        # Slice out the result (an independent EventArray) and advance the ring.
-        output: EventArray = self._buffer[:end_idx].copy()
-        self._buffer.advance(end_idx)
+        # Copy out the window (independent) and advance past it.
+        output: EventArray = acc.slice_copy(end_idx)
         self._n_read_events += end_idx
 
         if self._normalize_ts:
-            # Normalize the timestamps to start from zero at start_ts
+            # Normalize the timestamps to start from zero at start_ts. slice_copy
+            # already returned an independent array, so this is safe in place.
             output.t -= self._first_ts - self._start_ts
         return output
 
@@ -297,11 +308,16 @@ class EventReader():
         '''
         Decode and return every remaining event at once.
 
-        This is a fast path for when you want the whole recording: it streams
-        chunks straight from the decoder and concatenates them, bypassing the
-        slicing ring buffer (and its allocation/copies) that :meth:`read` uses
-        for ``delta_t``/``n_events`` windowing. Roughly 2x faster than draining
-        the reader with :meth:`read` / iteration.
+        Delegates to the decoder's :meth:`~evutils.io.common.EventDecoder.read_all`,
+        which (for the native EVT/DAT/AER decoders) decodes the whole payload
+        straight into a single output buffer -- no per-chunk copy, no final
+        ``concatenate`` -- and hands the columns back as a zero-copy
+        :class:`EventArray`. This bypasses the slicing ring buffer that
+        :meth:`read` uses for ``delta_t``/``n_events`` windowing.
+
+        .. note::
+            This materialises every event in memory at once. For recordings too
+            large to fit, iterate the reader (windowed :meth:`read`) instead.
 
         Returns
         -------
@@ -311,29 +327,23 @@ class EventReader():
         if not self._is_initialized:
             self.init()
 
-        chunks = []
-        # Include anything already buffered by prior read() calls.
-        if self._buffer is not None and len(self._buffer) > 0:
-            chunks.append(self._buffer[:].copy())
-            self._buffer.reset()
+        out = self._file_decoder.read_all()
 
-        while True:
-            chunk = self._file_decoder.read_chunk()
-            if len(chunk) == 0:
-                break
-            chunks.append(chunk)
+        # Prepend anything already buffered by prior read() calls (rare: only if
+        # read() and read_all() are mixed on the same reader).
+        if self._buffer is not None and len(self._buffer) > 0:
+            buffered = self._buffer.slice_copy(len(self._buffer))
+            if len(out) == 0:
+                out = buffered
+            else:
+                out = EventArray(
+                    np.concatenate([buffered.t, out.t]),
+                    np.concatenate([buffered.x, out.x]),
+                    np.concatenate([buffered.y, out.y]),
+                    np.concatenate([buffered.p, out.p]),
+                )
 
         self._eof = True
-
-        if not chunks:
-            return EventArray.empty()
-
-        out = EventArray(
-            np.concatenate([c.t for c in chunks]),
-            np.concatenate([c.x for c in chunks]),
-            np.concatenate([c.y for c in chunks]),
-            np.concatenate([c.p for c in chunks]),
-        )
         self._n_read_events += len(out)
 
         if self._normalize_ts and len(out) > 0:

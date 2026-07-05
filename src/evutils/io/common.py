@@ -72,6 +72,44 @@ class EventDecoder(ABC):
         raise NotImplementedError
 
 
+    def read_all(self):
+        '''
+        Decode and return every remaining event at once.
+
+        The default implementation drains :meth:`read_chunk` and concatenates the
+        chunks. SoA-native decoders (EVT/DAT/AER) override this with a
+        single-buffer decode that avoids the per-chunk copy entirely.
+
+        Returns
+        -------
+        EventArray
+            All remaining events.
+        '''
+        from ..types import EventArray
+
+        if not self._is_initialized:
+            self.init()
+
+        # read_chunk may return a view that is invalidated by the next call, so
+        # copy each chunk before pulling the next one.
+        chunks = []
+        while True:
+            chunk = self.read_chunk()
+            if len(chunk) == 0:
+                break
+            chunks.append(chunk.copy())
+
+        if not chunks:
+            return EventArray.empty()
+        if len(chunks) == 1:
+            return chunks[0]
+        return EventArray(
+            np.concatenate([c.t for c in chunks]),
+            np.concatenate([c.x for c in chunks]),
+            np.concatenate([c.y for c in chunks]),
+            np.concatenate([c.p for c in chunks]),
+        )
+
     def close(self):
         '''Release any resources held by the decoder (e.g. buffer views).
 

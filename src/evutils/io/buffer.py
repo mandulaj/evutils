@@ -1,98 +1,98 @@
 import numpy as np
 
 from ..types import EventArray
+from ._native_evt import EventSoABuffers, TriggerSoABuffers
 
 
-class EventRingBuffer():
-    """A ring buffer for events stored in struct-of-arrays (SoA) layout.
+class EventAccumulator():
+    """Reused struct-of-arrays staging buffer that native decoders fill in place.
 
-    Each field (``t``, ``x``, ``y``, ``p``) is a separate contiguous array of
-    ``size`` capacity. Appends and slices operate on :class:`EventArray`, so
-    events flow decoder -> buffer -> reader output without ever being repacked
-    into a padded structured array.
+    The whole point is to avoid a copy on the read path: instead of a decoder
+    parsing into its own buffer and the reader copying that into a ring, the
+    decoder's parser writes *directly* into this accumulator's storage (via
+    :meth:`prepare` + ``decoder.parse_step``). Consumed events at the front are
+    reclaimed by :meth:`_rotate` (moving only the small unconsumed remainder), so
+    the backing arrays are allocated once and never re-faulted. Only the final
+    window handed to the caller is copied (:meth:`slice_copy`).
+
+    Timestamps are stored as ``uint64`` (matching the native ``timestamp64_t``)
+    and exposed as ``int64`` via a zero-copy ``.view`` (values are positive and
+    in range).
     """
 
-    def __init__(self, size: int):
-        self._size = size
-        self._t = np.empty(size, dtype=np.int64)
-        self._x = np.empty(size, dtype=np.uint16)
-        self._y = np.empty(size, dtype=np.uint16)
-        self._p = np.empty(size, dtype=np.uint8)
-        self._start = 0
-        self._end = 0
+    def __init__(self, capacity: int):
+        self._capacity = int(capacity)
+        self._buf = EventSoABuffers(self._capacity)
+        self._tr = TriggerSoABuffers(max(self._capacity // 16, 1))
+        self._start = 0  # events before this index are consumed
 
     def __len__(self) -> int:
-        return self._end - self._start
+        return self._buf.size - self._start
 
-    @property
-    def capacity(self) -> int:
-        return self._size - self._end
+    def t_window(self) -> np.ndarray:
+        """int64 view of the currently unconsumed timestamps (zero-copy)."""
+        s, e = self._start, self._buf.size
+        return self._buf.t[s:e].view(np.int64)
 
-    def append(self, data: EventArray):
+    def _rotate(self) -> None:
+        """Move the unconsumed remainder to the front, freeing consumed space."""
+        s = self._start
+        if s == 0:
+            return
+        b = self._buf
+        n = b.size - s
+        if n > 0:
+            b.t[:n] = b.t[s:b.size]
+            b.x[:n] = b.x[s:b.size]
+            b.y[:n] = b.y[s:b.size]
+            b.p[:n] = b.p[s:b.size]
+        b.c.size = n
+        self._start = 0
+
+    def prepare(self, step: int):
+        """Ready the buffer for the decoder to append up to ``step`` events, and
+        return ``(events_soa, triggers_soa)`` for ``decoder.parse_step``.
+
+        Rotates out consumed events if there is not enough tail room, then caps
+        the SoA capacity the parser sees to ``size + step`` so a single step does
+        not overshoot the requested window by more than one step's worth."""
+        b = self._buf
+        if self._capacity - b.size < step:
+            self._rotate()
+        b.c.capacity = min(self._capacity, b.size + step)
+        return b, self._tr
+
+    def append(self, data: EventArray) -> None:
+        """Copy an EventArray in (fallback path for non-native decoders)."""
         n = len(data)
-        if n > self.capacity:
-            self.rotate()  # Try rotating to get more space
-        if n > self.capacity:
+        if n == 0:
+            return
+        b = self._buf
+        if self._capacity - b.size < n:
+            self._rotate()
+        if self._capacity - b.size < n:
             raise ValueError(
-                f"Ring Buffer is full, can't append {n} elements when {self.capacity} space left."
+                f"EventAccumulator full: can't append {n} ({self._capacity - b.size} free)"
             )
+        e = b.size
+        b.t[e:e + n] = data.t
+        b.x[e:e + n] = data.x
+        b.y[e:e + n] = data.y
+        b.p[e:e + n] = data.p
+        b.c.size = e + n
 
-        e = self._end
-        self._t[e:e + n] = data.t
-        self._x[e:e + n] = data.x
-        self._y[e:e + n] = data.y
-        self._p[e:e + n] = data.p
-        self._end += n
+    def slice_copy(self, k: int) -> EventArray:
+        """Return an independent copy of the first ``k`` unconsumed events and
+        advance past them."""
+        s = self._buf
+        i = self._start
+        out = EventArray(
+            s.t[i:i + k].view(np.int64), s.x[i:i + k], s.y[i:i + k], s.p[i:i + k]
+        ).copy()
+        self._start += k
+        return out
 
-    def advance(self, items: int):
-        if self._start + items > self._size:
-            raise ValueError(f"Cant advance beyond the buffer size {self._end}+{items}<{self._size}")
-        self._start += items
-
-    def view(self) -> EventArray:
-        """Zero-copy EventArray view of the currently-buffered events."""
-        s, e = self._start, self._end
-        return EventArray(self._t[s:e], self._x[s:e], self._y[s:e], self._p[s:e])
-
-    def reset(self):
+    def reset(self) -> None:
+        self._buf.c.size = 0
         self._start = 0
-        self._end = 0
 
-    def rotate(self):
-        cur_len = len(self)
-        s, e = self._start, self._end
-        self._t[0:cur_len] = self._t[s:e]
-        self._x[0:cur_len] = self._x[s:e]
-        self._y[0:cur_len] = self._y[s:e]
-        self._p[0:cur_len] = self._p[s:e]
-        self._start = 0
-        self._end = cur_len
-
-    def _abs(self, idx: int) -> int:
-        return self._start + idx if idx >= 0 else self._end + idx
-
-    def __getitem__(self, key) -> EventArray:
-        if isinstance(key, slice):
-            # Translate slice bounds into absolute buffer indices.
-            if key.start is None:
-                start_idx = self._start
-            else:
-                start_idx = self._abs(key.start)
-
-            if key.stop is None:
-                end_idx = self._end
-            else:
-                end_idx = self._abs(key.stop)
-
-            assert start_idx <= end_idx
-
-            sl = slice(start_idx, end_idx, key.step)
-            return EventArray(self._t[sl], self._x[sl], self._y[sl], self._p[sl])
-        elif isinstance(key, int):
-            idx = self._abs(key)
-            return EventArray(self._t[idx], self._x[idx], self._y[idx], self._p[idx])
-        else:
-            raise ValueError(f"Unsupported key in Ringbuffer {type(key)}")
-
-    def __repr__(self) -> str:
-        return repr(self.view())

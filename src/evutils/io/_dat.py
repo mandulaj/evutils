@@ -20,6 +20,9 @@ from ._native_evt import (
     DatParser,
     EventSoABuffers,
     TriggerSoABuffers,
+    decode_all_soa,
+    events_view,
+    parse_step,
 )
 from ._source import ByteSource
 
@@ -119,10 +122,27 @@ class EventDecoder_Dat(EventDecoder):
 
         self._offset = 0
         self._parser = DatParser()
+        self._input_cls = DatInput
+        self._word_dtype = np.uint32
         cap = int(self._chunk_size)
         self._events = EventSoABuffers(cap)
         self._triggers = TriggerSoABuffers(1)  # DAT CD files have no triggers
         self._is_initialized = True
+
+    def parse_step(self, events, triggers) -> int:
+        '''Run the parser once, appending into ``events``; advance the offset.
+        See :meth:`EventDecoder_EVT.parse_step`.'''
+        if not self._is_initialized:
+            self.init()
+        if self._words is None or self._offset >= len(self._words):
+            self._eof = True
+            return 0
+        appended, self._offset = parse_step(
+            self._words, self._offset, DatInput, self._parser, events, triggers,
+        )
+        if self._offset >= len(self._words):
+            self._eof = True
+        return appended
 
     def read_chunk(self, delta_t_hint: int | None = None,
                    n_events_hint: int | None = None) -> EventArray:
@@ -136,20 +156,30 @@ class EventDecoder_Dat(EventDecoder):
         ev, tr = self._events, self._triggers
         ev.reset()
         tr.reset()
-        inp = DatInput(self._words[self._offset:])
-        res = self._parser.parse_chunk_soa(inp, ev, tr)
-        if res.status == EVUTILS_PARSE_ERROR:
-            raise RuntimeError(f"DAT parse error near word {self._offset}")
-
-        self._offset += inp.consumed(res)
-        if self._offset >= len(self._words):
-            self._eof = True
+        appended = 0
+        while appended == 0 and self._offset < len(self._words):
+            appended = self.parse_step(ev, tr)
 
         n = ev.size
         if n == 0:
             return _EMPTY_EVENTS
-        t, x, y, p = ev.view()
-        return EventArray(t, x, y, p).copy()
+        # Zero-copy view (valid until the next read_chunk); see EVT decoder.
+        return events_view(ev)
+
+    def read_all(self) -> EventArray:
+        """Decode the whole remaining payload into one buffer (no per-chunk copy)."""
+        if not self._is_initialized:
+            self.init()
+        if self._words is None or self._offset >= len(self._words):
+            self._eof = True
+            return _EMPTY_EVENTS
+        # Exactly one event per two uint32 words.
+        out, self._offset = decode_all_soa(
+            self._words, self._offset, DatInput, self._parser,
+            est_events_per_word=0.5,
+        )
+        self._eof = True
+        return out
 
     def reset(self) -> None:
         self._offset = 0
