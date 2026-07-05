@@ -3,54 +3,97 @@ name: Release & Publish Docs
 on:
   release:
     types: [published]
+  workflow_dispatch:   # manual runs to exercise the multi-OS wheel build without releasing
 
 permissions:
   contents: read
-  id-token: write      # Required for modern PyPI publishing and GitHub Pages deployment
+  id-token: write      # Required for trusted PyPI publishing and GitHub Pages deployment
   pages: write         # Required for GitHub Pages deployment
 
 jobs:
-  build-and-publish-pypi:
-    name: Build & Publish to PyPI
+  build_wheels:
+    name: Wheels (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # linux x86_64 + arm64 | windows amd64 | macOS x86_64 (13) + arm64 (14)
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-13, macos-14]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Build wheels (cibuildwheel)
+        run: pipx run cibuildwheel --output-dir wheelhouse
+        env:
+          # Build CPython 3.10-3.14; skip old CPython, PyPy, musllinux and 32-bit.
+          CIBW_SKIP: "cp36-* cp37-* cp38-* cp39-* pp* *musllinux* *-win32 *_i686"
+          CIBW_BUILD_FRONTEND: "build[uv]"
+
+      - name: Upload wheels
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.os }}
+          path: wheelhouse/*.whl
+
+  build_sdist:
+    name: Source distribution
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v8.2.0 
         with:
-          enable-cache: true
+          submodules: recursive
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
-      - name: Install build tools
-        run: uv pip install --system build cibuildwheel
+      - name: Build sdist
+        run: pipx run build --sdist
 
-      - name: Build source distribution (sdist)
-        run: python -m build --sdist
+      - name: Upload sdist
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-sdist
+          path: dist/*.tar.gz
 
-      - name: Build compiled wheels (cibuildwheel)
-        run: python -m cibuildwheel --output-dir dist
-        env:
-          CIBW_SKIP: "cp36-* cp37-* cp38-* cp39-* pp* *musllinux*"
-          CIBW_BUILD_FRONTEND: "build[uv]"
+  publish_pypi:
+    name: Publish to PyPI
+    needs: [build_wheels, build_sdist]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    steps:
+      - name: Download all distributions
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          pattern: dist-*
+          merge-multiple: true
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
 
-  build-and-publish-docs:
+  build_and_publish_docs:
     name: Build & Publish Sphinx Docs
     runs-on: ubuntu-latest
+    if: github.event_name == 'release'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+        with:
+          submodules: recursive
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v8.2.0 
+        uses: astral-sh/setup-uv@v8.2.0
         with:
           enable-cache: true
 
