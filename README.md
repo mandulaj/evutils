@@ -18,10 +18,12 @@ This project draws inspiration from several excellent libraries in the event-bas
 
 
 ## Installation
-We recommend installing `evutils` using `uv`.
+We recommend installing `evutils` using `uv`. 
 ### From PyPi
 ```bash
-uv add evutils[all]
+uv add evutils # Basic library
+uv add evutils[all] # All groups (pandas, numba, torch, hdf5, etc..)
+uv add evutils[dev] # Dev group
 ```
 
 ### From Git

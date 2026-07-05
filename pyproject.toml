@@ -24,7 +24,7 @@ keywords = ["events", "dvs", "neuromorphic", "vision", "event-based"]
 pandas = ["pandas>=2.3.3"]
 numba = ["numba>=0.57"]
 torch = ["torch>=2.0"]
-hdf5 = ["hdf5plugin==6.0.0", "h5py==3.16.0"]
+hdf5 = ["hdf5plugin==6.0.0", "h5py>=3.16.0"]
 vis = ["matplotlib>=3.1", "scipy>=1.15.3", "tqdm>=4.41"] # Renamed for simplicity
 
 # Ecosystem
@@ -38,7 +38,8 @@ test = [
 # automatically when a library is missing.
 compare = [
     "expelliarmus>=1.1.0",
-    "evlib",
+    "evlib>=0.12.0; python_version >= '3.11'",
+    "evlib>=0.8.0; python_version < '3.11'",
 ]
 docs = [
     "sphinx>=8.0.0",
