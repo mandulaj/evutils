@@ -1,20 +1,21 @@
+"""Module for generating histogram-based representations from events."""
+
 import numba 
 import numpy as np
 
 
 @numba.njit
 def histogram(events: np.ndarray, width: int = 1280, height: int = 720, fill=False, dtype=np.uint8):
-    '''
-    Generate a frame from the events
+    """Generate a histogram frame from the events.
 
     Parameters
     ----------
-    ev : np.ndarray
+    events : np.ndarray
         Array of events in the :class:`~evutils.types.Events` format
-    width : int
-        Width of the frame
-    height : int
-        Height of the frame
+    width : int, optional
+        Width of the frame, by default 1280
+    height : int, optional
+        Height of the frame, by default 720
     fill : bool, optional
         If True, the non-zero values are set to 255, by default False
     dtype : np.dtype, optional
@@ -22,12 +23,10 @@ def histogram(events: np.ndarray, width: int = 1280, height: int = 720, fill=Fal
     
     Returns
     -------
-    out : np.ndarray
-        A numpy array with the frame (height, width, 3)
+    np.ndarray
+        A numpy array with the histogram frame (height, width, 3)
 
-
-    '''
-
+    """
     buffer = np.zeros((height, width, 3), dtype=dtype)
 
     clip = 255
@@ -62,25 +61,27 @@ def histogram(events: np.ndarray, width: int = 1280, height: int = 720, fill=Fal
 
 @numba.njit
 def wedge_histogram(events: np.ndarray, width: int = 1280, height: int = 720, tl: float = 30e6, dtype=np.uint8):   
-    '''
-    Generate a wedge frame frame from the events
+    """Generate a wedge histogram frame from the events.
 
     Parameters
     ----------
-    ev : np.ndarray
+    events : np.ndarray
         Array of events in the :class:`~evutils.types.Events` format
-    buffer : np.ndarray
-        A numpy array with the frame (height, width, 3)
-    tl : int, optional
-        Duration of the frame in us, by default 30e6
+    width : int, optional
+        Width of the frame, by default 1280
+    height : int, optional
+        Height of the frame, by default 720
+    tl : float, optional
+        Time limit for the frame in us, by default 30e6
+    dtype : np.dtype, optional
+        Data type of the output array, by default np.uint8
     
     Returns
     -------
-    out : np.ndarray
+    np.ndarray
         A numpy array with the wedge frame (height, width, 3)
 
-
-    '''
+    """
     buffer = np.zeros((height, width, 3), dtype=dtype)
 
     ts_norm = (events['t'] - events['t'][0])/tl

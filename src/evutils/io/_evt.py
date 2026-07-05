@@ -71,6 +71,7 @@ class EventDecoder_EVT(EventDecoder):
     ----------
     [1] Prophesee RAW file format
         https://docs.prophesee.ai/stable/data/file_formats/raw.html
+
     """
 
     FORMATS = {"evt3": "evt 3.0", "evt21": "evt 2.1", "evt2": "evt 2"}
@@ -191,6 +192,13 @@ class EventDecoder_EVT(EventDecoder):
     # Lifecycle
     # ------------------------------------------------------------------ #
     def init(self) -> None:
+        """Initialize the EVT reader.
+
+        Returns
+        -------
+        None
+
+        """
         if self._is_initialized:
             return
 
@@ -235,11 +243,23 @@ class EventDecoder_EVT(EventDecoder):
         return self._TAIL_PAD if self._format == "evt3" else 0
 
     def parse_step(self, events, triggers) -> int:
-        '''Run the parser once, *appending* decoded events into ``events`` (from
-        ``events.size``) up to ``events.c.capacity``. Advances the internal word
-        offset and sets EOF when the input is drained. Returns the number of
-        events appended (0 => either exhausted, or a pure state/timing step;
-        callers loop until progress or :meth:`is_eof`).'''
+        """Run the parser once, appending decoded events into ``events``.
+
+        Advances the internal word offset and sets EOF when the input is drained.
+
+        Parameters
+        ----------
+        events : EventSoABuffers
+            Buffer to append events to.
+        triggers : TriggerSoABuffers
+            Buffer to append triggers to.
+
+        Returns
+        -------
+        int
+            Number of events appended.
+
+        """
         if not self._is_initialized:
             self.init()
         if self._words is None or self._offset >= len(self._words):
@@ -322,15 +342,37 @@ class EventDecoder_EVT(EventDecoder):
         return out
 
     def reset(self) -> None:
+        """Reset the EVT reader to the beginning.
+
+        Returns
+        -------
+        None
+
+        """
         self._offset = 0
         self._eof = False
         if self._parser is not None:
             self._parser.reset()
 
     def tell(self) -> int:
+        """Get the current byte offset.
+
+        Returns
+        -------
+        int
+            Current byte offset.
+
+        """
         return self._payload_off + self._offset * 2
 
     def close(self) -> None:
+        """Close the EVT reader.
+
+        Returns
+        -------
+        None
+
+        """
         # Drop numpy views into the (possibly mmap-backed) storage so the source
         # can be closed without BufferError.
         self._words = None
@@ -358,6 +400,27 @@ EVT3_CONTINUED_12 = 0xF000
 
 @nb.njit
 def get_raw_evt3_buffer(events: np.ndarray, last_lower12_ts: int, last_upper12_ts: int, last_y: int, master=True):
+    """Encode events as EVT3.
+
+    Parameters
+    ----------
+    events : np.ndarray
+        Array of events to encode.
+    last_lower12_ts : int
+        Last lower 12-bit timestamp.
+    last_upper12_ts : int
+        Last upper 12-bit timestamp.
+    last_y : int
+        Last y coordinate.
+    master : bool, optional
+        Whether this is the master camera, by default True.
+
+    Returns
+    -------
+    tuple
+        A tuple containing the raw buffer, last lower 12-bit timestamp, last upper 12-bit timestamp, and last y coordinate.
+
+    """
     # Pre-allocate large buffer
     buffer = np.zeros(len(events) * 8, dtype=np.uint8)
 
@@ -418,6 +481,19 @@ def get_raw_evt2_buffer(events: np.ndarray, last_ts_high: int):
     Timestamp is split into a 28-bit high part (EVT_TIME_HIGH word) and a 6-bit
     low part carried in each CD word. A TIME_HIGH word is emitted only when the
     high part changes. Layout: type[28:31], ts_low[22:27], x[11:21], y[0:10].
+
+    Parameters
+    ----------
+    events : np.ndarray
+        Array of events to encode.
+    last_ts_high : int
+        Last high timestamp part.
+
+    Returns
+    -------
+    tuple
+        A tuple containing the raw buffer and last high timestamp part.
+
     """
     n = len(events)
     buffer = np.empty(2 * n, dtype=np.uint32)  # <= 1 TIME_HIGH + 1 CD per event
@@ -450,6 +526,19 @@ def get_raw_evt21_buffer(events: np.ndarray, last_ts_high: int):
     ts_low[22:27], x_base[11:21], y[0:10]); the high 32 bits are a validity
     bitmask for x_base..x_base+31. This writer emits one event per word (mask
     with a single bit set at x_base = x) -- valid EVT2.1, not yet vectorised.
+
+    Parameters
+    ----------
+    events : np.ndarray
+        Array of events to encode.
+    last_ts_high : int
+        Last high timestamp part.
+
+    Returns
+    -------
+    tuple
+        A tuple containing the raw buffer and last high timestamp part.
+
     """
     n = len(events)
     buffer = np.empty(2 * n, dtype=np.uint64)  # <= 1 TIME_HIGH + 1 CD per event
@@ -477,8 +566,7 @@ def get_raw_evt21_buffer(events: np.ndarray, last_ts_high: int):
 
 
 class EventEncoder_EVT(EventEncoder):
-    '''
-    Encoder for Prophesee RAW/EVT files.
+    """Encoder for Prophesee RAW/EVT files.
 
     Parameters
     ----------
@@ -498,7 +586,9 @@ class EventEncoder_EVT(EventEncoder):
     ----------
     [1] Prophesee RAW file format
         https://docs.prophesee.ai/stable/data/file_formats/raw.html
-    '''
+
+    """
+
     FORMATS = {"evt3": "evt 3.0", "evt21": "evt 2.1", "evt2": "evt 2.0"}
     HEADER_FORMAT = {"evt3": "EVT3", "evt21": "EVT21", "evt2": "EVT2"}
 
@@ -523,6 +613,13 @@ class EventEncoder_EVT(EventEncoder):
         self._formatted_datetime = self._dt.strftime("%Y-%m-%d %H:%M:%S")
 
     def init(self):
+        """Initialize the EVT writer.
+
+        Returns
+        -------
+        None
+
+        """
         if self._is_initialized:
             return
 
@@ -546,6 +643,19 @@ f"""% camera_integrator_name Prophesee
         self._is_initialized = True
 
     def write(self, events: np.ndarray) -> int:
+        """Write events to the EVT file.
+
+        Parameters
+        ----------
+        events : np.ndarray or EventArray
+            Array of events to write.
+
+        Returns
+        -------
+        int
+            Number of written events.
+
+        """
         assert self._fd is not None
 
         if not self._is_initialized:

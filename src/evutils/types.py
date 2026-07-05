@@ -35,6 +35,20 @@ Trigger_dtype = np.dtype([('t', np.int64), ('p', np.uint8), ('id', np.uint8)])
 
 
 class Event(ctypes.Structure):
+    """Ctypes structure representing an event.
+
+    Fields
+    ------
+    t : ctypes.c_int64
+        Timestamp of the event (us).
+    x : ctypes.c_uint16
+        X-coordinate.
+    y : ctypes.c_uint16
+        Y-coordinate.
+    p : ctypes.c_uint8
+        Polarity (0: off, 1: on).
+    """
+
     _fields_ = [("t", ctypes.c_int64),
                 ("x", ctypes.c_uint16),
                 ("y", ctypes.c_uint16),
@@ -43,7 +57,19 @@ class Event(ctypes.Structure):
 
 
 def is_monotonically_increasing(events: np.ndarray) -> bool:
-    '''Checks if the event ts is monotonically increasing'''
+    """Checks if the event ts is monotonically increasing.
+
+    Parameters
+    ----------
+    events : np.ndarray
+        Array of events with a 't' field for timestamps.
+
+    Returns
+    -------
+    bool
+        True if timestamps are monotonically increasing, False otherwise.
+
+    """
     return bool(np.all(np.diff(events['t']) >= 0))
 
 
@@ -61,10 +87,25 @@ class EventArray:
     :meth:`__array__`), which lets EventArray flow into code that still expects
     :data:`Event_dtype`.
     """
+
     __slots__ = ['t', 'x', 'y', 'p']
     _aos_dtype = Event_dtype
 
     def __init__(self, t, x, y, p):
+        """Initializes the EventArray with columns.
+
+        Parameters
+        ----------
+        t : array_like
+            Timestamps of the events.
+        x : array_like
+            X-coordinates of the events.
+        y : array_like
+            Y-coordinates of the events.
+        p : array_like
+            Polarities of the events.
+
+        """
         self.t = np.asarray(t, dtype=np.int64)
         self.x = np.asarray(x, dtype=np.uint16)
         self.y = np.asarray(y, dtype=np.uint16)
@@ -98,7 +139,19 @@ class EventArray:
 
     @classmethod
     def from_aos(cls, aos_array):
-        """Constructs an EventArray from an array of structures (AoS) numpy array."""
+        """Constructs an EventArray from an array of structures (AoS) numpy array.
+
+        Parameters
+        ----------
+        aos_array : np.ndarray
+            Structured numpy array of events.
+
+        Returns
+        -------
+        EventArray
+            The constructed EventArray in struct-of-arrays format.
+
+        """
         return cls(
             np.ascontiguousarray(aos_array['t']),
             np.ascontiguousarray(aos_array['x']),
@@ -107,7 +160,14 @@ class EventArray:
         )
 
     def to_aos(self):
-        """Converts the EventArray to an array of structures (AoS) numpy array."""
+        """Converts the EventArray to an array of structures (AoS) numpy array.
+
+        Returns
+        -------
+        np.ndarray
+            Structured numpy array of events.
+
+        """
         aos_array = np.empty(len(self), dtype=self._aos_dtype)
         aos_array['t'] = self.t
         aos_array['x'] = self.x
@@ -116,10 +176,23 @@ class EventArray:
         return aos_array
 
     def __array__(self, dtype=None, copy=None):
-        """numpy interop: ``np.asarray(events)`` returns the AoS structured array.
+        """Numpy interop: ``np.asarray(events)`` returns the AoS structured array.
 
         This is the automatic SoA->AoS bridge for code (and tests) that still
         operate on :data:`Event_dtype` arrays.
+
+        Parameters
+        ----------
+        dtype : data-type, optional
+            Desired data type for the array.
+        copy : bool, optional
+            Whether to copy the data (ignored).
+
+        Returns
+        -------
+        np.ndarray
+            The structured array of events.
+
         """
         aos = self.to_aos()
         if dtype is not None:
@@ -129,10 +202,23 @@ class EventArray:
 
 class TriggerArray:
     """A container for storing trigger data in a struct-of-arrays (SoA) layout."""
+
     __slots__ = ['t', 'p', 'id']
     _aos_dtype = Trigger_dtype
 
     def __init__(self, t, p, id):
+        """Initializes the TriggerArray with columns.
+
+        Parameters
+        ----------
+        t : array_like
+            Timestamps of the triggers.
+        p : array_like
+            Polarities of the triggers.
+        id : array_like
+            Identifiers of the triggers.
+
+        """
         self.t = np.asarray(t, dtype=np.int64)
         self.p = np.asarray(p, dtype=np.uint8)
         self.id = np.asarray(id, dtype=np.uint8)
@@ -149,10 +235,26 @@ class TriggerArray:
         return f"TriggerArray(n={len(self)})"
 
     def copy(self):
+        """Return a deep copy with independent column arrays.
+
+        Returns
+        -------
+        TriggerArray
+            A deep copy of the trigger array.
+
+        """
         return TriggerArray(self.t.copy(), self.p.copy(), self.id.copy())
 
     @classmethod
     def empty(cls):
+        """Return an empty TriggerArray with correctly-typed (zero-length) columns.
+
+        Returns
+        -------
+        TriggerArray
+            An empty trigger array.
+
+        """
         return cls(
             np.empty(0, dtype=np.int64),
             np.empty(0, dtype=np.uint8),
@@ -160,6 +262,14 @@ class TriggerArray:
         )
 
     def to_aos(self):
+        """Converts the TriggerArray to an array of structures (AoS) numpy array.
+
+        Returns
+        -------
+        np.ndarray
+            Structured numpy array of triggers.
+
+        """
         aos_array = np.empty(len(self), dtype=self._aos_dtype)
         aos_array['t'] = self.t
         aos_array['p'] = self.p
@@ -167,6 +277,21 @@ class TriggerArray:
         return aos_array
 
     def __array__(self, dtype=None, copy=None):
+        """Numpy interop: ``np.asarray(triggers)`` returns the AoS structured array.
+
+        Parameters
+        ----------
+        dtype : data-type, optional
+            Desired data type for the array.
+        copy : bool, optional
+            Whether to copy the data (ignored).
+
+        Returns
+        -------
+        np.ndarray
+            The structured array of triggers.
+
+        """
         aos = self.to_aos()
         if dtype is not None:
             return aos.astype(dtype)

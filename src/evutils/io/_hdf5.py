@@ -1,3 +1,6 @@
+"""HDF5 file decoder and encoder."""
+
+import io
 from pathlib import Path
 from typing import Union
 
@@ -12,6 +15,28 @@ from .common import EventDecoder, EventEncoder
 
 @nb.njit
 def get_idx(events, ms_to_idx, last_ms_idx, n_written_events, max_ms, offset):
+    """Get the index for each millisecond in the events array.
+
+    Parameters
+    ----------
+    events : np.ndarray
+        Array of events.
+    ms_to_idx : np.ndarray
+        Array mapping millisecond to index.
+    last_ms_idx : int
+        Last millisecond index processed.
+    n_written_events : int
+        Number of events written so far.
+    max_ms : int
+        Maximum millisecond value in the current chunk.
+    offset : int
+        Offset for the index calculation.
+
+    Returns
+    -------
+    None
+
+    """
     idx = 0
     for ms in range(last_ms_idx, max_ms+1):
         while idx < len(events) and events['t'][idx] // 1000 < ms:
@@ -21,23 +46,22 @@ def get_idx(events, ms_to_idx, last_ms_idx, n_written_events, max_ms, offset):
 
 
 class EventEncoder_HDF5(EventEncoder):
-    def __init__(self, file:Union[Path, str], width:int=1280, height:int=720, chunksize:int=10000):
-        '''
-        Write events to a HDF5 file
+    def __init__(self, writable: io.BufferedWriter, width:int=1280, height:int=720, chunksize:int=10000):
+        """Write events to a HDF5 file.
 
         Parameters
         ----------
-        file : str
-            The file to write to
+        writable : io.BufferedWriter
+            The file-like object to write to
         width : int, optional
             The width of the frame
         height : int, optional
             The height of the frame
-        buffersize : int, optional
-            The size of the buffer, default
-        '''
+        chunksize : int, optional
+            The size of the chunks for HDF5 dataset, default 10000
 
-        super().__init__(file)
+        """
+        super().__init__(writable, width=width, height=height)
 
         self._chunksize = chunksize
 
@@ -47,6 +71,13 @@ class EventEncoder_HDF5(EventEncoder):
 
 
     def init(self):
+        """Initialize the HDF5 writer.
+
+        Returns
+        -------
+        None
+
+        """
         if self._is_initialized:
             return
 
@@ -70,7 +101,20 @@ class EventEncoder_HDF5(EventEncoder):
 
         self._is_initialized = True
 
-    def write(self, events: np.ndarray):
+    def write(self, events: np.ndarray) -> int:
+        """Write events to the HDF5 file.
+
+        Parameters
+        ----------
+        events : np.ndarray
+            Array of events to write.
+
+        Returns
+        -------
+        int
+            Number of events written.
+
+        """
         if not self._is_initialized:
             self.init()
 
@@ -80,9 +124,17 @@ class EventEncoder_HDF5(EventEncoder):
         # Append events
         self.__append_new_events(events)
 
+        return len(events)
 
 
     def close(self):
+        """Close the HDF5 file and write indexing metadata.
+
+        Returns
+        -------
+        None
+
+        """
         if not self._is_initialized:
             return
 
@@ -135,8 +187,7 @@ class EventEncoder_HDF5(EventEncoder):
 
 
 class EventDecoder_HDF5(EventDecoder):
-    '''
-    Read events from a HDF5 file
+    """Read events from a HDF5 file.
 
     Parameters
     ----------
@@ -147,14 +198,20 @@ class EventDecoder_HDF5(EventDecoder):
     height : int, optional
         The height of the frame
 
-    '''
-
+    """
 
     def __init__(self, file:Union[Path, str]):
         super().__init__(file)
 
 
     def init(self):
+        """Initialize the HDF5 reader.
+
+        Returns
+        -------
+        None
+
+        """
         if self._is_initialized:
             return
         self._fd = h5py.File(self._file, "r")
@@ -164,6 +221,21 @@ class EventDecoder_HDF5(EventDecoder):
         self._is_initialized = True
 
     def read(self, start_ms: int = 0, end_ms: int = -1) -> np.ndarray:
+        """Read events from a specific time range.
+
+        Parameters
+        ----------
+        start_ms : int, optional
+            Start time in milliseconds, by default 0.
+        end_ms : int, optional
+            End time in milliseconds, by default -1 (until the end).
+
+        Returns
+        -------
+        events : np.ndarray
+            Array of events within the time range.
+
+        """
         if not self._is_initialized:
             self.init()
         if start_ms > len(self._ms_to_idx) - 1:
@@ -180,6 +252,21 @@ class EventDecoder_HDF5(EventDecoder):
         return self._read_events(start_idx, end_idx)
 
     def _read_events(self, start_idx: int, end_idx: int) -> np.ndarray:
+        """Read events from a specific index range.
+
+        Parameters
+        ----------
+        start_idx : int
+            Start index.
+        end_idx : int
+            End index.
+
+        Returns
+        -------
+        events : np.ndarray
+            Array of events within the index range.
+
+        """
         x = self._fd["events"]["x"][start_idx:end_idx]
         y = self._fd["events"]["y"][start_idx:end_idx]
         p = self._fd["events"]["p"][start_idx:end_idx]

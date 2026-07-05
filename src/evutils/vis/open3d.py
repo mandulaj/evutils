@@ -1,3 +1,8 @@
+"""Open3D visualization utilities for event camera data.
+
+This module provides functions to visualize event streams in 3D (x, y, time)
+using Open3D.
+"""
 import open3d as o3d
 import numpy as np
 from matplotlib import pyplot as plt 
@@ -5,13 +10,18 @@ from matplotlib import pyplot as plt
 
 
 def o3d_draw_events(events: np.ndarray):
-    """Visualizes events using Open3D. 
+    """Visualizes events using Open3D.
 
     Parameters
     ----------
     events : np.ndarray
         Array of events with fields 'x', 'y', 't', and 'p'.
         'x' and 'y' are the pixel coordinates, 't' is the timestamp, and 'p' is the polarity.
+
+    Returns
+    -------
+    None
+
     """
     # Draw X, Y, T as a pointcloud 
     pdc = o3d.geometry.PointCloud()

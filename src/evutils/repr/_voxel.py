@@ -1,5 +1,5 @@
 
-
+"""Module for generating voxel grid representations from events."""
 
 from ._histogram import histogram
 from ..chunking import window_delta_t
@@ -9,8 +9,7 @@ import numpy as np
 
 
 def voxel_histogram(events: np.ndarray, width: int = 1280, height: int = 720, n_bins: int = 10, dt: int = 10_000, dtype=np.uint8) -> np.ndarray:
-    """
-    Generate a voxel grid from the events.
+    """Generate a voxel grid from the events.
 
     Parameters
     ----------
@@ -24,15 +23,15 @@ def voxel_histogram(events: np.ndarray, width: int = 1280, height: int = 720, n_
         Number of depth bins (time slices) in the voxel grid, by default 10.
     dt : int, optional
         Time delta in microseconds for events buffer by default 10_000 (10 ms).
-    dtype : type, optional
+    dtype : np.dtype, optional
         Data type of the output voxel grid, by default np.uint8.
 
     Returns
     -------
-    out : np.ndarray
-        A numpy array with the voxel grid (height, width, depth).
+    np.ndarray
+        A numpy array with the voxel grid (n_bins, height, width, 3).
+
     """
-    
     buffer = np.zeros((n_bins, height, width, 3), dtype=dtype)
 
 

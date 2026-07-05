@@ -158,6 +158,7 @@ EVUTILS_PARSE_INCOMPLETE = 4
 
 class ParserResult(Structure):
     """Mirror of parser_result_t."""
+
     _fields_ = [("current", POINTER(c_uint16)), ("status", c_int)]
  
  
@@ -301,7 +302,8 @@ def lib() -> ctypes.CDLL:
 # --------------------------------------------------------------------------- #
 class EventSoABuffers:
     """Owns the four event columns and a ctypes event_buffer_soa_t aimed at them.
-    Keep this object alive as long as any view() slice is in use."""
+    Keep this object alive as long as any view() slice is in use.
+    """
  
     __slots__ = ("capacity", "t", "x", "y", "p", "c")
  
@@ -323,6 +325,14 @@ class EventSoABuffers:
  
     @property
     def size(self) -> int:
+        """Get the number of stored events.
+
+        Returns
+        -------
+        int
+            Number of events.
+
+        """
         return int(self.c.size)
 
     def reset(self) -> None:
@@ -331,7 +341,8 @@ class EventSoABuffers:
     def grow(self, new_capacity: int) -> None:
         """Enlarge the columns to ``new_capacity``, preserving the first ``size``
         elements, and re-aim the ctypes struct at the new storage. Used by the
-        single-buffer decode path when the parser fills the output."""
+        single-buffer decode path when the parser fills the output.
+        """
         new_capacity = int(new_capacity)
         if new_capacity <= self.capacity:
             return
@@ -348,6 +359,14 @@ class EventSoABuffers:
         self.c.capacity = new_capacity
 
     def view(self):
+        """View the active elements in the buffer.
+
+        Returns
+        -------
+        tuple
+            Tuple of arrays (t, x, y, p).
+
+        """
         n = self.size
         return self.t[:n], self.x[:n], self.y[:n], self.p[:n]
 
@@ -373,6 +392,14 @@ class TriggerSoABuffers:
  
     @property
     def size(self) -> int:
+        """Get the number of stored triggers.
+
+        Returns
+        -------
+        int
+            Number of triggers.
+
+        """
         return int(self.c.size)
 
     def reset(self) -> None:
@@ -380,7 +407,8 @@ class TriggerSoABuffers:
 
     def grow(self, new_capacity: int) -> None:
         """Enlarge the columns to ``new_capacity``, preserving the first ``size``
-        elements, and re-aim the ctypes struct at the new storage."""
+        elements, and re-aim the ctypes struct at the new storage.
+        """
         new_capacity = int(new_capacity)
         if new_capacity <= self.capacity:
             return
@@ -397,13 +425,22 @@ class TriggerSoABuffers:
         self.c.capacity = new_capacity
 
     def view(self):
+        """View the active elements in the buffer.
+
+        Returns
+        -------
+        tuple
+            Tuple of arrays (t, id, p).
+
+        """
         n = self.size
         return self.t[:n], self.id[:n], self.p[:n]
  
  
 class Evt3Input:
     """Wraps a contiguous uint16 array (e.g. an mmap viewed with np.frombuffer)
-    as an evt3_input_buffer_t. No copy is made; keep the array alive."""
+    as an evt3_input_buffer_t. No copy is made; keep the array alive.
+    """
  
     __slots__ = ("arr", "c")
  
@@ -417,7 +454,19 @@ class Evt3Input:
         self.c.end = cast(base + words.nbytes, POINTER(c_uint16))  # one-past-last
  
     def consumed(self, result: "ParserResult") -> int:
-        """Number of uint16 words consumed, from a returned result.current."""
+        """Number of uint16 words consumed, from a returned result.current.
+
+        Parameters
+        ----------
+        result : ParserResult
+            The result of the parsing operation.
+
+        Returns
+        -------
+        int
+            Number of words consumed.
+
+        """
         cur = cast(result.current, c_void_p).value or self.arr.ctypes.data
         return (cur - self.arr.ctypes.data) // 2
  
@@ -444,11 +493,35 @@ class Evt3Parser:
 
 
     def reset(self) -> None:
+        """Reset the parser state.
+
+        Returns
+        -------
+        None
+
+        """
         ctypes.memset(self._buf, 0, len(self._buf))
         
  
     def parse_chunk_soa(self, inp: Evt3Input, events: EventSoABuffers,
                         triggers: TriggerSoABuffers) -> ParserResult:
+        """Parse a chunk into SoA buffers.
+
+        Parameters
+        ----------
+        inp : Evt3Input
+            Input buffer.
+        events : EventSoABuffers
+            Events buffer.
+        triggers : TriggerSoABuffers
+            Triggers buffer.
+
+        Returns
+        -------
+        ParserResult
+            The result of the parsing operation.
+
+        """
         return lib().EVT3_parse_chunk_soa(
             self._state, byref(inp.c), byref(events.c), byref(triggers.c)
         )
@@ -479,7 +552,19 @@ class Evt2Input:
         self.c.end = cast(base + words.nbytes, POINTER(c_uint32))
 
     def consumed(self, result: "ParserResult") -> int:
-        """Number of uint32 words consumed, from a returned result.current."""
+        """Number of uint32 words consumed, from a returned result.current.
+
+        Parameters
+        ----------
+        result : ParserResult
+            The result of the parsing operation.
+
+        Returns
+        -------
+        int
+            Number of words consumed.
+
+        """
         cur = cast(result.current, c_void_p).value or self.arr.ctypes.data
         return (cur - self.arr.ctypes.data) // 4
 
@@ -499,7 +584,19 @@ class Evt21Input:
         self.c.end = cast(base + words.nbytes, POINTER(c_uint64))
 
     def consumed(self, result: "ParserResult") -> int:
-        """Number of uint64 words consumed, from a returned result.current."""
+        """Number of uint64 words consumed, from a returned result.current.
+
+        Parameters
+        ----------
+        result : ParserResult
+            The result of the parsing operation.
+
+        Returns
+        -------
+        int
+            Number of words consumed.
+
+        """
         cur = cast(result.current, c_void_p).value or self.arr.ctypes.data
         return (cur - self.arr.ctypes.data) // 8
 
@@ -515,10 +612,34 @@ class Evt2Parser:
         self._state = cast(self._buf, c_void_p)
 
     def reset(self) -> None:
+        """Reset the parser state.
+
+        Returns
+        -------
+        None
+
+        """
         ctypes.memset(self._buf, 0, len(self._buf))
 
     def parse_chunk_soa(self, inp: Evt2Input, events: EventSoABuffers,
                         triggers: TriggerSoABuffers) -> ParserResult:
+        """Parse a chunk into SoA buffers.
+
+        Parameters
+        ----------
+        inp : Evt2Input
+            Input buffer.
+        events : EventSoABuffers
+            Events buffer.
+        triggers : TriggerSoABuffers
+            Triggers buffer.
+
+        Returns
+        -------
+        ParserResult
+            The result of the parsing operation.
+
+        """
         return lib().EVT2_parse_chunk_soa(
             self._state, byref(inp.c), byref(events.c), byref(triggers.c)
         )
@@ -538,10 +659,34 @@ class Evt21Parser:
         self._state = cast(self._buf, c_void_p)
 
     def reset(self) -> None:
+        """Reset the parser state.
+
+        Returns
+        -------
+        None
+
+        """
         ctypes.memset(self._buf, 0, len(self._buf))
 
     def parse_chunk_soa(self, inp: Evt21Input, events: EventSoABuffers,
                         triggers: TriggerSoABuffers) -> ParserResult:
+        """Parse a chunk into SoA buffers.
+
+        Parameters
+        ----------
+        inp : Evt21Input
+            Input buffer.
+        events : EventSoABuffers
+            Events buffer.
+        triggers : TriggerSoABuffers
+            Triggers buffer.
+
+        Returns
+        -------
+        ParserResult
+            The result of the parsing operation.
+
+        """
         return lib().EVT21_parse_chunk_soa(
             self._state, byref(inp.c), byref(events.c), byref(triggers.c)
         )
@@ -602,10 +747,34 @@ class DatParser:
         self._state = cast(self._buf, c_void_p)
 
     def reset(self) -> None:
+        """Reset the parser state.
+
+        Returns
+        -------
+        None
+
+        """
         ctypes.memset(self._buf, 0, len(self._buf))
 
     def parse_chunk_soa(self, inp: DatInput, events: EventSoABuffers,
                         triggers: TriggerSoABuffers) -> ParserResult:
+        """Parse a chunk into SoA buffers.
+
+        Parameters
+        ----------
+        inp : DatInput
+            Input buffer.
+        events : EventSoABuffers
+            Events buffer.
+        triggers : TriggerSoABuffers
+            Triggers buffer.
+
+        Returns
+        -------
+        ParserResult
+            The result of the parsing operation.
+
+        """
         return lib().DAT_parse_chunk_soa(
             self._state, byref(inp.c), byref(events.c), byref(triggers.c)
         )
@@ -620,10 +789,34 @@ class AerParser:
     __slots__ = ()
 
     def reset(self) -> None:
+        """Reset the parser state.
+
+        Returns
+        -------
+        None
+
+        """
         pass
 
     def parse_chunk_soa(self, inp: AerInput, events: EventSoABuffers,
                         triggers: TriggerSoABuffers) -> ParserResult:
+        """Parse a chunk into SoA buffers.
+
+        Parameters
+        ----------
+        inp : AerInput
+            Input buffer.
+        events : EventSoABuffers
+            Events buffer.
+        triggers : TriggerSoABuffers
+            Triggers buffer.
+
+        Returns
+        -------
+        ParserResult
+            The result of the parsing operation.
+
+        """
         return lib().AER_parse_chunk_soa(
             byref(inp.c), byref(events.c), byref(triggers.c)
         )
@@ -642,7 +835,8 @@ def events_view(ev: EventSoABuffers) -> EventArray:
     than converted, so no data is copied. The result aliases ``ev``'s reusable
     columns and is only valid until the next parse into ``ev`` -- callers that need
     to retain it must ``.copy()`` (the EventReader copies when it appends to its
-    ring buffer)."""
+    ring buffer).
+    """
     n = ev.size
     return EventArray(ev.t[:n].view(np.int64), ev.x[:n], ev.y[:n], ev.p[:n])
 
@@ -650,7 +844,8 @@ def events_view(ev: EventSoABuffers) -> EventArray:
 def triggers_view(tr: TriggerSoABuffers) -> TriggerArray:
     """Zero-copy :class:`TriggerArray` over the first ``tr.size`` decoded triggers.
 
-    Similar semantics to :func:`events_view`."""
+    Similar semantics to :func:`events_view`.
+    """
     n = tr.size
     return TriggerArray(tr.t[:n].view(np.int64), tr.p[:n], tr.id[:n])
 
@@ -736,6 +931,7 @@ def decode_all_soa(words, start_offset, make_input, parser, *,
     -------
     (EventArray, int)
         The decoded events and the word offset reached (== len(words)).
+
     """
     n_words = len(words) if words is not None else 0
     if n_words == 0 or start_offset >= n_words:

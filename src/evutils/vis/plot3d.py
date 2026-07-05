@@ -1,3 +1,8 @@
+"""Matplotlib 3D visualization utilities for event data.
+
+This module provides functions to plot event streams, 3D histograms,
+and time surfaces using matplotlib's 3D plotting capabilities.
+"""
 import numba 
 import numpy as np
 import cv2
@@ -31,10 +36,12 @@ def plot_3d(events: np.ndarray,
         Matplotlib figure to plot on, by default None (a new figure will be created).
     ax : Optional[Axes3D], optional
         Matplotlib 3D axis to plot on, by default None (a new axis will be created).
+
     Returns
     -------
     tuple
         A tuple containing the figure and axis objects.
+
     Raises
     ------
     ValueError
@@ -78,6 +85,7 @@ def plot_3d_histogram(histogram: np.ndarray,
                       fig: Optional[plt.Figure] = None,
                       ax: Optional[Axes3D] = None) -> tuple:
     """Plot a 3D histogram of events.
+
     Parameters
     ----------
     histogram : np.ndarray
@@ -88,12 +96,13 @@ def plot_3d_histogram(histogram: np.ndarray,
         Matplotlib figure to plot on, by default None (a new figure will be created).
     ax : Optional[Axes3D], optional
         Matplotlib 3D axis to plot on, by default None (a new axis will be created).
+
     Returns
     -------
     tuple
         A tuple containing the figure and axis objects.
-    """
 
+    """
     # Create figure/axis if not provided
     if ax is None:
         fig = plt.figure(figsize=(10, 7)) if fig is None else fig
@@ -151,7 +160,29 @@ def plot_3d_timesurface(events: np.ndarray,
             tau: int = 10_000,
             fig: Optional[plt.Figure] = None, 
             ax: Optional[Axes3D] = None) -> tuple:   
+    """Plot a 3D time surface of events.
 
+    Parameters
+    ----------
+    events : np.ndarray
+        Array of events with fields 't', 'x', 'y', and 'p'.
+    width : int, optional
+        Width of the event frame, by default 1280.
+    height : int, optional
+        Height of the event frame, by default 720.
+    tau : int, optional
+        Time constant for the time surface exponential decay in microseconds, by default 10_000.
+    fig : Optional[plt.Figure], optional
+        Matplotlib figure to plot on, by default None (a new figure will be created).
+    ax : Optional[Axes3D], optional
+        Matplotlib 3D axis to plot on, by default None (a new axis will be created).
+
+    Returns
+    -------
+    tuple
+        A tuple containing the figure and axis objects.
+
+    """
     ts = events['t'] # Convert timestamps to seconds
 
     ts_ref = ts[-1]  # Reference timestamp for normalization

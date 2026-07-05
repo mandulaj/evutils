@@ -1,3 +1,4 @@
+"""Module for generating frame-based representations from events."""
 
 import numba 
 import numpy as np
@@ -5,30 +6,25 @@ import numpy as np
 
 @numba.njit
 def frame_gray(events: np.ndarray, width: int = 1280, height: int = 720, dtype=np.uint8):
-    '''
-    Generate a frame from the events
+    """Generate a grayscale frame from the events.
 
     Parameters
     ----------
-    ev : np.ndarray
+    events : np.ndarray
         Array of events in the :class:`~evutils.types.Events` format
-    width : int
-        Width of the frame
-    height : int
-        Height of the frame
-    fill : bool, optional
-        If True, the non-zero values are set to 255, by default False
+    width : int, optional
+        Width of the frame, by default 1280
+    height : int, optional
+        Height of the frame, by default 720
     dtype : np.dtype, optional
         Data type of the output array, by default np.uint8
     
     Returns
     -------
-    out : np.ndarray
-        A numpy array with the frame (height, width, 3)
+    np.ndarray
+        A numpy array with the frame (height, width)
 
-
-    '''
-
+    """
     buffer = np.full((height, width), 128, dtype=dtype)
 
 
@@ -49,28 +45,29 @@ def frame_gray(events: np.ndarray, width: int = 1280, height: int = 720, dtype=n
 
 @numba.njit
 def frame_rgb(ev: np.ndarray, width: int = 1280, height: int = 720, bg_color=np.array((0, 0, 0)), pos_color=np.array((255, 0, 0)), neg_color=np.array((0, 0, 255))):
-    '''
-    Generate a frame from the events
+    """Generate an RGB frame from the events.
 
     Parameters
     ----------
     ev : np.ndarray
         Array of events in the :class:`~evutils.types.Events` format
-    width : int
-        Width of the frame
-    height : int
-        Height of the frame
-    fill : bool, optional
-        If True, the non-zero values are set to 255, by default True
+    width : int, optional
+        Width of the frame, by default 1280
+    height : int, optional
+        Height of the frame, by default 720
+    bg_color : np.ndarray, optional
+        Background color, by default np.array((0, 0, 0))
+    pos_color : np.ndarray, optional
+        Color for positive events, by default np.array((255, 0, 0))
+    neg_color : np.ndarray, optional
+        Color for negative events, by default np.array((0, 0, 255))
 
     Returns
     -------
-    out : np.ndarray
+    np.ndarray
         A numpy array with the frame (height, width, 3)
 
-
-    '''
-
+    """
     buffer = np.zeros((height, width, 3), dtype=np.uint8)
     buffer[:, :] = bg_color
 
@@ -89,27 +86,25 @@ def frame_rgb(ev: np.ndarray, width: int = 1280, height: int = 720, bg_color=np.
 
 @numba.njit
 def frame_diff(ev: np.ndarray, width: int = 1280, height: int = 720, dtype=np.int8):
-    '''
-    Generate a differential frame from the events
+    """Generate a differential frame from the events.
 
     Parameters
     ----------
     ev : np.ndarray
         Array of events in the :class:`~evutils.types.Events` format
-    width : int
-        Width of the frame
-    height : int
-        Height of the frame
+    width : int, optional
+        Width of the frame, by default 1280
+    height : int, optional
+        Height of the frame, by default 720
     dtype : np.dtype, optional
         Data type of the output array, by default np.int8
+        
     Returns
     -------
-    out : np.ndarray
-        A numpy array with the frame (height, width, 3)
+    np.ndarray
+        A numpy array with the frame (height, width)
 
-
-    '''
-
+    """
     buffer = np.zeros((height, width), dtype=dtype)
 
     for e in ev:

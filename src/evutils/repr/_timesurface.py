@@ -1,12 +1,12 @@
 
+"""Module for generating time surface representations from events."""
 
 import numpy as np
 import numba 
 
 @numba.njit
 def timesurface(events: np.ndarray, width: int = 1280, height: int = 720, tau: int = 10_000, dtype=np.float32) -> np.ndarray:
-    """
-    Generate a time surface frame from the events.
+    """Generate a time surface frame from the events.
 
     Parameters
     ----------
@@ -18,17 +18,17 @@ def timesurface(events: np.ndarray, width: int = 1280, height: int = 720, tau: i
         Height of the time surface frame, by default 720.
     tau : int, optional
         Time constant for the exponential decay, by default 10_000 (10 ms).
-    dtype : type, optional
+    dtype : np.dtype, optional
         Data type of the output frame, by default np.uint8.
 
     Returns
     -------
-    out : np.ndarray
-        A numpy array with the time surface frame (height, width, 3).
+    np.ndarray
+        A numpy array with the time surface frame (height, width).
 
     [1] Lagorce et al. 2016, Hots: a hierarchy of event-based time-surfaces for pattern recognition https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=7508476
+
     """
-    
     # Initialize the buffer
     buffer = np.zeros((height, width), dtype=dtype)
 

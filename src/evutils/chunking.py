@@ -9,17 +9,16 @@ import numpy as np
 
 
 def window_delta_t(events: np.ndarray, delta_t: int = 10_000):
-    '''
-    Returns a generator that chunks the events array into windows of size delta_t
+    """Returns a generator that chunks the events array into windows of size delta_t.
     
     Parameters
     ----------
     events : np.ndarray
         Array of events
     delta_t : int, optional
-        Size of the window in microseconds, by default 10_000'''
+        Size of the window in microseconds, by default 10_000
 
-
+    """
     if len(events) == 0:
         return
 
@@ -38,8 +37,7 @@ def window_delta_t(events: np.ndarray, delta_t: int = 10_000):
         index_start += next_index
 
 def sliding_window(events: np.ndarray, delta_t: int = 10_000, window_size: int = 20_000, full_window: bool = False):
-    '''
-    Returns a generator that chunks the events array into windows of size delta_t
+    """Returns a generator that chunks the events array into windows of size delta_t.
     
     Parameters
     ----------
@@ -53,8 +51,8 @@ def sliding_window(events: np.ndarray, delta_t: int = 10_000, window_size: int =
     full_window : bool, optional
         If True, the last window will be full, by default False
         If False, the last window will be the remaining events
-    '''
 
+    """
     if len(events) == 0:
         return
 
@@ -86,26 +84,27 @@ def sliding_window(events: np.ndarray, delta_t: int = 10_000, window_size: int =
 
 
 def sort_events(events: np.ndarray):
-    '''Sorts the events array by timestamp
+    """Sorts the events array by timestamp.
     
     Parameters
     ----------
     events : np.ndarray
         Array of events
 
-    '''
+    """
     return np.sort(events, order="t")
 
 def get_dt_events(events: np.ndarray, dt: int =10_000):
-    '''
-    Returns the events that are within a time window of dt from the first event's timestamp.
+    """Returns the events that are within a time window of dt from the first event's timestamp.
+
     Parameters
     ----------
     events : np.ndarray
         Array of events
     dt : int, optional
         Time window in microseconds, by default 10_000
-    '''
+
+    """
     if len(events) == 0:
         return events
 

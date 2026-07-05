@@ -1,3 +1,4 @@
+"""Event-to-video reconstruction using the RPG E2VID model."""
 
 from evutils.torch import _try_import_torch
 torch = _try_import_torch()
@@ -20,6 +21,18 @@ from ._base import Reconstructor
 
 
 def set_inference_options(params):
+    """Sets inference options for the RPG E2VID reconstructor.
+
+    Parameters
+    ----------
+    params : dict or SimpleNamespace
+        Options and parameters for inference.
+
+    Returns
+    -------
+    None
+
+    """
     rpg_set_inference_options(params)
 
 
@@ -27,8 +40,7 @@ def set_inference_options(params):
 
 
 class RPG_Reconstructor(Reconstructor):
-    '''
-    Reconstructor using the E2VID model from RPG
+    """Reconstructor using the E2VID model from RPG.
 
     Parameters
     ----------
@@ -43,7 +55,8 @@ class RPG_Reconstructor(Reconstructor):
     References
     ----------
     [1] High Speed and High Dynamic Range Video with an Event Camera https://github.com/uzh-rpg/rpg_e2vid
-    '''
+
+    """
 
     DEFAULT_ARGS = {
         'no_recurrent': False,
@@ -106,6 +119,13 @@ class RPG_Reconstructor(Reconstructor):
         self.reset_states = False
 
     def download_model(self):
+        """Downloads the pre-trained E2VID model weights.
+
+        Returns
+        -------
+        None
+
+        """
         import requests
         from tqdm import tqdm
 
@@ -132,6 +152,19 @@ class RPG_Reconstructor(Reconstructor):
 
 
     def _update_reconstruction(self, event_tensor):
+        """Updates the reconstruction with a new event tensor.
+
+        Parameters
+        ----------
+        event_tensor : torch.Tensor or np.ndarray
+            Voxel grid of events.
+
+        Returns
+        -------
+        np.ndarray
+            Reconstructed frame as a numpy array.
+
+        """
         if isinstance(event_tensor, np.ndarray):
             event_tensor = torch.from_numpy(event_tensor)
         
@@ -182,6 +215,19 @@ class RPG_Reconstructor(Reconstructor):
 
 
     def gen_frame(self, e):
+        """Reconstructs a frame from the given events.
+
+        Parameters
+        ----------
+        e : np.ndarray
+            Array of events with fields 't', 'x', 'y', and 'p'.
+
+        Returns
+        -------
+        np.ndarray
+            Reconstructed frame as a numpy array.
+
+        """
         if len(e) == 0:
             events = np.hstack((np.float32(np.array([self.last_ts])[None].T/1e6), np.array([0])[None].T, np.array([0])[None].T, np.array([0])[None].T))
             self.reset_states = True

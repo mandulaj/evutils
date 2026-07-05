@@ -1,3 +1,5 @@
+"""Utility functions for processing event arrays."""
+
 import numpy as np
 
 
@@ -15,6 +17,7 @@ def normalize_ts(events: np.ndarray, start_ts: int = 0) -> np.ndarray:
     -------
     np.ndarray
         Array of events with normalized timestamps.
+
     """
     if len(events) == 0:
         return events

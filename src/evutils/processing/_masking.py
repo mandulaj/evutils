@@ -1,3 +1,5 @@
+"""Module for applying spatial masks to event arrays."""
+
 import numpy as np
 
 
@@ -11,8 +13,13 @@ def mask_events(events: np.ndarray, mask: np.ndarray) -> np.ndarray:
     mask : np.ndarray
         A 2D mask array where the events will be checked against. 
         The mask should have the same shape as the event frame size.
-    """
+        
+    Returns
+    -------
+    np.ndarray
+        Array of events that fall within the valid regions of the mask.
 
+    """
     # Check if mask is a 2D array
     if mask.ndim != 2:
         raise ValueError("Mask must be a 2D array")

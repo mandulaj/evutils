@@ -1,3 +1,4 @@
+"""Base classes and utilities for event-to-video reconstruction."""
 
 import torch
 
@@ -7,6 +8,22 @@ from types import SimpleNamespace
 
 
 def get_freer_gpu(cuda_string=False):
+    """Finds the GPU with the most free memory.
+
+    Parameters
+    ----------
+    cuda_string : bool, optional
+        If True, returns a string formatted as 'cuda:{id}', or 'cpu' if no GPU is found.
+        If False, returns the integer ID of the freer GPU, or None if no GPU is found.
+        By default False.
+
+    Returns
+    -------
+    int or str or None
+        The ID or formatted string of the GPU with the most free memory,
+        or None/'cpu' if no GPU is available.
+
+    """
     import subprocess
     try:
         memory_free_info = subprocess.check_output(['/bin/sh', '-c', 'nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits'], encoding='utf-8').split('\n')
@@ -22,8 +39,7 @@ def get_freer_gpu(cuda_string=False):
     return most_free
 
 class Reconstructor():
-    '''
-    Base class for reconstructing frames from events
+    """Base class for reconstructing frames from events.
 
     Parameters
     ----------
@@ -33,7 +49,9 @@ class Reconstructor():
         Width of the frame
     args : dict, optional
         Additional arguments for the reconstructor, by default {}
-    '''
+
+    """
+
     DEFAULT_ARGS = {
         'device': "auto"
     }
@@ -53,8 +71,7 @@ class Reconstructor():
 
 
     def gen_frame(self, events: np.ndarray) -> np.ndarray:
-        '''
-        Reconstruct a frame from events
+        """Reconstruct a frame from events.
 
         Parameters
         ----------
@@ -67,5 +84,5 @@ class Reconstructor():
         np.ndarray
             A numpy array with the frame (height, width, channels)
 
-        '''
+        """
         raise NotImplementedError

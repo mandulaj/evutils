@@ -1,5 +1,4 @@
-
-
+"""CSV file decoder and encoder."""
 
 import io
 from io import TextIOWrapper
@@ -16,8 +15,7 @@ from .common import EventDecoder, EventEncoder
 
 
 class EventDecoder_Csv(EventDecoder):
-    '''
-    A reader for CSV files with events.
+    """A reader for CSV files with events.
 
     Parameters
     ----------
@@ -37,7 +35,7 @@ class EventDecoder_Csv(EventDecoder):
     ValueError
         If the order is not a list of 4 strings or if the order does not contain 't', 'x', 'y' and 'p'
 
-    '''
+    """
 
     def __init__(self, readable:io.BufferedReader,  order:list|None=None, chunk_size:int=1_000_000, delimiter:str=",", engine:CSVEngine='c'):
         super().__init__(readable, chunk_size)
@@ -97,7 +95,13 @@ class EventDecoder_Csv(EventDecoder):
 
 
     def init(self):
+        """Initialize the CSV reader.
 
+        Returns
+        -------
+        None
+
+        """
         self._check_header()
 
         self._chunk_reader = pd.read_csv(self._fd, iterator=True, header=None, names=self._order, engine=self._engine,
@@ -108,6 +112,21 @@ class EventDecoder_Csv(EventDecoder):
 
 
     def read_chunk(self, delta_t_hint:int | None = None, n_events_hint:int | None = None) -> np.ndarray[Any, np.dtype[Any]]:
+        """Read a chunk of events from the CSV file.
+
+        Parameters
+        ----------
+        delta_t_hint : int, optional
+            A hint for the time delta to read.
+        n_events_hint : int, optional
+            A hint for the number of events to read.
+
+        Returns
+        -------
+        events : np.ndarray
+            An array of events.
+
+        """
         assert self._is_initialized, "Reader is not initialized"
         assert self._chunk_reader is not None
         # We can use the n_events_hint to read exactly n_events
@@ -133,6 +152,13 @@ class EventDecoder_Csv(EventDecoder):
 
 
     def reset(self):
+        """Reset the CSV reader to the beginning of the file.
+
+        Returns
+        -------
+        None
+
+        """
         assert self._fd is not None
         self._fd.seek(0)
         self._check_header()
@@ -140,8 +166,7 @@ class EventDecoder_Csv(EventDecoder):
 
 
 class EventEncoder_Csv(EventEncoder):
-    '''
-    A writer for CSV files with events.
+    """A writer for CSV files with events.
 
     Parameters
     ----------
@@ -163,7 +188,7 @@ class EventEncoder_Csv(EventEncoder):
     ValueError
         If the order is not a list of 4 strings or if the order does not contain 't', 'x', 'y' and 'p'
 
-    '''
+    """
 
     def __init__(self, writable: io.BufferedWriter, width:int=1280, height:int=720, sep:str=",", order:list=['t', 'x', 'y', 'p'], header:bool=True):
         super().__init__(writable)
@@ -179,7 +204,13 @@ class EventEncoder_Csv(EventEncoder):
         self._sep = sep
 
     def init(self):
+        """Initialize the CSV writer.
 
+        Returns
+        -------
+        None
+
+        """
         if self._header:
             header = self._sep.join(self._order) + "\n"
             self._fd.write(header.encode('utf-8'))
@@ -188,6 +219,19 @@ class EventEncoder_Csv(EventEncoder):
 
 
     def write(self, events: np.ndarray[Any, np.dtype[Any]]) -> int:
+        """Write events to the CSV file.
+
+        Parameters
+        ----------
+        events : np.ndarray
+            An array of events to write.
+
+        Returns
+        -------
+        int
+            The number of written events.
+
+        """
         if not self._is_initialized:
             self.init()
 

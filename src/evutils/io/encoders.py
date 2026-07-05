@@ -1,3 +1,7 @@
+"""Encoders module.
+
+Provides mapping and retrieval of event encoders based on file extensions.
+"""
 
 import warnings
 from pathlib import Path
@@ -7,7 +11,7 @@ import numpy as np
 
 from .common import EventEncoder
 
-_WRITER_MAPPING = {}
+_WRITER_MAPPING: dict[str, Type[EventEncoder]] = {}
 from ._aedat import EventEncoder_Aedat
 _WRITER_MAPPING[".aedat"] = EventEncoder_Aedat
 
@@ -39,8 +43,7 @@ _WRITER_MAPPING[".aer"] = EventEncoder_AER
 
 
 def get_file_writer(file: Path) -> Type[EventEncoder]:
-    '''
-    Get the appropriate writer for the given file
+    """Get the appropriate writer for the given file.
 
     Parameters
     ----------
@@ -51,9 +54,8 @@ def get_file_writer(file: Path) -> Type[EventEncoder]:
     -------
     EventFileWriter
         Writer object for the file
-    '''
 
-
+    """
     ext = file.suffix.lower()
     if ext not in _WRITER_MAPPING:
         raise ValueError(f"File extension {ext} not supported, available extensions: {list(_WRITER_MAPPING.keys())}")

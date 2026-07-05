@@ -1,3 +1,4 @@
+"""Module for augmenting events by dropping random events."""
 
 import numpy as np
 
@@ -15,9 +16,9 @@ def drop_random_events(events: np.ndarray, drop_rate: float = 0.1):
     
     Returns
     -------
-    np.ndarray:w
-    
+    np.ndarray
         Array of events with the specified percentage dropped.
+
     """
     if drop_rate <= 0 or drop_rate >= 1:
         raise ValueError("drop_rate must be between 0 and 1")

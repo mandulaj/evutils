@@ -1,3 +1,8 @@
+"""Common interface for event decoders and encoders.
+
+Defines the abstract base classes `EventDecoder` and `EventEncoder`.
+"""
+
 import io
 import os
 from abc import ABC, abstractmethod
@@ -11,8 +16,7 @@ import numpy as np
 
 
 class EventDecoder(ABC):
-    '''
-    ABC for reading chunks of events from a IO source object
+    """ABC for reading chunks of events from a IO source object.
 
     Parameters
     ----------
@@ -23,14 +27,26 @@ class EventDecoder(ABC):
 
     Raises
     ------
-
     NotImplementedError
         If the method is not implemented in the subclass
 
-    '''
+    """
+
     SUPPORTS_EXT_TRIGGERS = False
 
     def __init__(self, source, chunk_size:int = 10000, read_external_triggers: bool = False):
+        """Initialize the decoder.
+
+        Parameters
+        ----------
+        source : ByteSource
+            Source to read events from.
+        chunk_size : int, optional
+            Size of the chunk to read, by default 10000.
+        read_external_triggers : bool, optional
+            Whether to read external triggers, by default False.
+
+        """
         # `source` is a ByteSource (see io/_source.py). `fd` is kept as a legacy
         # alias for older decoders that still reference it.
         self._source = source
@@ -52,36 +68,36 @@ class EventDecoder(ABC):
 
     @abstractmethod
     def init(self):
-        '''
-        Initialize the file for reading
-        '''
+        """Initialize the file for reading."""
         raise NotImplementedError
 
     @abstractmethod
     def read_chunk(self, delta_t_hint:int | None = None, n_events_hint:int | None = None) -> np.ndarray[Any, np.dtype[Any]]:
-        '''
-        Read a chunk of events
+        """Read a chunk of events.
 
         Parameters
         ----------
-        delta_t_hint
+        delta_t_hint : int, optional
             If not None, can be used to provide a hit about the delta_t window to be read
-        n_events_hint
+        n_events_hint : int, optional
             If not None, can be used to provide a hit about the n_events to be read
-        '''
+            
+        Returns
+        -------
+        np.ndarray
+            Chunk of events read from the source.
+
+        """
         raise NotImplementedError
 
     @abstractmethod
     def reset(self):
-        '''
-        Reset the file pointer to the beginning of the file
-        '''
+        """Reset the file pointer to the beginning of the file."""
         raise NotImplementedError
 
 
     def read_all(self):
-        '''
-        Decode and return every remaining event at once.
+        """Decode and return every remaining event at once.
 
         The default implementation drains :meth:`read_chunk` and concatenates the
         chunks. SoA-native decoders (EVT/DAT/AER) override this with a
@@ -91,7 +107,8 @@ class EventDecoder(ABC):
         -------
         EventArray
             All remaining events.
-        '''
+
+        """
         from ..types import EventArray
 
         if not self._is_initialized:
@@ -118,44 +135,44 @@ class EventDecoder(ABC):
         )
 
     def close(self):
-        '''Release any resources held by the decoder (e.g. buffer views).
+        """Release any resources held by the decoder (e.g. buffer views).
 
         The owning source is closed separately by the EventReader.
-        '''
+        """
         pass
 
     def tell(self) -> int:
-        '''
-        Get the current position in the file
+        """Get the current position in the file.
 
         Returns
         -------
         int
             The current position in the file
-        '''
+
+        """
         return self._fd.tell()
 
 
     def set_chunk_size(self, chunk_size:int):
-        '''
-        Set the chunk size
+        """Set the chunk size.
 
         Parameters
         ----------
         chunk_size
             Size of the chunk to read
-        '''
+
+        """
         self._chunk_size = chunk_size
 
     def shape(self) -> tuple[int|None, int|None]:
-        '''
-        Get the shape of the frame (width, height)
+        """Get the shape of the frame (width, height).
 
         Returns
         -------
         tuple[int|None, int|None]
                 The shape of the frame (width, height), or (None, None) if the shape is not known
-        '''
+
+        """
         return self._width, self._height
         
 
@@ -168,22 +185,21 @@ class EventDecoder(ABC):
             return f"{self.__class__} - {is_initialized_txt})"
 
     def is_eof(self) -> bool:
-        '''
-        Check if the end of the file has been reached
+        """Check if the end of the file has been reached.
 
         Returns
         -------
         bool
             True if the end of the file has been reached
-        '''
+
+        """
         return self._eof
 
 
 
 
 class EventEncoder(ABC):
-    '''
-    ABC for writing chunks of events to a io object
+    """ABC for writing chunks of events to a io object.
 
     Parameters
     ----------
@@ -202,9 +218,23 @@ class EventEncoder(ABC):
     NotImplementedError
         If the method is not implemented in the subclass
 
-    '''
-    def __init__(self, writable: io.BufferedWriter, width:int = 1280, height:int = 720, dt:Optional[datetime]=None ):
+    """
 
+    def __init__(self, writable: io.BufferedWriter, width:int = 1280, height:int = 720, dt:Optional[datetime]=None ):
+        """Initialize the encoder.
+        
+        Parameters
+        ----------
+        writable : io.BufferedWriter
+            Destination for writing events.
+        width : int, optional
+            Width of the frame, by default 1280.
+        height : int, optional
+            Height of the frame, by default 720.
+        dt : datetime, optional
+            Timestamp of the recording, by default current time.
+
+        """
         self._fd = writable
 
         self._width = width
@@ -221,16 +251,12 @@ class EventEncoder(ABC):
     
     @abstractmethod
     def init(self):
-        '''
-        Initialize the file for writing
-        '''
+        """Initialize the file for writing."""
         raise NotImplementedError
 
     @abstractmethod
     def write(self, events: np.ndarray[Any, np.dtype[Any]]) -> int:
-        '''
-        Write a chunk of events
-        '''
+        """Write a chunk of events."""
         raise NotImplementedError
 
     def __len__(self) -> int:

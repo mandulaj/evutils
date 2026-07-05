@@ -1,3 +1,9 @@
+"""Event buffering module.
+
+Provides `EventAccumulator` for buffering and rotating event structures
+in memory efficiently.
+"""
+
 import numpy as np
 
 from ..types import EventArray, TriggerArray
@@ -21,6 +27,14 @@ class EventAccumulator():
     """
 
     def __init__(self, capacity: int):
+        """Initialize the event accumulator.
+        
+        Parameters
+        ----------
+        capacity : int
+            The initial capacity for the event buffer.
+
+        """
         self._capacity = int(capacity)
         self._buf = EventSoABuffers(self._capacity)
         self._tr_capacity = max(self._capacity // 16, 1)
@@ -32,12 +46,26 @@ class EventAccumulator():
         return self._buf.size - self._start
 
     def t_window(self) -> np.ndarray:
-        """int64 view of the currently unconsumed timestamps (zero-copy)."""
+        """int64 view of the currently unconsumed timestamps (zero-copy).
+        
+        Returns
+        -------
+        np.ndarray
+            The unconsumed timestamps as an int64 array.
+
+        """
         s, e = self._start, self._buf.size
         return self._buf.t[s:e].view(np.int64)
 
     def t_window_tr(self) -> np.ndarray:
-        """int64 view of the currently unconsumed trigger timestamps (zero-copy)."""
+        """int64 view of the currently unconsumed trigger timestamps (zero-copy).
+
+        Returns
+        -------
+        np.ndarray
+            The unconsumed trigger timestamps as an int64 array.
+
+        """
         s, e = self._tr_start, self._tr.size
         return self._tr.t[s:e].view(np.int64)
 
@@ -72,7 +100,19 @@ class EventAccumulator():
 
         Rotates out consumed events if there is not enough tail room, then caps
         the SoA capacity the parser sees to ``size + step`` so a single step does
-        not overshoot the requested window by more than one step's worth."""
+        not overshoot the requested window by more than one step's worth.
+        
+        Parameters
+        ----------
+        step : int
+            The number of events the decoder is expected to append.
+
+        Returns
+        -------
+        tuple
+            A tuple of (events_soa, triggers_soa) buffers.
+
+        """
         b = self._buf
         t = self._tr
         if self._capacity - b.size < step or t.capacity - t.size < step // 16:
@@ -82,7 +122,16 @@ class EventAccumulator():
         return b, t
 
     def append(self, data: EventArray, triggers=None) -> None:
-        """Copy an EventArray in (fallback path for non-native decoders)."""
+        """Copy an EventArray in (fallback path for non-native decoders).
+
+        Parameters
+        ----------
+        data : EventArray
+            The events to append.
+        triggers : TriggerArray, optional
+            The triggers to append.
+
+        """
         n = len(data)
         if n > 0:
             b = self._buf
@@ -114,7 +163,21 @@ class EventAccumulator():
 
     def slice_copy(self, k: int, tr_k: int = 0):
         """Return an independent copy of the first ``k`` unconsumed events and
-        advance past them."""
+        advance past them.
+        
+        Parameters
+        ----------
+        k : int
+            The number of unconsumed events to slice and copy.
+        tr_k : int, optional
+            The number of unconsumed triggers to slice and copy.
+
+        Returns
+        -------
+        tuple
+            A tuple of (EventArray, TriggerArray) containing the copied slices.
+
+        """
         s = self._buf
         i = self._start
         out = EventArray(
@@ -132,6 +195,7 @@ class EventAccumulator():
         return out, out_tr
 
     def reset(self) -> None:
+        """Reset the buffer and trigger size to 0 and clear consumed offsets."""
         self._buf.c.size = 0
         self._tr.c.size = 0
         self._start = 0

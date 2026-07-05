@@ -1,3 +1,4 @@
+"""Module for generating Time-Ordered Recent Event (TORE) representations from events."""
 
 import numba 
 import numpy as np
@@ -6,31 +7,31 @@ import numpy as np
 @numba.njit
 # @numba.njit
 def tore(events: np.ndarray, width: int = 1280, height: int = 720, n_events: int = 4, tau: int = 10_000, dtype=np.uint8):
-    '''
-    Generate a TORE from the events
+    """Generate a TORE from the events.
 
     Parameters
     ----------
-    ev : np.ndarray
+    events : np.ndarray
         Array of events in the :class:`~evutils.types.Events` format
-    width : int
-        Width of the frame
-    height : int
-        Height of the frame
+    width : int, optional
+        Width of the frame, by default 1280
+    height : int, optional
+        Height of the frame, by default 720
     n_events : int, optional
         Number of events to keep in the TORE, by default 4
+    tau : int, optional
+        Time constant for the exponential decay, by default 10_000
     dtype : np.dtype, optional
         Data type of the output array, by default np.uint8
     
-    
     Returns
     -------
-    out : np.ndarray
-        A numpy array with the frame (height, width, 3)
+    np.ndarray
+        A numpy array with the TORE representation (height, width, n_events, 2)
 
     [1] Baldwin, R. W., Liu, R., Almatrafi, M., Asari, V., & Hirakawa, K. (2022). Time-ordered recent event (tore) volumes for event cameras. IEEE Transactions on Pattern Analysis and Machine Intelligence, 45(2), 2519-2532.
-    '''
 
+    """
     tore_fifo = np.zeros(((height, width, n_events, 2)), dtype=np.float32)
 
     if len(events) == 0:

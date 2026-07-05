@@ -1,3 +1,8 @@
+"""Event reader module.
+
+Provides the `EventReader` class for reading and decoding event data 
+from a file or byte stream.
+"""
 
 import io
 import os
@@ -14,8 +19,7 @@ from .buffer import EventAccumulator
 
 
 class EventReader():
-    '''
-    Class for reading and automatically decoding and slicing events from a file or stream.
+    """Class for reading and automatically decoding and slicing events from a file or stream.
 
     The reader supports different modes of operation, including reading a fixed number of events, reading events within a time window, or a combination of both. 
     The file_decoder is chosen automatically based on the file format or can be supplied explicitly.
@@ -59,7 +63,7 @@ class EventReader():
     >>> for events in EventReader("events.raw", delta_t=10000):  
     >>>     print(events['x'], events['y'])
 
-    '''
+    """
 
     READING_MODES = ["delta_t", "n_events", "mixed", "all", "auto"]
     DEFAULT_N_EVENTS = 1_000_000
@@ -204,19 +208,33 @@ class EventReader():
 
 
     def init(self):
-        '''
-        Initialize the reader, can be used explicitly or implicitly by the read method.
-        '''
+        """Initialize the reader, can be used explicitly or implicitly by the read method."""
         if self._is_initialized:
             return
         self._file_decoder.init()
         self._is_initialized = True
 
     def _pull(self, acc: EventAccumulator, delta_t: int, n_events: int) -> int:
-        '''Pull more events into the accumulator, returning the number added
+        """Pull more events into the accumulator, returning the number added
         (0 => end of stream). Native decoders decode straight into the
         accumulator's storage (no copy); others have their ``read_chunk`` output
-        appended.'''
+        appended.
+        
+        Parameters
+        ----------
+        acc : EventAccumulator
+            The accumulator to pull events into.
+        delta_t : int
+            The time window constraint for reading.
+        n_events : int
+            The number of events constraint for reading.
+
+        Returns
+        -------
+        int
+            The number of events added to the accumulator.
+
+        """
         dec = self._file_decoder
         if self._native_fill:
             while True:
@@ -240,8 +258,7 @@ class EventReader():
         return len(chunk)
 
     def read(self, delta_t:int|None=None, n_events:int|None=None) -> EventArray:
-        '''
-        Read events on the files based on the mode and the parameters
+        """Read events on the files based on the mode and the parameters.
 
         Parameters
         ----------
@@ -255,7 +272,7 @@ class EventReader():
         EventArray
             An array with the events
 
-        '''
+        """
         # If not initialized, initialize
         if not self._is_initialized:
             self.init()
@@ -332,8 +349,7 @@ class EventReader():
         return output
 
     def read_all(self) -> EventArray:
-        '''
-        Decode and return every remaining event at once.
+        """Decode and return every remaining event at once.
 
         Delegates to the decoder's :meth:`~evutils.io.common.EventDecoder.read_all`,
         which (for the native EVT/DAT/AER decoders) decodes the whole payload
@@ -350,7 +366,8 @@ class EventReader():
         -------
         EventArray
             All remaining events.
-        '''
+
+        """
         if not self._is_initialized:
             self.init()
 
@@ -400,7 +417,7 @@ class EventReader():
         return out
 
     def reset(self):
-        '''Reset file reader back to the beginning of the file'''
+        """Reset file reader back to the beginning of the file."""
         self._n_read_events = 0
         self._eof = False
         if self._buffer is not None:
@@ -411,23 +428,20 @@ class EventReader():
         return self
 
     def is_eof(self) -> bool:
-        '''
-        Check if the end of the file is reached
+        """Check if the end of the file is reached.
 
         Returns
         -------
         bool
             True if the end of the file is reached, False otherwise
 
-        '''
-
+        """
         return self._eof and (self._buffer is None or len(self._buffer) == 0)
 
     def close(self):
-        '''
-        Close the reader and release resources (decoder buffer views, then the
+        """Close the reader and release resources (decoder buffer views, then the
         underlying byte source).
-        '''
+        """
         # Drop decoder views (e.g. into an mmap) before closing the source.
         self._file_decoder.close()
         self._source.close()
@@ -447,29 +461,28 @@ class EventReader():
         return self._n_read_events
 
     def __iter__(self):
-        '''
-        Iterate over the events in the file
+        """Iterate over the events in the file.
 
         Yields
-        -------
+        ------
         EventArray
             An array with the events
 
-        '''
+        """
         if not self._is_initialized:
             self.init()
         while not self.is_eof():
             yield self.read()
 
     def shape(self) -> tuple[int|None, int|None]:
-        '''
-        Get the shape of the frame
+        """Get the shape of the frame.
 
         Returns
         -------
         tuple[int, int]
             The shape of the frame (width, height)
-        '''
+
+        """
         if self._width is not None and self._height is not None:
             return self._width, self._height
         else:
@@ -477,14 +490,14 @@ class EventReader():
 
 
     def tell(self) -> int:
-        '''
-        Get the current position in the file
+        """Get the current position in the file.
 
         Returns
         -------
         int
             The current position in the file
-        '''
+
+        """
         return self._file_decoder.tell()
 
 

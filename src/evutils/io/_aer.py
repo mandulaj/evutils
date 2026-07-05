@@ -59,6 +59,13 @@ class EventDecoder_AER(EventDecoder):
         self._triggers = None
 
     def init(self) -> None:
+        """Initialize the AER reader.
+
+        Returns
+        -------
+        None
+
+        """
         if self._is_initialized:
             return
 
@@ -83,8 +90,9 @@ class EventDecoder_AER(EventDecoder):
         self._is_initialized = True
 
     def parse_step(self, events, triggers) -> int:
-        '''Run the parser once, appending into ``events``; advance the offset.
-        See :meth:`EventDecoder_EVT.parse_step`.'''
+        """Run the parser once, appending into ``events``; advance the offset.
+        See :meth:`EventDecoder_EVT.parse_step`.
+        """
         if not self._is_initialized:
             self.init()
         if self._words is None or self._offset >= len(self._words):
@@ -135,19 +143,41 @@ class EventDecoder_AER(EventDecoder):
         return out
 
     def reset(self) -> None:
+        """Reset the AER reader to the beginning.
+
+        Returns
+        -------
+        None
+
+        """
         self._offset = 0
         self._eof = False
 
     def tell(self) -> int:
+        """Get the current byte offset.
+
+        Returns
+        -------
+        int
+            Current byte offset.
+
+        """
         return self._offset * 4
 
     def close(self) -> None:
+        """Close the AER reader.
+
+        Returns
+        -------
+        None
+
+        """
         self._words = None
         self._buf = None
 
 
 class EventEncoder_AER(EventEncoder):
-    """Encode events into a raw AER stream. Since AER is designed for real-time 
+    """Encode events into a raw AER stream. Since AER is designed for real-time
     streaming, it has no header and no timestamps.
     Timestamps are dropped and coordinates are masked to 9 bits (values >= 512
     are truncated), per the AER encoding.
@@ -168,15 +198,33 @@ class EventEncoder_AER(EventEncoder):
     
     """
 
-    
-
     def __init__(self, writable, width: int = 512, height: int = 512, dt=None):
         super().__init__(writable, width, height, dt)
 
     def init(self):
+        """Initialize the AER writer.
+
+        Returns
+        -------
+        None
+
+        """
         self._is_initialized = True  # AER has no header
 
     def write(self, events) -> int:
+        """Write events to the AER file.
+
+        Parameters
+        ----------
+        events : np.ndarray or EventArray
+            Array of events to write.
+
+        Returns
+        -------
+        int
+            Number of written events.
+
+        """
         if not self._is_initialized:
             self.init()
 

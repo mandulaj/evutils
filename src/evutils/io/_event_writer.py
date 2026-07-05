@@ -1,3 +1,7 @@
+"""Event writer module.
+
+Provides the `EventWriter` class for writing event data to various file formats.
+"""
 
 import io
 from datetime import datetime
@@ -10,8 +14,7 @@ from . import encoders as ev_encoders
 
 
 class EventWriter():
-    '''
-    Base class for writing events to different file formats
+    """Base class for writing events to different file formats.
 
     Parameters
     ----------
@@ -34,7 +37,9 @@ class EventWriter():
     >>> events = np.array([(0, 0, 0, 1), (1000, 10, 10, 0)], dtype=Event_dtype)
     >>> with EventWriter("events.raw") as writer:
     >>>     writer.write(events)
-    '''
+
+    """
+
     def __init__(self, file: Path | str | io.BufferedWriter, width:int=1280, height:int=720, dt: datetime|None = None,  file_encoder: ev_encoders.EventEncoder | None = None, **kwargs):
 
         self._file_name: Path | None = None
@@ -70,20 +75,31 @@ class EventWriter():
         self._dt = dt if dt is not None else datetime.now()
 
     def _open_file(self, file_name: Path) -> io.BufferedWriter:
+        """Open the file for writing.
+
+        Parameters
+        ----------
+        file_name : Path
+            Path to the file to open.
+
+        Returns
+        -------
+        io.BufferedWriter
+            The opened file object.
+
+        """
         return open(str(file_name), 'wb')
 
     def init(self):
-        '''
-        Initialize the writer (e.g. open the file, write the header)
+        """Initialize the writer (e.g. open the file, write the header).
 
         This method can be called explicitly, but it is also called automatically when the first event is written
-        '''
+        """
         self._file_encoder.init()
         self._is_initialized = True
 
     def write(self, events: np.ndarray, triggers: np.ndarray | None = None) -> int:
-        '''
-        Write a buffer of events to the file
+        """Write a buffer of events to the file.
 
         Parameters
         ----------
@@ -98,15 +114,14 @@ class EventWriter():
         -------
         int
             Number of events written
-        '''
+
+        """
         n_written = self._file_encoder.write(events)
         self._n_written_events += n_written
         return n_written
 
     def flush(self):
-        '''
-        Flush the buffer to the file
-        '''
+        """Flush the buffer to the file."""
         self._file_encoder.flush()
 
     def __enter__(self):
@@ -123,9 +138,7 @@ class EventWriter():
         return self._n_written_events
 
     def close(self):
-        '''
-        Close the writer and release the resources
-        '''
+        """Close the writer and release the resources."""
         self.flush()
         self._file.close()
 

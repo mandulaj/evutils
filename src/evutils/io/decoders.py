@@ -1,3 +1,7 @@
+"""Decoders module.
+
+Provides mapping and resolution of event decoders based on file extensions or magic bytes.
+"""
 
 import warnings
 from pathlib import Path
@@ -7,8 +11,7 @@ import numpy as np
 
 
 from .common import EventDecoder
-
-_READER_MAPPING = {}
+_READER_MAPPING: dict[str, Type[EventDecoder]] = {}
 
 
 
@@ -46,8 +49,7 @@ _READER_MAPPING[".aer"] = EventDecoder_AER
 
 
 def get_reader_from_filename(file: Path) -> Type[EventDecoder]:
-    '''
-    Get the appropriate reader for the given file
+    """Get the appropriate reader for the given file.
 
     Parameters
     ----------
@@ -58,9 +60,8 @@ def get_reader_from_filename(file: Path) -> Type[EventDecoder]:
     -------
     EventDecoder
         Reader object for the file
-    '''
 
-
+    """
     ext = file.suffix.lower()
     if ext not in _READER_MAPPING:
         raise ValueError(f"File extension {ext} not supported, available extensions: {list(_READER_MAPPING.keys())}")
@@ -73,6 +74,19 @@ def get_reader_from_filename(file: Path) -> Type[EventDecoder]:
 # Content sniffers: (predicate over the first bytes -> decoder class). Tried in
 # order when the filename extension is unknown or absent (streams, USB).
 def _sniff_prophesee(head: bytes) -> bool:
+    """Check if the first bytes match the Prophesee RAW/EVT format.
+    
+    Parameters
+    ----------
+    head : bytes
+        The first bytes of the file/stream.
+        
+    Returns
+    -------
+    bool
+        True if it matches the Prophesee format, False otherwise.
+
+    """
     # Prophesee RAW/EVT files begin with an ASCII '% ...' header.
     return head[:1] == b"%"
 
@@ -83,8 +97,7 @@ _SNIFFERS = [
 
 
 def resolve_decoder_cls(source) -> Type[EventDecoder]:
-    '''
-    Determine the decoder class for a :class:`ByteSource`.
+    """Determine the decoder class for a :class:`ByteSource`.
 
     Tries the filename extension first (cheap, usually right), then falls back
     to sniffing the leading bytes -- which works for streams and USB devices
@@ -99,7 +112,8 @@ def resolve_decoder_cls(source) -> Type[EventDecoder]:
     -------
     Type[EventDecoder]
         The decoder class to instantiate with the source.
-    '''
+
+    """
     name = getattr(source, "name", None)
     if name:
         ext = Path(name).suffix.lower()

@@ -1,3 +1,5 @@
+"""Event-to-video reconstruction using the Metavision ML model."""
+
 import numpy as np
 import torch
 
@@ -9,8 +11,7 @@ try:
     from metavision_core_ml.preprocessing.event_to_tensor_torch import event_cd_to_torch, event_volume
 
     class Metavision_Reconstructor(Reconstructor):
-        '''
-        Reconstructor using the Metavision model
+        """Reconstructor using the Metavision model.
         
         Parameters
         ----------
@@ -20,7 +21,9 @@ try:
             Width of the frame
         args : dict, optional
             Additional arguments for the Metavision reconstructor, by default {}
-        '''
+
+        """
+
         def __init__(self, device, height, width, args):
             super().__init__(device, height, width, args)
 
@@ -29,7 +32,20 @@ try:
             self.model.eval().to(self.device)
 
         def gen_frame(self, e):
+            """Reconstructs a single frame from the given events.
 
+            Parameters
+            ----------
+            e : np.ndarray
+                Array of events.
+
+            Returns
+            -------
+            np.ndarray
+                Reconstructed grayscale image frame as a numpy array of shape (height, width)
+                with dtype uint8.
+
+            """
             nbins = self.model.hparams.event_volume_depth
 
 
@@ -51,8 +67,7 @@ try:
         
 except ImportError:
     class Metavision_Reconstructor(Reconstructor):
-        '''
-        Reconstructor using the Metavision model (not available)
+        """Reconstructor using the Metavision model (not available).
         
         Parameters
         ----------
@@ -62,7 +77,9 @@ except ImportError:
             Width of the frame
         args : dict, optional
             Additional arguments for the Metavision reconstructor, by default {}
-        '''
+
+        """
+
         def __init__(self, device, height, width, args={}):
             raise ImportError("Please install metavision_core_ml to use this class")
         

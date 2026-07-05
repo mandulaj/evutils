@@ -47,6 +47,7 @@ class EventDecoder_Dat(EventDecoder):
     ----------
     [1] Prophesee DAT file format
         https://docs.prophesee.ai/stable/data/file_formats/dat.html
+
     """
 
     def __init__(self, source: ByteSource, chunk_size: int = 1_000_000):
@@ -63,7 +64,8 @@ class EventDecoder_Dat(EventDecoder):
     # ------------------------------------------------------------------ #
     def _parse_header(self, buf) -> int:
         """Scan the leading ``%`` ASCII header; return the byte offset of the
-        first non-header byte (the event-type byte)."""
+        first non-header byte (the event-type byte).
+        """
         mv = memoryview(buf)
         n = len(mv)
         off = 0
@@ -93,6 +95,13 @@ class EventDecoder_Dat(EventDecoder):
                 pass
 
     def init(self) -> None:
+        """Initialize the DAT reader.
+
+        Returns
+        -------
+        None
+
+        """
         if self._is_initialized:
             return
 
@@ -130,8 +139,9 @@ class EventDecoder_Dat(EventDecoder):
         self._is_initialized = True
 
     def parse_step(self, events, triggers) -> int:
-        '''Run the parser once, appending into ``events``; advance the offset.
-        See :meth:`EventDecoder_EVT.parse_step`.'''
+        """Run the parser once, appending into ``events``; advance the offset.
+        See :meth:`EventDecoder_EVT.parse_step`.
+        """
         if not self._is_initialized:
             self.init()
         if self._words is None or self._offset >= len(self._words):
@@ -182,15 +192,37 @@ class EventDecoder_Dat(EventDecoder):
         return out
 
     def reset(self) -> None:
+        """Reset the DAT reader to the beginning.
+
+        Returns
+        -------
+        None
+
+        """
         self._offset = 0
         self._eof = False
         if self._parser is not None:
             self._parser.reset()
 
     def tell(self) -> int:
+        """Get the current byte offset.
+
+        Returns
+        -------
+        int
+            Current byte offset.
+
+        """
         return self._payload_off + self._offset * 4
 
     def close(self) -> None:
+        """Close the DAT reader.
+
+        Returns
+        -------
+        None
+
+        """
         self._words = None
         self._buf = None
 
@@ -213,6 +245,7 @@ class EventEncoder_Dat(EventEncoder):
     ----------
     [1] Prophesee DAT file format
         https://docs.prophesee.ai/stable/data/file_formats/dat.html
+
     """
 
     def __init__(self, writable, width: int = 1280, height: int = 720,
@@ -221,6 +254,13 @@ class EventEncoder_Dat(EventEncoder):
         self._version = version
 
     def init(self):
+        """Initialize the DAT writer.
+
+        Returns
+        -------
+        None
+
+        """
         if self._is_initialized:
             return
         header = (
@@ -235,6 +275,19 @@ class EventEncoder_Dat(EventEncoder):
         self._is_initialized = True
 
     def write(self, events) -> int:
+        """Write events to the DAT file.
+
+        Parameters
+        ----------
+        events : np.ndarray or EventArray
+            Array of events to write.
+
+        Returns
+        -------
+        int
+            Number of written events.
+
+        """
         if not self._is_initialized:
             self.init()
 

@@ -65,7 +65,14 @@ class ByteSource(ABC):
 
     # -- optional zero-copy capability ------------------------------------- #
     def mappable(self) -> bool:
-        """True if :meth:`buffer` can return a zero-copy view of all bytes."""
+        """Check if the source is mappable.
+
+        Returns
+        -------
+        bool
+            True if mappable, False otherwise.
+
+        """
         return False
 
     def buffer(self) -> memoryview:
@@ -74,12 +81,43 @@ class ByteSource(ABC):
 
     # -- optional random access -------------------------------------------- #
     def seekable(self) -> bool:
+        """Check if the source is seekable.
+
+        Returns
+        -------
+        bool
+            True if seekable, False otherwise.
+
+        """
         return False
 
     def seek(self, pos: int, whence: int = io.SEEK_SET) -> int:
+        """Seek to a specific position.
+
+        Parameters
+        ----------
+        pos : int
+            Position to seek to.
+        whence : int, optional
+            Reference point for seeking, by default io.SEEK_SET.
+
+        Returns
+        -------
+        int
+            New position.
+
+        """
         raise io.UnsupportedOperation("source is not seekable")
 
     def tell(self) -> int:
+        """Get the current position.
+
+        Returns
+        -------
+        int
+            Current position.
+
+        """
         raise io.UnsupportedOperation("source is not tellable")
 
     def reset(self) -> None:
@@ -87,6 +125,13 @@ class ByteSource(ABC):
         self.seek(0)
 
     def close(self) -> None:
+        """Close the source.
+
+        Returns
+        -------
+        None
+
+        """
         pass
 
     def __enter__(self):
@@ -161,7 +206,8 @@ class StreamSource(ByteSource):
 
 class BufferSource(ByteSource):
     """Zero-copy source over an in-memory buffer (bytes / bytearray / memoryview
-    / ``BytesIO.getbuffer()``)."""
+    / ``BytesIO.getbuffer()``).
+    """
 
     def __init__(self, data, name: str | None = None):
         self._mv = memoryview(data).cast("B")  # 1-D uint8 view, no copy
