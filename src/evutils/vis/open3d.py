@@ -30,7 +30,7 @@ def o3d_draw_events(events: np.ndarray):
     # Normalize time to range 0..3000
     norm_time = (events['t'] - np.min(events['t'])) / time_diff * 3000
 
-    pdc.points = o3d.utility.Vector3dVector(np.column_stack((ev['x'], ev['y'], norm_time)))
+    pdc.points = o3d.utility.Vector3dVector(np.column_stack((events['x'], events['y'], norm_time)))
 
     # Create a color map based on the 'p'
     # p can be either 0 or 1, we use it to color the points witht eh Spectral colormap

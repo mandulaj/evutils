@@ -17,8 +17,8 @@ from .rpg_e2vid.utils.inference_utils import CropParameters, EventPreprocessor, 
 
 
 from types import SimpleNamespace
+from typing import Any, Dict
 from ._base import Reconstructor
-
 
 def set_inference_options(params):
     """Sets inference options for the RPG E2VID reconstructor.
@@ -58,7 +58,7 @@ class RPG_Reconstructor(Reconstructor):
 
     """
 
-    DEFAULT_ARGS = {
+    DEFAULT_ARGS: Dict[str, Any] = {
         'no_recurrent': False,
         'no_normalize': False,
         'color': False,
