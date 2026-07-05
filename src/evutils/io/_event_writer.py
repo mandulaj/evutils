@@ -28,6 +28,7 @@ class EventWriter():
     **kwargs
         Additional arguments for the file encoder
 
+
     Examples
     --------
     >>> events = np.array([(0, 0, 0, 1), (1000, 10, 10, 0)], dtype=Event_dtype)
@@ -80,7 +81,7 @@ class EventWriter():
         self._file_encoder.init()
         self._is_initialized = True
 
-    def write(self, events: np.ndarray) -> int:
+    def write(self, events: np.ndarray, triggers: np.ndarray | None = None) -> int:
         '''
         Write a buffer of events to the file
 
@@ -88,7 +89,11 @@ class EventWriter():
         ----------
         events
             Buffer of events to write (structured array or EventArray)
+        triggers
+            Buffer of triggers to write (structured array or TriggerArray). Optional.
 
+        TODO: Add support for writing triggers to the file (currently only events are written)
+            
         Returns
         -------
         int

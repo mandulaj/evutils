@@ -40,6 +40,8 @@ class EventDecoder_AER(EventDecoder):
         Maximum number of events produced per :meth:`read_chunk` call (the
         native output-buffer capacity). Does not bound the file size.
 
+    TODO: Add support for providng a timestamp or generating a timestamp based on some heuristic.
+
     References
     ----------
     [1] Prophesee AER format: https://docs.prophesee.ai/stable/data/encoding_formats/aer.html
