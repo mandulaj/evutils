@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#define USE_SIMD 1
+#define USE_SIMD 0
 
 #define EVT3_get_packet_type(packet) (((packet) >> 12) & 0xF)
 #define EVT3_get_packet_data(packet) ((packet) & 0x0FFF)
