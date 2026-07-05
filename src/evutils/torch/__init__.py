@@ -4,7 +4,7 @@ Bridges between evutils and PyTorch: tensor conversion, ``Dataset`` /
 ``DataLoader`` wrappers, and transforms for training on event data.
 """
 
-___all__: list[str] = []
+__all__: list[str] = []
 
 def _try_import_torch(require: bool = True):
     try:

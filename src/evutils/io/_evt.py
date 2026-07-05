@@ -26,7 +26,7 @@ from typing import Any, List, TYPE_CHECKING
 if TYPE_CHECKING:
     from ..types import TriggerArray
 
-import numba as nb
+from .._jit import lazy_njit
 import numpy as np
 
 from ..types import Event_dtype, EventArray, Trigger_dtype
@@ -144,13 +144,14 @@ class EventDecoder_EVT(EventDecoder):
         if len(split) < 2:
             return
         key = split[1].lower()
-        value = " ".join(split[2:])
+        raw = " ".join(split[2:])
 
+        value: str | int | datetime = raw
         try:
             if key == "date":
-                value = datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+                value = datetime.strptime(raw, "%Y-%m-%d %H:%M:%S")
             elif key in ("height", "width", "system_id"):
-                value = int(value)
+                value = int(raw)
         except ValueError:
             return
         self._header[key] = value
@@ -330,6 +331,7 @@ class EventDecoder_EVT(EventDecoder):
                 return _EMPTY_EVENTS, TriggerArray.empty()
             return _EMPTY_EVENTS
 
+        assert self._format is not None  # set by init()
         out, self._offset = decode_all_soa(
             self._words, self._offset, self._input_cls, self._parser,
             est_events_per_word=self._READ_ALL_EST.get(self._format, 1.0),
@@ -366,7 +368,10 @@ class EventDecoder_EVT(EventDecoder):
             Current byte offset.
 
         """
-        return self._payload_off + self._offset * 2
+        if not self._is_initialized:
+            return 0
+        word_size = np.dtype(self._word_dtype).itemsize
+        return self._payload_off + self._offset * word_size
 
     def close(self) -> None:
         """Close the EVT reader.
@@ -401,7 +406,7 @@ EVT3_OTHERS = 0xE000
 EVT3_CONTINUED_12 = 0xF000
 
 
-@nb.njit
+@lazy_njit
 def get_raw_evt3_buffer(events: np.ndarray, last_lower12_ts: int, last_upper12_ts: int, last_y: int, master=True):
     """Encode events as EVT3.
 
@@ -477,7 +482,7 @@ def get_raw_evt3_buffer(events: np.ndarray, last_lower12_ts: int, last_upper12_t
     return buffer[:i], last_lower12_ts, last_upper12_ts, last_y
 
 
-@nb.njit
+@lazy_njit
 def get_raw_evt2_buffer(events: np.ndarray, last_ts_high: int):
     """Encode events as EVT2 (32-bit words).
 
@@ -513,7 +518,7 @@ def get_raw_evt2_buffer(events: np.ndarray, last_ts_high: int):
         if ts_high != last_ts_high:
             buffer[i] = np.uint32((8 << 28) | ts_high)  # EVT2_EVT_TIME_HIGH
             i += 1
-            last_ts_high = ts_high
+            last_ts_high = int(ts_high)
 
         buffer[i] = np.uint32((p << 28) | (ts_low << 22) | (x << 11) | y)
         i += 1
@@ -521,7 +526,7 @@ def get_raw_evt2_buffer(events: np.ndarray, last_ts_high: int):
     return buffer[:i], last_ts_high
 
 
-@nb.njit
+@lazy_njit
 def get_raw_evt21_buffer(events: np.ndarray, last_ts_high: int):
     """Encode events as EVT2.1 (64-bit words, legacy endianness).
 
@@ -558,7 +563,7 @@ def get_raw_evt21_buffer(events: np.ndarray, last_ts_high: int):
         if ts_high != last_ts_high:
             buffer[i] = np.uint64((8 << 28) | ts_high)  # EVT21_EVT_TIME_HIGH
             i += 1
-            last_ts_high = ts_high
+            last_ts_high = int(ts_high)
 
         desc = (p << 28) | (ts_low << 22) | (x << 11) | y
         # High 32 bits: validity mask with bit 0 set (single event at x_base=x).

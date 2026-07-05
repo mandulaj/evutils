@@ -1,19 +1,21 @@
 """Decoders module.
 
-Provides mapping and resolution of event decoders based on file extensions or magic bytes.
+Provides mapping and resolution of event decoders based on file extensions or
+magic bytes. Backends whose optional dependencies are missing (e.g. pandas for
+CSV, h5py for HDF5) are not registered; asking for them raises an
+``ImportError`` that names the extra to install.
 """
 
-import warnings
 from pathlib import Path
 from typing import Type
 
-import numpy as np
-
-
 from .common import EventDecoder
+
+#: Extension -> decoder class, for available backends only.
 _READER_MAPPING: dict[str, Type[EventDecoder]] = {}
 
-
+#: Extension -> reason it is unavailable (missing optional dependency).
+_UNAVAILABLE: dict[str, str] = {}
 
 
 from ._aedat import EventDecoder_Aedat
@@ -22,22 +24,31 @@ _READER_MAPPING[".aedat"] = EventDecoder_Aedat
 from ._bin import EventDecoder_Bin
 _READER_MAPPING[".bin"] = EventDecoder_Bin
 
-from ._csv import EventDecoder_Csv
-_READER_MAPPING[".csv"] = EventDecoder_Csv
-_READER_MAPPING[".txt"] = EventDecoder_Csv
-
+try:
+    from ._csv import EventDecoder_Csv
+    _READER_MAPPING[".csv"] = EventDecoder_Csv
+    _READER_MAPPING[".txt"] = EventDecoder_Csv
+except ImportError:
+    _UNAVAILABLE[".csv"] = _UNAVAILABLE[".txt"] = (
+        "reading CSV/TXT event files requires pandas: install `evutils[pandas]`"
+    )
 
 from ._dat import EventDecoder_Dat
 _READER_MAPPING[".dat"] = EventDecoder_Dat
 
-from ._hdf5 import EventDecoder_HDF5
-_READER_MAPPING[".hdf5"] = EventDecoder_HDF5
-_READER_MAPPING[".h5"] = EventDecoder_HDF5
+try:
+    from ._hdf5 import EventDecoder_HDF5
+    _READER_MAPPING[".hdf5"] = EventDecoder_HDF5
+    _READER_MAPPING[".h5"] = EventDecoder_HDF5
+except ImportError:
+    _UNAVAILABLE[".hdf5"] = _UNAVAILABLE[".h5"] = (
+        "reading HDF5 event files requires h5py/hdf5plugin: install `evutils[hdf5]`"
+    )
+
 from ._npz import EventDecoder_Npz
 _READER_MAPPING[".npz"] = EventDecoder_Npz
 
 from ._evt import EventDecoder_EVT
-
 _READER_MAPPING[".raw"] = EventDecoder_EVT
 _READER_MAPPING[".evt"] = EventDecoder_EVT
 _READER_MAPPING[".evt3"] = EventDecoder_EVT
@@ -46,6 +57,18 @@ _READER_MAPPING[".evt21"] = EventDecoder_EVT
 
 from ._aer import EventDecoder_AER
 _READER_MAPPING[".aer"] = EventDecoder_AER
+
+
+def _lookup(ext: str) -> Type[EventDecoder]:
+    """Resolve an extension to a decoder class, or raise a helpful error."""
+    if ext in _READER_MAPPING:
+        return _READER_MAPPING[ext]
+    if ext in _UNAVAILABLE:
+        raise ImportError(f"File extension {ext} is supported, but {_UNAVAILABLE[ext]}")
+    raise ValueError(
+        f"File extension {ext} not supported, available extensions: "
+        f"{sorted(_READER_MAPPING.keys() | _UNAVAILABLE.keys())}"
+    )
 
 
 def get_reader_from_filename(file: Path) -> Type[EventDecoder]:
@@ -62,25 +85,19 @@ def get_reader_from_filename(file: Path) -> Type[EventDecoder]:
         Reader object for the file
 
     """
-    ext = file.suffix.lower()
-    if ext not in _READER_MAPPING:
-        raise ValueError(f"File extension {ext} not supported, available extensions: {list(_READER_MAPPING.keys())}")
-
-    reader_cls = _READER_MAPPING[ext]
-
-    return reader_cls
+    return _lookup(file.suffix.lower())
 
 
 # Content sniffers: (predicate over the first bytes -> decoder class). Tried in
 # order when the filename extension is unknown or absent (streams, USB).
 def _sniff_prophesee(head: bytes) -> bool:
     """Check if the first bytes match the Prophesee RAW/EVT format.
-    
+
     Parameters
     ----------
     head : bytes
         The first bytes of the file/stream.
-        
+
     Returns
     -------
     bool
@@ -117,8 +134,8 @@ def resolve_decoder_cls(source) -> Type[EventDecoder]:
     name = getattr(source, "name", None)
     if name:
         ext = Path(name).suffix.lower()
-        if ext in _READER_MAPPING:
-            return _READER_MAPPING[ext]
+        if ext in _READER_MAPPING or ext in _UNAVAILABLE:
+            return _lookup(ext)
 
     try:
         head = source.peek(512)
@@ -133,13 +150,6 @@ def resolve_decoder_cls(source) -> Type[EventDecoder]:
         "Could not determine the event format: unknown/absent extension "
         f"({name!r}) and no known magic bytes. Pass an explicit decoder."
     )
-
-
-
-
-
-
-
 
 
 __all__ = ["EventDecoder", 'EventDecoder_Aedat', 'EventDecoder_Bin', 'EventDecoder_Csv', 'EventDecoder_Dat', 'EventDecoder_HDF5', 'EventDecoder_Npz', 'EventDecoder_EVT', 'EventDecoder_AER', 'get_reader_from_filename', 'resolve_decoder_cls']

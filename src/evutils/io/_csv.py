@@ -1,6 +1,8 @@
 """CSV file decoder and encoder."""
 
 import io
+import warnings
+from datetime import datetime
 from io import TextIOWrapper
 from pathlib import Path
 from typing import Any
@@ -78,7 +80,7 @@ class EventDecoder_Csv(EventDecoder):
                 order = first_line.split(",")
 
                 if self._order is not None and order != self._order:
-                    print(ValueError(f"WARNING: Header order {self._order} does not match order file {order}"))
+                    warnings.warn(f"Header order {order} in file takes precedence over requested order {self._order}")
                 self._order = order
 
 
@@ -107,7 +109,6 @@ class EventDecoder_Csv(EventDecoder):
         self._chunk_reader = pd.read_csv(self._fd, iterator=True, header=None, names=self._order, engine=self._engine,
                                         delimiter=self._delimiter,  dtype={"t":"u8", "p":"u1", "x":"u2","y":"u2"})
 
-        # self.numpy_reader = np.fromtxt(self._fd, delimiter=",", dtype=np.uint64)
         self._is_initialized = True
 
 
@@ -161,7 +162,12 @@ class EventDecoder_Csv(EventDecoder):
         """
         assert self._fd is not None
         self._fd.seek(0)
-        self._check_header()
+        self._eof = False
+        # Rebuild the pandas chunk iterator: the old one is exhausted and holds
+        # the previous position in the stream.
+        if self._is_initialized:
+            self._is_initialized = False
+            self.init()
 
 
 
@@ -190,8 +196,10 @@ class EventEncoder_Csv(EventEncoder):
 
     """
 
-    def __init__(self, writable: io.BufferedWriter, width:int=1280, height:int=720, sep:str=",", order:list=['t', 'x', 'y', 'p'], header:bool=True):
-        super().__init__(writable)
+    def __init__(self, writable: io.BufferedWriter, width:int=1280, height:int=720, dt:datetime|None=None, sep:str=",", order:list[str]|None=None, header:bool=True):
+        super().__init__(writable, width, height, dt)
+        if order is None:
+            order = ['t', 'x', 'y', 'p']
 
 
         if len(order) != 4:

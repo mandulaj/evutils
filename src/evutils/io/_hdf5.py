@@ -1,117 +1,246 @@
-"""HDF5 file decoder and encoder."""
+"""HDF5 file decoder and encoder.
+
+Layout (DSEC-compatible): the four event columns are stored under
+``events/{t,x,y,p}``, with ``width`` / ``height`` file attributes and a
+top-level ``ms_to_idx`` index: ``ms_to_idx[ms]`` is the index of the first
+event with ``t >= ms * 1000`` (µs), which makes millisecond-range reads O(1)
+lookups. A ``t_offset`` attribute (DSEC) is honoured on read when present.
+"""
+from __future__ import annotations
 
 import io
-from pathlib import Path
-from typing import Union
+from datetime import datetime
+from typing import Any
 
 import h5py
 import hdf5plugin
-import numba as nb
 import numpy as np
-from typing import Any, TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from ..types import EventArray
-
-from ..types import Event_dtype
+from .._jit import lazy_njit
+from ..types import EventArray
 from .common import EventDecoder, EventEncoder
+from ._source import ByteSource
+
+_EMPTY_EVENTS = EventArray.empty()
 
 
-@nb.njit
-def get_idx(events, ms_to_idx, last_ms_idx, n_written_events, max_ms, offset):
-    """Get the index for each millisecond in the events array.
+@lazy_njit
+def _fill_ms_to_idx(t: np.ndarray, ms_to_idx: np.ndarray, start_ms: int,
+                    end_ms: int, base_idx: int) -> None:
+    """Fill ``ms_to_idx[start_ms:end_ms+1]`` from the chunk timestamps ``t``.
+
+    ``ms_to_idx[ms]`` is the global index of the first event with
+    ``t >= ms * 1000``; ``base_idx`` is the global index of ``t[0]``.
 
     Parameters
     ----------
-    events : np.ndarray
-        Array of events.
+    t : np.ndarray
+        Timestamps (µs) of the chunk, monotonically non-decreasing.
     ms_to_idx : np.ndarray
-        Array mapping millisecond to index.
-    last_ms_idx : int
-        Last millisecond index processed.
-    n_written_events : int
-        Number of events written so far.
-    max_ms : int
-        Maximum millisecond value in the current chunk.
-    offset : int
-        Offset for the index calculation.
-
-    Returns
-    -------
-    None
+        The full index array to fill.
+    start_ms : int
+        First millisecond entry to fill.
+    end_ms : int
+        Last millisecond entry to fill (inclusive).
+    base_idx : int
+        Global event index of the first element of ``t``.
 
     """
     idx = 0
-    for ms in range(last_ms_idx, max_ms+1):
-        while idx < len(events) and events['t'][idx] // 1000 < ms:
+    for ms in range(start_ms, end_ms + 1):
+        while idx < len(t) and t[idx] < ms * 1000:
             idx += 1
-
-        ms_to_idx[ms] = max(idx + offset + n_written_events, 0)
-
-
-class EventEncoder_HDF5(EventEncoder):
-    def __init__(self, writable: io.BufferedWriter, width:int=1280, height:int=720, chunksize:int=10000):
-        """Write events to a HDF5 file.
-
-        Parameters
-        ----------
-        writable : io.BufferedWriter
-            The file-like object to write to
-        width : int, optional
-            The width of the frame
-        height : int, optional
-            The height of the frame
-        chunksize : int, optional
-            The size of the chunks for HDF5 dataset, default 10000
-
-        """
-        super().__init__(writable, width=width, height=height)
-
-        self._chunksize = chunksize
-
-        self._ms_to_idx = np.empty(0, dtype=np.uint64)
-        self._last_ms_idx = 0
+        ms_to_idx[ms] = base_idx + idx
 
 
+class EventDecoder_HDF5(EventDecoder):
+    """Decode events from an HDF5 file (``events/{t,x,y,p}`` layout, DSEC-style).
 
-    def init(self):
-        """Initialize the HDF5 writer.
+    Supports both the streaming :meth:`read_chunk` interface used by
+    :class:`~evutils.io.EventReader` and random-access millisecond-range reads
+    via :meth:`read` (backed by the ``ms_to_idx`` index when present).
 
-        Returns
-        -------
-        None
+    Parameters
+    ----------
+    source
+        Byte source to read from (must be seekable).
+    chunk_size
+        Number of events returned per :meth:`read_chunk` call.
 
-        """
+    """
+
+    def __init__(self, source: ByteSource, chunk_size: int = 1_000_000):
+        super().__init__(source, chunk_size)
+        self._h5: h5py.File | None = None
+        self._ms_to_idx: np.ndarray | None = None
+        self._t_offset: int = 0
+        self._n: int = 0
+        self._pos = 0
+
+    def init(self) -> None:
+        """Open the HDF5 file and locate the event datasets."""
         if self._is_initialized:
             return
 
-        self._fd = h5py.File(self._file, "w")
-        self._events_group_h5 = self._fd.create_group("events")
-        self._compressor = hdf5plugin.Blosc(cname="zstd", clevel=5, shuffle=hdf5plugin.Blosc.SHUFFLE)
+        self._h5 = h5py.File(self._source, "r")
+        if "events" not in self._h5:
+            raise ValueError("HDF5 file does not contain an 'events' group")
+        ev = self._h5["events"]
+        self._n = ev["t"].shape[0]
 
-        self._fd.attrs['width'] = self._width
-        self._fd.attrs['height'] = self._height
+        if "ms_to_idx" in self._h5:
+            self._ms_to_idx = np.asarray(self._h5["ms_to_idx"], dtype=np.int64)
+        if "t_offset" in self._h5:
+            self._t_offset = int(np.asarray(self._h5["t_offset"]).item())
+        if "width" in self._h5.attrs:
+            self._width = int(self._h5.attrs["width"])
+        if "height" in self._h5.attrs:
+            self._height = int(self._h5.attrs["height"])
 
-        # Create datasets
-        self._events_group_h5.create_dataset("x", shape=(0,), chunks=(self._chunksize, ), maxshape=(None,),
-                                            dtype="uint16", **self._compressor)
-        self._events_group_h5.create_dataset("y", shape=(0,), chunks=(self._chunksize, ), maxshape=(None,),
-                                             dtype="uint16", **self._compressor)
-        self._events_group_h5.create_dataset("p", shape=(0,), chunks=(self._chunksize, ), maxshape=(None,),
-                                             dtype="uint8", **self._compressor)
-        self._events_group_h5.create_dataset("t", shape=(0,), chunks=(self._chunksize, ), maxshape=(None,),
-                                             dtype="uint32", **self._compressor)
-
-
+        self._pos = 0
         self._is_initialized = True
 
-    def write(self, events: np.ndarray) -> int:
-        """Write events to the HDF5 file.
+    def _slice(self, start: int, end: int) -> EventArray:
+        """Materialise ``events[start:end]`` as an :class:`EventArray`."""
+        assert self._h5 is not None
+        ev = self._h5["events"]
+        t = ev["t"][start:end].astype(np.int64)
+        if self._t_offset:
+            t += self._t_offset
+        return EventArray(t, ev["x"][start:end], ev["y"][start:end], ev["p"][start:end])
+
+    def read_chunk(self, delta_t_hint: int | None = None,
+                   n_events_hint: int | None = None) -> EventArray:
+        if not self._is_initialized:
+            self.init()
+
+        if self._pos >= self._n:
+            self._eof = True
+            return _EMPTY_EVENTS
+
+        chunk = self._slice(self._pos, min(self._pos + self._chunk_size, self._n))
+        self._pos += len(chunk)
+        if self._pos >= self._n:
+            self._eof = True
+        return chunk
+
+    def read_all(self) -> EventArray:
+        """Return every remaining event at once."""
+        if not self._is_initialized:
+            self.init()
+        out = self._slice(self._pos, self._n)
+        self._pos = self._n
+        self._eof = True
+        return out
+
+    def read(self, start_ms: int = 0, end_ms: int = -1) -> EventArray:
+        """Random-access read of a millisecond time range via ``ms_to_idx``.
 
         Parameters
         ----------
-        events : np.ndarray
-            Array of events to write.
+        start_ms : int, optional
+            Start time in milliseconds, by default 0.
+        end_ms : int, optional
+            End time in milliseconds (exclusive), by default -1 (until the end).
+
+        Returns
+        -------
+        EventArray
+            Events with ``start_ms * 1000 <= t < end_ms * 1000``.
+
+        """
+        if not self._is_initialized:
+            self.init()
+        if self._ms_to_idx is None:
+            raise ValueError("HDF5 file has no 'ms_to_idx' index; use read_chunk/read_all")
+        if start_ms < 0:
+            raise ValueError("start_ms must be greater or equal to 0")
+
+        last_ms = len(self._ms_to_idx) - 1
+        if start_ms > last_ms:
+            return _EMPTY_EVENTS
+        if end_ms < 0 or end_ms > last_ms:
+            end_ms = last_ms
+        if start_ms > end_ms:
+            raise ValueError("start_ms must be smaller than end_ms")
+
+        return self._slice(int(self._ms_to_idx[start_ms]), int(self._ms_to_idx[end_ms]))
+
+    def reset(self) -> None:
+        """Reset the reader to the beginning of the file."""
+        self._pos = 0
+        self._eof = False
+
+    def tell(self) -> int:
+        """Current position, in events (HDF5 has no meaningful byte offset)."""
+        return self._pos
+
+    def close(self) -> None:
+        """Close the HDF5 handle (the byte source is closed by the reader)."""
+        if self._h5 is not None:
+            self._h5.close()
+            self._h5 = None
+
+
+class EventEncoder_HDF5(EventEncoder):
+    """Encode events into an HDF5 file (``events/{t,x,y,p}`` + ``ms_to_idx``).
+
+    Events must be written in timestamp order (chunks are appended and the
+    millisecond index is built incrementally). The index and final flush
+    happen on :meth:`close`.
+
+    Parameters
+    ----------
+    writable : io.BufferedIOBase
+        The file-like object to write to (must be readable and seekable,
+        as required by HDF5).
+    width : int, optional
+        The width of the frame.
+    height : int, optional
+        The height of the frame.
+    dt : datetime, optional
+        Unused; HDF5 stores no recording timestamp.
+    chunksize : int, optional
+        HDF5 dataset chunk size, default 10000.
+
+    """
+
+    def __init__(self, writable: io.BufferedIOBase, width: int = 1280, height: int = 720,
+                 dt: datetime | None = None, chunksize: int = 10000):
+        super().__init__(writable, width=width, height=height, dt=dt)
+
+        self._chunksize = chunksize
+        self._h5: h5py.File | None = None
+        self._ms_to_idx = np.zeros(0, dtype=np.int64)
+        self._next_ms = 0  # first ms entry not yet filled
+        self._closed = False
+
+    def init(self) -> None:
+        """Create the HDF5 structure (groups, datasets, attributes)."""
+        if self._is_initialized:
+            return
+
+        self._h5 = h5py.File(self._fd, "w")
+        self._compressor = hdf5plugin.Blosc(cname="zstd", clevel=5, shuffle=hdf5plugin.Blosc.SHUFFLE)
+
+        self._h5.attrs["width"] = self._width
+        self._h5.attrs["height"] = self._height
+
+        group = self._h5.create_group("events")
+        for name, dtype in (("t", "int64"), ("x", "uint16"), ("y", "uint16"), ("p", "uint8")):
+            group.create_dataset(name, shape=(0,), chunks=(self._chunksize,),
+                                 maxshape=(None,), dtype=dtype, **self._compressor)
+
+        self._is_initialized = True
+
+    def write(self, events: 'np.ndarray | EventArray') -> int:
+        """Append a chunk of events and extend the millisecond index.
+
+        Parameters
+        ----------
+        events : np.ndarray or EventArray
+            Array of events to write (timestamps must not go backwards
+            between chunks).
 
         Returns
         -------
@@ -122,159 +251,45 @@ class EventEncoder_HDF5(EventEncoder):
         if not self._is_initialized:
             self.init()
 
-        # Generate ms_to_idx
-        self.__get_ms_idx_for_events(events)
+        n = len(events)
+        if n == 0:
+            return 0
+        assert self._h5 is not None
 
-        # Append events
-        self.__append_new_events(events)
+        t = np.ascontiguousarray(events["t"], dtype=np.int64)
 
-        return len(events)
-
-
-    def close(self):
-        """Close the HDF5 file and write indexing metadata.
-
-        Returns
-        -------
-        None
-
-        """
-        if not self._is_initialized:
-            return
-
-        self._ms_to_idx.append(self._events_group_h5["x"].shape[0])
-
-        # Write the ms_to_idx
-        self._fd.create_dataset("ms_to_idx", data=self._ms_to_idx, dtype="uint64", **self._compressor)
-
-        self._fd['ms_to_idx'].resize((len(self._ms_to_idx),))
-        self._fd['ms_to_idx'][:] = self._ms_to_idx
-
-
-        # self._append_new_events(self._buffer)
-        self._fd.close()
-
-    def __get_ms_idx_for_events(self, events: np.ndarray, offset=-1):
-        max_ms = int(events["t"][-1] // 1000)
-
+        # Extend ms_to_idx up to the last full millisecond of this chunk.
+        max_ms = int(t[-1] // 1000)
         if max_ms + 1 > len(self._ms_to_idx):
-            self._ms_to_idx.resize(max_ms + 1, refcheck=False)
+            self._ms_to_idx = np.resize(self._ms_to_idx, max_ms + 1)
+        _fill_ms_to_idx(t, self._ms_to_idx, self._next_ms, max_ms, self._n_written_events)
+        self._next_ms = max_ms + 1
 
-        get_idx(events, self._ms_to_idx, self._last_ms_idx, self._n_written_events, max_ms, offset)
+        group = self._h5["events"]
+        total = self._n_written_events + n
+        for name, col in (("t", t), ("x", events["x"]), ("y", events["y"]), ("p", events["p"])):
+            ds = group[name]
+            ds.resize((total,))
+            ds[-n:] = col
 
+        self._n_written_events += n
+        return n
 
-        self._last_ms_idx = max_ms + 1
+    def flush(self) -> None:
+        """Flush the HDF5 buffers to the underlying stream."""
+        if self._h5 is not None:
+            self._h5.flush()
 
-
-
-
-
-    def __append_new_events(self, events: np.ndarray):
-        n_events = events.shape[0]
-        x = self._events_group_h5["x"]
-        y = self._events_group_h5["y"]
-        p = self._events_group_h5["p"]
-        t = self._events_group_h5["t"]
-
-        x.resize((x.shape[0] + n_events), axis=0)
-        y.resize((y.shape[0] + n_events), axis=0)
-        p.resize((p.shape[0] + n_events), axis=0)
-        t.resize((t.shape[0] + n_events), axis=0)
-
-        x[-n_events:] = events["x"]
-        y[-n_events:] = events["y"]
-        p[-n_events:] = events["p"]
-        t[-n_events:] = events["t"]
-
-        self._n_written_events += n_events
-
-
-
-class EventDecoder_HDF5(EventDecoder):
-    """Read events from a HDF5 file.
-
-    Parameters
-    ----------
-    file : str
-        The file to read from
-    width : int, optional
-        The width of the frame
-    height : int, optional
-        The height of the frame
-
-    """
-
-    def __init__(self, file:Union[Path, str]):
-        super().__init__(file)
-
-
-    def init(self):
-        """Initialize the HDF5 reader.
-
-        Returns
-        -------
-        None
-
-        """
-        if self._is_initialized:
+    def close(self) -> None:
+        """Write the ``ms_to_idx`` index and close the HDF5 handle."""
+        if self._closed or not self._is_initialized:
+            self._closed = True
             return
-        self._fd = h5py.File(self._file, "r")
-        self._ms_to_idx = np.asarray(self._fd["ms_to_idx"])
-        self._max_events = self._fd["events"]["x"].shape[0]
-        self._last_ms = len(self._ms_to_idx) - 1
-        self._is_initialized = True
+        self._closed = True
+        assert self._h5 is not None
 
-    def read(self, start_ms: int = 0, end_ms: int = -1) -> 'EventArray':
-        """Read events from a specific time range.
-
-        Parameters
-        ----------
-        start_ms : int, optional
-            Start time in milliseconds, by default 0.
-        end_ms : int, optional
-            End time in milliseconds, by default -1 (until the end).
-
-        Returns
-        -------
-        events : EventArray
-            Array of events within the time range.
-
-        """
-        if not self._is_initialized:
-            self.init()
-        if start_ms > len(self._ms_to_idx) - 1:
-            print(f"Start time {start_ms} is greater than the highest available ms time {len(self._ms_to_idx) - 1}")
-            from ..types import EventArray
-            return EventArray.empty()
-        if end_ms == -1 or end_ms > self._last_ms:
-            end_ms = self._last_ms
-
-        assert start_ms >= 0, "start_ms must be greater or equal to 0"
-        assert start_ms <= end_ms, "start_ms must be smaller than end_ms"
-
-        start_idx = self._ms_to_idx[start_ms]
-        end_idx = self._ms_to_idx[end_ms]
-        return self._read_events(start_idx, end_idx)
-
-    def _read_events(self, start_idx: int, end_idx: int) -> 'EventArray':
-        """Read events from a specific index range.
-
-        Parameters
-        ----------
-        start_idx : int
-            Start index.
-        end_idx : int
-            End index.
-
-        Returns
-        -------
-        events : EventArray
-            Array of events within the index range.
-
-        """
-        x = self._fd["events"]["x"][start_idx:end_idx]
-        y = self._fd["events"]["y"][start_idx:end_idx]
-        p = self._fd["events"]["p"][start_idx:end_idx]
-        t = self._fd["events"]["t"][start_idx:end_idx]
-        from ..types import EventArray
-        return EventArray(t, x, y, p)
+        # Terminate the index: one entry past the last ms points at the end.
+        idx = np.append(self._ms_to_idx, self._n_written_events)
+        self._h5.create_dataset("ms_to_idx", data=idx.astype(np.uint64), **self._compressor)
+        self._h5.close()
+        self._h5 = None

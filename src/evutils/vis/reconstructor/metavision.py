@@ -2,13 +2,16 @@
 
 import numpy as np
 import torch
+import torch.nn.functional as F
 
 from ._base import Reconstructor
 
+# metavision_core_ml is not on PyPI (ships with OpenEB/Metavision SDK), so it is
+# never a declared dependency; the fallback class below raises on use.
 try:
-    from metavision_core_ml.utils.torch_ops import normalize_tiles, viz_flow
-    from metavision_core_ml.event_to_video.lightning_model import EventToVideoLightningModel
-    from metavision_core_ml.preprocessing.event_to_tensor_torch import event_cd_to_torch, event_volume
+    from metavision_core_ml.utils.torch_ops import normalize_tiles, viz_flow  # type: ignore  # not on PyPI; may or may not be installed
+    from metavision_core_ml.event_to_video.lightning_model import EventToVideoLightningModel  # type: ignore  # not on PyPI; may or may not be installed
+    from metavision_core_ml.preprocessing.event_to_tensor_torch import event_cd_to_torch, event_volume  # type: ignore  # not on PyPI; may or may not be installed
 
     class Metavision_Reconstructor(Reconstructor):
         """Reconstructor using the Metavision model.
@@ -24,11 +27,10 @@ try:
 
         """
 
-        def __init__(self, device, height, width, args):
-            super().__init__(device, height, width, args)
+        def __init__(self, height, width, args=None):
+            super().__init__(height, width, args if args is not None else {})
 
-
-            self.model =  EventToVideoLightningModel.load_from_checkpoint("models/e2v.ckpt")
+            self.model = EventToVideoLightningModel.load_from_checkpoint("models/e2v.ckpt")
             self.model.eval().to(self.device)
 
         def gen_frame(self, e):
@@ -66,9 +68,9 @@ try:
             return np.uint8(gray_np)
         
 except ImportError:
-    class Metavision_Reconstructor(Reconstructor):
+    class Metavision_Reconstructor(Reconstructor):  # type: ignore[no-redef]
         """Reconstructor using the Metavision model (not available).
-        
+
         Parameters
         ----------
         height : int
@@ -80,7 +82,7 @@ except ImportError:
 
         """
 
-        def __init__(self, device, height, width, args={}):
+        def __init__(self, height, width, args=None):
             raise ImportError("Please install metavision_core_ml to use this class")
         
     

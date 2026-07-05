@@ -61,8 +61,8 @@ class EventDecoder(ABC):
 
         self._eof = False
 
-        self._width = None
-        self._height = None
+        self._width: int | None = None
+        self._height: int | None = None
 
         self.read_external_triggers = read_external_triggers
         if self.read_external_triggers and not self.SUPPORTS_EXT_TRIGGERS:
@@ -253,12 +253,12 @@ class EventEncoder(ABC):
 
     """
 
-    def __init__(self, writable: io.BufferedWriter, width:int = 1280, height:int = 720, dt:Optional[datetime]=None ):
+    def __init__(self, writable: io.BufferedIOBase, width:int = 1280, height:int = 720, dt:Optional[datetime]=None ):
         """Initialize the encoder.
-        
+
         Parameters
         ----------
-        writable : io.BufferedWriter
+        writable : io.BufferedIOBase
             Destination for writing events.
         width : int, optional
             Width of the frame, by default 1280.
@@ -308,4 +308,14 @@ class EventEncoder(ABC):
         return f"{self.__class__.__name__} - {is_initialized_txt}, {self._width}x{self._height})"
 
     def flush(self):
+        """Flush any buffered data to the underlying stream."""
         self._fd.flush()
+
+    def close(self):
+        """Finalize the encoder.
+
+        Container formats (NPZ, HDF5) override this to write the archive /
+        index before the underlying file is closed. The owning stream itself is
+        closed by the :class:`~evutils.io.EventWriter`, not here.
+        """
+        self.flush()

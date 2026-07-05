@@ -1,38 +1,86 @@
-"""Binary (.bin) file decoder and encoder."""
+"""Binary (.bin) file decoder and encoder.
 
-import numpy as np
+.. note::
+    Not implemented yet: both classes raise :class:`NotImplementedError` on
+    construction. The classes exist so the ``.bin`` extension is reserved in
+    the reader/writer registries and the error message is explicit.
+"""
+from typing import Any
 
 from .common import EventDecoder, EventEncoder
+
+_NOT_IMPLEMENTED = (
+    "The .bin event format is not implemented yet. "
+    "Convert the file to a supported format (RAW/EVT, DAT, AER, HDF5, NPZ, CSV) "
+    "or pass an explicit file_decoder/file_encoder."
+)
 
 
 class EventDecoder_Bin(EventDecoder):
     """A decoder for reading events from binary files.
 
+    .. note::
+        Not implemented yet -- constructing this class raises
+        :class:`NotImplementedError`.
+
     Parameters
     ----------
-    file : str or Path
-        Path to the data file.
+    source : ByteSource
+        Byte source to read events from.
+    **kwargs
+        Additional decoder arguments.
+
+    Raises
+    ------
+    NotImplementedError
+        Always, until the format is implemented.
 
     """
 
-    def __init__(self, file):
-        super().__init__(file)
+    def __init__(self, source: Any, **kwargs: Any):
+        raise NotImplementedError(_NOT_IMPLEMENTED)
+
+    def init(self) -> None:
+        """Initialize the file for reading."""
+        raise NotImplementedError(_NOT_IMPLEMENTED)
+
+    def read_chunk(self, delta_t_hint: int | None = None, n_events_hint: int | None = None) -> Any:
+        """Read a chunk of events."""
+        raise NotImplementedError(_NOT_IMPLEMENTED)
+
+    def reset(self) -> None:
+        """Reset the file pointer to the beginning of the file."""
+        raise NotImplementedError(_NOT_IMPLEMENTED)
 
 
 class EventEncoder_Bin(EventEncoder):
     """An encoder for writing events to binary files.
 
+    .. note::
+        Not implemented yet -- constructing this class raises
+        :class:`NotImplementedError`.
+
     Parameters
     ----------
-    file : str or Path
-        Path to the data file.
-    width : int, optional
-        Width of the frame, by default 1280.
-    height : int, optional
-        Height of the frame, by default 720.
+    writable : io.BufferedIOBase
+        Destination for writing events.
+    **kwargs
+        Additional encoder arguments (``width``, ``height``, ``dt``, ...).
+
+    Raises
+    ------
+    NotImplementedError
+        Always, until the format is implemented.
 
     """
 
-    def __init__(self, file, width=1280, height=720):
-        super().__init__(file)
+    def __init__(self, writable: Any, **kwargs: Any):
+        raise NotImplementedError(_NOT_IMPLEMENTED)
 
+    def init(self) -> None:
+        """Initialize the file for writing."""
+        raise NotImplementedError(_NOT_IMPLEMENTED)
+
+    def write(self, events: Any) -> int:
+        """Write a chunk of events."""
+        raise NotImplementedError(_NOT_IMPLEMENTED)

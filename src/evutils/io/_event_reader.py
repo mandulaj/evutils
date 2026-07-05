@@ -254,7 +254,7 @@ class EventReader():
             triggers = None
         if len(chunk) == 0:
             return 0
-        acc.append(chunk, triggers)  # type: ignore[arg-type]
+        acc.append(chunk, triggers)
         return len(chunk)
 
     def read(self, delta_t:int|None=None, n_events:int|None=None) -> 'EventArray | tuple[EventArray, TriggerArray]':
@@ -376,7 +376,7 @@ class EventReader():
             if isinstance(_out, tuple):
                 out, out_tr = _out
             else:
-                out = _out # type: ignore
+                out = _out
                 from ..types import TriggerArray
                 out_tr = TriggerArray.empty()
         else:
@@ -411,9 +411,12 @@ class EventReader():
         self._n_read_events += len(out)
 
         if self._normalize_ts and len(out) > 0:
-            out.t -= int(out.t[0]) - self._start_ts
+            # Capture the shift before modifying out.t, so triggers get the
+            # same normalization.
+            shift = int(out.t[0]) - self._start_ts
+            out.t -= shift
             if self._read_external_triggers and len(out_tr) > 0:
-                out_tr.t -= int(out.t[0]) - self._start_ts
+                out_tr.t -= shift
 
         if self._read_external_triggers:
             return out, out_tr

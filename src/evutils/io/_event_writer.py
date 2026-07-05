@@ -40,7 +40,7 @@ class EventWriter():
 
     """
 
-    def __init__(self, file: Path | str | io.BufferedWriter, width:int=1280, height:int=720, dt: datetime|None = None,  file_encoder: ev_encoders.EventEncoder | None = None, **kwargs):
+    def __init__(self, file: Path | str | io.BufferedIOBase, width:int=1280, height:int=720, dt: datetime|None = None,  file_encoder: ev_encoders.EventEncoder | None = None, **kwargs):
 
         self._file_name: Path | None = None
 
@@ -53,18 +53,17 @@ class EventWriter():
         else:
             # A raw stream was passed - we need an explicit encoder.
             if file_encoder is None:
-                raise ValueError("When using a io.BufferedWriter as file, the file_encoder must be provided explicitly")
+                raise ValueError("When using a binary stream as file, the file_encoder must be provided explicitly")
 
-        if isinstance(file, io.BufferedWriter):
-            if not file.writable():
-                raise IOError("File is not writable")
-        self._file: io.BufferedWriter = file
+        if isinstance(file, io.IOBase) and not file.writable():
+            raise IOError("File is not writable")
+        self._file: io.BufferedIOBase = file
 
         # Resolve the encoder: explicit instance > heuristic from extension.
         if file_encoder is None:
             assert self._file_name is not None
             encoder_cls = ev_encoders.get_file_writer(self._file_name)
-            self._file_encoder = encoder_cls(self._file, **kwargs)
+            self._file_encoder = encoder_cls(self._file, width=width, height=height, dt=dt, **kwargs)
         else:
             self._file_encoder = file_encoder
 
@@ -74,7 +73,7 @@ class EventWriter():
         self._is_initialized = False
         self._dt = dt if dt is not None else datetime.now()
 
-    def _open_file(self, file_name: Path) -> io.BufferedWriter:
+    def _open_file(self, file_name: Path) -> io.BufferedIOBase:
         """Open the file for writing.
 
         Parameters
@@ -84,11 +83,13 @@ class EventWriter():
 
         Returns
         -------
-        io.BufferedWriter
+        io.BufferedIOBase
             The opened file object.
 
         """
-        return open(str(file_name), 'wb')
+        # 'w+b' (not 'wb'): container encoders (HDF5) need the stream to be
+        # readable and seekable, and it costs nothing for the append-only ones.
+        return open(str(file_name), 'w+b')
 
     def init(self):
         """Initialize the writer (e.g. open the file, write the header).
@@ -138,8 +139,12 @@ class EventWriter():
         return self._n_written_events
 
     def close(self):
-        """Close the writer and release the resources."""
-        self.flush()
+        """Close the writer and release the resources.
+
+        Finalizes the encoder first (container formats write their archive /
+        index here), then closes the underlying file.
+        """
+        self._file_encoder.close()
         self._file.close()
 
     def __exit__(self, exc_type, exc_value, traceback):
