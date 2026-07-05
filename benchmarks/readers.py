@@ -59,12 +59,16 @@ def _read_expelliarmus(path: str, fmt: str) -> int:
 def _read_evlib(path: str, fmt: str) -> int:
     # https://github.com/tallamjr/evlib  (Rust-backed). Auto-detects the format;
     # load_events() returns a polars LazyFrame. To avoid OOM on huge files,
-    # we use an aggregation (pl.len()) instead of collect() on the full frame.
+    # we use an aggregation (pl.len()) and stream it using Polars streaming engine.
     import evlib
     import polars as pl
     df = evlib.load_events(str(path))
     if hasattr(df, "collect"):
-        return df.select(pl.len()).collect().item()
+        try:
+            return df.select(pl.len()).collect(engine='streaming').item()
+        except TypeError:
+            # Fallback for older Polars versions
+            return df.select(pl.len()).collect(streaming=True).item()
     return _count(df)
 
 

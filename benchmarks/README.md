@@ -59,6 +59,27 @@ pytest benchmarks/ --benchmark-group-by=param:fmt --benchmark-columns=mean,ops
 
 Each library reads inside a lazy import. If a library is uninstalled or broken, its benchmarks simply **skip**. To add another library, append a `Reader(...)` entry to `readers.py`.
 
+## Benchmark Comparison (Mean Time in Seconds)
+
+### Reading
+
+| Library | EVT2 | EVT21 | EVT3 |
+|---|---|---|---|
+| **evutils** | 0.334 s | 0.164 s | 0.899 s |
+| **evlib** | 4.075 s | N/A | 4.578 s |
+| **expelliarmus** | 0.115 s | N/A | 0.342 s |
+
+### Writing
+
+| Library | EVT2 | EVT21 | EVT3 |
+|---|---|---|---|
+| **evutils** | 0.016 s | 0.029 s | 0.045 s |
+| **expelliarmus** | 0.220 s | N/A | 0.161 s |
+
+**Hardware:** 12th Gen Intel(R) Core(TM) i7-1280P | **OS:** Linux 7.1.1-3-MANJARO | **Python:** 3.12.13
+
+*Lower is better. Generated dynamically by `scripts/generate_benchmark_table.py`.*
+
 > **Note**: `tonic` is intentionally not included. It has no standalone EVT reader and reads Prophesee data through `expelliarmus` internally, so benchmarking it would just re-measure `expelliarmus`.
 
 ## OpenEB / Metavision (via Docker)
