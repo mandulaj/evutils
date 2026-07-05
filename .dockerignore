@@ -1,0 +1,15 @@
+# Keep the Docker build context small (used by benchmarks/docker/Dockerfile.openeb).
+.venv
+build
+.git
+.github
+data
+*.raw
+.benchmarks
+.pytest_cache
+__pycache__
+*.pyc
+docs
+dist
+*.prof
+*.svg

@@ -45,12 +45,58 @@ just **skips**. To add another library, append a `Reader(...)` to `readers.py`.
 ## OpenEB / Metavision (via Docker)
 
 OpenEB isn't on PyPI and is painful to build locally, so there's an image that
-builds it once:
+builds it once. Both commands run **from the repo root** (the build context must
+be the whole project so evutils is copied in):
 
 ```bash
+# Build the image (compiles OpenEB from source + installs evutils; slow, one-time)
 docker build -t evutils-openeb -f benchmarks/docker/Dockerfile.openeb .
+
+# Run the full suite (evutils + OpenEB), grouped per format
 docker run --rm evutils-openeb
 ```
 
-This runs the full benchmark suite (evutils + OpenEB) inside the container. See
-the Dockerfile header for version/dependency caveats.
+The container's default command is
+`pytest benchmarks/ --benchmark-group-by=param:fmt`, so you get evutils and
+OpenEB side by side per format.
+
+### Useful variations
+
+Persist the downloaded recording across runs (otherwise `--rm` discards the
+pytest cache and it re-downloads every time):
+
+```bash
+docker run --rm -v evutils-cache:/work/.pytest_cache evutils-openeb
+```
+
+Run only the OpenEB comparison (skip the evutils rows):
+
+```bash
+docker run --rm evutils-openeb \
+  pytest benchmarks/test_compare.py --benchmark-group-by=param:fmt -q
+```
+
+Drop into a shell to debug the build/run:
+
+```bash
+docker run --rm -it evutils-openeb bash
+```
+
+Build a different OpenEB release if the default fails to build:
+
+```bash
+docker build -t evutils-openeb --build-arg OPENEB_VERSION=5.0.0 \
+  -f benchmarks/docker/Dockerfile.openeb .
+```
+
+### Caveats
+
+- The image targets **OpenEB 5.x on Ubuntu 22.04**; OpenEB's apt dependencies
+  and install layout drift between releases, so the `apt-get`/`PYTHONPATH` lines
+  may need tweaking. The Dockerfile imports `metavision_core` at build time, so a
+  broken OpenEB install fails during `docker build` rather than silently skipping
+  at run time.
+- The first pass is slow: it compiles OpenEB (`-j$(nproc)`) and downloads the
+  reference recording on first run.
+- A repo-root `.dockerignore` keeps the build context small (excludes `.venv`,
+  `build/`, `.git`, `data/`, `*.raw`, ...).
