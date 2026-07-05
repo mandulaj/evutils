@@ -214,6 +214,63 @@ def test_EVT_matches_expelliarmus(real_event_files, fmt):
         assert np.array_equal(evutils_events["t"], exp_events["t"])
 
 
+@pytest.mark.parametrize("fmt", ['evt2', 'evt3'])
+def test_EVT_matches_evlib(real_event_files, fmt):
+    """Our EventReader output must match evlib."""
+    pytest.importorskip("evlib")
+    import evlib
+    from evutils.io import EventReader
+
+    if fmt not in real_event_files or not real_event_files[fmt]:
+        pytest.skip(f"No files for format {fmt}")
+
+    ef = next((f for f in real_event_files[fmt] if 'hand' in f.path.name), real_event_files[fmt][0])
+
+    # Read first 100k events with evutils
+    with EventReader(ef.path, n_events=100_000) as reader:
+        evutils_events = reader.read()
+
+    # Read the same file with evlib (using polars)
+    df = evlib.load_events(str(ef.path))
+    # We only take the first 100_000 to match evutils and avoid massive memory consumption
+    df = df.head(100_000)
+    
+    if hasattr(df, "collect"):
+        df = df.collect()
+
+    if len(df) == 0:
+        pytest.skip("evlib returned no events")
+
+    # evlib column mappings: 'x', 'y', 't', 'polarity'
+    # Polarity in evlib is often -1/1 or 0/1 depending on the rust backend.
+    # We map -1 back to 0 if necessary.
+    evlib_x = df["x"].to_numpy()
+    evlib_y = df["y"].to_numpy()
+    evlib_p = df["polarity"].to_numpy()
+    evlib_p = np.where(evlib_p == -1, 0, evlib_p)
+    
+    # Time is a Polars duration. Casting to Int64 converts it to microseconds internally
+    import polars as pl
+    evlib_t = df.select(pl.col("t").dt.total_microseconds()).to_numpy()[:, 0]
+
+    # evlib sometimes reorders events that share the exact same timestamp, so we
+    # sort both arrays lexicographically by (t, x, y, p) to compare the actual contents.
+    def sort_events(t, x, y, p):
+        idx = np.lexsort((p, y, x, t))
+        return t[idx], x[idx], y[idx], p[idx]
+
+    evutils_t, evutils_x, evutils_y, evutils_p = sort_events(
+        evutils_events["t"], evutils_events["x"], evutils_events["y"], evutils_events["p"]
+    )
+    evlib_t, evlib_x, evlib_y, evlib_p = sort_events(evlib_t, evlib_x, evlib_y, evlib_p)
+
+    assert len(evutils_events) == len(df)
+    assert np.array_equal(evutils_x, evlib_x)
+    assert np.array_equal(evutils_y, evlib_y)
+    assert np.array_equal(evutils_p, evlib_p)
+    assert np.array_equal(evutils_t, evlib_t)
+
+
 @pytest.mark.parametrize("fmt", ['evt3', 'evt2', 'evt21'])
 @pytest.mark.parametrize("length", [10, 100, 1000])
 def test_RAW_nevents_read(real_event_files, fmt, length):
