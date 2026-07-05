@@ -13,10 +13,11 @@
 
   #include <intrin.h>
 
-  /* C99 `restrict` -> MSVC spelling. */
+  /* C99 `restrict` (and GCC's `__restrict__` spelling) -> MSVC's __restrict. */
   #ifndef restrict
     #define restrict __restrict
   #endif
+  #define __restrict__ __restrict
 
   /* Branch-prediction hints: no MSVC equivalent, so compile them out. */
   #define likely(x)   (x)

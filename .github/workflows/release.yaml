@@ -23,8 +23,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # linux x86_64 + arm64 | windows amd64 | macOS x86_64 (13) + arm64 (14)
-        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-13, macos-14]
+        # linux x86_64 + arm64 | windows amd64 | macOS (arm64 runner builds both
+        # arm64 natively and x86_64 via cross-compile -- see CIBW_ARCHS_MACOS).
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-14]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -39,11 +40,15 @@ jobs:
       - name: Build wheels (cibuildwheel)
         run: pipx run cibuildwheel --output-dir wheelhouse
         env:
-          # requires-python (>=3.10) already limits the CPython versions built,
-          # and 64-bit runners don't produce 32-bit wheels. Just skip musllinux
-          # and the free-threaded (cp*t) builds -> standard CPython 3.10-3.14
-          # manylinux/macos/win wheels.
-          CIBW_SKIP: "*musllinux* cp3*t-*"
+          # requires-python (>=3.10) limits the CPython versions built. Skip
+          # musllinux, the 32-bit Windows build (win32 has no SIMD path and no
+          # numeric-stack wheels), and the free-threaded (cp*t) builds -> standard
+          # 64-bit CPython 3.10-3.14 manylinux/macos/win wheels.
+          CIBW_SKIP: "*musllinux* *-win32 cp3*t-*"
+          # Build both macOS arches on the arm64 runner (x86_64 is cross-compiled;
+          # its wheels can't be test-run here, which is fine -- we don't run tests
+          # in cibuildwheel). Ignored on Linux/Windows.
+          CIBW_ARCHS_MACOS: "x86_64 arm64"
 
       - name: Upload wheels
         uses: actions/upload-artifact@v4
