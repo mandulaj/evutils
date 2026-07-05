@@ -16,7 +16,8 @@ FORMATS = ["evt3", "evt2", "evt21"]
 
 
 @pytest.mark.parametrize("fmt", FORMATS)
-def test_write_evutils(benchmark, reference_events, tmp_path, fmt):
+def test_write_evutils(benchmark, benchmark_rounds, reference_events, tmp_path, fmt):
+    benchmark.group = f"write-{fmt}"
     events = reference_events
     out = tmp_path / f"out_{fmt}.raw"
 
@@ -24,8 +25,33 @@ def test_write_evutils(benchmark, reference_events, tmp_path, fmt):
         with EventWriter(out, format=fmt) as writer:
             writer.write(events)
 
-    benchmark.pedantic(write, rounds=3, iterations=1, warmup_rounds=1)
+    benchmark.pedantic(write, rounds=benchmark_rounds, iterations=1, warmup_rounds=1)
 
     assert out.stat().st_size > 0
+    from evutils.io import EventReader
+    assert len(EventReader(out).read_all()) == len(events)
     benchmark.extra_info["n_events"] = len(events)
     benchmark.extra_info["library"] = "evutils"
+
+
+@pytest.mark.parametrize("fmt", ["evt2", "evt3"])
+def test_write_expelliarmus(benchmark, benchmark_rounds, reference_events, tmp_path, fmt):
+    benchmark.group = f"write-{fmt}"
+    try:
+        from expelliarmus import Wizard
+    except ImportError as exc:
+        pytest.skip(f"expelliarmus not available: {exc}")
+    
+    events = reference_events
+    out = tmp_path / f"out_{fmt}.raw"
+    wizard = Wizard(encoding=fmt)
+
+    def write():
+        wizard.save(str(out), events)
+
+    benchmark.pedantic(write, rounds=benchmark_rounds, iterations=1, warmup_rounds=1)
+
+    assert out.stat().st_size > 0
+    assert len(wizard.read(str(out))) == len(events)
+    benchmark.extra_info["n_events"] = len(events)
+    benchmark.extra_info["library"] = "expelliarmus"

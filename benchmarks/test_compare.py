@@ -21,16 +21,17 @@ from readers import ALL_FORMATS, READERS
 
 @pytest.mark.parametrize("fmt", ALL_FORMATS)
 @pytest.mark.parametrize("reader", READERS, ids=lambda r: r.name)
-def test_read_compare(benchmark, real_event_files, reader, fmt):
+def test_read_compare(benchmark, benchmark_rounds, real_event_files, reader, fmt):
     if fmt not in reader.formats:
         pytest.skip(f"{reader.name} does not support {fmt}")
 
+    benchmark.group = f"read-{fmt}"
     ef = real_event_files[fmt]
 
     try:
         n = benchmark.pedantic(
             lambda: reader.read(ef.path, fmt),
-            rounds=3, iterations=1, warmup_rounds=1,
+            rounds=benchmark_rounds, iterations=1, warmup_rounds=1,
         )
     except ImportError as exc:
         pytest.skip(f"{reader.name} not available: {exc}")

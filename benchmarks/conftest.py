@@ -73,3 +73,13 @@ def reference_events(real_event_files):
             if total >= N_REFERENCE:
                 break
     return np.concatenate(parts)[:N_REFERENCE]
+
+
+def pytest_addoption(parser):
+    parser.addoption(
+        "--rounds", action="store", default=4, type=int, help="Number of benchmark rounds"
+    )
+
+@pytest.fixture(scope="session")
+def benchmark_rounds(request):
+    return request.config.getoption("--rounds")

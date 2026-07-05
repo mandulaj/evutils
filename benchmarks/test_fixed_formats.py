@@ -59,46 +59,61 @@ def _write(path, events):
 # DAT
 # --------------------------------------------------------------------------- #
 @pytest.mark.benchmark(group="read-dat")
-def test_read_dat_evutils(benchmark, dat_file):
-    n = benchmark.pedantic(lambda: _read_all(dat_file), rounds=3, iterations=1, warmup_rounds=1)
+def test_read_dat_evutils(benchmark, benchmark_rounds, dat_file):
+    n = benchmark.pedantic(lambda: _read_all(dat_file), rounds=benchmark_rounds, iterations=1, warmup_rounds=1)
     assert n > 0
     benchmark.extra_info.update(library="evutils", n_events=n)
 
 
 @pytest.mark.benchmark(group="read-dat")
-def test_read_dat_expelliarmus(benchmark, dat_file):
+def test_read_dat_expelliarmus(benchmark, benchmark_rounds, dat_file):
     try:
         from expelliarmus import Wizard
     except ImportError as exc:
         pytest.skip(f"expelliarmus not available: {exc}")
     wizard = Wizard(encoding="dat")
     n = benchmark.pedantic(lambda: len(wizard.read(str(dat_file))),
-                           rounds=3, iterations=1, warmup_rounds=1)
+                           rounds=benchmark_rounds, iterations=1, warmup_rounds=1)
     assert n > 0
     benchmark.extra_info.update(library="expelliarmus", n_events=n)
 
 
 @pytest.mark.benchmark(group="write-dat")
-def test_write_dat_evutils(benchmark, reference_events, tmp_path):
+def test_write_dat_evutils(benchmark, benchmark_rounds, reference_events, tmp_path):
     out = tmp_path / "out.dat"
     benchmark.pedantic(lambda: _write(out, reference_events),
-                       rounds=3, iterations=1, warmup_rounds=1)
+                       rounds=benchmark_rounds, iterations=1, warmup_rounds=1)
+    assert len(EventReader(out).read_all()) == len(reference_events)
     benchmark.extra_info.update(library="evutils", n_events=len(reference_events))
+
+
+@pytest.mark.benchmark(group="write-dat")
+def test_write_dat_expelliarmus(benchmark, benchmark_rounds, reference_events, tmp_path):
+    try:
+        from expelliarmus import Wizard
+    except ImportError as exc:
+        pytest.skip(f"expelliarmus not available: {exc}")
+    wizard = Wizard(encoding="dat")
+    out = tmp_path / "out.dat"
+    benchmark.pedantic(lambda: wizard.save(str(out), reference_events),
+                       rounds=benchmark_rounds, iterations=1, warmup_rounds=1)
+    assert len(wizard.read(str(out))) == len(reference_events)
+    benchmark.extra_info.update(library="expelliarmus", n_events=len(reference_events))
 
 
 # --------------------------------------------------------------------------- #
 # AER
 # --------------------------------------------------------------------------- #
 @pytest.mark.benchmark(group="read-aer")
-def test_read_aer_evutils(benchmark, aer_file):
-    n = benchmark.pedantic(lambda: _read_all(aer_file), rounds=3, iterations=1, warmup_rounds=1)
+def test_read_aer_evutils(benchmark, benchmark_rounds, aer_file):
+    n = benchmark.pedantic(lambda: _read_all(aer_file), rounds=benchmark_rounds, iterations=1, warmup_rounds=1)
     assert n > 0
     benchmark.extra_info.update(library="evutils", n_events=n)
 
 
 @pytest.mark.benchmark(group="write-aer")
-def test_write_aer_evutils(benchmark, aer_events, tmp_path):
+def test_write_aer_evutils(benchmark, benchmark_rounds, aer_events, tmp_path):
     out = tmp_path / "out.aer"
     benchmark.pedantic(lambda: _write(out, aer_events),
-                       rounds=3, iterations=1, warmup_rounds=1)
+                       rounds=benchmark_rounds, iterations=1, warmup_rounds=1)
     benchmark.extra_info.update(library="evutils", n_events=len(aer_events))

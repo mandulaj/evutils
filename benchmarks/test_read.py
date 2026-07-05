@@ -17,13 +17,14 @@ FORMATS = ["evt3", "evt2", "evt21"]
 
 
 @pytest.mark.parametrize("fmt", FORMATS)
-def test_read_evutils(benchmark, real_event_files, fmt):
+def test_read_evutils(benchmark, benchmark_rounds, real_event_files, fmt):
+    benchmark.group = f"read-{fmt}"
     ef = real_event_files[fmt]
 
     def decode():
         return len(EventReader(ef.path).read_all())
 
-    n = benchmark.pedantic(decode, rounds=3, iterations=1, warmup_rounds=1)
+    n = benchmark.pedantic(decode, rounds=benchmark_rounds, iterations=1, warmup_rounds=1)
 
     # Sanity: the benchmarked path decodes the expected number of events.
     assert n == ef.count
