@@ -11,7 +11,7 @@ from typing import Any, Tuple, Union
 
 import numpy as np
 
-from ..types import Event_dtype, EventArray
+from ..types import Event_dtype, EventArray, TriggerArray
 
 from . import decoders as ev_decoders
 from ._source import ByteSource, make_source
@@ -241,7 +241,7 @@ class EventReader():
                 if dec.is_eof():
                     return 0
                 ev, tr = acc.prepare(self._step)
-                added = dec.parse_step(ev, tr)
+                added = dec.parse_step(ev, tr)  # type: ignore[attr-defined]
                 if added > 0:
                     return added
                 if dec.is_eof():
@@ -254,10 +254,10 @@ class EventReader():
             triggers = None
         if len(chunk) == 0:
             return 0
-        acc.append(chunk, triggers)
+        acc.append(chunk, triggers)  # type: ignore[arg-type]
         return len(chunk)
 
-    def read(self, delta_t:int|None=None, n_events:int|None=None) -> EventArray:
+    def read(self, delta_t:int|None=None, n_events:int|None=None) -> 'EventArray | tuple[EventArray, TriggerArray]':
         """Read events on the files based on the mode and the parameters.
 
         Parameters
@@ -348,7 +348,7 @@ class EventReader():
             return output, output_tr
         return output
 
-    def read_all(self) -> EventArray:
+    def read_all(self) -> 'EventArray | tuple[EventArray, TriggerArray]':
         """Decode and return every remaining event at once.
 
         Delegates to the decoder's :meth:`~evutils.io.common.EventDecoder.read_all`,
@@ -371,13 +371,16 @@ class EventReader():
         if not self._is_initialized:
             self.init()
 
-        out = self._file_decoder.read_all()
+        _out = self._file_decoder.read_all()
         if self._read_external_triggers:
-            if isinstance(out, tuple):
-                out, out_tr = out
+            if isinstance(_out, tuple):
+                out, out_tr = _out
             else:
+                out = _out # type: ignore
                 from ..types import TriggerArray
                 out_tr = TriggerArray.empty()
+        else:
+            out = _out # type: ignore
 
         # Prepend anything already buffered by prior read() calls (rare: only if
         # read() and read_all() are mixed on the same reader).

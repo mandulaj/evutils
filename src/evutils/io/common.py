@@ -8,7 +8,10 @@ import os
 from abc import ABC, abstractmethod
 from datetime import datetime
 from pathlib import Path
-from typing import IO, Any, Optional
+from typing import IO, Any, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..types import EventArray, TriggerArray
 
 import numpy as np
 
@@ -72,7 +75,7 @@ class EventDecoder(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def read_chunk(self, delta_t_hint:int | None = None, n_events_hint:int | None = None) -> np.ndarray[Any, np.dtype[Any]]:
+    def read_chunk(self, delta_t_hint:int | None = None, n_events_hint:int | None = None) -> 'EventArray | tuple[EventArray, TriggerArray]':
         """Read a chunk of events.
 
         Parameters
@@ -84,8 +87,8 @@ class EventDecoder(ABC):
             
         Returns
         -------
-        np.ndarray
-            Chunk of events read from the source.
+        EventArray or tuple of (EventArray, TriggerArray)
+            Chunk of events read from the source. Optionally returns triggers if `read_external_triggers` is True.
 
         """
         raise NotImplementedError
@@ -96,7 +99,7 @@ class EventDecoder(ABC):
         raise NotImplementedError
 
 
-    def read_all(self):
+    def read_all(self) -> 'EventArray | tuple[EventArray, TriggerArray]':
         """Decode and return every remaining event at once.
 
         The default implementation drains :meth:`read_chunk` and concatenates the
@@ -117,22 +120,52 @@ class EventDecoder(ABC):
         # read_chunk may return a view that is invalidated by the next call, so
         # copy each chunk before pulling the next one.
         chunks = []
+        trigger_chunks = []
         while True:
-            chunk = self.read_chunk()
-            if len(chunk) == 0:
+            _chunk = self.read_chunk()
+            if self.read_external_triggers:
+                if isinstance(_chunk, tuple):
+                    ev_chunk, tr_chunk = _chunk
+                else:
+                    ev_chunk = _chunk
+                    from ..types import TriggerArray
+                    tr_chunk = TriggerArray.empty()
+            else:
+                ev_chunk = _chunk # type: ignore
+            if len(ev_chunk) == 0:
                 break
-            chunks.append(chunk.copy())
+            chunks.append(ev_chunk.copy())
+            if self.read_external_triggers:
+                trigger_chunks.append(tr_chunk.copy())
 
         if not chunks:
-            return EventArray.empty()
-        if len(chunks) == 1:
-            return chunks[0]
-        return EventArray(
-            np.concatenate([c.t for c in chunks]),
-            np.concatenate([c.x for c in chunks]),
-            np.concatenate([c.y for c in chunks]),
-            np.concatenate([c.p for c in chunks]),
-        )
+            res_ev = EventArray.empty()
+        elif len(chunks) == 1:
+            res_ev = chunks[0]
+        else:
+            res_ev = EventArray(
+                np.concatenate([c.t for c in chunks]),
+                np.concatenate([c.x for c in chunks]),
+                np.concatenate([c.y for c in chunks]),
+                np.concatenate([c.p for c in chunks]),
+            )
+            
+        if self.read_external_triggers:
+            if not trigger_chunks:
+                from ..types import TriggerArray
+                res_tr = TriggerArray.empty()
+            elif len(trigger_chunks) == 1:
+                res_tr = trigger_chunks[0]
+            else:
+                from ..types import TriggerArray
+                res_tr = TriggerArray(
+                    np.concatenate([c.t for c in trigger_chunks]),
+                    np.concatenate([c.p for c in trigger_chunks]),
+                    np.concatenate([c.id for c in trigger_chunks]),
+                )
+            return res_ev, res_tr
+            
+        return res_ev
 
     def close(self):
         """Release any resources held by the decoder (e.g. buffer views).

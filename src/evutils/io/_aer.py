@@ -8,6 +8,8 @@ encoding is vectorised numpy.
 """
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 
 from ..types import EventArray
@@ -51,12 +53,12 @@ class EventDecoder_AER(EventDecoder):
 
     def __init__(self, source: ByteSource, chunk_size: int = 1_000_000):
         super().__init__(source, chunk_size)
-        self._buf = None
-        self._words = None       # uint32 view of the payload (1 word / event)
-        self._offset = 0
-        self._parser = None
-        self._events = None
-        self._triggers = None
+        self._buf: Any = None
+        self._words: Any = None       # uint32 view of the payload (1 word / event)
+        self._offset: int = 0
+        self._parser: Any = None
+        self._events: Any = None
+        self._triggers: Any = None
 
     def init(self) -> None:
         """Initialize the AER reader.
@@ -106,7 +108,7 @@ class EventDecoder_AER(EventDecoder):
         return appended
 
     def read_chunk(self, delta_t_hint: int | None = None,
-                   n_events_hint: int | None = None) -> EventArray:
+                   n_events_hint: int | None = None) -> 'EventArray':
         if not self._is_initialized:
             self.init()
 
@@ -127,7 +129,7 @@ class EventDecoder_AER(EventDecoder):
         # Zero-copy view (valid until the next read_chunk); see EVT decoder.
         return events_view(ev)
 
-    def read_all(self) -> EventArray:
+    def read_all(self) -> 'EventArray':
         """Decode the whole remaining payload into one buffer (no per-chunk copy)."""
         if not self._is_initialized:
             self.init()

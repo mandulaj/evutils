@@ -8,6 +8,10 @@ import h5py
 import hdf5plugin
 import numba as nb
 import numpy as np
+from typing import Any, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..types import EventArray
 
 from ..types import Event_dtype
 from .common import EventDecoder, EventEncoder
@@ -220,7 +224,7 @@ class EventDecoder_HDF5(EventDecoder):
         self._last_ms = len(self._ms_to_idx) - 1
         self._is_initialized = True
 
-    def read(self, start_ms: int = 0, end_ms: int = -1) -> np.ndarray:
+    def read(self, start_ms: int = 0, end_ms: int = -1) -> 'EventArray':
         """Read events from a specific time range.
 
         Parameters
@@ -232,7 +236,7 @@ class EventDecoder_HDF5(EventDecoder):
 
         Returns
         -------
-        events : np.ndarray
+        events : EventArray
             Array of events within the time range.
 
         """
@@ -240,7 +244,8 @@ class EventDecoder_HDF5(EventDecoder):
             self.init()
         if start_ms > len(self._ms_to_idx) - 1:
             print(f"Start time {start_ms} is greater than the highest available ms time {len(self._ms_to_idx) - 1}")
-            return np.array([], dtype=Event_dtype)
+            from ..types import EventArray
+            return EventArray.empty()
         if end_ms == -1 or end_ms > self._last_ms:
             end_ms = self._last_ms
 
@@ -251,7 +256,7 @@ class EventDecoder_HDF5(EventDecoder):
         end_idx = self._ms_to_idx[end_ms]
         return self._read_events(start_idx, end_idx)
 
-    def _read_events(self, start_idx: int, end_idx: int) -> np.ndarray:
+    def _read_events(self, start_idx: int, end_idx: int) -> 'EventArray':
         """Read events from a specific index range.
 
         Parameters
@@ -263,7 +268,7 @@ class EventDecoder_HDF5(EventDecoder):
 
         Returns
         -------
-        events : np.ndarray
+        events : EventArray
             Array of events within the index range.
 
         """
@@ -271,4 +276,5 @@ class EventDecoder_HDF5(EventDecoder):
         y = self._fd["events"]["y"][start_idx:end_idx]
         p = self._fd["events"]["p"][start_idx:end_idx]
         t = self._fd["events"]["t"][start_idx:end_idx]
-        return np.array(list(zip(t, x, y, p)), dtype=Event_dtype)
+        from ..types import EventArray
+        return EventArray(t, x, y, p)

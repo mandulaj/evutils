@@ -10,9 +10,11 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from typing import Any
+
 import numpy as np
 
-from ..types import EventArray
+from ..types import EventArray, TriggerArray
 from .common import EventDecoder, EventEncoder
 from ._native_evt import (
     EVUTILS_PARSE_ERROR,
@@ -22,6 +24,7 @@ from ._native_evt import (
     TriggerSoABuffers,
     decode_all_soa,
     events_view,
+    triggers_view,
     parse_step,
 )
 from ._source import ByteSource
@@ -53,13 +56,13 @@ class EventDecoder_Dat(EventDecoder):
     def __init__(self, source: ByteSource, chunk_size: int = 1_000_000):
         super().__init__(source, chunk_size)
         self._header: dict = {}
-        self._buf = None
-        self._payload_off = 0
-        self._words = None       # uint32 view of the payload (2 words / event)
-        self._offset = 0         # current uint32-word offset
-        self._parser = None
-        self._events = None
-        self._triggers = None
+        self._buf: Any = None
+        self._payload_off: int = 0
+        self._words: Any = None       # uint32 view of the payload (2 words / event)
+        self._offset: int = 0         # current uint32-word offset
+        self._parser: Any = None
+        self._events: Any = None
+        self._triggers: Any = None
 
     # ------------------------------------------------------------------ #
     def _parse_header(self, buf) -> int:
@@ -155,12 +158,15 @@ class EventDecoder_Dat(EventDecoder):
         return appended
 
     def read_chunk(self, delta_t_hint: int | None = None,
-                   n_events_hint: int | None = None) -> EventArray:
+                   n_events_hint: int | None = None) -> 'EventArray | tuple[EventArray, TriggerArray]':
         if not self._is_initialized:
             self.init()
 
         if self._words is None or self._offset >= len(self._words):
             self._eof = True
+            if self.read_external_triggers:
+                from ..types import TriggerArray
+                return _EMPTY_EVENTS, TriggerArray.empty()
             return _EMPTY_EVENTS
 
         ev, tr = self._events, self._triggers
@@ -172,11 +178,16 @@ class EventDecoder_Dat(EventDecoder):
 
         n = ev.size
         if n == 0:
+            if self.read_external_triggers:
+                from ..types import TriggerArray
+                return _EMPTY_EVENTS, TriggerArray.empty()
             return _EMPTY_EVENTS
         # Zero-copy view (valid until the next read_chunk); see EVT decoder.
+        if self.read_external_triggers:
+            return events_view(ev), triggers_view(tr)
         return events_view(ev)
 
-    def read_all(self) -> EventArray:
+    def read_all(self) -> 'EventArray | tuple[EventArray, TriggerArray]':
         """Decode the whole remaining payload into one buffer (no per-chunk copy)."""
         if not self._is_initialized:
             self.init()

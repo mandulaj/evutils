@@ -111,7 +111,7 @@ class EventDecoder_Csv(EventDecoder):
         self._is_initialized = True
 
 
-    def read_chunk(self, delta_t_hint:int | None = None, n_events_hint:int | None = None) -> np.ndarray[Any, np.dtype[Any]]:
+    def read_chunk(self, delta_t_hint:int | None = None, n_events_hint:int | None = None) -> 'EventArray':
         """Read a chunk of events from the CSV file.
 
         Parameters
@@ -123,7 +123,7 @@ class EventDecoder_Csv(EventDecoder):
 
         Returns
         -------
-        events : np.ndarray
+        events : EventArray
             An array of events.
 
         """

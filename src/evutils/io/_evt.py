@@ -21,7 +21,10 @@ from __future__ import annotations
 
 import io
 from datetime import datetime
-from typing import List
+from typing import Any, List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..types import TriggerArray
 
 import numba as nb
 import numpy as np
@@ -100,11 +103,11 @@ class EventDecoder_EVT(EventDecoder):
         }
 
         # Filled in init()
-        self._buf = None            # keeps the underlying storage alive
-        self._payload_off = 0       # byte offset where the binary payload starts
-        self._words = None          # uint16 view of the whole payload
-        self._offset = 0            # current word offset into _words
-        self._parser = None
+        self._buf: Any = None            # keeps the underlying storage alive
+        self._payload_off: int = 0       # byte offset where the binary payload starts
+        self._words: Any = None          # uint16 view of the whole payload
+        self._offset: int = 0            # current word offset into _words
+        self._parser: Any = None
 
 
     # ------------------------------------------------------------------ #
@@ -274,7 +277,7 @@ class EventDecoder_EVT(EventDecoder):
         return appended
 
     def read_chunk(self, delta_t_hint: int | None = None,
-                   n_events_hint: int | None = None):
+                   n_events_hint: int | None = None) -> 'EventArray | tuple[EventArray, TriggerArray]':
         if not self._is_initialized:
             self.init()
 
@@ -311,7 +314,7 @@ class EventDecoder_EVT(EventDecoder):
     # the buffer if the estimate is too small.
     _READ_ALL_EST = {"evt3": 1.0, "evt2": 1.0, "evt21": 1.5}
 
-    def read_all(self):
+    def read_all(self) -> 'EventArray | tuple[EventArray, TriggerArray]':
         """Decode the whole remaining payload into one buffer (no per-chunk copy).
 
         See :func:`evutils.io._native_evt.decode_all_soa`. Note this materialises
