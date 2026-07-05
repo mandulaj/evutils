@@ -16,16 +16,21 @@ requires-python = ">=3.10"
 dependencies = [
     "numpy>=2.0.0",
     "opencv-python>=4.2",
+    "numba>=0.57",
 ]
 keywords = ["events", "dvs", "neuromorphic", "vision", "event-based"]
 
 [project.optional-dependencies]
 # Feature toggles
 pandas = ["pandas>=2.3.3"]
-numba = ["numba>=0.57"]
 torch = ["torch>=2.0"]
 hdf5 = ["hdf5plugin==6.0.0", "h5py>=3.16.0"]
-vis = ["matplotlib>=3.1", "scipy>=1.15.3", "tqdm>=4.41"] # Renamed for simplicity
+vis = [
+    "matplotlib>=3.1",
+    "open3d>=0.19.0",
+    "scipy>=1.15.3",
+    "tqdm>=4.41",
+] # Renamed for simplicity
 
 # Ecosystem
 test = [
