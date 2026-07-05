@@ -1,9 +1,28 @@
+# Python build artifacts
 __pycache__
 build
 *.egg-info
-_version.py
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+.ruff_cache/
+.mypy_cache/
+
+# C build artifacts
+*.so
+*.o
+*.obj
+*.dylib
+
+# Data and models
 data
 models
+
+# Venvs
+.venv/
+venv/
+env
 
 # Event types
 *.csv
@@ -13,13 +32,24 @@ models
 *.dat
 *.txt
 *.tmp_index
-*.prof
 *.svg
 *.data
 *.png
 *.jpg
 
+# Profiling
+*.prof
+*.old
+
 *.json
 
+# Miscellaneous
 test.py
 *.ipynb
+
+# IDE and OS
+.vscode
+.idea
+.DS_Store
+
+
