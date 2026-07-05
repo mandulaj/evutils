@@ -5,7 +5,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "evutils"
-version = "0.3.1"
+version = "0.3.2"
 description = "Utilities for event-based vision"
 readme = "README.md"
 license = {file = "LICENSE"}
