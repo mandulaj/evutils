@@ -13,8 +13,9 @@ Input strategy:
   same way. (Truly incremental streaming for live devices is future work; the
   parser ABI already supports it via ``result.current``.)
 
-Only EVT3 is wired to the native parser today; EVT2/EVT2.1 raise
-``NotImplementedError``.
+All three Prophesee formats are wired to native parsers, dispatched by the
+header ``format`` field: EVT3 (16-bit words), EVT2 (32-bit words) and EVT2.1
+(64-bit words). Only EVT3 has an encoder.
 """
 from __future__ import annotations
 
@@ -30,13 +31,25 @@ from .common import EventDecoder, EventEncoder
 from ._native_evt import (
     EVUTILS_PARSE_ERROR,
     EventSoABuffers,
+    Evt2Input,
+    Evt2Parser,
     Evt3Input,
     Evt3Parser,
+    Evt21Input,
+    Evt21Parser,
     TriggerSoABuffers,
 )
 from ._source import ByteSource
 
 _EMPTY_EVENTS = EventArray.empty()
+
+# Per-format native backend: parser class, zero-copy input wrapper, and the
+# numpy word dtype the binary payload is viewed as.
+_BACKENDS = {
+    "evt3": (Evt3Parser, Evt3Input, np.uint16),
+    "evt2": (Evt2Parser, Evt2Input, np.uint32),
+    "evt21": (Evt21Parser, Evt21Input, np.uint64),
+}
 
 
 class EventDecoder_EVT(EventDecoder):
@@ -104,7 +117,9 @@ class EventDecoder_EVT(EventDecoder):
             if rel < 0:
                 break
             line = window[:rel]
-            if line.startswith(b"% end"):
+            # Exact end-of-header marker. Must not match other keys such as
+            # "% endianness ...".
+            if line.strip() == b"% end":
                 off += rel + 1
                 break
             self._consume_header_line(line)
@@ -181,16 +196,29 @@ class EventDecoder_EVT(EventDecoder):
         self._payload_off = self._parse_header(self._buf)
         self._finalize_header()
 
-        n_words = (len(self._buf) - self._payload_off) // 2
+        if self._format not in _BACKENDS:
+            raise NotImplementedError(
+                f"native decoder does not support format {self._format!r}"
+            )
+        parser_cls, input_cls, word_dtype = _BACKENDS[self._format]
+        self._input_cls = input_cls
+        self._word_dtype = word_dtype
+
+        # View the binary payload as words of the format's native width. The
+        # payload can be unaligned relative to the word size (the header length
+        # is arbitrary); numpy tolerates this and x86 handles the unaligned
+        # loads in the C parser.
+        itemsize = np.dtype(word_dtype).itemsize
+        n_words = (len(self._buf) - self._payload_off) // itemsize
         if n_words > 0:
             self._words = np.frombuffer(
-                self._buf, dtype=np.uint16, count=n_words, offset=self._payload_off
+                self._buf, dtype=word_dtype, count=n_words, offset=self._payload_off
             )
         else:
-            self._words = np.empty(0, dtype=np.uint16)
+            self._words = np.empty(0, dtype=word_dtype)
 
         self._offset = 0
-        self._parser = Evt3Parser()
+        self._parser = parser_cls()
         cap = int(self._chunk_size)
         self._events = EventSoABuffers(cap)
         self._triggers = TriggerSoABuffers(max(cap // 16, 1))
@@ -200,11 +228,6 @@ class EventDecoder_EVT(EventDecoder):
                    n_events_hint: int | None = None) -> np.ndarray:
         if not self._is_initialized:
             self.init()
-
-        if self._format != "evt3":
-            raise NotImplementedError(
-                f"native decoder supports evt3 only, got {self._format!r}"
-            )
 
         # Nothing left: signal EOF with an empty array (never a stale buffer).
         if self._words is None or self._offset >= len(self._words):
@@ -220,19 +243,20 @@ class EventDecoder_EVT(EventDecoder):
             ev.reset()
             tr.reset()
             view = self._words[self._offset:]
-            inp = Evt3Input(view)
+            inp = self._input_cls(view)
             res = self._parser.parse_chunk_soa(inp, ev, tr)
             if res.status == EVUTILS_PARSE_ERROR:
-                raise RuntimeError(f"EVT3 parse error near word {self._offset}")
+                raise RuntimeError(f"{self._format} parse error near word {self._offset}")
 
             consumed = inp.consumed(res)
             if consumed == 0:
-                # The parser keeps a few words of look-ahead padding, so it will
-                # not consume the final <PADDING words of the stream. Flush that
-                # tail through a zero-padded scratch copy (zero words are
-                # harmless EVT_ADDR_Y state updates) so trailing events aren't
-                # stranded.
-                self._flush_tail(view, ev, tr)
+                # EVT3 keeps a few words of look-ahead padding, so it will not
+                # consume the final <PADDING words of the stream. Flush that tail
+                # through a zero-padded scratch copy (zero words are harmless
+                # state updates) so trailing events aren't stranded. EVT2/EVT2.1
+                # have no look-ahead, so consumed==0 there just means EOF.
+                if self._format == "evt3":
+                    self._flush_tail(view, ev, tr)
                 self._offset = len(self._words)
                 break
             self._offset += consumed

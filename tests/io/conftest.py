@@ -1,10 +1,16 @@
 import pytest
 import os
 import tempfile
+from collections import namedtuple
 from evutils.types import Event_dtype
 
 import numpy as np
 import subprocess
+
+#: A real reference recording: its path plus the event count reported by the
+#: reference OpenEB implementation (implementations differ slightly, so counts
+#: are expected to be close but not necessarily identical).
+EventFile = namedtuple("EventFile", ["path", "count"])
 
 @pytest.fixture(scope='session')
 def test_events():
@@ -74,18 +80,25 @@ def event_files(tmp_path_factory, test_events):
 
 @pytest.fixture()
 def real_event_files(cache):
-    event_file_paths = {}
+    # Reference event counts from the OpenEB implementation.
+    event_counts = {
+        'evt3': 33494595,
+        'evt21': 8214341,
+        'evt2': 33494595,
+    }
 
     temp_dir = cache.mkdir("event_files")
 
+    filenames = {
+        'evt3': "hand_evt3.raw",
+        'evt21': "hand_evt21.raw",
+        'evt2': "hand_evt2.raw",
+    }
+    paths = {fmt: temp_dir / name for fmt, name in filenames.items()}
 
-    event_file_paths['evt3'] = temp_dir / "hand_evt3.raw"
-    event_file_paths['evt21'] = temp_dir / "hand_evt21.raw"
-    event_file_paths['evt2'] = temp_dir / "hand_evt2.raw"
-
-    for key, path in event_file_paths.items():
+    for key, path in paths.items():
         if not path.exists():
-            
+
             # Download files with wget:
             tar_url = "https://drive.usercontent.google.com/download?id=18LbJljYr5dqBmbrkm0EJs0EcddCqMKTv&confirm=t"
             tar_file = temp_dir / "hand.tar.gz"
@@ -97,8 +110,8 @@ def real_event_files(cache):
             subprocess.run(["tar", "zxv", "-C", str(temp_dir), "-f", str(tar_file)])
             break
 
-    return event_file_paths
-
-    # Download file if it does not exist
-           
+    return {
+        fmt: EventFile(path=paths[fmt], count=event_counts[fmt])
+        for fmt in filenames
+    }
 

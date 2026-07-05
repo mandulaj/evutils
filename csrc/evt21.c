@@ -16,6 +16,15 @@ typedef struct evt21_state_s {
 } evt21_state_t;
 
 
+size_t EVT21_state_size(void) {
+    return sizeof(evt21_state_t);
+}
+
+
+/* A single CD vector packet can emit up to 32 events (one per valid bit), so we
+ * stop the main loop this far from capacity to guarantee the inner emit never
+ * overruns the output buffer. */
+#define EVT21_MAX_VECTOR_EVENTS 32
 
 
 parser_result_t EVT21_parse_chunk_soa(
@@ -31,6 +40,8 @@ parser_result_t EVT21_parse_chunk_soa(
     // Event output buffers
     size_t n_events_read = event_buffer->size;
     const size_t events_capacity = event_buffer->capacity;
+    const size_t events_capacity_offset =
+        events_capacity > EVT21_MAX_VECTOR_EVENTS ? events_capacity - EVT21_MAX_VECTOR_EVENTS : 0;
 
     timestamp_t* restrict out_ts = event_buffer->t;
     uint16_t* restrict out_x = event_buffer->x;
@@ -44,7 +55,7 @@ parser_result_t EVT21_parse_chunk_soa(
 
     size_t n_triggers_read = trigger_buffer->size;
     const size_t triggers_capacity = trigger_buffer->capacity;
-    
+
     // State variables
     uint64_t last_ts_high = state->last_ts_high;
 
@@ -52,71 +63,57 @@ parser_result_t EVT21_parse_chunk_soa(
 
     while(
         current < end &&
-        n_events_read < events_capacity &&
+        n_events_read < events_capacity_offset &&
         n_triggers_read < triggers_capacity
     ) {
-        // printf("Parsing packet %ld, events: %ld\n", i, n_events_read);
-
+        const uint64_t word = *current;
+        current++;
 
         // 31-28 type
-        uint64_t type = (*current & 0xF0000000) >> 28;
+        uint64_t type = (word & 0xF0000000) >> 28;
 
-        // 27-22 ts
-        uint64_t ts = last_ts_high | ((*current & 0x0FC00000) >> 22);
+        // 27-22 ts (6 low bits of the time base)
+        uint64_t ts = last_ts_high | ((word & 0x0FC00000) >> 22);
 
-        // 11bit 21-11 x
-        uint64_t x = ((*current & 0x000FF800) >> 11);
+        // 21-11 x (11 bits)
+        uint64_t x = (word & 0x003FF800) >> 11;
 
-        // 11bit 10-0 y
-        uint64_t y = (*current & 0x000007FF);
+        // 10-0 y (11 bits)
+        uint64_t y = (word & 0x000007FF);
 
-        // upper remainer data
-        uint64_t valid = ((*current & 0xFFFFFFFF00000000) >> 32);
-
-        
-        
+        // upper 32 bits: per-column validity mask
+        uint32_t valid = (uint32_t)(word >> 32);
 
         if((type == EVT21_CD_OFF || type == EVT21_CD_ON)){
             uint32_t p = !!type;
-            uint32_t num_events = __builtin_popcount(valid);
-            for(uint32_t j = 0; j < num_events; j++){
+            while(valid){
                 int lz = __builtin_ctz(valid);
-                valid &= ~(1 << lz);
+                valid &= valid - 1;
 
                 out_ts[n_events_read] = ts;
-                out_x[n_events_read] = x + lz;
-                out_y[n_events_read] = y;
-                out_p[n_events_read] = p;
+                out_x[n_events_read] = (uint16_t)(x + lz);
+                out_y[n_events_read] = (uint16_t)y;
+                out_p[n_events_read] = (uint8_t)p;
                 n_events_read++;
             }
             continue;
         }
 
-
         switch(type){
             case EVT21_EVT_TIME_HIGH:
-                last_ts_high = (*current & 0x0FFFFFFF) << 6;
+                last_ts_high = (word & 0x0FFFFFFF) << 6;
                 break;
             case EVT21_EXT_TRIGGER:
                 trigger_ts[n_triggers_read] = ts;
-
-                // Trigger id bits 44..40 5bits
-                trigger_id[n_triggers_read] = (*current >> 40) & 0x1F;
-
-                trigger_p[n_triggers_read] = (*current >> 32) & 0x1;
-
+                // Trigger id bits 44..40 (5 bits)
+                trigger_id[n_triggers_read] = (word >> 40) & 0x1F;
+                trigger_p[n_triggers_read] = (word >> 32) & 0x1;
+                n_triggers_read++;
                 break;
             case EVT21_OTHERS:
-                // printf("CD_OTHERS\n");
-                break;
-            case EVT21_CD_OFF:
-            case EVT21_CD_ON:
             default:
-                __builtin_unreachable();
                 break;
-
         }
-        
     }
 
     event_buffer->size = n_events_read;

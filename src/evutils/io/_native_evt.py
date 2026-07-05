@@ -129,6 +129,14 @@ class Evt3InputBuffer(Structure):
     _fields_ = [("begin", POINTER(c_uint16)), ("end", POINTER(c_uint16))]
 
 
+class Evt2InputBuffer(Structure):
+    _fields_ = [("begin", POINTER(c_uint32)), ("end", POINTER(c_uint32))]
+
+
+class Evt21InputBuffer(Structure):
+    _fields_ = [("begin", POINTER(c_uint64)), ("end", POINTER(c_uint64))]
+
+
 
 EVUTILS_PARSE_OK = 0
 EVUTILS_PARSE_INPUT_EMPTY = 1
@@ -212,6 +220,30 @@ def _bind(handle: ctypes.CDLL) -> ctypes.CDLL:
             POINTER(TriggerBufferSOA),
         ]
         handle.EVT3_parse_chunk_soa.restype = ParserResult
+
+    if hasattr(handle, "EVT2_state_size"):
+        handle.EVT2_state_size.argtypes = []
+        handle.EVT2_state_size.restype = c_size_t
+    if hasattr(handle, "EVT2_parse_chunk_soa"):
+        handle.EVT2_parse_chunk_soa.argtypes = [
+            c_void_p,                    # opaque evt2_state_t*
+            POINTER(Evt2InputBuffer),
+            POINTER(EventBufferSOA),
+            POINTER(TriggerBufferSOA),
+        ]
+        handle.EVT2_parse_chunk_soa.restype = ParserResult
+
+    if hasattr(handle, "EVT21_state_size"):
+        handle.EVT21_state_size.argtypes = []
+        handle.EVT21_state_size.restype = c_size_t
+    if hasattr(handle, "EVT21_parse_chunk_soa"):
+        handle.EVT21_parse_chunk_soa.argtypes = [
+            c_void_p,                    # opaque evt21_state_t*
+            POINTER(Evt21InputBuffer),
+            POINTER(EventBufferSOA),
+            POINTER(TriggerBufferSOA),
+        ]
+        handle.EVT21_parse_chunk_soa.restype = ParserResult
     return handle
  
  
@@ -351,6 +383,99 @@ class Evt3Parser:
         return lib().EVT3_parse_chunk_soa(
             self._state, byref(inp.c), byref(events.c), byref(triggers.c)
         )
- 
+
+    def __enter__(self):
+        return self
+
+
+# --------------------------------------------------------------------------- #
+# EVT2 (32-bit words) and EVT2.1 (64-bit words) bindings.
+#
+# The output SoA buffers (EventSoABuffers / TriggerSoABuffers) are shared across
+# all EVT formats; only the input word width and the parse/state entry points
+# differ.
+# --------------------------------------------------------------------------- #
+class Evt2Input:
+    """Wraps a contiguous uint32 array as an evt2_input_buffer_t (no copy)."""
+
+    __slots__ = ("arr", "c")
+
+    def __init__(self, words: np.ndarray):
+        if words.dtype != np.uint32 or not words.flags["C_CONTIGUOUS"]:
+            raise NativeError("Evt2Input needs a C-contiguous uint32 array")
+        self.arr = words
+        base = words.ctypes.data
+        self.c = Evt2InputBuffer()
+        self.c.begin = cast(base, POINTER(c_uint32))
+        self.c.end = cast(base + words.nbytes, POINTER(c_uint32))
+
+    def consumed(self, result: "ParserResult") -> int:
+        """Number of uint32 words consumed, from a returned result.current."""
+        cur = cast(result.current, c_void_p).value or self.arr.ctypes.data
+        return (cur - self.arr.ctypes.data) // 4
+
+
+class Evt21Input:
+    """Wraps a contiguous uint64 array as an evt21_input_buffer_t (no copy)."""
+
+    __slots__ = ("arr", "c")
+
+    def __init__(self, words: np.ndarray):
+        if words.dtype != np.uint64 or not words.flags["C_CONTIGUOUS"]:
+            raise NativeError("Evt21Input needs a C-contiguous uint64 array")
+        self.arr = words
+        base = words.ctypes.data
+        self.c = Evt21InputBuffer()
+        self.c.begin = cast(base, POINTER(c_uint64))
+        self.c.end = cast(base + words.nbytes, POINTER(c_uint64))
+
+    def consumed(self, result: "ParserResult") -> int:
+        """Number of uint64 words consumed, from a returned result.current."""
+        cur = cast(result.current, c_void_p).value or self.arr.ctypes.data
+        return (cur - self.arr.ctypes.data) // 8
+
+
+class Evt2Parser:
+    """Owns an opaque evt2_state_t buffer, mirroring Evt3Parser."""
+
+    __slots__ = ("_state", "_buf")
+
+    def __init__(self):
+        handle = lib()
+        self._buf = (c_char * int(handle.EVT2_state_size()))()  # zero-initialised
+        self._state = cast(self._buf, c_void_p)
+
+    def reset(self) -> None:
+        ctypes.memset(self._buf, 0, len(self._buf))
+
+    def parse_chunk_soa(self, inp: Evt2Input, events: EventSoABuffers,
+                        triggers: TriggerSoABuffers) -> ParserResult:
+        return lib().EVT2_parse_chunk_soa(
+            self._state, byref(inp.c), byref(events.c), byref(triggers.c)
+        )
+
+    def __enter__(self):
+        return self
+
+
+class Evt21Parser:
+    """Owns an opaque evt21_state_t buffer, mirroring Evt3Parser."""
+
+    __slots__ = ("_state", "_buf")
+
+    def __init__(self):
+        handle = lib()
+        self._buf = (c_char * int(handle.EVT21_state_size()))()  # zero-initialised
+        self._state = cast(self._buf, c_void_p)
+
+    def reset(self) -> None:
+        ctypes.memset(self._buf, 0, len(self._buf))
+
+    def parse_chunk_soa(self, inp: Evt21Input, events: EventSoABuffers,
+                        triggers: TriggerSoABuffers) -> ParserResult:
+        return lib().EVT21_parse_chunk_soa(
+            self._state, byref(inp.c), byref(events.c), byref(triggers.c)
+        )
+
     def __enter__(self):
         return self

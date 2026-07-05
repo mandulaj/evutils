@@ -6,6 +6,11 @@ typedef struct evt2_state_s {
 } evt2_state_t;
 
 
+size_t EVT2_state_size(void) {
+    return sizeof(evt2_state_t);
+}
+
+
 enum EVT2_PacketType {
     EVT2_CD_OFF         = 0x0,
     EVT2_CD_ON          = 0x1,
@@ -65,11 +70,11 @@ parser_result_t EVT2_parse_chunk_soa(
             case EVT2_CD_ON:
                 // Bits 27..22 are the least significant bits of the timestamp
                 out_ts[n_events_read] = last_ts_high | ((packet_data >> 22) & 0x3F);
-                
-                // Bits 10..0 are the x coordinate
-                out_x[n_events_read] = packet_data & 0x7FF;
-                // Bits 21..11 are the y coordinate
-                out_y[n_events_read] = (packet_data >> 11) & 0x7FF;
+
+                // Bits 21..11 are the x coordinate
+                out_x[n_events_read] = (packet_data >> 11) & 0x7FF;
+                // Bits 10..0 are the y coordinate
+                out_y[n_events_read] = packet_data & 0x7FF;
 
                 out_p[n_events_read] = !!packet_type;
                 n_events_read++;
