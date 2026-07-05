@@ -7,15 +7,24 @@ import os
 import sys                                                                                                        
 sys.path.insert(0, os.path.abspath('../../src'))  
 
+import tomllib
+
+with open("../../pyproject.toml", "rb") as f:
+    toml_data = tomllib.load(f)
+
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'evutils'
+project = f"{toml_data['project']['name']}"
 copyright = '2026, Jakub Mandula'
-author = 'Jakub Mandula'
-release = 'v0.3.0'
-github_url = "https://github.com/mandulaj/evutils"
+author = f"{toml_data['project']['authors'][0]['name']}"
+release = f"v{toml_data['project']['version']}"
+
+# Its under [project.urls] "Source Code"
+github_url = f"{toml_data['project']['urls']['Source Code']}"
+
+print(f"Project: {project}, Author: {author}, Release: {release}, GitHub URL: {github_url}")
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -82,7 +91,7 @@ html_theme_options = {
         },
     ],
     "logo": {
-        "text": "EV-utils",
+        "text": "EV-Utils",
     },
 
 }
