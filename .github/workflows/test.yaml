@@ -5,6 +5,7 @@ on:
     branches: [main, feature/*, fix/*]
   pull_request:
     branches: [main, feature/*, fix/*]
+  workflow_call:   # allow other workflows (e.g. release) to gate on the tests
 
 jobs:
   test:

@@ -11,8 +11,14 @@ permissions:
   pages: write         # Required for GitHub Pages deployment
 
 jobs:
+  # Gate everything on the test suite -- no wheels/sdist/publish unless it passes.
+  test:
+    name: Tests
+    uses: ./.github/workflows/test.yaml
+
   build_wheels:
     name: Wheels (${{ matrix.os }})
+    needs: test
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -33,9 +39,11 @@ jobs:
       - name: Build wheels (cibuildwheel)
         run: pipx run cibuildwheel --output-dir wheelhouse
         env:
-          # Build CPython 3.10-3.14; skip old CPython, PyPy, musllinux and 32-bit.
-          CIBW_SKIP: "cp36-* cp37-* cp38-* cp39-* pp* *musllinux* *-win32 *_i686"
-          CIBW_BUILD_FRONTEND: "build[uv]"
+          # requires-python (>=3.10) already limits the CPython versions built,
+          # and 64-bit runners don't produce 32-bit wheels. Just skip musllinux
+          # and the free-threaded (cp*t) builds -> standard CPython 3.10-3.14
+          # manylinux/macos/win wheels.
+          CIBW_SKIP: "*musllinux* cp3*t-*"
 
       - name: Upload wheels
         uses: actions/upload-artifact@v4
@@ -45,6 +53,7 @@ jobs:
 
   build_sdist:
     name: Source distribution
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -84,8 +93,13 @@ jobs:
 
   build_and_publish_docs:
     name: Build & Publish Sphinx Docs
+    needs: test
     runs-on: ubuntu-latest
     if: github.event_name == 'release'
+    # deploy-pages@v4 requires the deploying job to target the github-pages environment.
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7

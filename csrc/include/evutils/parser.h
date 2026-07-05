@@ -1,6 +1,7 @@
 #ifndef EVUTILS_PARSER_H
 #define EVUTILS_PARSER_H
 
+#include "evutils/compat.h"
 #include "evutils/types.h"
 
 #ifdef __cplusplus
@@ -24,8 +25,8 @@ typedef struct parser_result_s {
 
 
 
-#define likely(x)       __builtin_expect(!!(x),1)
-#define unlikely(x)     __builtin_expect(!!(x),0)
+/* likely()/unlikely() are provided by compat.h (GNU builtins on GCC/Clang,
+ * no-ops on MSVC). */
 
 
 #ifdef __cplusplus
