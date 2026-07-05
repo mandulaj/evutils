@@ -30,7 +30,21 @@ DAT_EVENT_SIZE = 0x08
 
 
 class EventDecoder_Dat(EventDecoder):
-    """Decode Prophesee DAT files into ``EventArray`` chunks."""
+    """Decode Prophesee DAT files into ``EventArray`` chunks.
+    
+    Parameters
+    ----------
+    source
+        Byte source to read from.
+    chunk_size
+        Maximum number of events produced per :meth:`read_chunk` call (the
+        native output-buffer capacity). Does not bound the file size.
+
+    References
+    ----------
+    [1] Prophesee DAT file format
+        https://docs.prophesee.ai/stable/data/file_formats/dat.html
+    """
 
     def __init__(self, source: ByteSource, chunk_size: int = 1_000_000):
         super().__init__(source, chunk_size)
@@ -152,18 +166,36 @@ class EventDecoder_Dat(EventDecoder):
 
 
 class EventEncoder_Dat(EventEncoder):
-    """Encode events into a Prophesee DAT (.dat) CD file."""
+    """Encode events into a Prophesee DAT (.dat) CD file.
+
+    Parameters
+    ----------
+    writable
+        Destination stream to write to.
+    width, height : int
+        Frame geometry written into the header.
+    dt : datetime, optional
+        Recording timestamp (defaults to now).
+    version : int
+        DAT version (defaults to 2).
+
+    References
+    ----------
+    [1] Prophesee DAT file format
+        https://docs.prophesee.ai/stable/data/file_formats/dat.html
+    """
 
     def __init__(self, writable, width: int = 1280, height: int = 720,
-                 dt: datetime | None = None):
+                 dt: datetime | None = None, version: int = 2):
         super().__init__(writable, width, height, dt)
+        self._version = version
 
     def init(self):
         if self._is_initialized:
             return
         header = (
             "% Data file containing CD events.\n"
-            "% Version 2\n"
+            f"% Version {self._version}\n"
             f"% Date {self._dt.strftime('%Y-%m-%d %H:%M:%S')}\n"
             f"% Height {self._height}\n"
             f"% Width {self._width}\n"

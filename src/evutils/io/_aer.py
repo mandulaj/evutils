@@ -25,7 +25,24 @@ _EMPTY_EVENTS = EventArray.empty()
 
 
 class EventDecoder_AER(EventDecoder):
-    """Decode raw AER streams into ``EventArray`` chunks (t is always 0)."""
+    """Decode raw AER streams into ``EventArray`` chunks. Since AER is designed
+    for real-time streaming, it has no header and no timestamps. The decoder will
+    return events with ``t = 0``.
+
+    Parameters
+    ----------
+    source
+        Byte source to read from.
+    chunk_size
+        Maximum number of events produced per :meth:`read_chunk` call (the
+        native output-buffer capacity). Does not bound the file size.
+
+    References
+    ----------
+    [1] Prophesee AER format: https://docs.prophesee.ai/stable/data/encoding_formats/aer.html
+    
+    
+    """
 
     def __init__(self, source: ByteSource, chunk_size: int = 1_000_000):
         super().__init__(source, chunk_size)
@@ -98,11 +115,28 @@ class EventDecoder_AER(EventDecoder):
 
 
 class EventEncoder_AER(EventEncoder):
-    """Encode events into a raw AER stream.
-
+    """Encode events into a raw AER stream. Since AER is designed for real-time 
+    streaming, it has no header and no timestamps.
     Timestamps are dropped and coordinates are masked to 9 bits (values >= 512
     are truncated), per the AER encoding.
+    
+    Parameters
+    ----------
+    writable
+        Destination stream to write to.
+    width, height : int
+        Frame geometry written into the header.
+    dt : datetime, optional
+        No effect, since AER has no timestamps.
+
+    References
+    ----------
+    [1] Prophesee AER format: https://docs.prophesee.ai/stable/data/encoding_formats/aer.html
+    
+    
     """
+
+    
 
     def __init__(self, writable, width: int = 512, height: int = 512, dt=None):
         super().__init__(writable, width, height, dt)
