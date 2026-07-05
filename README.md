@@ -13,6 +13,7 @@ This project draws inspiration from several excellent libraries in the event-bas
 * [Tonic](https://github.com/neuromorphs/tonic)
 * [event_utils](https://github.com/TimoStoff/event_utils)
 * [evlib](https://github.com/tallamjr/evlib)
+* [expelliarmus](https://github.com/open-neuromorphic/expelliarmus)
 * [openeb](https://github.com/prophesee-ai/openeb)
 
 

@@ -16,30 +16,19 @@ requires-python = ">=3.10"
 dependencies = [
     "numpy>=2.0.0",
     "opencv-python>=4.2",
-    "numba>=0.57",
-    "pandas>=2.3.3",
 ]
 keywords = ["events", "dvs", "neuromorphic", "vision", "event-based"]
 
 [project.optional-dependencies]
-torch = [
-    "torch>=2.0"
-]
+# Feature toggles
+pandas = ["pandas>=2.3.3"]
+numba = ["numba>=0.57"]
+torch = ["torch>=2.0"]
+hdf5 = ["hdf5plugin==6.0.0", "h5py==3.16.0"]
+vis = ["matplotlib>=3.1", "scipy>=1.15.3", "tqdm>=4.41"] # Renamed for simplicity
 
-vis_extra = [
-    "matplotlib>=3.1",
-    "scipy>=1.15.3",
-    "tqdm>=4.41",
-]
-
-hdf5 = [
-    "hdf5plugin==6.0.0", 
-    "h5py==3.16.0"
-]
-
-test = [
-    "pytest>=9.0.2",
-]
+# Ecosystem
+test = ["pytest>=9.0.2"]
 docs = [
     "sphinx>=8.0.0",
     "sphinx-autoapi>=3.6.1",
@@ -49,9 +38,10 @@ docs = [
     "pydata_sphinx_theme>=0.19.0",
     "myst-parser>=4.0.0",
 ]
-dev = [
-    "evutils[torch,hdf5,test,docs,vis_extra]",
-]
+
+# Meta-groups
+all = ["evutils[pandas,numba,torch,hdf5,vis]"]
+dev = ["evutils[all,test,docs]"]
 
 
 [project.urls]
