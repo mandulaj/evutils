@@ -20,10 +20,15 @@ recordings to the pytest cache on first use.
 
 | file | what it benchmarks |
 |------|--------------------|
-| `test_read.py`    | evutils decode throughput (evt2/evt21/evt3), asserts count vs reference |
-| `test_write.py`   | evutils encode throughput (payload = first 5M events of the real evt3 file) |
-| `test_compare.py` | third-party readers from `readers.py` (auto-skip if not installed) |
-| `readers.py`      | adapter registry — one entry per external library |
+| `test_read.py`          | evutils decode throughput (evt2/evt21/evt3), asserts count vs reference |
+| `test_write.py`         | evutils encode throughput (payload = first 5M events of the real evt3 file) |
+| `test_fixed_formats.py` | evutils read/write for DAT and AER (+ expelliarmus on DAT read) |
+| `test_compare.py`       | third-party readers from `readers.py` (auto-skip if not installed) |
+| `readers.py`            | adapter registry — one entry per external library |
+
+DAT reuses the shared EVT3 reference events (its 14-bit coords fit 1280×720).
+AER is 9-bit / timestamp-less (GenX320-class), so it uses a separate small
+synthetic fixture.
 
 ## Comparing against other libraries
 

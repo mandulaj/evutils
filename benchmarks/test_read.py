@@ -20,13 +20,10 @@ FORMATS = ["evt3", "evt2", "evt21"]
 def test_read_evutils(benchmark, real_event_files, fmt):
     ef = real_event_files[fmt]
 
-    def read_all():
-        n = 0
-        for chunk in EventReader(ef.path, n_events=5_000_000):
-            n += len(chunk)
-        return n
+    def decode():
+        return len(EventReader(ef.path).read_all())
 
-    n = benchmark.pedantic(read_all, rounds=3, iterations=1, warmup_rounds=1)
+    n = benchmark.pedantic(decode, rounds=3, iterations=1, warmup_rounds=1)
 
     # Sanity: the benchmarked path decodes the expected number of events.
     assert n == ef.count

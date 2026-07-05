@@ -179,8 +179,10 @@ class EventReader():
 
         self._is_initialized = False
 
-        # Internal buffer - must be initialized in the init method
-        self._buffer = EventRingBuffer(2 * max_events)
+        # Slicing ring buffer, allocated lazily on first read() so that the
+        # read_all() fast path never pays for it.
+        self._buffer: EventRingBuffer | None = None
+        self._ring_capacity = 2 * max_events
         self._last_end_idx = 0
 
         self._n_read_events = 0 # Number of events read (not includeing events stored in buffer)
@@ -217,7 +219,9 @@ class EventReader():
         if not self._is_initialized:
             self.init()
 
-            
+        # Allocate the slicing ring buffer on first use.
+        if self._buffer is None:
+            self._buffer = EventRingBuffer(self._ring_capacity)
 
         # Override the parameters if they are specified
         if delta_t is None:
@@ -289,10 +293,60 @@ class EventReader():
             output.t -= self._first_ts - self._start_ts
         return output
 
+    def read_all(self) -> EventArray:
+        '''
+        Decode and return every remaining event at once.
+
+        This is a fast path for when you want the whole recording: it streams
+        chunks straight from the decoder and concatenates them, bypassing the
+        slicing ring buffer (and its allocation/copies) that :meth:`read` uses
+        for ``delta_t``/``n_events`` windowing. Roughly 2x faster than draining
+        the reader with :meth:`read` / iteration.
+
+        Returns
+        -------
+        EventArray
+            All remaining events.
+        '''
+        if not self._is_initialized:
+            self.init()
+
+        chunks = []
+        # Include anything already buffered by prior read() calls.
+        if self._buffer is not None and len(self._buffer) > 0:
+            chunks.append(self._buffer[:].copy())
+            self._buffer.reset()
+
+        while True:
+            chunk = self._file_decoder.read_chunk()
+            if len(chunk) == 0:
+                break
+            chunks.append(chunk)
+
+        self._eof = True
+
+        if not chunks:
+            return EventArray.empty()
+
+        out = EventArray(
+            np.concatenate([c.t for c in chunks]),
+            np.concatenate([c.x for c in chunks]),
+            np.concatenate([c.y for c in chunks]),
+            np.concatenate([c.p for c in chunks]),
+        )
+        self._n_read_events += len(out)
+
+        if self._normalize_ts and len(out) > 0:
+            out.t -= int(out.t[0]) - self._start_ts
+
+        return out
+
     def reset(self):
         '''Reset file reader back to the beginning of the file'''
         self._n_read_events = 0
-        self._buffer.reset()
+        self._eof = False
+        if self._buffer is not None:
+            self._buffer.reset()
         self._file_decoder.reset()
 
     def __enter__(self):
@@ -309,7 +363,7 @@ class EventReader():
 
         '''
 
-        return self._eof and len(self._buffer) == 0
+        return self._eof and (self._buffer is None or len(self._buffer) == 0)
 
     def close(self):
         '''

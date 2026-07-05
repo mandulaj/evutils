@@ -137,6 +137,14 @@ class Evt21InputBuffer(Structure):
     _fields_ = [("begin", POINTER(c_uint64)), ("end", POINTER(c_uint64))]
 
 
+class DatInputBuffer(Structure):
+    _fields_ = [("begin", POINTER(c_uint32)), ("end", POINTER(c_uint32))]
+
+
+class AerInputBuffer(Structure):
+    _fields_ = [("begin", POINTER(c_uint32)), ("end", POINTER(c_uint32))]
+
+
 
 EVUTILS_PARSE_OK = 0
 EVUTILS_PARSE_INPUT_EMPTY = 1
@@ -244,6 +252,27 @@ def _bind(handle: ctypes.CDLL) -> ctypes.CDLL:
             POINTER(TriggerBufferSOA),
         ]
         handle.EVT21_parse_chunk_soa.restype = ParserResult
+
+    if hasattr(handle, "DAT_state_size"):
+        handle.DAT_state_size.argtypes = []
+        handle.DAT_state_size.restype = c_size_t
+    if hasattr(handle, "DAT_parse_chunk_soa"):
+        handle.DAT_parse_chunk_soa.argtypes = [
+            c_void_p,                    # opaque dat_state_t*
+            POINTER(DatInputBuffer),
+            POINTER(EventBufferSOA),
+            POINTER(TriggerBufferSOA),
+        ]
+        handle.DAT_parse_chunk_soa.restype = ParserResult
+
+    if hasattr(handle, "AER_parse_chunk_soa"):
+        # AER is stateless: (input, events, triggers) -- no state pointer.
+        handle.AER_parse_chunk_soa.argtypes = [
+            POINTER(AerInputBuffer),
+            POINTER(EventBufferSOA),
+            POINTER(TriggerBufferSOA),
+        ]
+        handle.AER_parse_chunk_soa.restype = ParserResult
     return handle
  
  
@@ -475,6 +504,88 @@ class Evt21Parser:
                         triggers: TriggerSoABuffers) -> ParserResult:
         return lib().EVT21_parse_chunk_soa(
             self._state, byref(inp.c), byref(events.c), byref(triggers.c)
+        )
+
+    def __enter__(self):
+        return self
+
+
+# --------------------------------------------------------------------------- #
+# DAT (fixed 2x uint32 records) and AER (fixed uint32 records) bindings.
+# --------------------------------------------------------------------------- #
+class DatInput:
+    """Wraps a contiguous uint32 array (2 words per event) as a dat_input_buffer_t."""
+
+    __slots__ = ("arr", "c")
+
+    def __init__(self, words: np.ndarray):
+        if words.dtype != np.uint32 or not words.flags["C_CONTIGUOUS"]:
+            raise NativeError("DatInput needs a C-contiguous uint32 array")
+        self.arr = words
+        base = words.ctypes.data
+        self.c = DatInputBuffer()
+        self.c.begin = cast(base, POINTER(c_uint32))
+        self.c.end = cast(base + words.nbytes, POINTER(c_uint32))
+
+    def consumed(self, result: "ParserResult") -> int:
+        cur = cast(result.current, c_void_p).value or self.arr.ctypes.data
+        return (cur - self.arr.ctypes.data) // 4
+
+
+class AerInput:
+    """Wraps a contiguous uint32 array (1 word per event) as an aer_input_buffer_t."""
+
+    __slots__ = ("arr", "c")
+
+    def __init__(self, words: np.ndarray):
+        if words.dtype != np.uint32 or not words.flags["C_CONTIGUOUS"]:
+            raise NativeError("AerInput needs a C-contiguous uint32 array")
+        self.arr = words
+        base = words.ctypes.data
+        self.c = AerInputBuffer()
+        self.c.begin = cast(base, POINTER(c_uint32))
+        self.c.end = cast(base + words.nbytes, POINTER(c_uint32))
+
+    def consumed(self, result: "ParserResult") -> int:
+        cur = cast(result.current, c_void_p).value or self.arr.ctypes.data
+        return (cur - self.arr.ctypes.data) // 4
+
+
+class DatParser:
+    """Owns an opaque dat_state_t buffer (tracks 32-bit timestamp overflow)."""
+
+    __slots__ = ("_state", "_buf")
+
+    def __init__(self):
+        handle = lib()
+        self._buf = (c_char * int(handle.DAT_state_size()))()  # zero-initialised
+        self._state = cast(self._buf, c_void_p)
+
+    def reset(self) -> None:
+        ctypes.memset(self._buf, 0, len(self._buf))
+
+    def parse_chunk_soa(self, inp: DatInput, events: EventSoABuffers,
+                        triggers: TriggerSoABuffers) -> ParserResult:
+        return lib().DAT_parse_chunk_soa(
+            self._state, byref(inp.c), byref(events.c), byref(triggers.c)
+        )
+
+    def __enter__(self):
+        return self
+
+
+class AerParser:
+    """Stateless AER parser (no timestamps, no cross-chunk carry)."""
+
+    __slots__ = ()
+
+    def reset(self) -> None:
+        pass
+
+    def parse_chunk_soa(self, inp: AerInput, events: EventSoABuffers,
+                        triggers: TriggerSoABuffers) -> ParserResult:
+        return lib().AER_parse_chunk_soa(
+            byref(inp.c), byref(events.c), byref(triggers.c)
         )
 
     def __enter__(self):
