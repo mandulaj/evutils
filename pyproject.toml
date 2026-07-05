@@ -32,6 +32,14 @@ test = [
     "pytest>=9.0.2",
     "pytest-benchmark>=5.2.3",
 ]
+# Optional third-party readers used only by the comparison benchmarks. OpenEB's
+# `metavision_*` packages are not on PyPI (install from Prophesee, e.g. via the
+# Docker image in benchmarks/docker); the comparison benchmarks skip
+# automatically when a library is missing.
+compare = [
+    "expelliarmus>=1.1.0",
+    "evlib",
+]
 docs = [
     "sphinx>=8.0.0",
     "sphinx-autoapi>=3.6.1",
@@ -45,6 +53,12 @@ docs = [
 # Meta-groups
 all = ["evutils[pandas,numba,torch,hdf5,vis]"]
 dev = ["evutils[all,test,docs]"]
+
+
+[tool.pytest.ini_options]
+# Bare `pytest` runs only the correctness suite. Benchmarks are heavy and run
+# explicitly with `pytest benchmarks/`.
+testpaths = ["tests"]
 
 
 [project.urls]
