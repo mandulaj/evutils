@@ -124,26 +124,6 @@ uv run pytest benchmarks/ --benchmark-group-by=param:fmt    # compare libraries 
 
 The benchmarks download a real Prophesee recording on first use. Optional cross-library comparisons run automatically once the libraries are installed (`uv pip install -e ".[compare]"`); OpenEB/Metavision is compared via the Docker image in `benchmarks/docker/`. See [`benchmarks/README.md`](benchmarks/README.md) for details.
 
-Decode/encode throughput on a 12th Gen Intel Core i7-1280P (millions of events per second, higher is better):
-
-**Read** (full-file decode)
-
-| Format | evutils | expelliarmus | evlib |
-| ------ | ------: | -----------: | ----: |
-| EVT2   |      91 |          105 |     5 |
-| EVT2.1 |      72 |            – |     – |
-| EVT3   |      53 |           41 |     5 |
-
-**Write** (evutils; expelliarmus/evlib are read-only for these formats)
-
-| Format | evutils |
-| ------ | ------: |
-| EVT2   |     146 |
-| EVT2.1 |     110 |
-| EVT3   |      74 |
-
-(`–` = format not supported by that library.)
-
 
 ## Acknowledgements
 

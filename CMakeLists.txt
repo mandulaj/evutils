@@ -30,7 +30,7 @@ if(MSVC)
   target_compile_options(evutils_native PRIVATE /O2 /W3)
 else()
   target_compile_options(evutils_native PRIVATE
-      -O3 -Wall -Wextra
+      -O3 -march=native -Wall -Wextra
       $<$<CONFIG:Debug>:-O0 -g>)
 endif()
 
