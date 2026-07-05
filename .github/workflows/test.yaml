@@ -30,6 +30,6 @@ jobs:
       - name: Install Pytests and any other packages
         run: pip install pytest
       - name: Install package
-        run: pip install .
+        run: pip install ".[dev]"
       - name: Run Tests
         run: pytest -s -v
