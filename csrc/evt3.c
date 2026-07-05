@@ -58,7 +58,7 @@ uint16_t * EVT3_find_first_high_time(uint16_t *begin, uint16_t *end){
 
 
 
-
+/*
 #if defined(__x86_64__)
   #include <immintrin.h>
 #elif defined(__aarch64__)
@@ -124,7 +124,7 @@ static inline size_t EVT3_expand_simd(
     #error "no SIMD path for this target"
 #endif
 }
-
+*/
 
 
 // static inline const uint16_t * EVT3_parse_vector_12_12_8_soa(
