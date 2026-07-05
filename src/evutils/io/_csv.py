@@ -11,7 +11,7 @@ import pandas as pd
 from pandas._typing import CSVEngine
 from pandas.io.parsers import TextFileReader
 
-from ..types import Event_dtype
+from ..types import Event_dtype, EventArray
 from .common import EventDecoder, EventEncoder
 
 
@@ -119,17 +119,17 @@ class EventDecoder_Csv(EventDecoder):
         chunk_size = self._chunk_size
 
         try:
-            buffer = self._chunk_reader.get_chunk(chunk_size)
-
-            buffer = np.array(buffer[['t', 'x', 'y', 'p']].to_records(index=False), dtype=Event_dtype)
+            df = self._chunk_reader.get_chunk(chunk_size)
+            events = EventArray(df['t'].to_numpy(), df['x'].to_numpy(),
+                                df['y'].to_numpy(), df['p'].to_numpy())
         except StopIteration:
-            buffer = np.array([], dtype=Event_dtype)
+            events = EventArray.empty()
 
         # Detect end of file
-        if len(buffer) < chunk_size:
+        if len(events) < chunk_size:
             self._eof = True
 
-        return buffer
+        return events
 
 
     def reset(self):

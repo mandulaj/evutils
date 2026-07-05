@@ -48,50 +48,19 @@ def is_monotonically_increasing(events: np.ndarray) -> bool:
 
 
 
-class Events(np.ndarray):
-    '''
-    Events
-    '''
-    def __new__(cls, input_array):
-        obj = np.asarray(input_array, dtype=Event_dtype).view(cls)
-        print("Creating Events" )
-        return obj
-
-    def __array_finalize__(self, obj):
-        if obj is None:
-            return
-        print("Finalizing Events")
-
-
-    def filter_by_time(self, start_time, end_time):
-        """Returns events within the specified time window"""
-        mask = (self['t'] >= start_time) & (self['t'] <= end_time)
-        return self[mask]
-
-    def is_monotonically_increasing(self):
-        return is_monotonically_increasing(self)
-
-
-
-class IndexedEvents(Events):
-    def __new__(cls, input_array):
-         # Use the __new__ method from Events
-         obj = super().__new__(cls, input_array)
-         return obj
-
-    def __init__(self, input_array):
-         super().__init__(input_array)
-         # Build internal index
-         self._build_internal_index()
-
-
-    def _build_internal_index(self):
-        self.index = np.argsort(self['t'])
-
-
-
 class EventArray:
-    """A container for storing event data in an array-of-structures format."""
+    """A container for storing event data in a struct-of-arrays (SoA) layout.
+
+    The four fields ``t``, ``x``, ``y`` and ``p`` are kept as separate
+    contiguous numpy arrays. This is the native layout of the C parser and
+    avoids the padding of the packed :data:`Event_dtype` struct.
+
+    Both attribute access (``events.t``) and key access (``events['t']``) return
+    the underlying column, so most code written for structured arrays keeps
+    working. ``np.asarray(events)`` yields the array-of-structures form (see
+    :meth:`__array__`), which lets EventArray flow into code that still expects
+    :data:`Event_dtype`.
+    """
     __slots__ = ['t', 'x', 'y', 'p']
     _aos_dtype = Event_dtype
 
@@ -100,16 +69,33 @@ class EventArray:
         self.x = np.asarray(x, dtype=np.uint16)
         self.y = np.asarray(y, dtype=np.uint16)
         self.p = np.asarray(p, dtype=np.uint8)
-      
+
     def __getitem__(self, key):
         if isinstance(key, str):
             return getattr(self, key)
-        
+
         return EventArray(self.t[key], self.x[key], self.y[key], self.p[key])
 
     def __len__(self):
         return len(self.t)
-    
+
+    def __repr__(self):
+        return f"EventArray(n={len(self)})"
+
+    def copy(self):
+        """Return a deep copy with independent column arrays."""
+        return EventArray(self.t.copy(), self.x.copy(), self.y.copy(), self.p.copy())
+
+    @classmethod
+    def empty(cls):
+        """Return an empty EventArray with correctly-typed (zero-length) columns."""
+        return cls(
+            np.empty(0, dtype=np.int64),
+            np.empty(0, dtype=np.uint16),
+            np.empty(0, dtype=np.uint16),
+            np.empty(0, dtype=np.uint8),
+        )
+
     @classmethod
     def from_aos(cls, aos_array):
         """Constructs an EventArray from an array of structures (AoS) numpy array."""
@@ -119,7 +105,7 @@ class EventArray:
             np.ascontiguousarray(aos_array['y']),
             np.ascontiguousarray(aos_array['p'])
         )
-            
+
     def to_aos(self):
         """Converts the EventArray to an array of structures (AoS) numpy array."""
         aos_array = np.empty(len(self), dtype=self._aos_dtype)
@@ -128,3 +114,14 @@ class EventArray:
         aos_array['y'] = self.y
         aos_array['p'] = self.p
         return aos_array
+
+    def __array__(self, dtype=None, copy=None):
+        """numpy interop: ``np.asarray(events)`` returns the AoS structured array.
+
+        This is the automatic SoA->AoS bridge for code (and tests) that still
+        operate on :data:`Event_dtype` arrays.
+        """
+        aos = self.to_aos()
+        if dtype is not None:
+            return aos.astype(dtype)
+        return aos

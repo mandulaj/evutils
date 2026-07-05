@@ -18,13 +18,15 @@ Only EVT3 is wired to the native parser today; EVT2/EVT2.1 raise
 """
 from __future__ import annotations
 
+import io
 from datetime import datetime
 from typing import List
 
+import numba as nb
 import numpy as np
 
-from ..types import Event_dtype, Trigger_dtype
-from .common import EventDecoder
+from ..types import Event_dtype, EventArray, Trigger_dtype
+from .common import EventDecoder, EventEncoder
 from ._native_evt import (
     EVUTILS_PARSE_ERROR,
     EventSoABuffers,
@@ -34,7 +36,7 @@ from ._native_evt import (
 )
 from ._source import ByteSource
 
-_EMPTY_EVENTS = np.empty(0, dtype=Event_dtype)
+_EMPTY_EVENTS = EventArray.empty()
 
 
 class EventDecoder_EVT(EventDecoder):
@@ -134,9 +136,9 @@ class EventDecoder_EVT(EventDecoder):
         if isinstance(fmt, str):
             for s in fmt.split(";"):
                 if s.startswith("height"):
-                    self.height = int(s.split("=")[1])
+                    self._height = int(s.split("=")[1])
                 elif s.startswith("width"):
-                    self.width = int(s.split("=")[1])
+                    self._width = int(s.split("=")[1])
                 else:
                     s = s.lower().replace(".", "")
                     if s in self.FORMATS:
@@ -146,8 +148,8 @@ class EventDecoder_EVT(EventDecoder):
         if isinstance(geom, str):
             parts = geom.split("x")
             if len(parts) == 2:
-                self.width = int(parts[0])
-                self.height = int(parts[1])
+                self._width = int(parts[0])
+                self._height = int(parts[1])
 
         evt = self._header.get("evt")
         if evt in self.EVT_FORMATS:
@@ -156,13 +158,13 @@ class EventDecoder_EVT(EventDecoder):
         if self._format is None:
             self._format = "evt3"  # sensible default for Prophesee RAW
 
-        if self.width is None or self.height is None:
+        if self._width is None or self._height is None:
             if self._header.get("sensor_name") == "IMX636":
-                self.width, self.height = 1280, 720
-        if self.width is None or not (0 < self.width <= 2048):
-            self.width = 2048
-        if self.height is None or not (0 < self.height <= 2048):
-            self.height = 2048
+                self._width, self._height = 1280, 720
+        if self._width is None or not (0 < self._width <= 2048):
+            self._width = 2048
+        if self._height is None or not (0 < self._height <= 2048):
+            self._height = 2048
 
     # ------------------------------------------------------------------ #
     # Lifecycle
@@ -246,9 +248,9 @@ class EventDecoder_EVT(EventDecoder):
         if n == 0:
             return _EMPTY_EVENTS
         t, x, y, p = ev.view()
-        out = np.empty(n, dtype=Event_dtype)
-        out["t"], out["x"], out["y"], out["p"] = t, x, y, p
-        return out
+        # The SoA view aliases reusable native buffers; .copy() makes the
+        # returned EventArray independent (and converts t uint64 -> int64).
+        return EventArray(t, x, y, p).copy()
 
     _TAIL_PAD = 8  # >= parser look-ahead padding (EVT3_INPUT_PADDING)
 
@@ -268,7 +270,7 @@ class EventDecoder_EVT(EventDecoder):
 
     def reset(self) -> None:
         self._offset = 0
-        self.eof = False
+        self._eof = False
         if self._parser is not None:
             self._parser.reset()
 
@@ -280,3 +282,174 @@ class EventDecoder_EVT(EventDecoder):
         # can be closed without BufferError.
         self._words = None
         self._buf = None
+
+
+# --------------------------------------------------------------------------- #
+# Encoder (EVT3 writer)
+#
+# The writer is still the numba EVT3 encoder (there is no native encoder yet).
+# It lives here with the format module now that _raw.py is gone.
+# --------------------------------------------------------------------------- #
+EVT3_EVT_ADDR_Y = 0x0000
+EVT3_EVT_ADDR_X = 0x2000
+EVT3_VECT_BASE_X = 0x3000
+EVT3_VECT_12 = 0x4000
+EVT3_VECT_8 = 0x5000
+EVT3_EVT_TIME_LOW = 0x6000
+EVT3_CONTINUED_4 = 0x7000
+EVT3_EVT_TIME_HIGH = 0x8000
+EVT3_EXT_TRIGGER = 0xA000
+EVT3_OTHERS = 0xE000
+EVT3_CONTINUED_12 = 0xF000
+
+
+@nb.njit
+def get_raw_evt3_buffer(events: np.ndarray, last_lower12_ts: int, last_upper12_ts: int, last_y: int, master=True):
+    # Pre-allocate large buffer
+    buffer = np.zeros(len(events) * 8, dtype=np.uint8)
+
+    # Prepare the master/slave bit
+    if master:
+        master_slave = 0x000
+    else:
+        master_slave = 0x800
+
+    # Current position of the buffer
+    i = 0
+
+    for ev in events:
+        upper12_ts = (int(ev['t']) & 0x0FFF000) >> 12
+        lower12_ts = int(ev['t']) & 0x00000FFF
+
+        # EVT_TIME_HIGH - Updates the higher 12-bit portion of the 24-bit time base
+        if upper12_ts != last_upper12_ts:
+            last_upper12_ts = upper12_ts
+            value = EVT3_EVT_TIME_HIGH | (upper12_ts & 0xFFF)
+
+            buffer[i] = value & 0xFF
+            buffer[i + 1] = (value >> 8) & 0xFF
+            i += 2
+
+        # EVT_TIME_LOW - Updates the lower 12-bit portion of the 24-bit time base
+        if lower12_ts != last_lower12_ts:
+            last_lower12_ts = lower12_ts
+            value = EVT3_EVT_TIME_LOW | (lower12_ts & 0xFFF)
+
+            buffer[i] = value & 0xFF
+            buffer[i + 1] = (value >> 8) & 0xFF
+            i += 2
+
+        # EVT_ADDR_Y - Y coordinate, and system type (master/slave camera)
+        if last_y != ev['y']:
+            last_y = ev['y']
+            value = (EVT3_EVT_ADDR_Y | master_slave | (int(ev['y']) & 0x7FF))
+
+            buffer[i] = value & 0xFF
+            buffer[i + 1] = (value >> 8) & 0xFF
+            i += 2
+
+        # EVT_ADDR_X - Single valid event, X coordinate and polarity
+        value = EVT3_EVT_ADDR_X | (int(ev['x']) & 0x7FF) | ((int(ev['p']) & 0x01) << 11)
+
+        buffer[i] = value & 0xFF
+        buffer[i + 1] = (value >> 8) & 0xFF
+        i += 2
+
+    return buffer[:i], last_lower12_ts, last_upper12_ts, last_y
+
+
+class EventEncoder_EVT(EventEncoder):
+    '''
+    Encoder for Prophesee RAW/EVT files.
+
+    Parameters
+    ----------
+    writable
+        Destination stream to write to.
+    width, height : int
+        Frame geometry written into the header.
+    dt : datetime, optional
+        Recording timestamp (defaults to now).
+    serial : str
+        Camera serial number written into the header.
+    format : {"evt3", "evt21", "evt2"}
+        Output format. Only EVT3 is implemented.
+
+    Notes
+    -----
+    The encoder currently supports EVT3 only; EVT2/EVT2.1 raise
+    ``NotImplementedError``.
+
+    References
+    ----------
+    [1] Prophesee RAW file format
+        https://docs.prophesee.ai/stable/data/file_formats/raw.html
+    '''
+    FORMATS = {"evt3": "evt 3.0", "evt21": "evt 2.1", "evt2": "evt 2"}
+
+    def __init__(self, writable: io.BufferedWriter, width: int = 1280, height: int = 720,
+                 dt: datetime | None = None, serial: str = "00000000", format: str = "evt3"):
+        super().__init__(writable, width, height, dt)
+
+        format = format.lower().replace(".", "")
+        if format not in EventEncoder_EVT.FORMATS.keys():
+            raise ValueError(f"Unsupported format {format}. Supported formats are {list(EventEncoder_EVT.FORMATS.keys())}")
+        self._format = format
+
+        self._system_id = 49
+
+        self._last_upper12_ts = -1
+        self._last_lower12_ts = -1
+        self._last_y = -1
+
+        self._serial_number = serial
+
+        self._formatted_datetime = self._dt.strftime("%Y-%m-%d %H:%M:%S")
+
+    def init(self):
+        if self._is_initialized:
+            return
+
+        self._fd.write(
+f"""% camera_integrator_name Prophesee
+% date {self._formatted_datetime}
+% {self.FORMATS[self._format]}
+% format {self._format};height={self._height};width={self._width}
+% generation 4.2
+% geometry {self._width}x{self._height}
+% integrator_name Prophesee
+% plugin_integrator_name Prophesee
+% plugin_name hal_plugin_prophesee
+% sensor_generation 4.2
+% serial_number {self._serial_number}
+% system_ID {self._system_id}
+% end
+""".encode('utf-8'))
+        self._is_initialized = True
+
+    def write(self, events: np.ndarray) -> int:
+        assert self._fd is not None
+
+        if not self._is_initialized:
+            self.init()
+
+        # Accept EventArray transparently (SoA -> AoS for the numba encoder).
+        if isinstance(events, EventArray):
+            events = events.to_aos()
+
+        if self._format == "evt3":
+            buffer, self._last_lower12_ts, self._last_upper12_ts, self._last_y = get_raw_evt3_buffer(
+                events,
+                self._last_lower12_ts,
+                self._last_upper12_ts,
+                self._last_y)
+        else:
+            raise NotImplementedError(
+                f"format {self._format!r} not implemented (EVT3 only)"
+            )
+
+        self._n_written_events += len(events)
+
+        buffer.tofile(self._fd)
+
+        return len(events)

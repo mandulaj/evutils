@@ -28,8 +28,10 @@ _WRITER_MAPPING[".hdf5"] = EventEncoder_HDF5
 from ._npz import EventEncoder_Npz
 _WRITER_MAPPING[".npz"] = EventEncoder_Npz
 
-from ._raw import EventEncoder_RAW
-_WRITER_MAPPING[".raw"] = EventEncoder_RAW
+from ._evt import EventEncoder_EVT
+_WRITER_MAPPING[".raw"] = EventEncoder_EVT
+_WRITER_MAPPING[".evt"] = EventEncoder_EVT
+_WRITER_MAPPING[".evt3"] = EventEncoder_EVT
 
 from ._aer import EventEncoder_AER
 _WRITER_MAPPING[".aer"] = EventEncoder_AER
@@ -38,17 +40,17 @@ _WRITER_MAPPING[".aer"] = EventEncoder_AER
 
 def get_file_writer(file: Path) -> Type[EventEncoder]:
     '''
-    Get the appropriate reader for the given file
+    Get the appropriate writer for the given file
 
     Parameters
     ----------
     file
-        File to read
+        File to write
 
     Returns
     -------
-    EventFileReader
-        Reader object for the file
+    EventFileWriter
+        Writer object for the file
     '''
 
 
@@ -63,4 +65,4 @@ def get_file_writer(file: Path) -> Type[EventEncoder]:
 
 
 
-__all__ = ["EventEncoder", "EventEncoder_Aedat", "EventEncoder_Bin", "EventEncoder_Csv", "EventEncoder_Dat", "EventEncoder_HDF5", "EventEncoder_Npz", "EventEncoder_RAW", "EventEncoder_AER", "get_file_writer"]
+__all__ = ["EventEncoder", "EventEncoder_Aedat", "EventEncoder_Bin", "EventEncoder_Csv", "EventEncoder_Dat", "EventEncoder_HDF5", "EventEncoder_Npz", "EventEncoder_EVT", "EventEncoder_AER", "get_file_writer"]
