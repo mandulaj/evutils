@@ -1,57 +1,69 @@
 # Benchmarks
 
-Read/write throughput benchmarks for the native EVT2 / EVT2.1 / EVT3 codecs,
-plus optional comparisons against other event libraries.
+Read/write throughput benchmarks for the native EVT2 / EVT2.1 / EVT3 codecs, plus optional comparisons against other event libraries.
 
-They are **not** part of the normal test run (`testpaths = ["tests"]`); run them
-explicitly:
+These benchmarks are **not** part of the normal test run (which uses `testpaths = ["tests"]`). They must be executed explicitly from the repository root.
 
+## Quick Start
+
+Run the default suite (evutils only, plus any installed comparison libraries):
 ```bash
-pytest benchmarks/                       # evutils only (+ any installed compare libs)
+pytest benchmarks/
+```
+
+Run specific benchmarks:
+```bash
 pytest benchmarks/test_read.py           # just reads
 pytest benchmarks/test_write.py          # just writes
 ```
 
-Fixtures (`test_events`, `real_event_files`) are shared with the test suite from
-the repo-root `conftest.py`. `real_event_files` downloads the reference
-recordings to the pytest cache on first use.
+## Benchmark Options
 
-## Files
+### Datasets
+You can benchmark against two datasets using the `--dataset` flag. The necessary files are automatically downloaded and cached on first use.
+- `--dataset small` (default): A ~1GB memory footprint dataset (hand recordings).
+- `--dataset large`: A massive multi-GB dataset designed to test the streaming and chunking capabilities of the decoders.
 
-| file | what it benchmarks |
+```bash
+pytest benchmarks/ --dataset large
+```
+
+### Filtering Readers
+The benchmark tests are fully parametrized by the reader name. You can effortlessly exclude specific third-party libraries using pytest's standard `-k` flag (for example, if they are slow or misbehaving on large datasets):
+
+```bash
+pytest benchmarks/ -k "not evlib" --dataset large
+pytest benchmarks/ -k "not evlib and not openeb"
+```
+
+## File Structure
+
+| File | What it benchmarks |
 |------|--------------------|
-| `test_read.py`          | evutils decode throughput (evt2/evt21/evt3), asserts count vs reference |
-| `test_write.py`         | evutils encode throughput (payload = first 5M events of the real evt3 file) |
-| `test_fixed_formats.py` | evutils read/write for DAT and AER (+ expelliarmus on DAT read) |
+| `test_read.py`          | `evutils` decode throughput (evt2/evt21/evt3), asserts count vs reference |
+| `test_write.py`         | `evutils` encode throughput (payload = first 5M events of the real evt3 file) |
+| `test_fixed_formats.py` | `evutils` read/write for DAT and AER (+ expelliarmus on DAT read) |
 | `test_compare.py`       | third-party readers from `readers.py` (auto-skip if not installed) |
 | `readers.py`            | adapter registry — one entry per external library |
 
-DAT reuses the shared EVT3 reference events (its 14-bit coords fit 1280×720).
-AER is 9-bit / timestamp-less (GenX320-class), so it uses a separate small
-synthetic fixture.
+*Note: DAT reuses the shared EVT3 reference events (its 14-bit coords fit 1280×720). AER is 9-bit and timestamp-less (GenX320-class), so it uses a separate small synthetic fixture.*
 
-## Comparing against other libraries
+## Comparing Against Other Libraries
 
-Install the optional readers and run with grouping so every library lines up per
-format:
+Install the optional readers and run with grouping so every library lines up per format:
 
 ```bash
 pip install evutils[compare]      # expelliarmus, evlib
 pytest benchmarks/ --benchmark-group-by=param:fmt --benchmark-columns=mean,ops
 ```
 
-Each library reads inside a lazy import, so an uninstalled (or broken) library
-just **skips**. To add another library, append a `Reader(...)` to `readers.py`.
+Each library reads inside a lazy import. If a library is uninstalled or broken, its benchmarks simply **skip**. To add another library, append a `Reader(...)` entry to `readers.py`.
 
-> tonic is intentionally not included: it has no standalone EVT reader and reads
-> Prophesee data through `expelliarmus` internally, so it would just re-measure
-> expelliarmus (already benchmarked).
+> **Note**: `tonic` is intentionally not included. It has no standalone EVT reader and reads Prophesee data through `expelliarmus` internally, so benchmarking it would just re-measure `expelliarmus`.
 
 ## OpenEB / Metavision (via Docker)
 
-OpenEB isn't on PyPI and is painful to build locally, so there's an image that
-builds it once. Both commands run **from the repo root** (the build context must
-be the whole project so evutils is copied in):
+OpenEB isn't on PyPI and is painful to build locally, so there's an image that builds it once. Both commands must be run **from the repo root** (the build context must be the whole project so `evutils` is copied in):
 
 ```bash
 # Build the image (compiles OpenEB from source + installs evutils; slow, one-time)
@@ -61,20 +73,17 @@ docker build -t evutils-openeb -f benchmarks/docker/Dockerfile.openeb .
 docker run --rm evutils-openeb
 ```
 
-The container's default command is
-`pytest benchmarks/ --benchmark-group-by=param:fmt`, so you get evutils and
-OpenEB side by side per format.
+The container's default command is `pytest benchmarks/ --benchmark-group-by=param:fmt`, so you get `evutils` and OpenEB side by side per format.
 
-### Useful variations
+### Useful Variations
 
-Persist the downloaded recording across runs (otherwise `--rm` discards the
-pytest cache and it re-downloads every time):
+Persist the downloaded recording across runs (otherwise `--rm` discards the pytest cache and it re-downloads every time):
 
 ```bash
 docker run --rm -v evutils-cache:/work/.pytest_cache evutils-openeb
 ```
 
-Run only the OpenEB comparison (skip the evutils rows):
+Run only the OpenEB comparison (skip the `evutils` rows):
 
 ```bash
 docker run --rm evutils-openeb \
@@ -96,12 +105,6 @@ docker build -t evutils-openeb --build-arg OPENEB_VERSION=5.0.0 \
 
 ### Caveats
 
-- The image targets **OpenEB 5.x on Ubuntu 22.04**; OpenEB's apt dependencies
-  and install layout drift between releases, so the `apt-get`/`PYTHONPATH` lines
-  may need tweaking. The Dockerfile imports `metavision_core` at build time, so a
-  broken OpenEB install fails during `docker build` rather than silently skipping
-  at run time.
-- The first pass is slow: it compiles OpenEB (`-j$(nproc)`) and downloads the
-  reference recording on first run.
-- A repo-root `.dockerignore` keeps the build context small (excludes `.venv`,
-  `build/`, `.git`, `data/`, `*.raw`, ...).
+- The image targets **OpenEB 5.x on Ubuntu 22.04**; OpenEB's apt dependencies and install layout drift between releases, so the `apt-get`/`PYTHONPATH` lines may need tweaking. The Dockerfile imports `metavision_core` at build time, so a broken OpenEB install fails during `docker build` rather than silently skipping at run time.
+- The first pass is slow: it compiles OpenEB (`-j$(nproc)`) and downloads the reference recording on first run.
+- A repo-root `.dockerignore` keeps the build context small (excludes `.venv`, `build/`, `.git`, `data/`, `*.raw`, etc.).

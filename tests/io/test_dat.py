@@ -18,19 +18,27 @@ def test_DAT_writer(tmp_path, test_events):
 
 
 def test_DAT_matches_expelliarmus(tmp_path, test_events):
-    """Our DAT output must be readable byte-for-byte by the reference reader."""
+    """Our DAT output must be readable byte-for-byte by the reference reader,
+    and our EventReader must decode it exactly the same as the reference reader."""
     pytest.importorskip("expelliarmus")
     from expelliarmus import Wizard
 
-    from evutils.io import EventWriter
+    from evutils.io import EventWriter, EventReader
 
     p = tmp_path / "events.dat"
     with EventWriter(p) as writer:
         writer.write(test_events)
 
-    arr = Wizard(encoding="dat").read(str(p))
-    assert len(arr) == len(test_events)
-    assert np.array_equal(arr["t"], test_events["t"])
-    assert np.array_equal(arr["x"], test_events["x"])
-    assert np.array_equal(arr["y"], test_events["y"])
-    assert np.array_equal(arr["p"], test_events["p"])
+    # 1. Read with expelliarmus
+    exp_arr = Wizard(encoding="dat").read(str(p))
+    
+    # 2. Read with evutils
+    with EventReader(p) as reader:
+        evutils_arr = reader.read()
+
+    # Compare them directly
+    assert len(evutils_arr) == len(exp_arr)
+    assert np.array_equal(evutils_arr["t"], exp_arr["t"])
+    assert np.array_equal(evutils_arr["x"], exp_arr["x"])
+    assert np.array_equal(evutils_arr["y"], exp_arr["y"])
+    assert np.array_equal(evutils_arr["p"], exp_arr["p"])
