@@ -5,18 +5,17 @@ needed by the benchmarks. pytest only shares conftest fixtures *downward*, and
 ``benchmarks/`` is a sibling of ``tests/``, so those two fixtures are duplicated
 in ``benchmarks/conftest.py`` -- keep them in sync.
 """
-import subprocess
-from collections import namedtuple
+import sys
+from pathlib import Path
 
 import numpy as np
 import pytest
 
 from evutils.types import Event_dtype
 
-#: A real reference recording: its path plus the event count reported by the
-#: reference OpenEB implementation (implementations differ slightly, so counts
-#: are expected to be close but not necessarily identical).
-EventFile = namedtuple("EventFile", ["path", "count", "metadata"], defaults=[None])
+# Add tests dir to path to import conftest_utils
+sys.path.append(str(Path(__file__).parent))
+from conftest_utils import EventFile, download_and_extract_gdrive, load_event_files
 
 
 @pytest.fixture(scope='session')
@@ -42,7 +41,6 @@ def real_event_files(request):
     Returns ``{format: EventFile(path, count)}`` where ``count`` is the
     reference OpenEB event count.
     """
-    import json
     temp_dir = request.config.cache.mkdir("event_files")
 
     filenames = {
@@ -54,33 +52,7 @@ def real_event_files(request):
 
     for key, path in paths.items():
         if not path.exists():
-            # Download + extract the reference recordings on first use.
-            tar_url = "https://drive.usercontent.google.com/download?id=18LbJljYr5dqBmbrkm0EJs0EcddCqMKTv&confirm=t"
-            tar_file = temp_dir / "hand.tar.gz"
-            subprocess.run(["wget", str(tar_url), "-O", str(tar_file)])
-            subprocess.run(["tar", "zxv", "-C", str(temp_dir), "-f", str(tar_file)])
+            download_and_extract_gdrive("1uhOsWbp2o3CktsHrFkzGCNFbx0bQLsct", temp_dir, "hand.tar.zst")
             break
 
-    result = {}
-    json_files = list(temp_dir.glob("*.json"))
-    
-    if json_files:
-        for json_path in json_files:
-            with open(json_path) as f:
-                meta = json.load(f)
-                fmt = meta["format"]
-                path = temp_dir / meta["filename"]
-                if path.exists():
-                    result[fmt] = EventFile(path=path, count=meta["count"], metadata=meta)
-    else:
-        # Fallback to hardcoded counts if no JSON files found
-        event_counts = {
-            'evt3': 33494595,
-            'evt21': 8214341,
-            'evt2': 33494595,
-        }
-        for fmt, path in paths.items():
-            if path.exists():
-                result[fmt] = EventFile(path=path, count=event_counts[fmt], metadata=None)
-
-    return result
+    return load_event_files(temp_dir, paths)

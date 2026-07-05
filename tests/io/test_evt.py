@@ -36,95 +36,44 @@ def test_RAW_reader_import(dummy_file_factory):
 
 ### Test RAW writer
 
-def test_RAW_writer(tmp_path, test_events):
-    from evutils.io import EventWriter
-    from evutils.io import EventReader
+@pytest.mark.parametrize("fmt", [None, 'evt2', 'evt21', 'evt3'])
+def test_RAW_writer(tmp_path, test_events, fmt):
+    """Test that writing and reading RAW events yields identical results for supported formats."""
+    from evutils.io import EventWriter, EventReader
 
+    # Create in a subdirectory to test parent directory creation
     d = tmp_path / "sub"
-    d.mkdir()
-    p = d / "test.raw"
-    with EventWriter(p) as writer:
-        writer.write(test_events)
+    d.mkdir(exist_ok=True)
+    p = d / f"test_{fmt or 'default'}.raw"
     
-
-    # Check if the file is created
-    assert p.is_file()
-
-    # Check if the file is not empty
-    assert p.stat().st_size > 0
-
-    # Check if the file can be read
-    with EventReader(p) as reader:
-        events = reader.read()
-
-    assert np.array_equal(events, test_events)
-
-
-
-def test_RAW_writer_evt2(tmp_path, test_events):
-    from evutils.io import EventWriter, EventReader
-
-    p = tmp_path / "evt2.raw"
-    with EventWriter(p, format='evt2') as writer:
+    kwargs = {'format': fmt} if fmt is not None else {}
+    with EventWriter(p, **kwargs) as writer:
         writer.write(test_events)
 
-    assert p.is_file()
-    assert p.stat().st_size > 0
+    assert p.is_file(), "File was not created"
+    assert p.stat().st_size > 0, "Created file is empty"
 
     with EventReader(p) as reader:
         events = reader.read()
-    assert np.array_equal(events, test_events)
+
+    assert np.array_equal(events, test_events), "Read events do not match written events"
 
 
-def test_RAW_writer_evt21(tmp_path, test_events):
-    from evutils.io import EventWriter, EventReader
-
-    p = tmp_path / "evt21.raw"
-    with EventWriter(p, format='evt21') as writer:
-        writer.write(test_events)
-
-    assert p.is_file()
-    assert p.stat().st_size > 0
-
-    with EventReader(p) as reader:
-        events = reader.read()
-    assert np.array_equal(events, test_events)
-
-
-
-def test_RAW_writer_evt3(tmp_path, test_events):
-    from evutils.io import EventWriter
+@pytest.mark.parametrize("fmt", ['evt3', 'evt2', 'evt21'])
+def test_RAW_real_read(real_event_files, fmt):
+    """Test reading real raw files checks initialization state, shape, and timestamp monotonicity."""
     from evutils.io import EventReader
 
-    d = tmp_path / "sub"
-    d.mkdir()
-    p = d / "test.raw"
-    with EventWriter(p, format='evt3') as writer:
-        writer.write(test_events)
+    if fmt not in real_event_files or not real_event_files[fmt]:
+        pytest.skip(f"No files for format {fmt}")
 
-    # Check if the file is created
-    assert p.is_file()
-
-    # Check if the file is not empty
-    assert p.stat().st_size > 0
-
-    # Check if the file can be read
-    with EventReader(p) as reader:
-        events = reader.read()
-
-    assert np.array_equal(events, test_events)
-
-
-def test_RAW_real_read(real_event_files):
-    from evutils.io import EventReader
-
-    for format in ['evt3', 'evt2', 'evt21']:
-        with EventReader(real_event_files[format].path) as reader:
+    for ef in real_event_files[fmt]:
+        with EventReader(ef.path) as reader:
             assert reader._is_initialized == False
             events = reader.read()
             assert reader._is_initialized == True
 
-            assert reader.shape() == (1280, 720)
+            assert reader.shape() in [(1280, 720), (1220, 688)]
             assert len(events) > 0
 
             # Decoded events must be valid and time-ordered.
@@ -133,24 +82,50 @@ def test_RAW_real_read(real_event_files):
             assert bool(np.all(np.diff(events.t) >= 0))
 
 
-def test_RAW_real_count(real_event_files):
-    '''The reader's total event count should closely match the reference count
-    from the OpenEB implementation. The decoders differ slightly (e.g. edge
-    handling around the first/last time base), so we allow a small relative
-    tolerance instead of requiring an exact match.'''
+@pytest.mark.parametrize("fmt", ['evt3', 'evt2', 'evt21'])
+def test_RAW_metadata_match(real_event_files, fmt):
+    """The reader's total event count, polarity breakdown, and trigger counts
+    should match the reference ground truth from the JSON metadata.
+    """
     from evutils.io import EventReader
 
-    REL_TOL = 0.01  # 1%
+    if fmt not in real_event_files or not real_event_files[fmt]:
+        pytest.skip(f"No files for format {fmt}")
 
-    for format in ['evt3', 'evt2', 'evt21']:
-        ref = real_event_files[format].count
-        n = sum(len(e) for e in
-                EventReader(real_event_files[format].path, n_events=5_000_000))
-        diff = n - ref
-        assert abs(diff) <= REL_TOL * ref, (
-            f"{format}: reader returned {n:,} events, reference {ref:,} "
-            f"(diff {diff:+,}, {100 * diff / ref:+.3f}%)"
-        )
+    # Only test files that have JSON metadata attached
+    for ef in real_event_files[fmt]:
+        if not ef.metadata:
+            continue
+
+        meta = ef.metadata
+        n_events = n_pos = n_neg = n_tr_pos = n_tr_neg = 0
+        
+        with EventReader(ef.path, ext_trigger=True, chunk_size=5_000_000) as reader:
+            shape = list(reader.shape())
+            if shape != [None, None]:
+                assert shape == meta['resolution']
+            
+            for ev, tr in reader:
+                n_events += len(ev)
+                n_pos += np.count_nonzero(ev.p == 1)
+                n_neg += np.count_nonzero(ev.p == 0)
+                
+                if len(tr) > 0:
+                    n_tr_pos += np.count_nonzero(tr.p == 1)
+                    n_tr_neg += np.count_nonzero(tr.p == 0)
+
+        # Check exact counts
+        def check(name, actual, expected):
+            assert actual == expected, f"{fmt} ({ef.path.name}): {name} actual {actual} != expected {expected}"
+
+        check('total events', n_events, meta['count'])
+        check('positive events', n_pos, meta['pos_count'])
+        check('negative events', n_neg, meta['neg_count'])
+        
+        tr_meta = meta['external_triggers']
+        check('total triggers', n_tr_pos + n_tr_neg, tr_meta['total'])
+        check('positive triggers', n_tr_pos, tr_meta['positive'])
+        check('negative triggers', n_tr_neg, tr_meta['negative'])
 
 
 def test_EVT2_matches_EVT3(real_event_files):
@@ -158,9 +133,21 @@ def test_EVT2_matches_EVT3(real_event_files):
     yield identical events (timestamps equal up to a constant offset).'''
     from evutils.io import EventReader
 
-    def head(fmt, n=200_000):
+    def get_hand_path(fmt):
+        for ef in real_event_files[fmt]:
+            if 'hand' in ef.path.name:
+                return ef.path
+        return None
+
+    path2 = get_hand_path('evt2')
+    path3 = get_hand_path('evt3')
+
+    if path2 is None or path3 is None:
+        pytest.skip("Transcoded hand files not found")
+
+    def head(path, n=200_000):
         parts = []
-        with EventReader(real_event_files[fmt].path, n_events=100_000) as reader:
+        with EventReader(path, n_events=100_000) as reader:
             for e in reader:
                 parts.append(e)
                 if sum(len(p) for p in parts) >= n:
@@ -171,8 +158,8 @@ def test_EVT2_matches_EVT3(real_event_files):
         p_ = np.concatenate([p.p for p in parts])[:n]
         return t, x, y, p_
 
-    t2, x2, y2, p2 = head('evt2')
-    t3, x3, y3, p3 = head('evt3')
+    t2, x2, y2, p2 = head(path2)
+    t3, x3, y3, p3 = head(path3)
 
     assert np.array_equal(x2, x3)
     assert np.array_equal(y2, y3)
@@ -181,23 +168,33 @@ def test_EVT2_matches_EVT3(real_event_files):
     assert np.ptp(t3.astype(np.int64) - t2.astype(np.int64)) == 0
 
 
-def test_RAW_nevents_read(real_event_files):
+@pytest.mark.parametrize("fmt", ['evt3', 'evt2', 'evt21'])
+@pytest.mark.parametrize("length", [10, 100, 1000])
+def test_RAW_nevents_read(real_event_files, fmt, length):
+    """Test reading a specific number of events."""
     from evutils.io import EventReader
 
-    for format in ['evt3', 'evt2', 'evt21']:
-        for length in [10, 100, 1000]:
-            with EventReader(real_event_files[format].path, n_events=length) as reader:
-                events = reader.read()
-                assert len(events) == length
+    if fmt not in real_event_files or not real_event_files[fmt]:
+        pytest.skip(f"No files for format {fmt}")
+
+    for ef in real_event_files[fmt]:
+        with EventReader(ef.path, n_events=length) as reader:
+            events = reader.read()
+            assert len(events) == length
 
 
-def test_RAW_delta_t_read(real_event_files):
+@pytest.mark.parametrize("fmt", ['evt3', 'evt2', 'evt21'])
+@pytest.mark.parametrize("delta_t", [100, 1000, 10000])
+def test_RAW_delta_t_read(real_event_files, fmt, delta_t):
+    """Test reading a specific time slice (delta_t) of events."""
     from evutils.io import EventReader
 
-    for format in ['evt3', 'evt2', 'evt21']:
-        for delta_t in [100, 1000, 10000]:
-            with EventReader(real_event_files[format].path, delta_t=delta_t) as reader:
-                events = reader.read()
-                assert len(events) > 0
-                # All events fall within the requested time window.
-                assert int(events.t.max()) - int(events.t.min()) <= delta_t
+    if fmt not in real_event_files or not real_event_files[fmt]:
+        pytest.skip(f"No files for format {fmt}")
+
+    for ef in real_event_files[fmt]:
+        with EventReader(ef.path, delta_t=delta_t) as reader:
+            events = reader.read()
+            assert len(events) > 0
+            # All events fall within the requested time window.
+            assert int(events.t.max()) - int(events.t.min()) <= delta_t

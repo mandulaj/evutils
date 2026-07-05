@@ -26,7 +26,9 @@ def test_read_compare(benchmark, benchmark_rounds, real_event_files, reader, fmt
         pytest.skip(f"{reader.name} does not support {fmt}")
 
     benchmark.group = f"read-{fmt}"
-    ef = real_event_files[fmt]
+    if fmt not in real_event_files or not real_event_files[fmt]:
+        pytest.skip(f"No files for format {fmt}")
+    ef = next((f for f in real_event_files[fmt] if 'hand' in f.path.name), real_event_files[fmt][0])
 
     try:
         n = benchmark.pedantic(

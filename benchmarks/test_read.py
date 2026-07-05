@@ -19,10 +19,16 @@ FORMATS = ["evt3", "evt2", "evt21"]
 @pytest.mark.parametrize("fmt", FORMATS)
 def test_read_evutils(benchmark, benchmark_rounds, real_event_files, fmt):
     benchmark.group = f"read-{fmt}"
-    ef = real_event_files[fmt]
+    if fmt not in real_event_files or not real_event_files[fmt]:
+        pytest.skip(f"No files for format {fmt}")
+    ef = next((f for f in real_event_files[fmt] if 'hand' in f.path.name), real_event_files[fmt][0])
 
     def decode():
-        return len(EventReader(ef.path).read_all())
+        total = 0
+        with EventReader(ef.path) as reader:
+            for chunk in reader:
+                total += len(chunk)
+        return total
 
     n = benchmark.pedantic(decode, rounds=benchmark_rounds, iterations=1, warmup_rounds=1)
 

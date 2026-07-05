@@ -42,7 +42,12 @@ def _count(obj) -> int:
 def _read_expelliarmus(path: str, fmt: str) -> int:
     # https://github.com/open-neuromorphic/expelliarmus  (evt2, evt3, dat)
     from expelliarmus import Wizard
-    return _count(Wizard(encoding=fmt).read(str(path)))
+    wiz = Wizard(encoding=fmt)
+    wiz.set_file(str(path))
+    total = 0
+    for chunk in wiz.read_chunk():
+        total += len(chunk)
+    return total
 
 
 # NOTE: tonic (https://github.com/neuromorphs/tonic) has no standalone EVT/.raw
@@ -53,11 +58,13 @@ def _read_expelliarmus(path: str, fmt: str) -> int:
 
 def _read_evlib(path: str, fmt: str) -> int:
     # https://github.com/tallamjr/evlib  (Rust-backed). Auto-detects the format;
-    # load_events() returns a polars LazyFrame, so collect() to force decoding.
+    # load_events() returns a polars LazyFrame. To avoid OOM on huge files,
+    # we use an aggregation (pl.len()) instead of collect() on the full frame.
     import evlib
+    import polars as pl
     df = evlib.load_events(str(path))
     if hasattr(df, "collect"):
-        df = df.collect()
+        return df.select(pl.len()).collect().item()
     return _count(df)
 
 

@@ -5,16 +5,16 @@ on purpose: pytest only shares conftest fixtures downward, and ``benchmarks/``
 is a sibling of ``tests/``, so there is no clean way to reuse them without a
 repo-root conftest. Keep the two copies in sync.
 """
-import subprocess
-from collections import namedtuple
+import sys
+from pathlib import Path
 
 import numpy as np
 import pytest
 
 from evutils.io import EventReader
 
-#: (see tests/conftest.py) path + reference OpenEB event count for a recording.
-EventFile = namedtuple("EventFile", ["path", "count", "metadata"], defaults=[None])
+sys.path.append(str(Path(__file__).parent.parent / "tests"))
+from conftest_utils import EventFile, download_and_extract_gdrive, load_event_files
 
 #: Cap on how many events are held in memory for the write benchmarks. Large
 #: enough for a stable throughput measurement, small enough to stay light.
@@ -22,53 +22,36 @@ N_REFERENCE = 5_000_000
 
 
 @pytest.fixture(scope='session')
-def real_event_files(request):
+def real_event_files(request, benchmark_dataset):
     """Real Prophesee recordings (downloaded + cached on first use).
 
-    Returns ``{format: EventFile(path, count)}``. Duplicated from
-    tests/conftest.py -- keep in sync.
+    Returns ``{format: [EventFile(path, count)]}``. 
     """
-    import json
-    temp_dir = request.config.cache.mkdir("event_files")
-
-    filenames = {
-        'evt3': "hand_evt3.raw",
-        'evt21': "hand_evt21.raw",
-        'evt2': "hand_evt2.raw",
-    }
-    paths = {fmt: temp_dir / name for fmt, name in filenames.items()}
-
-    for key, path in paths.items():
-        if not path.exists():
-            tar_url = "https://drive.usercontent.google.com/download?id=18LbJljYr5dqBmbrkm0EJs0EcddCqMKTv&confirm=t"
-            tar_file = temp_dir / "hand.tar.gz"
-            subprocess.run(["wget", str(tar_url), "-O", str(tar_file)])
-            subprocess.run(["tar", "zxv", "-C", str(temp_dir), "-f", str(tar_file)])
-            break
-
-    result = {}
-    json_files = list(temp_dir.glob("*.json"))
-    
-    if json_files:
-        for json_path in json_files:
-            with open(json_path) as f:
-                meta = json.load(f)
-                fmt = meta["format"]
-                path = temp_dir / meta["filename"]
-                if path.exists():
-                    result[fmt] = EventFile(path=path, count=meta["count"], metadata=meta)
+    if benchmark_dataset == "large":
+        temp_dir = request.config.cache.mkdir("event_files_huge")
+        file_id = "1QPuilR1VD0rKyhVOlu1Y-HtkO4ZBc2Cz"
+        
+        json_files = list(temp_dir.glob("*.json"))
+        if not json_files:
+            download_and_extract_gdrive(file_id, temp_dir, "huge.tar.zst")
+            
+        return load_event_files(temp_dir)
     else:
-        # Fallback to hardcoded counts if no JSON files found
-        event_counts = {
-            'evt3': 33494595,
-            'evt21': 8214341,
-            'evt2': 33494595,
+        temp_dir = request.config.cache.mkdir("event_files")
+        file_id = "1uhOsWbp2o3CktsHrFkzGCNFbx0bQLsct"
+        filenames = {
+            'evt3': "hand_evt3.raw",
+            'evt21': "hand_evt21.raw",
+            'evt2': "hand_evt2.raw",
         }
-        for fmt, path in paths.items():
-            if path.exists():
-                result[fmt] = EventFile(path=path, count=event_counts[fmt], metadata=None)
+        paths = {fmt: temp_dir / name for fmt, name in filenames.items()}
 
-    return result
+        for key, path in paths.items():
+            if not path.exists():
+                download_and_extract_gdrive(file_id, temp_dir, "hand.tar.zst")
+                break
+                
+        return load_event_files(temp_dir, paths)
 
 
 @pytest.fixture(scope='session')
@@ -80,7 +63,11 @@ def reference_events(real_event_files):
     """
     parts = []
     total = 0
-    with EventReader(real_event_files['evt3'].path, n_events=1_000_000) as reader:
+    if 'evt3' not in real_event_files or not real_event_files['evt3']:
+        pytest.skip("No evt3 files available for reference events")
+    # Use the hand_evt3.raw file for reference events
+    ef = next((f for f in real_event_files['evt3'] if 'hand' in f.path.name), real_event_files['evt3'][0])
+    with EventReader(ef.path, n_events=1_000_000) as reader:
         for chunk in reader:
             parts.append(chunk.to_aos())
             total += len(chunk)
@@ -93,7 +80,15 @@ def pytest_addoption(parser):
     parser.addoption(
         "--rounds", action="store", default=4, type=int, help="Number of benchmark rounds"
     )
+    parser.addoption(
+        "--dataset", action="store", default="small", choices=["small", "large"], 
+        help="Dataset size to use for benchmarks ('small' or 'large')"
+    )
 
 @pytest.fixture(scope="session")
 def benchmark_rounds(request):
     return request.config.getoption("--rounds")
+
+@pytest.fixture(scope="session")
+def benchmark_dataset(request):
+    return request.config.getoption("--dataset")
