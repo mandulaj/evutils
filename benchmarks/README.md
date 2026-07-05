@@ -65,16 +65,16 @@ Each library reads inside a lazy import. If a library is uninstalled or broken, 
 
 | Library | EVT2 | EVT21 | EVT3 |
 |---|---|---|---|
-| **evutils** | 0.334 s | 0.164 s | 0.899 s |
-| **evlib** | 4.075 s | N/A | 4.578 s |
-| **expelliarmus** | 0.115 s | N/A | 0.342 s |
+| **evutils** | 0.138 s | 0.070 s | 0.292 s |
+| **evlib** | 4.410 s | N/A | 4.327 s |
+| **expelliarmus** | 0.128 s | N/A | 0.341 s |
 
 ### Writing
 
 | Library | EVT2 | EVT21 | EVT3 |
 |---|---|---|---|
-| **evutils** | 0.016 s | 0.029 s | 0.045 s |
-| **expelliarmus** | 0.220 s | N/A | 0.161 s |
+| **evutils** | 0.013 s | 0.028 s | 0.041 s |
+| **expelliarmus** | 0.077 s | N/A | 0.097 s |
 
 **Hardware:** 12th Gen Intel(R) Core(TM) i7-1280P | **OS:** Linux 7.1.1-3-MANJARO | **Python:** 3.12.13
 
