@@ -2,34 +2,31 @@ name: Test
 
 on:
   push:
-    branches:
-      - main
-      - feature/*
-      - fix/*
+    branches: [main, feature/*, fix/*]
   pull_request:
-    branches:
-      - main
-      - feature/*
-      - fix/*
+    branches: [main, feature/*, fix/*]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python: ["3.10", "3.11", "3.12", "3.13", "3.14"]
 
     steps:
-      - uses: actions/checkout@v2
-      - name: Download submoduels
-        run: git submodule update --init --recursive
-      - name: Setup Python
-        uses: actions/setup-python@v2
+      - uses: actions/checkout@v4
         with:
+          submodules: recursive
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.2.0   # pin to a full version — see note below
+        with:
+          enable-cache: true
           python-version: ${{ matrix.python }}
-      - name: Install Pytests and any other packages
-        run: pip install pytest
-      - name: Install package
-        run: pip install ".[dev]"
-      - name: Run Tests
-        run: pytest -s -v
+
+      - name: Install the project
+        run: uv sync --extra dev
+
+      - name: Run tests
+        run: uv run pytest -s -v
