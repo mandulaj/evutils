@@ -10,7 +10,7 @@ import ctypes
 
 import numpy as np
 
-__all__ = ['Event_dtype', 'Trigger_dtype', 'Event', 'Events', 'IndexedEvents', 'EventArray', 'is_monotonically_increasing']
+__all__ = ['Event_dtype', 'Trigger_dtype', 'Event', 'Events', 'IndexedEvents', 'EventArray', 'TriggerArray', 'is_monotonically_increasing']
 
 
 #: A structured numpy dtype for event data.
@@ -121,6 +121,52 @@ class EventArray:
         This is the automatic SoA->AoS bridge for code (and tests) that still
         operate on :data:`Event_dtype` arrays.
         """
+        aos = self.to_aos()
+        if dtype is not None:
+            return aos.astype(dtype)
+        return aos
+
+
+class TriggerArray:
+    """A container for storing trigger data in a struct-of-arrays (SoA) layout."""
+    __slots__ = ['t', 'p', 'id']
+    _aos_dtype = Trigger_dtype
+
+    def __init__(self, t, p, id):
+        self.t = np.asarray(t, dtype=np.int64)
+        self.p = np.asarray(p, dtype=np.uint8)
+        self.id = np.asarray(id, dtype=np.uint8)
+
+    def __getitem__(self, key):
+        if isinstance(key, str):
+            return getattr(self, key)
+        return TriggerArray(self.t[key], self.p[key], self.id[key])
+
+    def __len__(self):
+        return len(self.t)
+
+    def __repr__(self):
+        return f"TriggerArray(n={len(self)})"
+
+    def copy(self):
+        return TriggerArray(self.t.copy(), self.p.copy(), self.id.copy())
+
+    @classmethod
+    def empty(cls):
+        return cls(
+            np.empty(0, dtype=np.int64),
+            np.empty(0, dtype=np.uint8),
+            np.empty(0, dtype=np.uint8),
+        )
+
+    def to_aos(self):
+        aos_array = np.empty(len(self), dtype=self._aos_dtype)
+        aos_array['t'] = self.t
+        aos_array['p'] = self.p
+        aos_array['id'] = self.id
+        return aos_array
+
+    def __array__(self, dtype=None, copy=None):
         aos = self.to_aos()
         if dtype is not None:
             return aos.astype(dtype)

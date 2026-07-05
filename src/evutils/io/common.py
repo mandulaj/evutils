@@ -28,7 +28,9 @@ class EventDecoder(ABC):
         If the method is not implemented in the subclass
 
     '''
-    def __init__(self, source, chunk_size:int = 10000):
+    SUPPORTS_EXT_TRIGGERS = False
+
+    def __init__(self, source, chunk_size:int = 10000, read_external_triggers: bool = False):
         # `source` is a ByteSource (see io/_source.py). `fd` is kept as a legacy
         # alias for older decoders that still reference it.
         self._source = source
@@ -42,6 +44,11 @@ class EventDecoder(ABC):
 
         self._width = None
         self._height = None
+
+        self.read_external_triggers = read_external_triggers
+        if self.read_external_triggers and not self.SUPPORTS_EXT_TRIGGERS:
+            import warnings
+            warnings.warn(f"{self.__class__.__name__} does not support reading external triggers.")
 
     @abstractmethod
     def init(self):

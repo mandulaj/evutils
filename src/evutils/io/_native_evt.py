@@ -38,7 +38,7 @@ from pathlib import Path
 
 import numpy as np
 
-from ..types import EventArray
+from ..types import EventArray, TriggerArray
 
 __all__ = [
     "NativeError", "lib",
@@ -47,6 +47,7 @@ __all__ = [
     "Evt3InputBuffer", "ParserResult",
     "SoABuffers", "TriggerSoABuffers", "Evt3Input", "Evt3Parser",
     "EVENT_DTYPE", "TRIGGER_DTYPE",
+    "events_view", "triggers_view",
     "EVT3_STATUS_OK", "EVT3_STATUS_INPUT_EXHAUSTED",
     "EVT3_STATUS_OUTPUT_FULL", "EVT3_STATUS_ERROR",
 ]
@@ -644,6 +645,14 @@ def events_view(ev: EventSoABuffers) -> EventArray:
     ring buffer)."""
     n = ev.size
     return EventArray(ev.t[:n].view(np.int64), ev.x[:n], ev.y[:n], ev.p[:n])
+
+
+def triggers_view(tr: TriggerSoABuffers) -> TriggerArray:
+    """Zero-copy :class:`TriggerArray` over the first ``tr.size`` decoded triggers.
+
+    Similar semantics to :func:`events_view`."""
+    n = tr.size
+    return TriggerArray(tr.t[:n].view(np.int64), tr.p[:n], tr.id[:n])
 
 
 # --------------------------------------------------------------------------- #

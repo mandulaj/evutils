@@ -42,6 +42,8 @@ class EventReader():
         Width of the frame, by default infered from the file
     height: int or None
         Height of the frame, by default infered from the file
+    ext_trigger: bool, default=False
+        Whether to read external trigger events, by default False
     file_decoder: ev_decoders.EventDecoder or type[ev_decoders.EventDecoder] or None, default=None
         File decoder to use, by default None - automatic
     **kwargs
@@ -71,11 +73,13 @@ class EventReader():
                  max_time:int=1_000_000_000_000,
                  max_events:int=10_000_000,
                  width:int | None=None, height:int | None=None,
+                 ext_trigger: bool=False,
                  file_decoder: ev_decoders.EventDecoder | type[ev_decoders.EventDecoder] | None = None,
                  **kwargs):
 
         # Remember the path (if any) for repr / reset semantics.
         self._file_name: Path | None = Path(file) if isinstance(file, (str, Path)) else None
+        self._read_external_triggers = ext_trigger
 
         # 1. Normalise the input into a ByteSource (path | stream | bytes |
         #    BytesIO | ByteSource -> ByteSource). Regular files are memory-mapped.
@@ -90,6 +94,11 @@ class EventReader():
             decoder_cls = file_decoder or ev_decoders.resolve_decoder_cls(self._source)
             self._file_decoder = decoder_cls(self._source, **kwargs)
 
+        self._file_decoder.read_external_triggers = self._read_external_triggers
+        if self._read_external_triggers and not getattr(self._file_decoder, 'SUPPORTS_EXT_TRIGGERS', False):
+            import warnings
+            warnings.warn(f"{self._file_decoder.__class__.__name__} does not support reading external triggers.")
+
         # This will now be io.BufferedReader
         self._eof = False
 
@@ -100,7 +109,6 @@ class EventReader():
         self._first_ts = 0 # First timestamp in the file, used for normalization
         self._current_ts = self._first_ts
         self._normalize_ts = normalize_ts # Normalize timestamps to start from zero
-
 
 
         # Validate the parameters
@@ -222,9 +230,13 @@ class EventReader():
                     return 0
                 # else: consumed only state/timing words; step again.
         chunk = dec.read_chunk(delta_t, n_events)
+        if isinstance(chunk, tuple):
+            chunk, triggers = chunk
+        else:
+            triggers = None
         if len(chunk) == 0:
             return 0
-        acc.append(chunk)
+        acc.append(chunk, triggers)
         return len(chunk)
 
     def read(self, delta_t:int|None=None, n_events:int|None=None) -> EventArray:
@@ -263,6 +275,9 @@ class EventReader():
         if self._n_read_events == 0 and len(acc) == 0:
             if self._pull(acc, delta_t, n_events) == 0:
                 self._eof = True
+                if self._read_external_triggers:
+                    from ..types import TriggerArray
+                    return EventArray.empty(), TriggerArray.empty()
                 return EventArray.empty()
             self._first_ts = int(acc.t_window()[0])
             self._current_ts = self._first_ts
@@ -271,6 +286,8 @@ class EventReader():
         end_ts: int = start_ts + delta_t  # Final end_ts if we reach delta_t
         end_idx: int = len(acc)
 
+        tr_end_idx: int = acc._tr.size - acc._tr_start
+
         # Gather events until we hit the n_events count, the delta_t time window,
         # or the end of the stream. Work directly on the SoA `t` column.
         while True:
@@ -278,6 +295,8 @@ class EventReader():
             if len(acc) > n_events:
                 end_idx = n_events
                 self._current_ts = int(acc.t_window()[n_events])
+                tr_t = acc.t_window_tr()
+                tr_end_idx = int(np.searchsorted(tr_t, self._current_ts, side='right'))
                 break
 
             # time (delta_t) cutoff
@@ -285,6 +304,8 @@ class EventReader():
             if len(t) > 0 and t[-1] > end_ts:
                 end_idx = int(np.searchsorted(t, end_ts))
                 self._current_ts += delta_t
+                tr_t = acc.t_window_tr()
+                tr_end_idx = int(np.searchsorted(tr_t, end_ts, side='right'))
                 break
 
             # Not enough buffered yet: pull more from the decoder.
@@ -292,16 +313,22 @@ class EventReader():
                 self._eof = True
                 # Neither cutoff met, so the whole remaining buffer is the slice.
                 end_idx = len(acc)
+                tr_end_idx = acc._tr.size - acc._tr_start
                 break
 
         # Copy out the window (independent) and advance past it.
-        output: EventArray = acc.slice_copy(end_idx)
+        output, output_tr = acc.slice_copy(end_idx, tr_end_idx)
         self._n_read_events += end_idx
 
         if self._normalize_ts:
             # Normalize the timestamps to start from zero at start_ts. slice_copy
             # already returned an independent array, so this is safe in place.
             output.t -= self._first_ts - self._start_ts
+            if len(output_tr) > 0:
+                output_tr.t -= self._first_ts - self._start_ts
+                
+        if self._read_external_triggers:
+            return output, output_tr
         return output
 
     def read_all(self) -> EventArray:
@@ -328,27 +355,48 @@ class EventReader():
             self.init()
 
         out = self._file_decoder.read_all()
+        if self._read_external_triggers:
+            if isinstance(out, tuple):
+                out, out_tr = out
+            else:
+                from ..types import TriggerArray
+                out_tr = TriggerArray.empty()
 
         # Prepend anything already buffered by prior read() calls (rare: only if
         # read() and read_all() are mixed on the same reader).
-        if self._buffer is not None and len(self._buffer) > 0:
-            buffered = self._buffer.slice_copy(len(self._buffer))
+        if self._buffer is not None and (len(self._buffer) > 0 or self._buffer._tr.size - self._buffer._tr_start > 0):
+            buffered, buffered_tr = self._buffer.slice_copy(len(self._buffer), self._buffer._tr.size - self._buffer._tr_start)
             if len(out) == 0:
                 out = buffered
-            else:
+            elif len(buffered) > 0:
                 out = EventArray(
                     np.concatenate([buffered.t, out.t]),
                     np.concatenate([buffered.x, out.x]),
                     np.concatenate([buffered.y, out.y]),
                     np.concatenate([buffered.p, out.p]),
                 )
+                
+            if self._read_external_triggers:
+                if len(out_tr) == 0:
+                    out_tr = buffered_tr
+                elif len(buffered_tr) > 0:
+                    from ..types import TriggerArray
+                    out_tr = TriggerArray(
+                        np.concatenate([buffered_tr.t, out_tr.t]),
+                        np.concatenate([buffered_tr.p, out_tr.p]),
+                        np.concatenate([buffered_tr.id, out_tr.id]),
+                    )
 
         self._eof = True
         self._n_read_events += len(out)
 
         if self._normalize_ts and len(out) > 0:
             out.t -= int(out.t[0]) - self._start_ts
+            if self._read_external_triggers and len(out_tr) > 0:
+                out_tr.t -= int(out.t[0]) - self._start_ts
 
+        if self._read_external_triggers:
+            return out, out_tr
         return out
 
     def reset(self):

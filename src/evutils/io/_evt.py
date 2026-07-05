@@ -40,6 +40,7 @@ from ._native_evt import (
     TriggerSoABuffers,
     decode_all_soa,
     events_view,
+    triggers_view,
     parse_step,
 )
 from ._source import ByteSource
@@ -75,9 +76,10 @@ class EventDecoder_EVT(EventDecoder):
     FORMATS = {"evt3": "evt 3.0", "evt21": "evt 2.1", "evt2": "evt 2"}
     EVT_FORMATS = {"3.0": "evt3", "2.1": "evt21", "2.0": "evt2"}
     _TAIL_PAD = 8  # >= parser look-ahead padding (EVT3_INPUT_PADDING)
+    SUPPORTS_EXT_TRIGGERS = True
 
-    def __init__(self, source: ByteSource, chunk_size: int = 1_000_000):
-        super().__init__(source, chunk_size)
+    def __init__(self, source: ByteSource, chunk_size: int = 1_000_000, read_external_triggers: bool = False):
+        super().__init__(source, chunk_size, read_external_triggers=read_external_triggers)
 
         self._format: str | None = None
         self._header: dict = {
@@ -252,13 +254,16 @@ class EventDecoder_EVT(EventDecoder):
         return appended
 
     def read_chunk(self, delta_t_hint: int | None = None,
-                   n_events_hint: int | None = None) -> np.ndarray:
+                   n_events_hint: int | None = None):
         if not self._is_initialized:
             self.init()
 
         # Nothing left: signal EOF with an empty array (never a stale buffer).
         if self._words is None or self._offset >= len(self._words):
             self._eof = True
+            if self.read_external_triggers:
+                from ..types import TriggerArray
+                return _EMPTY_EVENTS, TriggerArray.empty()
             return _EMPTY_EVENTS
 
         ev, tr = self._events, self._triggers
@@ -273,12 +278,12 @@ class EventDecoder_EVT(EventDecoder):
             appended = self.parse_step(ev, tr)
 
         n = ev.size
-        if n == 0:
-            return _EMPTY_EVENTS
-        # Zero-copy view aliasing the reusable native buffers; valid only until
-        # the next read_chunk. The EventReader copies it into its accumulator
-        # immediately, so no independent copy is needed here.
-        return events_view(ev)
+        ev_view = events_view(ev) if n > 0 else _EMPTY_EVENTS
+        if self.read_external_triggers:
+            from ..types import TriggerArray
+            tr_view = triggers_view(tr) if tr.size > 0 else TriggerArray.empty()
+            return ev_view, tr_view
+        return ev_view
 
     # Initial output-capacity estimate (events per input word) for the
     # single-buffer read_all() path. EVT2 is an exact upper bound (<=1 event per
@@ -286,7 +291,7 @@ class EventDecoder_EVT(EventDecoder):
     # the buffer if the estimate is too small.
     _READ_ALL_EST = {"evt3": 1.0, "evt2": 1.0, "evt21": 1.5}
 
-    def read_all(self) -> EventArray:
+    def read_all(self):
         """Decode the whole remaining payload into one buffer (no per-chunk copy).
 
         See :func:`evutils.io._native_evt.decode_all_soa`. Note this materialises
@@ -297,6 +302,9 @@ class EventDecoder_EVT(EventDecoder):
             self.init()
         if self._words is None or self._offset >= len(self._words):
             self._eof = True
+            if self.read_external_triggers:
+                from ..types import TriggerArray
+                return _EMPTY_EVENTS, TriggerArray.empty()
             return _EMPTY_EVENTS
 
         out, self._offset = decode_all_soa(
@@ -305,6 +313,12 @@ class EventDecoder_EVT(EventDecoder):
             tail_pad=self._tail_pad, word_dtype=self._word_dtype,
         )
         self._eof = True
+        
+        # NOTE: decode_all_soa doesn't currently return triggers. 
+        # But for full implementation we might need to modify decode_all_soa.
+        # Actually, decode_all_soa in _native_evt doesn't return triggers.
+        if self.read_external_triggers:
+            raise NotImplementedError("read_all with external triggers is not yet implemented for EVT.")
         return out
 
     def reset(self) -> None:
