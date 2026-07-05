@@ -61,14 +61,34 @@ def test_RAW_writer(tmp_path, test_events):
 
 
 
-@pytest.mark.skip(reason="No EVT2 encoder yet (only EVT3 can be written)")
 def test_RAW_writer_evt2(tmp_path, test_events):
-    pass
+    from evutils.io import EventWriter, EventReader
+
+    p = tmp_path / "evt2.raw"
+    with EventWriter(p, format='evt2') as writer:
+        writer.write(test_events)
+
+    assert p.is_file()
+    assert p.stat().st_size > 0
+
+    with EventReader(p) as reader:
+        events = reader.read()
+    assert np.array_equal(events, test_events)
 
 
-@pytest.mark.skip(reason="No EVT2.1 encoder yet (only EVT3 can be written)")
 def test_RAW_writer_evt21(tmp_path, test_events):
-    pass
+    from evutils.io import EventWriter, EventReader
+
+    p = tmp_path / "evt21.raw"
+    with EventWriter(p, format='evt21') as writer:
+        writer.write(test_events)
+
+    assert p.is_file()
+    assert p.stat().st_size > 0
+
+    with EventReader(p) as reader:
+        events = reader.read()
+    assert np.array_equal(events, test_events)
 
 
 

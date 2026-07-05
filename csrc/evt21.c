@@ -12,13 +12,18 @@ enum EVT21_PacketType{
 
 
 typedef struct evt21_state_s {
-    uint64_t last_ts_high;
+    uint64_t last_ts_high;   /* current TIME_HIGH << 6 (bits 6..33)            */
+    uint64_t ts_high_high;   /* accumulated overflow of the 28-bit field (34+) */
 } evt21_state_t;
 
 
 size_t EVT21_state_size(void) {
     return sizeof(evt21_state_t);
 }
+
+/* The TIME_HIGH field is 28 bits carrying time base bits 6..33, so it wraps at
+ * 2^34. Bump the overflow accumulator by 2^34 on each wrap. */
+#define EVT21_TS_WRAP (1ULL << 34)
 
 
 /* A single CD vector packet can emit up to 32 events (one per valid bit), so we
@@ -58,6 +63,7 @@ parser_result_t EVT21_parse_chunk_soa(
 
     // State variables
     uint64_t last_ts_high = state->last_ts_high;
+    uint64_t ts_high_high = state->ts_high_high;
 
     parse_status_t status = EVUTILS_PARSE_OK;
 
@@ -73,7 +79,7 @@ parser_result_t EVT21_parse_chunk_soa(
         uint64_t type = (word & 0xF0000000) >> 28;
 
         // 27-22 ts (6 low bits of the time base)
-        uint64_t ts = last_ts_high | ((word & 0x0FC00000) >> 22);
+        uint64_t ts = ts_high_high | last_ts_high | ((word & 0x0FC00000) >> 22);
 
         // 21-11 x (11 bits)
         uint64_t x = (word & 0x003FF800) >> 11;
@@ -101,7 +107,13 @@ parser_result_t EVT21_parse_chunk_soa(
 
         switch(type){
             case EVT21_EVT_TIME_HIGH:
-                last_ts_high = (word & 0x0FFFFFFF) << 6;
+                {
+                    uint64_t new_ts_high = (word & 0x0FFFFFFF) << 6;
+                    if (new_ts_high < last_ts_high) {
+                        ts_high_high += EVT21_TS_WRAP;
+                    }
+                    last_ts_high = new_ts_high;
+                }
                 break;
             case EVT21_EXT_TRIGGER:
                 trigger_ts[n_triggers_read] = ts;
@@ -119,6 +131,7 @@ parser_result_t EVT21_parse_chunk_soa(
     event_buffer->size = n_events_read;
     trigger_buffer->size = n_triggers_read;
     state->last_ts_high = last_ts_high;
+    state->ts_high_high = ts_high_high;
 
     return (parser_result_t){
         .current = (const void *)current,

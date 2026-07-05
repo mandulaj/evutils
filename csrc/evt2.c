@@ -2,8 +2,13 @@
 #include "evutils/evt2.h"
 
 typedef struct evt2_state_s {
-    uint64_t last_ts_high;
+    uint64_t last_ts_high;   /* current TIME_HIGH << 6 (bits 6..33)          */
+    uint64_t ts_high_high;   /* accumulated overflow of the 28-bit field (34+) */
 } evt2_state_t;
+
+/* The EVT2 TIME_HIGH field is 28 bits and carries time base bits 6..33, so it
+ * wraps at 2^34. Bump the overflow accumulator by 2^34 each time it wraps. */
+#define EVT2_TS_WRAP (1ULL << 34)
 
 
 size_t EVT2_state_size(void) {
@@ -50,7 +55,8 @@ parser_result_t EVT2_parse_chunk_soa(
     
     // State variables
     uint64_t last_ts_high = state->last_ts_high;
-    
+    uint64_t ts_high_high = state->ts_high_high;
+
     parse_status_t status = EVUTILS_PARSE_OK;
 
     while(
@@ -69,7 +75,7 @@ parser_result_t EVT2_parse_chunk_soa(
             case EVT2_CD_OFF:
             case EVT2_CD_ON:
                 // Bits 27..22 are the least significant bits of the timestamp
-                out_ts[n_events_read] = last_ts_high | ((packet_data >> 22) & 0x3F);
+                out_ts[n_events_read] = ts_high_high | last_ts_high | ((packet_data >> 22) & 0x3F);
 
                 // Bits 21..11 are the x coordinate
                 out_x[n_events_read] = (packet_data >> 11) & 0x7FF;
@@ -80,12 +86,19 @@ parser_result_t EVT2_parse_chunk_soa(
                 n_events_read++;
                 break;
             case EVT2_EVT_TIME_HIGH:
-                // Bits 27..0 are the Most significant bits of the event time base (33..6)
-                last_ts_high = packet_data << 6;
+                {
+                    // Bits 27..0 are the most significant bits of the event time
+                    // base (33..6). Track wraps of the 28-bit field.
+                    uint64_t new_ts_high = (uint64_t)packet_data << 6;
+                    if (new_ts_high < last_ts_high) {
+                        ts_high_high += EVT2_TS_WRAP;
+                    }
+                    last_ts_high = new_ts_high;
+                }
                 break;
             case EVT2_EXT_TRIGGER:
 
-                trigger_ts[n_triggers_read] = last_ts_high | ((packet_data >> 22) & 0x3F);
+                trigger_ts[n_triggers_read] = ts_high_high | last_ts_high | ((packet_data >> 22) & 0x3F);
                 trigger_id[n_triggers_read] = channel;
                 trigger_p[n_triggers_read] = value;
                 n_triggers_read++;
@@ -100,6 +113,7 @@ parser_result_t EVT2_parse_chunk_soa(
     event_buffer->size = n_events_read;
     trigger_buffer->size = n_triggers_read;
     state->last_ts_high = last_ts_high;
+    state->ts_high_high = ts_high_high;
 
     return (parser_result_t){
         .current = (const void *)current,

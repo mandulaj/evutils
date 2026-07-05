@@ -309,10 +309,10 @@ class EventDecoder_EVT(EventDecoder):
 
 
 # --------------------------------------------------------------------------- #
-# Encoder (EVT3 writer)
+# Encoders (EVT3 / EVT2 / EVT2.1 writers)
 #
-# The writer is still the numba EVT3 encoder (there is no native encoder yet).
-# It lives here with the format module now that _raw.py is gone.
+# The writers are numba (there is no native encoder yet). They live here with
+# the format module now that _raw.py is gone.
 # --------------------------------------------------------------------------- #
 EVT3_EVT_ADDR_Y = 0x0000
 EVT3_EVT_ADDR_X = 0x2000
@@ -382,6 +382,71 @@ def get_raw_evt3_buffer(events: np.ndarray, last_lower12_ts: int, last_upper12_t
     return buffer[:i], last_lower12_ts, last_upper12_ts, last_y
 
 
+@nb.njit
+def get_raw_evt2_buffer(events: np.ndarray, last_ts_high: int):
+    """Encode events as EVT2 (32-bit words).
+
+    Timestamp is split into a 28-bit high part (EVT_TIME_HIGH word) and a 6-bit
+    low part carried in each CD word. A TIME_HIGH word is emitted only when the
+    high part changes. Layout: type[28:31], ts_low[22:27], x[11:21], y[0:10].
+    """
+    n = len(events)
+    buffer = np.empty(2 * n, dtype=np.uint32)  # <= 1 TIME_HIGH + 1 CD per event
+    i = 0
+    for k in range(n):
+        ts = np.int64(events[k]['t'])
+        x = np.int64(events[k]['x']) & 0x7FF
+        y = np.int64(events[k]['y']) & 0x7FF
+        p = np.int64(events[k]['p']) & 0x1
+
+        ts_high = (ts >> 6) & 0x0FFFFFFF
+        ts_low = ts & 0x3F
+
+        if ts_high != last_ts_high:
+            buffer[i] = np.uint32((8 << 28) | ts_high)  # EVT2_EVT_TIME_HIGH
+            i += 1
+            last_ts_high = ts_high
+
+        buffer[i] = np.uint32((p << 28) | (ts_low << 22) | (x << 11) | y)
+        i += 1
+
+    return buffer[:i], last_ts_high
+
+
+@nb.njit
+def get_raw_evt21_buffer(events: np.ndarray, last_ts_high: int):
+    """Encode events as EVT2.1 (64-bit words, legacy endianness).
+
+    Same descriptor layout as EVT2 in the low 32 bits (type[28:31],
+    ts_low[22:27], x_base[11:21], y[0:10]); the high 32 bits are a validity
+    bitmask for x_base..x_base+31. This writer emits one event per word (mask
+    with a single bit set at x_base = x) -- valid EVT2.1, not yet vectorised.
+    """
+    n = len(events)
+    buffer = np.empty(2 * n, dtype=np.uint64)  # <= 1 TIME_HIGH + 1 CD per event
+    i = 0
+    for k in range(n):
+        ts = np.int64(events[k]['t'])
+        x = np.int64(events[k]['x']) & 0x7FF
+        y = np.int64(events[k]['y']) & 0x7FF
+        p = np.int64(events[k]['p']) & 0x1
+
+        ts_high = (ts >> 6) & 0x0FFFFFFF
+        ts_low = ts & 0x3F
+
+        if ts_high != last_ts_high:
+            buffer[i] = np.uint64((8 << 28) | ts_high)  # EVT21_EVT_TIME_HIGH
+            i += 1
+            last_ts_high = ts_high
+
+        desc = (p << 28) | (ts_low << 22) | (x << 11) | y
+        # High 32 bits: validity mask with bit 0 set (single event at x_base=x).
+        buffer[i] = (np.uint64(1) << np.uint64(32)) | np.uint64(desc)
+        i += 1
+
+    return buffer[:i], last_ts_high
+
+
 class EventEncoder_EVT(EventEncoder):
     '''
     Encoder for Prophesee RAW/EVT files.
@@ -397,19 +462,16 @@ class EventEncoder_EVT(EventEncoder):
     serial : str
         Camera serial number written into the header.
     format : {"evt3", "evt21", "evt2"}
-        Output format. Only EVT3 is implemented.
-
-    Notes
-    -----
-    The encoder currently supports EVT3 only; EVT2/EVT2.1 raise
-    ``NotImplementedError``.
+        Output format. All three are supported; EVT2.1 is written one event per
+        word (valid but not vectorised).
 
     References
     ----------
     [1] Prophesee RAW file format
         https://docs.prophesee.ai/stable/data/file_formats/raw.html
     '''
-    FORMATS = {"evt3": "evt 3.0", "evt21": "evt 2.1", "evt2": "evt 2"}
+    FORMATS = {"evt3": "evt 3.0", "evt21": "evt 2.1", "evt2": "evt 2.0"}
+    HEADER_FORMAT = {"evt3": "EVT3", "evt21": "EVT21", "evt2": "EVT2"}
 
     def __init__(self, writable: io.BufferedWriter, width: int = 1280, height: int = 720,
                  dt: datetime | None = None, serial: str = "00000000", format: str = "evt3"):
@@ -425,6 +487,7 @@ class EventEncoder_EVT(EventEncoder):
         self._last_upper12_ts = -1
         self._last_lower12_ts = -1
         self._last_y = -1
+        self._last_ts_high = -1  # EVT2 / EVT2.1 time-high state
 
         self._serial_number = serial
 
@@ -434,11 +497,13 @@ class EventEncoder_EVT(EventEncoder):
         if self._is_initialized:
             return
 
+        # EVT2.1 packs its 64-bit words as two swapped 32-bit halves ("legacy").
+        endianness = "% endianness legacy\n" if self._format == "evt21" else ""
         self._fd.write(
 f"""% camera_integrator_name Prophesee
 % date {self._formatted_datetime}
-% {self.FORMATS[self._format]}
-% format {self._format};height={self._height};width={self._width}
+{endianness}% {self.FORMATS[self._format]}
+% format {self.HEADER_FORMAT[self._format]};height={self._height};width={self._width}
 % generation 4.2
 % geometry {self._width}x{self._height}
 % integrator_name Prophesee
@@ -467,9 +532,13 @@ f"""% camera_integrator_name Prophesee
                 self._last_lower12_ts,
                 self._last_upper12_ts,
                 self._last_y)
+        elif self._format == "evt2":
+            buffer, self._last_ts_high = get_raw_evt2_buffer(events, self._last_ts_high)
+        elif self._format == "evt21":
+            buffer, self._last_ts_high = get_raw_evt21_buffer(events, self._last_ts_high)
         else:
             raise NotImplementedError(
-                f"format {self._format!r} not implemented (EVT3 only)"
+                f"format {self._format!r} not implemented"
             )
 
         self._n_written_events += len(events)
