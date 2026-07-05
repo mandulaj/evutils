@@ -248,6 +248,10 @@ static inline const uint16_t * EVT3_parse_vector_12_12_8_soa(
 
 
 
+// TODO: For future performance optimization, implement dynamic CPU dispatch
+// (e.g., using __attribute__((target_clones("avx2", "default"))) on GCC/Clang)
+// or manual cpuid + function pointers to enable SIMD decoding on supported
+// hardware without breaking universal portability on older CPUs.
 #define EVT3_INPUT_PADDING 4
 parser_result_t EVT3_parse_chunk_soa(
     evt3_state_t *state,
