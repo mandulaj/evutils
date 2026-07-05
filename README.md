@@ -1,9 +1,9 @@
-EV Utils 
-========
+<img src="https://mandulaj.github.io/evutils/_static/event_hexagon_broken.webp" alt="evutils_logo" width="50" align="top"> EV-Utils
+===================================================================================================================================
 [![Test](https://github.com/mandulaj/evutils/actions/workflows/test.yaml/badge.svg)](https://github.com/mandulaj/evutils/actions/workflows/test.yaml)
 
 
-EV-utils is a performant collection of utilities for working with event-based vision data. Built with minimal dependencies, it relies on compiled C backed for speed while offering a clean, modular Python interface.
+EV-Utils (``evutils``) is a performant collection of utilities for working with event-based vision data. Built with minimal dependencies, it relies on compiled C backed for speed while offering a clean, modular Python interface.
 
 
 
@@ -21,7 +21,7 @@ This project draws inspiration from several excellent libraries in the event-bas
 We recommend installing `evutils` using `uv`.
 ### From PyPi
 ```bash
-uv add evutils
+uv add evutils[all]
 ```
 
 ### From Git
