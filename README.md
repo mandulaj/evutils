@@ -1,5 +1,4 @@
-<img src="https://mandulaj.github.io/evutils/_static/event_hexagon_broken.webp" alt="evutils_logo" width="50" align="top"> EV-Utils
-===================================================================================================================================
+# <a href="https://mandulaj.github.io/evutils"><img src="https://mandulaj.github.io/evutils/_static/event_hexagon_broken.webp" alt="evutils_logo" width="50" align="top"></a> EV Utils
 [![Test](https://github.com/mandulaj/evutils/actions/workflows/test.yaml/badge.svg)](https://github.com/mandulaj/evutils/actions/workflows/test.yaml)
 
 
