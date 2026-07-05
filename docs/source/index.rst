@@ -9,14 +9,18 @@
 
 
 
+.. toctree::
+   :hidden:
+
+   benchmarks/README
+
 API Reference
 =============
-.. toctree::
-   :maxdepth: 3
 
+.. toctree::
+   :maxdepth: 2
+   
    autoapi/index
-   
-   
 
 .. Indices and tables
 .. ==================

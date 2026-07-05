@@ -1,8 +1,8 @@
-# <a href="https://mandulaj.github.io/evutils"><img src="https://mandulaj.github.io/evutils/_static/event_hexagon_broken.webp" alt="evutils_logo" width="50" align="top"></a> EV-Utils
+# <a href="https://mandulaj.github.io/evutils"><img src="https://mandulaj.github.io/evutils/_static/event_hexagon_broken.webp" alt="evutils_logo" width="50" align="top" style="background-color: #fff0;"></a> EV-Utils
 [![PyPI Version](https://img.shields.io/pypi/v/evutils)](https://pypi.org/project/evutils/)
 [![Test](https://github.com/mandulaj/evutils/actions/workflows/test.yaml/badge.svg)](https://github.com/mandulaj/evutils/actions/workflows/test.yaml)
 
-
+## Overview
 EV-Utils (``evutils``) is a performant collection of utilities for working with event-based vision data. Built with minimal dependencies, it relies on compiled C backed for speed while offering a clean, modular Python interface.
 
 
@@ -76,20 +76,20 @@ events = ev_file.read()
 
 ```
 
-### `utils`
+#### `utils`
 
 Various utility functions
 
-### `random`
+#### `random`
 
 Generating random events and adding noise to event recordings
 
-### `types`
+#### `types`
 
 This provides several standard types for representing Events in numpy arrays
 
 
-### `vis`
+#### `vis`
 
 The `vis` moduels provides several methods for visualizing the events (for example as histograms), but also provides a streamlined interface for more complex visualization techneques, such as using the [E2Vid](https://github.com/uzh-rpg/rpg_e2vid) reconstructor.
 
@@ -111,7 +111,7 @@ uv run pytest -s
 ```
 
 
-## Benchmarks
+## [Benchmarks](benchmarks/README.md)
 
 Read/write throughput benchmarks (using [pytest-benchmark](https://pytest-benchmark.readthedocs.io)) live in `benchmarks/` and are kept out of the normal test run. Run them explicitly:
 

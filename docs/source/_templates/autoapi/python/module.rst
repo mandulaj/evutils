@@ -21,12 +21,21 @@ Submodules
 ----------
 
 .. toctree::
+   :hidden:
    :maxdepth: 1
 
             {% for submodule in visible_submodules %}
    {{ submodule.include_path }}
             {% endfor %}
 
+.. list-table::
+   :widths: 30 70
+   :header-rows: 0
+
+            {% for submodule in visible_submodules %}
+   * - :py:mod:`{{ submodule.short_name }} <{{ submodule.id }}>`
+     - {{ submodule.summary }}
+            {% endfor %}
 
          {% endif %}
       {% endblock %}

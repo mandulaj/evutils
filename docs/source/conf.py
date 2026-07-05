@@ -55,6 +55,7 @@ autoapi_options = [
 ]
 autoapi_template_dir = "_templates/autoapi"
 # autoapi_add_toctree_entry = True
+suppress_warnings = ["autoapi.python_import_resolution"]
 
 napoleon_google_docstring = True
 napoleon_numpy_docstring = True
