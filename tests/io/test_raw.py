@@ -120,9 +120,9 @@ def test_RAW_real_read(real_event_files):
 
     for format in ['evt3']:
         with EventReader(real_event_files[format]) as reader:
-            assert reader.is_initialized == False
+            assert reader._is_initialized == False
             events = reader.read()
-            assert reader.is_initialized == True
+            assert reader._is_initialized == True
 
             print(events)
             # assert format == reader.format

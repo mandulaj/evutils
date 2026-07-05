@@ -1,358 +1,282 @@
+"""EVT (Prophesee EVT2 / EVT2.1 / EVT3) decoder backed by the native C parser.
 
+Reads the Prophesee ASCII header from a :class:`ByteSource`, then decodes the
+binary EVT payload into ``Event_dtype`` chunks using the compiled parser in
+``csrc`` (via :mod:`evutils.io._native_evt`).
 
-import io
+Input strategy:
+
+* If the source is *mappable* (mmap / in-memory), the whole payload is exposed
+  as a single zero-copy ``uint16`` view and the parser walks it in windows --
+  no per-chunk copy, no vector-group carry across chunk boundaries.
+* Otherwise the remaining stream is slurped into memory once and treated the
+  same way. (Truly incremental streaming for live devices is future work; the
+  parser ABI already supports it via ``result.current``.)
+
+Only EVT3 is wired to the native parser today; EVT2/EVT2.1 raise
+``NotImplementedError``.
+"""
+from __future__ import annotations
+
 from datetime import datetime
-from pathlib import Path
-from typing import List, Tuple, Union
+from typing import List
 
-import numba as nb
 import numpy as np
 
 from ..types import Event_dtype, Trigger_dtype
-from ._common import EventDecoder, EventEncoder
+from .common import EventDecoder
+from ._native_evt import (
+    EVUTILS_PARSE_ERROR,
+    EventSoABuffers,
+    Evt3Input,
+    Evt3Parser,
+    TriggerSoABuffers,
+)
+from ._source import ByteSource
 
-
+_EMPTY_EVENTS = np.empty(0, dtype=Event_dtype)
 
 
 class EventDecoder_EVT(EventDecoder):
-    '''
-    Class for reading EVT files from Prophesee cameras
+    """Decode Prophesee EVT2, EVT2.1, and EVT3 streams into ``Event_dtype`` chunks.
 
     Parameters
     ----------
-    file : str
-        Path to the EVT file
-    delta_t : int, optional
-        Time window in microseconds, by default None
-    n_events : int, optional
-        Number of events to read, by default None
-    max_events : int, optional
-        Maximum number of events to read at once, by default 10000000
-    mode : {"auto", "delta_t", "n_events", "mixed", "all" }, optional
-        Mode of operation, by default "auto"
-    buffer_size : int, optional
-        Size of the buffer to read events, by default 1_000_000
-
-    Returns
-    -------
-    out : EventReader_RAW
-        EventReader_RAW instance
-
-    Raises
-    ------
-    ValueError
-        If the format in the header is not supported
-
-    Notes
-    -----
-    The class supports EVT3, EVT2.1 and EVT2 formats
+    source
+        Byte source to read from.
+    chunk_size
+        Maximum number of events produced per :meth:`read_chunk` call (the
+        native output-buffer capacity). Does not bound the file size.
 
     References
     ----------
-    [1] Prophesee RAW file format documentation https://docs.prophesee.ai/stable/data/file_formats/raw.html#chapter-data-file-formats-raw
+    [1] Prophesee RAW file format
+        https://docs.prophesee.ai/stable/data/file_formats/raw.html
+    """
 
-    '''
-    MAX_EVENTS_READ = 1e12
-    MAX_DELTA_T = 1e12
     FORMATS = {"evt3": "evt 3.0", "evt21": "evt 2.1", "evt2": "evt 2"}
     EVT_FORMATS = {"3.0": "evt3", "2.1": "evt21", "2.0": "evt2"}
 
-    def __init__(self, readable:io.BufferedReader, chunk_size:int=10_000_000):
-        super().__init__(readable=readable, chunk_size=chunk_size)
+    def __init__(self, source: ByteSource, chunk_size: int = 1_000_000):
+        super().__init__(source, chunk_size)
 
-        # EVT specific variables
-        self.last_ts_high_high = 0
-        self.last_ts_high = 0
-        self.last_ts_low = 0
-        self.ts_initialized = False
-        self.last_y = 0
-        self.format = None
-
-        self.events_buffer = np.empty(self.chunk_size, dtype=Event_dtype)
-        self.events_buffer_len = 0
-        self.triggers_buffer = np.empty(self.chunk_size, dtype=Trigger_dtype)
-        self.triggers_buffer_len = 0
-
-    def init(self):
-
-        # Try to find the end of the header
-        is_header = True
-
-        self.header = {
-            "date": datetime.now(),
-            "evt": None,
-            "format": None,
-            "generation": None,
-            "serial_number": "00000000",
-            "system_id": 49,
-            "camera_integrator_name": "Prophesee",
-            "integrator_name": "Prophesee",
-            "sensor_name": None,
-            "sensor_generation": None,
-            "geometry": None,
-            "plugin_name": None,
-            "plugin_integrator_name": None,
+        self._format: str | None = None
+        self._header: dict = {
+             "date": datetime.now(),
+             "evt": None,
+             "format": None,
+             "generation": None,
+             "serial_number": "00000000",
+             "system_id": 49,
+             "camera_integrator_name": "Prophesee",
+             "integrator_name": "Prophesee",
+             "sensor_name": None,
+             "sensor_generation": None,
+             "geometry": None,
+             "plugin_name": None,
+             "plugin_integrator_name": None,
         }
 
+        # Filled in init()
+        self._buf = None            # keeps the underlying storage alive
+        self._payload_off = 0       # byte offset where the binary payload starts
+        self._words = None          # uint16 view of the whole payload
+        self._offset = 0            # current word offset into _words
+        self._parser = None
 
 
-        while is_header:
-            pos = self.fd.tell()
-            line = self.fd.readline()
+    # ------------------------------------------------------------------ #
+    # Header
+    # ------------------------------------------------------------------ #
+    def _parse_header(self, buf) -> int:
+        """Scan the leading ``%``-prefixed ASCII header of ``buf`` (a bytes-like).
+
+        Returns the byte offset of the first non-header byte (start of payload).
+        """
+        mv = memoryview(buf)
+        n = len(mv)
+        off = 0
+        while off < n and mv[off] == 0x25:  # '%'
+            window = bytes(mv[off:off + 8192])
+            rel = window.find(b"\n")
+            if rel < 0:
+                break
+            line = window[:rel]
             if line.startswith(b"% end"):
-                is_header = False
+                off += rel + 1
                 break
-            if not line.startswith(b"%"):
-                is_header = False
-                self.fd.seek(pos)
-                break
+            self._consume_header_line(line)
+            off += rel + 1
+        return off
 
-            split = line.decode('utf-8').strip().split(" ")
-            key = split[1].lower()
-            value = " ".join(split[2:])
+    def _consume_header_line(self, line: bytes) -> None:
+        try:
+            split = line.decode("utf-8").strip().split(" ")
+        except UnicodeDecodeError:
+            return
+        if len(split) < 2:
+            return
+        key = split[1].lower()
+        value = " ".join(split[2:])
 
-            try:
-                if key in self.header.keys():
-                    if key == "date":
-                        value = datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
-                    elif key == "height" or key == "width" or key == "system_id":
-                        value = int(value)
+        try:
+            if key == "date":
+                value = datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+            elif key in ("height", "width", "system_id"):
+                value = int(value)
+        except ValueError:
+            return
+        self._header[key] = value
 
-                    self.header[key] = value
-                else:
-                    print(f"Unknown key {key} in header")
-                    print(f"Supported keys are: {list(self.header.keys())}")
-                    print(f"Line: {line}")
-            except ValueError:
-                print(f"Error parsing line: {line}")
-
-
-        # Check Format, height and width:
-        if self.header["format"] is not None:
-            split: List[str] = self.header["format"].split(";")
-            for s in split:
+    def _finalize_header(self) -> None:
+        """Resolve format / width / height from the parsed header fields."""
+        fmt = self._header.get("format")
+        if isinstance(fmt, str):
+            for s in fmt.split(";"):
                 if s.startswith("height"):
                     self.height = int(s.split("=")[1])
                 elif s.startswith("width"):
                     self.width = int(s.split("=")[1])
                 else:
                     s = s.lower().replace(".", "")
-                    if s in EventFileReader_RAW.FORMATS.keys():
-                        self.format = s
-                    else:
-                        print(f"Unknown format {s}, supported formats are {list(EventFileReader_RAW.FORMATS.keys())}")
+                    if s in self.FORMATS:
+                        self._format = s
 
-        if self.header["geometry"] is not None:
-            split = self.header["geometry"].split("x")
-            if len(split) != 2:
-                raise ValueError(f"Invalid geometry {self.header['geometry']}")
+        geom = self._header.get("geometry")
+        if isinstance(geom, str):
+            parts = geom.split("x")
+            if len(parts) == 2:
+                self.width = int(parts[0])
+                self.height = int(parts[1])
 
-            if self.width is not None and self.height is not None:
-                if self.width != int(split[0]) or self.height != int(split[1]):
-                    print(f"Warning: Geometry in header {self.header['geometry']} does not match width/height")
-                    print(f"Setting width/height to {split[0]}x{split[1]}")
-            self.width = int(split[0])
-            self.height = int(split[1])
+        evt = self._header.get("evt")
+        if evt in self.EVT_FORMATS:
+            self._format = self.EVT_FORMATS[evt]
 
-        if self.header['evt'] is not None:
-
-            if self.header['evt'] in EventFileReader_RAW.EVT_FORMATS.keys():
-                format = EventFileReader_RAW.EVT_FORMATS[self.header['evt']]
-
-                if self.format is not None and self.format != format:
-                    print(f"Warning: evt in header {self.header['evt']} does not match evt")
-                    print(f"Setting evt to {format}")
-                    self.format = format
-
-
-            else:
-                print(f"Unknown evt version {self.header['evt']}")
-                print(f"Supported evt versions are: {list(EventFileReader_RAW.EVT_FORMATS.keys())}")
-
-
-        if self.format is None:
-            print(f"Error: Format not found in header, trying to use EVT3")
-            self.format = "evt3"
+        if self._format is None:
+            self._format = "evt3"  # sensible default for Prophesee RAW
 
         if self.width is None or self.height is None:
-            if self.header['sensor_name'] == "IMX636":
-                self.width = 1280
-                self.height = 720
-
-        if self.width is None or self.width < 0 or self.width > 2048:
-            print(f"Error: Valid Width not found in header, setting to 2048")
+            if self._header.get("sensor_name") == "IMX636":
+                self.width, self.height = 1280, 720
+        if self.width is None or not (0 < self.width <= 2048):
             self.width = 2048
-        if self.height is None or self.height < 0 or self.height > 2048:
-            print(f"Error: Valdi Height not found in header, setting to 2048")
+        if self.height is None or not (0 < self.height <= 2048):
             self.height = 2048
 
-        self.is_initialized = True
-
-
-    def read_chunk(self, delta_t_hint:int = None, n_events_hint:int = None) -> np.ndarray:
-        if not self.is_initialized:
-            self.init()
-
-        events, triggers = self.__read_and_parse_buffer()
-        return events
-
-
-    def __read_and_parse_buffer(self):
-        # print(f"Reading buffer of size {self.buffer_size}")
-        assert self.fd is not None
-
-        if self.format == "evt3":
-
-            # Read the buffer as uint16
-            input_buffer = np.fromfile(self.fd, dtype=np.uint16, count=self.chunk_size)
-
-            # We have reached the end of the file, but not nessarily the end of the buffer
-            if len(input_buffer) < self.chunk_size:
-                self.eof = True
-
-            if len(input_buffer) == 0:
-                return np.array([], dtype=Event_dtype), np.array([], dtype=Trigger_dtype)
-
-            n_events, n_triggers, self.last_ts_high_high, self.last_ts_high, self.last_ts_low, self.last_y, self.ts_initialized, msg_processed = parse_evt3_buffer(
-                    input_buffer,
-                    self.events_buffer,
-                    self.triggers_buffer,
-                    self.last_ts_high_high,
-                    self.last_ts_high,
-                    self.last_ts_low,
-                    self.last_y,
-                    self.ts_initialized)
-
-            # self.events_buffer_len += n_events
-            # self.triggers_buffer_len += n_triggers
-            if msg_processed < len(input_buffer):
-                # This happens if We are in the middle of a Vect message and we need to fetch more data
-                missed_bytes = 2 * (len(input_buffer) - msg_processed)
-                # print(f"Missed {missed_bytes} bytes, seeking back")
-                self.fd.seek(-missed_bytes, 1)
-
-
-
-            del input_buffer
-        elif self.format == "evt21":
-            raise NotImplementedError("EVT2.1 not implemented")
-        elif self.format == "evt2":
-            raise NotImplementedError("EVT2 not implemented")
-        else:
-            raise ValueError(f"Unsupported format {self.format}. Supported formats are {list(EventFileReader_RAW.FORMATS.keys())}")
-        return self.events_buffer[:n_events], self.triggers_buffer[:n_triggers]
-
-
-    def reset(self):
-        assert self.fd is not None
-        self.fd.seek(0)
-        self.is_initialized = False
-        self.eof = False
-
-
-
-
-class EventEncoder_EVT(EventEncoder):
-    '''
-    Class for writing EVT files from Prophesee cameras
-
-    Parameters
-    ----------
-    file : str
-        Path to the RAW file
-    width : int, optional
-        Width of the frame, by default 1280
-    height : int, optional
-        Height of the frame, by default 720
-    dt : datetime, optional
-        Timestamp of the recording (default is the current time)
-    serial : str, optional
-        Serial number of the camera, by default "00000000"
-    format : {"evt3", "evt21", "evt2"}
-        Format of the file, by default "evt3"
-
-    Raises
-    ------
-    ValueError
-        If the format is not supported
-
-    Notes
-    -----
-    The class supports EVT3, EVT2.1 and EVT2 formats
-
-    References
-    ----------
-    [1] Prophesee RAW file format documentation https://docs.prophesee.ai/stable/data/file_formats/raw.html#chapter-data-file-formats-raw
-
-    Examples
-    --------
-
-    >>> writer = EventWriter_RAW("events.raw", width=1280, height=720, dt=datetime.now(), serial="00000000", format="evt3")
-    >>> writer.write(events)
-
-    '''
-    FORMATS = {"evt3": "evt 3.0", "evt21": "evt 2.1", "evt2": "evt 2"}
-    def __init__(self, writable: io.BufferedWriter, width:int=1280, height:int=720, dt:datetime|None=None, serial:str="00000000", format:str="evt3"):
-        super().__init__(writable, width, height, dt)
-
-        format = format.lower().replace(".", "")
-        if format not in EventFileWriter_RAW.FORMATS.keys():
-            raise ValueError(f"Unsupported format {format}. Supported formats are {list(EventFileWriter_RAW.FORMATS.keys())}")
-        self.format = format
-
-        self.system_id = 49
-
-        self.last_upper12_ts = -1
-        self.last_lower12_ts = -1
-        self.last_y  = -1
-
-        self.serial_number = serial
-
-        self.formatted_datetime = self.dt.strftime("%Y-%m-%d %H:%M:%S")
-
-    def init(self):
-        if self.is_initialized:
+    # ------------------------------------------------------------------ #
+    # Lifecycle
+    # ------------------------------------------------------------------ #
+    def init(self) -> None:
+        if self._is_initialized:
             return
 
-        self.fd.write(
-f"""% camera_integrator_name Prophesee
-% date {self.formatted_datetime}
-% {self.FORMATS[self.format]}
-% format {self.format};height={self.height};width={self.width}
-% generation 4.2
-% geometry {self.width}x{self.height}
-% integrator_name Prophesee
-% plugin_integrator_name Prophesee
-% plugin_name hal_plugin_prophesee
-% sensor_generation 4.2
-% serial_number {self.serial_number}
-% system_ID {self.system_id}
-% end
-""".encode('utf-8'))
-        self.is_initialized = True
+        if self._source.mappable():
+            self._buf = self._source.buffer()          # zero-copy, whole file
+        else:
+            self._buf = memoryview(self._source.read(-1))  # slurp the stream
 
+        self._payload_off = self._parse_header(self._buf)
+        self._finalize_header()
 
-    def write(self, events: np.ndarray) -> int:
-        assert self.fd is not None
+        n_words = (len(self._buf) - self._payload_off) // 2
+        if n_words > 0:
+            self._words = np.frombuffer(
+                self._buf, dtype=np.uint16, count=n_words, offset=self._payload_off
+            )
+        else:
+            self._words = np.empty(0, dtype=np.uint16)
 
-        if not self.is_initialized:
+        self._offset = 0
+        self._parser = Evt3Parser()
+        cap = int(self._chunk_size)
+        self._events = EventSoABuffers(cap)
+        self._triggers = TriggerSoABuffers(max(cap // 16, 1))
+        self._is_initialized = True
+
+    def read_chunk(self, delta_t_hint: int | None = None,
+                   n_events_hint: int | None = None) -> np.ndarray:
+        if not self._is_initialized:
             self.init()
 
-        if self.format == "evt3":
-            buffer, self.last_lower12_ts, self.last_upper12_ts, self.last_y = get_raw_evt3_buffer(
-                events,
-                self.last_lower12_ts,
-                self.last_upper12_ts,
-                self.last_y)
-        elif self.format == "evt21":
-            raise NotImplementedError("EVT2.1 not implemented")
-        elif self.format == "evt2":
-            raise NotImplementedError("EVT2 not implemented")
-        else:
-            raise NotImplementedError(f"Unsupported format {self.format}. Supported formats are {list(EventFileWriter_RAW.FORMATS.keys())}")
+        if self._format != "evt3":
+            raise NotImplementedError(
+                f"native decoder supports evt3 only, got {self._format!r}"
+            )
 
-        self.n_written_events += len(events)
+        # Nothing left: signal EOF with an empty array (never a stale buffer).
+        if self._words is None or self._offset >= len(self._words):
+            self._eof = True
+            return _EMPTY_EVENTS
 
-        buffer.tofile(self.fd)
+        ev, tr = self._events, self._triggers
 
-        return len(events)
+        # Parse until we produce something or genuinely exhaust the input. A
+        # window can consume words yet emit no events (pure timing packets), so
+        # we must not treat an empty result as EOF unless the input is drained.
+        while self._offset < len(self._words):
+            ev.reset()
+            tr.reset()
+            view = self._words[self._offset:]
+            inp = Evt3Input(view)
+            res = self._parser.parse_chunk_soa(inp, ev, tr)
+            if res.status == EVUTILS_PARSE_ERROR:
+                raise RuntimeError(f"EVT3 parse error near word {self._offset}")
+
+            consumed = inp.consumed(res)
+            if consumed == 0:
+                # The parser keeps a few words of look-ahead padding, so it will
+                # not consume the final <PADDING words of the stream. Flush that
+                # tail through a zero-padded scratch copy (zero words are
+                # harmless EVT_ADDR_Y state updates) so trailing events aren't
+                # stranded.
+                self._flush_tail(view, ev, tr)
+                self._offset = len(self._words)
+                break
+            self._offset += consumed
+            if ev.size or tr.size:
+                break
+
+        if self._offset >= len(self._words):
+            self._eof = True
+
+
+
+        n = ev.size
+        if n == 0:
+            return _EMPTY_EVENTS
+        t, x, y, p = ev.view()
+        out = np.empty(n, dtype=Event_dtype)
+        out["t"], out["x"], out["y"], out["p"] = t, x, y, p
+        return out
+
+    _TAIL_PAD = 8  # >= parser look-ahead padding (EVT3_INPUT_PADDING)
+
+    def _flush_tail(self, view: np.ndarray, ev, tr) -> None:
+        """Parse the trailing ``view`` words through a zero-padded copy so the
+        parser's end-of-input look-ahead doesn't strand real events."""
+        if len(view) == 0:
+            return
+        scratch = np.zeros(len(view) + self._TAIL_PAD, dtype=np.uint16)
+        scratch[: len(view)] = view
+        ev.reset()
+        tr.reset()
+        inp = Evt3Input(scratch)
+        res = self._parser.parse_chunk_soa(inp, ev, tr)
+        if res.status == EVUTILS_PARSE_ERROR:
+            raise RuntimeError(f"EVT3 parse error in tail near word {self._offset}")
+
+    def reset(self) -> None:
+        self._offset = 0
+        self.eof = False
+        if self._parser is not None:
+            self._parser.reset()
+
+    def tell(self) -> int:
+        return self._payload_off + self._offset * 2
+
+    def close(self) -> None:
+        # Drop numpy views into the (possibly mmap-backed) storage so the source
+        # can be closed without BufferError.
+        self._words = None
+        self._buf = None

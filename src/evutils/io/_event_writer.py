@@ -6,8 +6,7 @@ from typing import Union
 
 import numpy as np
 
-from ..io import _encoders as ev_encoders
-from ._common import EventEncoder_Base
+from . import encoders as ev_encoders
 
 
 class EventWriter():
@@ -35,7 +34,7 @@ class EventWriter():
     >>> with EventWriter("events.raw", delta_t=10000) as writer:
     >>>     writer.write(events)
     '''
-    def __init__(self, file: Path | str | io.BufferedWriter, width:int=1280, height:int=720, dt: datetime|None = None,  file_encoder: EventEncoder_Base | None = None, **kwargs):
+    def __init__(self, file: Path | str | io.BufferedWriter, width:int=1280, height:int=720, dt: datetime|None = None,  file_encoder: ev_encoders.EventEncoder | None = None, **kwargs):
 
         self.file_name:Path|None = None
 
@@ -89,13 +88,13 @@ class EventWriter():
         return open(str(file_name), 'wb')
 
 
-    def _create_file_encoder(self, file_name:Path, args:dict={}) -> EventEncoder_Base:
+    def _create_file_encoder(self, file_name:Path, args:dict={}) -> ev_encoders.EventEncoder:
         '''
         Create the file writer based on the file extension
 
         Returns
         -------
-        EventFileWriter_Base
+        EventEncoder_Base
             The file writer
         '''
 

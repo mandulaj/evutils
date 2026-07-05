@@ -9,7 +9,7 @@ import numba as nb
 import numpy as np
 
 from ..types import Event_dtype, Trigger_dtype
-from ._common import EventDecoder, EventEncoder
+from .common import EventDecoder, EventEncoder
 
 EVT3_EVT_ADDR_Y = 0x0000
 EVT3_EVT_ADDR_X = 0x2000
@@ -147,64 +147,58 @@ def parse_evt3_buffer(input_buffer: np.ndarray, events_buffer: np.ndarray, trigg
 
             n_events += 1
         elif packet_type == EVT3_VECT_BASE_X:
-            last_ts = last_ts = (last_ts_high_high << 24) | (last_ts_high << 12) | last_ts_low
+            
+            last_ts = (last_ts_high_high << 24) | (last_ts_high << 12) | last_ts_low
             vect_base_x = packet_value & 0x7FF
             vect_base_p = (packet_value & 0x0800) >> 11
 
-
             if not i + 4 < len(input_buffer):
-                # print("Warning: Buffer is too small for VECT_BASE_X")
-                # buffer_too_small = True
                 break
-
-            # print(f"VECT_BASE_X {packet_value:04x}")
-
-            # print("VECT_BASE_X", vect_base_x, vect_base_p, last_ts)
-
-
-            vect_events = np.empty(32, dtype=Event_dtype)
-            vect_events['p'][:] = vect_base_p
-            vect_events['y'][:] = last_y
-            vect_events['t'][:] = last_ts
-            vect_events['x'][:] = np.arange(32) + vect_base_x
-
-            valid = np.zeros(32, dtype=np.uint8)
-
+                
+            # Prevent buffer overflow crash
+            if n_events + 32 > len(events_buffer):
+                break
 
             value12_1 = input_buffer[i+1]
             if value12_1 & 0xF000 != EVT3_VECT_12:
-                # print(f"Warning: Expected VECT_12, got {value12_1:04x}")
                 i += 2
                 continue
 
-
-            for pos, bit in enumerate(range(0, 12)):
-                valid[bit] = (value12_1 >> pos) & 0x01
-
             value12_2 = input_buffer[i+2]
             if value12_2 & 0xF000 != EVT3_VECT_12:
-                # print(f"Warning: Expected VECT_12, got {value12_1:04x}")
                 i += 3
                 continue
 
-            for pos, bit in enumerate(range(12, 24)):
-                valid[bit] = (value12_2 >> pos) & 0x01
-
             value8_3 = input_buffer[i+3]
             if value8_3 & 0xF000 != EVT3_VECT_8:
-                # print(f"Warning: Expected VECT_8, got {value12_1:04x}")
                 i += 4
                 continue
 
-            for pos, bit in enumerate(range(24, 32)):
-                valid[bit] = (value8_3 >> pos) & 0x01
+            # Unroll and write directly to the buffer (C-style)
+            for bit in range(12):
+                if (value12_1 >> bit) & 0x01:
+                    events_buffer[n_events]['t'] = last_ts
+                    events_buffer[n_events]['x'] = vect_base_x + bit
+                    events_buffer[n_events]['y'] = last_y
+                    events_buffer[n_events]['p'] = vect_base_p
+                    n_events += 1
 
-            # print(vect_events)
-            vect_events = vect_events[valid == 1]
+            for bit in range(12):
+                if (value12_2 >> bit) & 0x01:
+                    events_buffer[n_events]['t'] = last_ts
+                    events_buffer[n_events]['x'] = vect_base_x + 12 + bit
+                    events_buffer[n_events]['y'] = last_y
+                    events_buffer[n_events]['p'] = vect_base_p
+                    n_events += 1
 
-            # print(vect_events)
-            events_buffer[n_events:n_events+len(vect_events)] = vect_events
-            n_events += len(vect_events)
+            for bit in range(8):
+                if (value8_3 >> bit) & 0x01:
+                    events_buffer[n_events]['t'] = last_ts
+                    events_buffer[n_events]['x'] = vect_base_x + 24 + bit
+                    events_buffer[n_events]['y'] = last_y
+                    events_buffer[n_events]['p'] = vect_base_p
+                    n_events += 1
+
             i += 3
 
 
@@ -244,7 +238,7 @@ def parse_evt3_buffer(input_buffer: np.ndarray, events_buffer: np.ndarray, trigg
     #     return events[:n_events], triggers[:n_ext_triggers], last_ts, last_y, i
 
 
-class EventFileReader_RAW(EventDecoder):
+class EventDecoder_RAW(EventDecoder):
     '''
     Class for reading RAW files from Prophesee cameras
 
@@ -288,27 +282,27 @@ class EventFileReader_RAW(EventDecoder):
     EVT_FORMATS = {"3.0": "evt3", "2.1": "evt21", "2.0": "evt2"}
 
     def __init__(self, readable:io.BufferedReader, chunk_size:int=10_000_000):
-        super().__init__(readable=readable, chunk_size=chunk_size)
+        super().__init__(readable, chunk_size)
 
         # EVT specific variables
-        self.last_ts_high_high = 0
-        self.last_ts_high = 0
-        self.last_ts_low = 0
-        self.ts_initialized = False
-        self.last_y = 0
-        self.format = None
+        self._last_ts_high_high = 0
+        self._last_ts_high = 0
+        self._last_ts_low = 0
+        self._ts_initialized = False
+        self._last_y = 0
+        self._format = None
 
-        self.events_buffer = np.empty(self.chunk_size, dtype=Event_dtype)
-        self.events_buffer_len = 0
-        self.triggers_buffer = np.empty(self.chunk_size, dtype=Trigger_dtype)
-        self.triggers_buffer_len = 0
+        self._events_buffer = np.empty(self._chunk_size, dtype=Event_dtype)
+        self._events_buffer_len = 0
+        self._triggers_buffer = np.empty(self._chunk_size, dtype=Trigger_dtype)
+        self._triggers_buffer_len = 0
 
     def init(self):
 
         # Try to find the end of the header
         is_header = True
 
-        self.header = {
+        self._header = {
             "date": datetime.now(),
             "evt": None,
             "format": None,
@@ -327,14 +321,14 @@ class EventFileReader_RAW(EventDecoder):
 
 
         while is_header:
-            pos = self.fd.tell()
-            line = self.fd.readline()
+            pos = self._fd.tell()
+            line = self._fd.readline()
             if line.startswith(b"% end"):
                 is_header = False
                 break
             if not line.startswith(b"%"):
                 is_header = False
-                self.fd.seek(pos)
+                self._fd.seek(pos)
                 break
 
             split = line.decode('utf-8').strip().split(" ")
@@ -342,85 +336,85 @@ class EventFileReader_RAW(EventDecoder):
             value = " ".join(split[2:])
 
             try:
-                if key in self.header.keys():
+                if key in self._header.keys():
                     if key == "date":
                         value = datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
                     elif key == "height" or key == "width" or key == "system_id":
                         value = int(value)
 
-                    self.header[key] = value
+                    self._header[key] = value
                 else:
                     print(f"Unknown key {key} in header")
-                    print(f"Supported keys are: {list(self.header.keys())}")
+                    print(f"Supported keys are: {list(self._header.keys())}")
                     print(f"Line: {line}")
             except ValueError:
                 print(f"Error parsing line: {line}")
 
 
         # Check Format, height and width:
-        if self.header["format"] is not None:
-            split: List[str] = self.header["format"].split(";")
+        if self._header["format"] is not None:
+            split: List[str] = self._header["format"].split(";")
             for s in split:
                 if s.startswith("height"):
-                    self.height = int(s.split("=")[1])
+                    self._height = int(s.split("=")[1])
                 elif s.startswith("width"):
-                    self.width = int(s.split("=")[1])
+                    self._width = int(s.split("=")[1])
                 else:
                     s = s.lower().replace(".", "")
-                    if s in EventFileReader_RAW.FORMATS.keys():
-                        self.format = s
+                    if s in EventDecoder_RAW.FORMATS.keys():
+                        self._format = s
                     else:
-                        print(f"Unknown format {s}, supported formats are {list(EventFileReader_RAW.FORMATS.keys())}")
+                        print(f"Unknown format {s}, supported formats are {list(EventDecoder_RAW.FORMATS.keys())}")
 
-        if self.header["geometry"] is not None:
-            split = self.header["geometry"].split("x")
+        if self._header["geometry"] is not None:
+            split = self._header["geometry"].split("x")
             if len(split) != 2:
-                raise ValueError(f"Invalid geometry {self.header['geometry']}")
+                raise ValueError(f"Invalid geometry {self._header['geometry']}")
 
-            if self.width is not None and self.height is not None:
-                if self.width != int(split[0]) or self.height != int(split[1]):
-                    print(f"Warning: Geometry in header {self.header['geometry']} does not match width/height")
+            if self._width is not None and self._height is not None:
+                if self._width != int(split[0]) or self._height != int(split[1]):
+                    print(f"Warning: Geometry in header {self._header['geometry']} does not match width/height")
                     print(f"Setting width/height to {split[0]}x{split[1]}")
-            self.width = int(split[0])
-            self.height = int(split[1])
+            self._width = int(split[0])
+            self._height = int(split[1])
 
-        if self.header['evt'] is not None:
+        if self._header['evt'] is not None:
 
-            if self.header['evt'] in EventFileReader_RAW.EVT_FORMATS.keys():
-                format = EventFileReader_RAW.EVT_FORMATS[self.header['evt']]
+            if self._header['evt'] in EventDecoder_RAW.EVT_FORMATS.keys():
+                format = EventDecoder_RAW.EVT_FORMATS[self._header['evt']]
 
-                if self.format is not None and self.format != format:
-                    print(f"Warning: evt in header {self.header['evt']} does not match evt")
+                if self._format is not None and self._format != format:
+                    print(f"Warning: evt in header {self._header['evt']} does not match evt")
                     print(f"Setting evt to {format}")
-                    self.format = format
+                    self._format = format
 
 
             else:
-                print(f"Unknown evt version {self.header['evt']}")
-                print(f"Supported evt versions are: {list(EventFileReader_RAW.EVT_FORMATS.keys())}")
+                print(f"Unknown evt version {self._header['evt']}")
+                print(f"Supported evt versions are: {list(EventDecoder_RAW.EVT_FORMATS.keys())}")
 
 
-        if self.format is None:
+        if self._format is None:
             print(f"Error: Format not found in header, trying to use EVT3")
-            self.format = "evt3"
+            self._format = "evt3"
 
-        if self.width is None or self.height is None:
-            if self.header['sensor_name'] == "IMX636":
-                self.width = 1280
-                self.height = 720
+        if self._width is None or self._height is None:
+            if self._header['sensor_name'] == "IMX636":
+                self._width = 1280
+                self._height = 720
 
-        if self.width is None or self.width < 0 or self.width > 2048:
+        if self._width is None or self._width < 0 or self._width > 2048:
             print(f"Error: Valid Width not found in header, setting to 2048")
-            self.width = 2048
-        if self.height is None or self.height < 0 or self.height > 2048:
-            print(f"Error: Valdi Height not found in header, setting to 2048")
-            self.height = 2048
+            self._width = 2048
+        if self._height is None or self._height < 0 or self._height > 2048:
+            print(f"Error: Valid Height not found in header, setting to 2048")
+            self._height = 2048
 
-        self.is_initialized = True
+        self._is_initialized = True
 
 
     def read_chunk(self, delta_t_hint:int = None, n_events_hint:int = None) -> np.ndarray:
-        if not self.is_initialized:
+        if not self._is_initialized:
             self.init()
 
         events, triggers = self.__read_and_parse_buffer()
@@ -429,29 +423,29 @@ class EventFileReader_RAW(EventDecoder):
 
     def __read_and_parse_buffer(self):
         # print(f"Reading buffer of size {self.buffer_size}")
-        assert self.fd is not None
+        assert self._fd is not None
 
-        if self.format == "evt3":
+        if self._format == "evt3":
 
             # Read the buffer as uint16
-            input_buffer = np.fromfile(self.fd, dtype=np.uint16, count=self.chunk_size)
+            input_buffer = np.fromfile(self._fd, dtype=np.uint16, count=self._chunk_size)
 
             # We have reached the end of the file, but not nessarily the end of the buffer
-            if len(input_buffer) < self.chunk_size:
+            if len(input_buffer) < self._chunk_size:
                 self.eof = True
 
             if len(input_buffer) == 0:
                 return np.array([], dtype=Event_dtype), np.array([], dtype=Trigger_dtype)
 
-            n_events, n_triggers, self.last_ts_high_high, self.last_ts_high, self.last_ts_low, self.last_y, self.ts_initialized, msg_processed = parse_evt3_buffer(
+            n_events, n_triggers, self._last_ts_high_high, self._last_ts_high, self._last_ts_low, self._last_y, self._ts_initialized, msg_processed = parse_evt3_buffer(
                     input_buffer,
-                    self.events_buffer,
-                    self.triggers_buffer,
-                    self.last_ts_high_high,
-                    self.last_ts_high,
-                    self.last_ts_low,
-                    self.last_y,
-                    self.ts_initialized)
+                    self._events_buffer,
+                    self._triggers_buffer,
+                    self._last_ts_high_high,
+                    self._last_ts_high,
+                    self._last_ts_low,
+                    self._last_y,
+                    self._ts_initialized)
 
             # self.events_buffer_len += n_events
             # self.triggers_buffer_len += n_triggers
@@ -459,30 +453,30 @@ class EventFileReader_RAW(EventDecoder):
                 # This happens if We are in the middle of a Vect message and we need to fetch more data
                 missed_bytes = 2 * (len(input_buffer) - msg_processed)
                 # print(f"Missed {missed_bytes} bytes, seeking back")
-                self.fd.seek(-missed_bytes, 1)
+                self._fd.seek(-missed_bytes, 1)
 
 
 
             del input_buffer
-        elif self.format == "evt21":
+        elif self._format == "evt21":
             raise NotImplementedError("EVT2.1 not implemented")
-        elif self.format == "evt2":
+        elif self._format == "evt2":
             raise NotImplementedError("EVT2 not implemented")
         else:
-            raise ValueError(f"Unsupported format {self.format}. Supported formats are {list(EventFileReader_RAW.FORMATS.keys())}")
-        return self.events_buffer[:n_events], self.triggers_buffer[:n_triggers]
+            raise ValueError(f"Unsupported format {self._format}. Supported formats are {list(EventDecoder_RAW.FORMATS.keys())}")
+        return self._events_buffer[:n_events], self._triggers_buffer[:n_triggers]
 
 
     def reset(self):
-        assert self.fd is not None
-        self.fd.seek(0)
-        self.is_initialized = False
-        self.eof = False
+        assert self._fd is not None
+        self._fd.seek(0)
+        self._is_initialized = False
+        self._eof = False
 
 
 
 
-class EventFileWriter_RAW(EventEncoder):
+class EventEncoder_RAW(EventEncoder):
     '''
     Class for writing RAW files from Prophesee cameras
 
@@ -526,63 +520,63 @@ class EventFileWriter_RAW(EventEncoder):
         super().__init__(writable, width, height, dt)
 
         format = format.lower().replace(".", "")
-        if format not in EventFileWriter_RAW.FORMATS.keys():
-            raise ValueError(f"Unsupported format {format}. Supported formats are {list(EventFileWriter_RAW.FORMATS.keys())}")
-        self.format = format
+        if format not in EventEncoder_RAW.FORMATS.keys():
+            raise ValueError(f"Unsupported format {format}. Supported formats are {list(EventEncoder_RAW.FORMATS.keys())}")
+        self._format = format
 
-        self.system_id = 49
+        self._system_id = 49
 
-        self.last_upper12_ts = -1
-        self.last_lower12_ts = -1
-        self.last_y  = -1
+        self._last_upper12_ts = -1
+        self._last_lower12_ts = -1
+        self._last_y  = -1
 
-        self.serial_number = serial
+        self._serial_number = serial
 
-        self.formatted_datetime = self.dt.strftime("%Y-%m-%d %H:%M:%S")
+        self._formatted_datetime = self._dt.strftime("%Y-%m-%d %H:%M:%S")
 
     def init(self):
-        if self.is_initialized:
+        if self._is_initialized:
             return
 
-        self.fd.write(
+        self._fd.write(
 f"""% camera_integrator_name Prophesee
-% date {self.formatted_datetime}
-% {self.FORMATS[self.format]}
-% format {self.format};height={self.height};width={self.width}
+% date {self._formatted_datetime}
+% {self.FORMATS[self._format]}
+% format {self._format};height={self._height};width={self._width}
 % generation 4.2
-% geometry {self.width}x{self.height}
+% geometry {self._width}x{self._height}
 % integrator_name Prophesee
 % plugin_integrator_name Prophesee
 % plugin_name hal_plugin_prophesee
 % sensor_generation 4.2
-% serial_number {self.serial_number}
-% system_ID {self.system_id}
+% serial_number {self._serial_number}
+% system_ID {self._system_id}
 % end
 """.encode('utf-8'))
-        self.is_initialized = True
+        self._is_initialized = True
 
 
     def write(self, events: np.ndarray) -> int:
-        assert self.fd is not None
+        assert self._fd is not None
 
-        if not self.is_initialized:
+        if not self._is_initialized:
             self.init()
 
-        if self.format == "evt3":
-            buffer, self.last_lower12_ts, self.last_upper12_ts, self.last_y = get_raw_evt3_buffer(
+        if self._format == "evt3":
+            buffer, self._last_lower12_ts, self._last_upper12_ts, self._last_y = get_raw_evt3_buffer(
                 events,
-                self.last_lower12_ts,
-                self.last_upper12_ts,
-                self.last_y)
-        elif self.format == "evt21":
+                self._last_lower12_ts,
+                self._last_upper12_ts,
+                self._last_y)
+        elif self._format == "evt21":
             raise NotImplementedError("EVT2.1 not implemented")
-        elif self.format == "evt2":
+        elif self._format == "evt2":
             raise NotImplementedError("EVT2 not implemented")
         else:
-            raise NotImplementedError(f"Unsupported format {self.format}. Supported formats are {list(EventFileWriter_RAW.FORMATS.keys())}")
+            raise NotImplementedError(f"Unsupported format {self._format}. Supported formats are {list(EventEncoder_RAW.FORMATS.keys())}")
 
-        self.n_written_events += len(events)
+        self._n_written_events += len(events)
 
-        buffer.tofile(self.fd)
+        buffer.tofile(self._fd)
 
         return len(events)
