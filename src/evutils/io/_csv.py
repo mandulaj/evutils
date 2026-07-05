@@ -12,10 +12,10 @@ from pandas._typing import CSVEngine
 from pandas.io.parsers import TextFileReader
 
 from ..types import Event_dtype
-from ._common import EventDecoder, EventEncoder
+from .common import EventDecoder, EventEncoder
 
 
-class EventFileReader_Csv(EventDecoder):
+class EventDecoder_Csv(EventDecoder):
     '''
     A reader for CSV files with events.
 
@@ -53,18 +53,18 @@ class EventFileReader_Csv(EventDecoder):
             if "t" not in order or "x" not in order or "y" not in order or "p" not in order:
                 raise ValueError("Order must contain 't', 'x', 'y' and 'p'")
 
-        self.order = order
-        self.delimiter = delimiter
-        self.engine = engine
+        self._order = order
+        self._delimiter = delimiter
+        self._engine = engine
 
-        self.chunk_reader:TextFileReader|None= None
+        self._chunk_reader:TextFileReader|None= None
 
     def _check_header(self):
         have_header = False
 
         # Check first line to see if it is a header
         # TODO: Need to deal with non-seekable files
-        first_line: str = self.fd.readline().decode('utf-8').strip()
+        first_line: str = self._fd.readline().decode('utf-8').strip()
 
         # Check if the first line is a header
         # If we find a header, it will take precendence over the order parameter
@@ -79,20 +79,20 @@ class EventFileReader_Csv(EventDecoder):
                 # Header found
                 order = first_line.split(",")
 
-                if self.order is not None and order != self.order:
-                    print(ValueError(f"WARNING: Header order {self.order} does not match order file {order}"))
-                self.order = order
+                if self._order is not None and order != self._order:
+                    print(ValueError(f"WARNING: Header order {self._order} does not match order file {order}"))
+                self._order = order
 
 
             else:
                 raise ValueError(f"Header not found or invalid: {first_line}")
         else:
             # No header found, just seek to start of file
-            self.fd.seek(0)
+            self._fd.seek(0)
 
         # If we still don't have a header, we use a default one
-        if self.order is None:
-            self.order = ['t', 'x', 'y', 'p']
+        if self._order is None:
+            self._order = ['t', 'x', 'y', 'p']
 
 
 
@@ -100,26 +100,26 @@ class EventFileReader_Csv(EventDecoder):
 
         self._check_header()
 
-        self.chunk_reader = pd.read_csv(self.fd, iterator=True, header=None, names=self.order, engine=self.engine,
-                                        delimiter=self.delimiter,  dtype={"t":"u8", "p":"u1", "x":"u2","y":"u2"})
+        self._chunk_reader = pd.read_csv(self._fd, iterator=True, header=None, names=self._order, engine=self._engine,
+                                        delimiter=self._delimiter,  dtype={"t":"u8", "p":"u1", "x":"u2","y":"u2"})
 
-        # self.numpy_reader = np.fromtxt(self.fd, delimiter=",", dtype=np.uint64)
-        self.is_initialized = True
+        # self.numpy_reader = np.fromtxt(self._fd, delimiter=",", dtype=np.uint64)
+        self._is_initialized = True
 
 
-    def read_chunk(self, delta_t_hint:int = None, n_events_hint:int = None) -> np.ndarray[Any, np.dtype[Any]]:
-        assert self.is_initialized, "Reader is not initialized"
-        assert self.chunk_reader is not None
+    def read_chunk(self, delta_t_hint:int | None = None, n_events_hint:int | None = None) -> np.ndarray[Any, np.dtype[Any]]:
+        assert self._is_initialized, "Reader is not initialized"
+        assert self._chunk_reader is not None
         # We can use the n_events_hint to read exactly n_events
         #n_events_hint = None
         #if not n_events_hint is None:
         #    chunk_size = n_events_hint
         #else:
         #    chunk_size = self.chunk_size
-        chunk_size = self.chunk_size
+        chunk_size = self._chunk_size
 
         try:
-            buffer = self.chunk_reader.get_chunk(chunk_size)
+            buffer = self._chunk_reader.get_chunk(chunk_size)
 
             buffer = np.array(buffer[['t', 'x', 'y', 'p']].to_records(index=False), dtype=Event_dtype)
         except StopIteration:
@@ -127,19 +127,19 @@ class EventFileReader_Csv(EventDecoder):
 
         # Detect end of file
         if len(buffer) < chunk_size:
-            self.eof = True
+            self._eof = True
 
         return buffer
 
 
     def reset(self):
-        assert self.fd is not None
-        self.fd.seek(0)
+        assert self._fd is not None
+        self._fd.seek(0)
         self._check_header()
 
 
 
-class EventFileWriter_Csv(EventEncoder):
+class EventEncoder_Csv(EventEncoder):
     '''
     A writer for CSV files with events.
 
@@ -174,24 +174,24 @@ class EventFileWriter_Csv(EventEncoder):
         if "t" not in order or "x" not in order or "y" not in order or "p" not in order:
             raise ValueError("Order must contain 't', 'x', 'y' and 'p'")
 
-        self.order = order
-        self.header = header
-        self.sep = sep
+        self._order = order
+        self._header = header
+        self._sep = sep
 
     def init(self):
 
-        if self.header:
-            header = self.sep.join(self.order) + "\n"
-            self.fd.write(header.encode('utf-8'))
+        if self._header:
+            header = self._sep.join(self._order) + "\n"
+            self._fd.write(header.encode('utf-8'))
 
-        self.is_initialized = True
+        self._is_initialized = True
 
 
     def write(self, events: np.ndarray[Any, np.dtype[Any]]) -> int:
-        if not self.is_initialized:
+        if not self._is_initialized:
             self.init()
 
         df = pd.DataFrame(events)
-        df.to_csv(self.fd, header=False, index=False, columns=self.order, sep=self.sep)
+        df.to_csv(self._fd, header=False, index=False, columns=self._order, sep=self._sep)
         return len(events)
 

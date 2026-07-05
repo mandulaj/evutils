@@ -8,51 +8,11 @@ from typing import IO, Any, Optional
 import numpy as np
 
 
-class EventDecoder_Base(ABC):
-    @abstractmethod
-    def init(self):
-        '''
-        Initialize the file for reading
-        '''
-        raise NotImplementedError
-
-    @abstractmethod
-    def read_chunk(self, delta_t_hint:int|None = None, n_events_hint:int|None = None) -> np.ndarray[Any, np.dtype[Any]]:
-        '''
-        Read a chunk of events
-
-        Parameters
-        ----------
-        delta_t_hint
-            If not None, can be used to provide a hit about the delta_t window to be read
-        n_events_hint
-            If not None, can be used to provide a hit about the n_events to be read
-        '''
-        raise NotImplementedError
-
-    @abstractmethod
-    def tell(self) -> int:
-        '''
-        Get the current position in the file
-
-        Returns
-        -------
-        int
-            The current position in the file
-        '''
-        raise NotImplementedError
-
-    @abstractmethod
-    def reset(self):
-        '''
-        Reset the file pointer to the beginning of the file
-        '''
-        raise NotImplementedError
 
 
-class EventDecoder(EventDecoder_Base):
+class EventDecoder(ABC):
     '''
-    ABC for reading chunks of events from a file format
+    ABC for reading chunks of events from a IO source object
 
     Parameters
     ----------
@@ -68,17 +28,56 @@ class EventDecoder(EventDecoder_Base):
         If the method is not implemented in the subclass
 
     '''
-    def __init__(self, readable: io.BufferedReader, chunk_size:int):
-        self.fd = readable
+    def __init__(self, source, chunk_size:int = 10000):
+        # `source` is a ByteSource (see io/_source.py). `fd` is kept as a legacy
+        # alias for older decoders that still reference it.
+        self._source = source
+        self._fd = source
 
-        self.is_initialized = False
+        self._is_initialized = False
 
-        self.chunk_size = chunk_size
+        self._chunk_size = chunk_size
 
-        self.eof = False
+        self._eof = False
 
-        self.width = None
-        self.height = None
+        self._width = None
+        self._height = None
+
+    @abstractmethod
+    def init(self):
+        '''
+        Initialize the file for reading
+        '''
+        raise NotImplementedError
+
+    @abstractmethod
+    def read_chunk(self, delta_t_hint:int | None = None, n_events_hint:int | None = None) -> np.ndarray[Any, np.dtype[Any]]:
+        '''
+        Read a chunk of events
+
+        Parameters
+        ----------
+        delta_t_hint
+            If not None, can be used to provide a hit about the delta_t window to be read
+        n_events_hint
+            If not None, can be used to provide a hit about the n_events to be read
+        '''
+        raise NotImplementedError
+
+    @abstractmethod
+    def reset(self):
+        '''
+        Reset the file pointer to the beginning of the file
+        '''
+        raise NotImplementedError
+
+
+    def close(self):
+        '''Release any resources held by the decoder (e.g. buffer views).
+
+        The owning source is closed separately by the EventReader.
+        '''
+        pass
 
     def tell(self) -> int:
         '''
@@ -89,7 +88,7 @@ class EventDecoder(EventDecoder_Base):
         int
             The current position in the file
         '''
-        return self.fd.tell()
+        return self._fd.tell()
 
 
     def set_chunk_size(self, chunk_size:int):
@@ -101,7 +100,7 @@ class EventDecoder(EventDecoder_Base):
         chunk_size
             Size of the chunk to read
         '''
-        self.chunk_size = chunk_size
+        self._chunk_size = chunk_size
 
     def shape(self) -> tuple[int|None, int|None]:
         '''
@@ -112,12 +111,12 @@ class EventDecoder(EventDecoder_Base):
         tuple[int|None, int|None]
                 The shape of the frame (width, height), or (None, None) if the shape is not known
         '''
-        return self.width, self.height
+        return self._width, self._height
         
 
 
     def __repr__(self) -> str:
-            if self.is_initialized:
+            if self._is_initialized:
                 is_initialized_txt = "initialized"
             else:
                 is_initialized_txt = "not initialized"
@@ -132,33 +131,12 @@ class EventDecoder(EventDecoder_Base):
         bool
             True if the end of the file has been reached
         '''
-        return self.eof
-
-class EventEncoder_Base(ABC):
-    @abstractmethod
-    def init(self):
-        '''
-        Initialize the file for writing
-        '''
-        raise NotImplementedError
-
-    @abstractmethod
-    def write(self, events: np.ndarray[Any, np.dtype[Any]]) -> int:
-        '''
-        Write a chunk of events
-        '''
-        raise NotImplementedError
-
-    @abstractmethod
-    def flush(self):
-        '''
-        Flush the buffer to the file
-        '''
-        raise NotImplementedError
+        return self._eof
 
 
 
-class EventEncoder(EventEncoder_Base):
+
+class EventEncoder(ABC):
     '''
     ABC for writing chunks of events to a io object
 
@@ -182,23 +160,36 @@ class EventEncoder(EventEncoder_Base):
     '''
     def __init__(self, writable: io.BufferedWriter, width:int = 1280, height:int = 720, dt:Optional[datetime]=None ):
 
-        self.fd = writable
+        self._fd = writable
 
-        self.width = width
-        self.height = height
+        self._width = width
+        self._height = height
 
 
-        self.n_written_events = 0
-        self.is_initialized = False
+        self._n_written_events = 0
+        self._is_initialized = False
 
         if dt is None:
-            self.dt = datetime.now()
+            self._dt = datetime.now()
         else:
-            self.dt = dt
+            self._dt = dt
+    
+    @abstractmethod
+    def init(self):
+        '''
+        Initialize the file for writing
+        '''
+        raise NotImplementedError
 
+    @abstractmethod
+    def write(self, events: np.ndarray[Any, np.dtype[Any]]) -> int:
+        '''
+        Write a chunk of events
+        '''
+        raise NotImplementedError
 
     def __len__(self) -> int:
-        return self.n_written_events
+        return self._n_written_events
 
 
     def __enter__(self):
@@ -206,11 +197,11 @@ class EventEncoder(EventEncoder_Base):
 
 
     def __repr__(self) -> str:
-        if self.is_initialized:
-            is_initialized_txt = f"Written {self.n_written_events} events"
+        if self._is_initialized:
+            is_initialized_txt = f"Written {self._n_written_events} events"
         else:
             is_initialized_txt = "not initialized"
-        return f"{self.__class__.__name__} - {is_initialized_txt}, {self.width}x{self.height})"
+        return f"{self.__class__.__name__} - {is_initialized_txt}, {self._width}x{self._height})"
 
     def flush(self):
-        self.fd.flush()
+        self._fd.flush()

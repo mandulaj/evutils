@@ -1,14 +1,30 @@
 
 import numpy as np
 
-from ._common import EventDecoder, EventEncoder
+from .common import EventDecoder, EventEncoder
 
 
-class EventFileReader_Npz(EventDecoder):
+class EventDecoder_Npz(EventDecoder):
+    '''
+    A decoder for reading events from NPZ files.
+
+    Parameters
+    ----------
+    file
+        Path to the data file
+    '''
     def __init__(self, file):
         super().__init__(file)
 
 
-class EventFileWriter_Npz(EventEncoder):
+class EventEncoder_Npz(EventEncoder):
+    '''
+    A encoder for writing events to NPZ files.
+
+    Parameters
+    ----------
+    file
+        Path to the data file
+    '''
     def __init__(self, file, width=1280, height=720):
         super().__init__(file)

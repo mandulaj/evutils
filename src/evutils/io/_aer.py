@@ -1,12 +1,14 @@
 
+
+
 import numpy as np
 
 from .common import EventDecoder, EventEncoder
 
 
-class EventDecoder_Bin(EventDecoder):
+class EventDecoder_AER(EventDecoder):
     '''
-    A decoder for reading events from binary files.
+    A decoder for reading events from AER files.
 
     Parameters
     ----------
@@ -17,9 +19,9 @@ class EventDecoder_Bin(EventDecoder):
         super().__init__(file)
 
 
-class EventEncoder_Bin(EventEncoder):
+class EventEncoder_AER(EventEncoder):
     '''
-    A encoder for writing events to binary files.
+    A encoder for writing events to AER files.
 
     Parameters
     ----------
@@ -27,5 +29,4 @@ class EventEncoder_Bin(EventEncoder):
         Path to the data file
     '''
     def __init__(self, file, width=1280, height=720):
-        super().__init__(file)
-
+        super().__init__(file, width, height)
