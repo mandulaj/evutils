@@ -16,7 +16,7 @@ from evutils.types import Event_dtype
 #: A real reference recording: its path plus the event count reported by the
 #: reference OpenEB implementation (implementations differ slightly, so counts
 #: are expected to be close but not necessarily identical).
-EventFile = namedtuple("EventFile", ["path", "count"])
+EventFile = namedtuple("EventFile", ["path", "count", "metadata"], defaults=[None])
 
 
 @pytest.fixture(scope='session')
@@ -42,13 +42,7 @@ def real_event_files(request):
     Returns ``{format: EventFile(path, count)}`` where ``count`` is the
     reference OpenEB event count.
     """
-    # Reference event counts from the OpenEB implementation.
-    event_counts = {
-        'evt3': 33494595,
-        'evt21': 8214341,
-        'evt2': 33494595,
-    }
-
+    import json
     temp_dir = request.config.cache.mkdir("event_files")
 
     filenames = {
@@ -67,7 +61,26 @@ def real_event_files(request):
             subprocess.run(["tar", "zxv", "-C", str(temp_dir), "-f", str(tar_file)])
             break
 
-    return {
-        fmt: EventFile(path=paths[fmt], count=event_counts[fmt])
-        for fmt in filenames
-    }
+    result = {}
+    json_files = list(temp_dir.glob("*.json"))
+    
+    if json_files:
+        for json_path in json_files:
+            with open(json_path) as f:
+                meta = json.load(f)
+                fmt = meta["format"]
+                path = temp_dir / meta["filename"]
+                if path.exists():
+                    result[fmt] = EventFile(path=path, count=meta["count"], metadata=meta)
+    else:
+        # Fallback to hardcoded counts if no JSON files found
+        event_counts = {
+            'evt3': 33494595,
+            'evt21': 8214341,
+            'evt2': 33494595,
+        }
+        for fmt, path in paths.items():
+            if path.exists():
+                result[fmt] = EventFile(path=path, count=event_counts[fmt], metadata=None)
+
+    return result

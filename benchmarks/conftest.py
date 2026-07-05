@@ -14,7 +14,7 @@ import pytest
 from evutils.io import EventReader
 
 #: (see tests/conftest.py) path + reference OpenEB event count for a recording.
-EventFile = namedtuple("EventFile", ["path", "count"])
+EventFile = namedtuple("EventFile", ["path", "count", "metadata"], defaults=[None])
 
 #: Cap on how many events are held in memory for the write benchmarks. Large
 #: enough for a stable throughput measurement, small enough to stay light.
@@ -28,12 +28,7 @@ def real_event_files(request):
     Returns ``{format: EventFile(path, count)}``. Duplicated from
     tests/conftest.py -- keep in sync.
     """
-    event_counts = {
-        'evt3': 33494595,
-        'evt21': 8214341,
-        'evt2': 33494595,
-    }
-
+    import json
     temp_dir = request.config.cache.mkdir("event_files")
 
     filenames = {
@@ -51,10 +46,29 @@ def real_event_files(request):
             subprocess.run(["tar", "zxv", "-C", str(temp_dir), "-f", str(tar_file)])
             break
 
-    return {
-        fmt: EventFile(path=paths[fmt], count=event_counts[fmt])
-        for fmt in filenames
-    }
+    result = {}
+    json_files = list(temp_dir.glob("*.json"))
+    
+    if json_files:
+        for json_path in json_files:
+            with open(json_path) as f:
+                meta = json.load(f)
+                fmt = meta["format"]
+                path = temp_dir / meta["filename"]
+                if path.exists():
+                    result[fmt] = EventFile(path=path, count=meta["count"], metadata=meta)
+    else:
+        # Fallback to hardcoded counts if no JSON files found
+        event_counts = {
+            'evt3': 33494595,
+            'evt21': 8214341,
+            'evt2': 33494595,
+        }
+        for fmt, path in paths.items():
+            if path.exists():
+                result[fmt] = EventFile(path=path, count=event_counts[fmt], metadata=None)
+
+    return result
 
 
 @pytest.fixture(scope='session')
