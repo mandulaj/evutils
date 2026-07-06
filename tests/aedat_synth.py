@@ -36,7 +36,8 @@ def make_aedat1(t: Any, x: Any, y: Any, p: Any, header: bool=True) -> bytes:
 
 def make_aedat2(t: Any, x: Any, y: Any, p: Any, aps_every: Any=None) -> bytes:
     """AEDAT 2.0: '#' header + big-endian (uint32 addr, uint32 ts) records.
-    DAVIS layout: p = bit 11, x = bits 12-21, y = bits 22-30; bit 31 = APS."""
+    DAVIS layout: p = bit 11, x = bits 12-21, y = bits 22-30
+    bit 31 = APS."""
     out = bytearray(b"#!AER-DAT2.0\r\n# sizeX 240\r\n# sizeY 180\r\n")
     for i, (ti, xi, yi, pi) in enumerate(zip(t, x, y, p)):
         addr = (int(yi) << 22) | (int(xi) << 12) | (int(pi) << 11)
@@ -83,7 +84,10 @@ def _fb_event_packet(t: Any, x: Any, y: Any, p: Any) -> bytes:
     """Hand-built size-prefixed EventPacket FlatBuffer (identifier EVTS)."""
     n = len(t)
     rec = np.zeros(n, dtype=_V4_EVENT_DTYPE)
-    rec["t"] = t; rec["x"] = x; rec["y"] = y; rec["p"] = p
+    rec["t"] = t
+    rec["x"] = x
+    rec["y"] = y
+    rec["p"] = p
     events = rec.tobytes()
     # Layout (offsets relative to buffer start):
     #  0: u32 size prefix          12: vtable [6, 8, 4]     20: table

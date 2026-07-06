@@ -15,7 +15,7 @@ from evutils.types import Event_dtype
 
 # Add tests dir to path to import conftest_utils
 sys.path.append(str(Path(__file__).parent))
-from conftest_utils import EventFile, download_and_extract_gdrive, load_event_files # type: ignore
+from conftest_utils import download_and_extract_gdrive, load_event_files # type: ignore
 
 
 from typing import Any

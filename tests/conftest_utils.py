@@ -6,7 +6,6 @@ import urllib.parse
 import urllib.request
 from collections import defaultdict, namedtuple
 from pathlib import Path, PurePosixPath
-from typing import Any
 
 EventFile = namedtuple("EventFile", ["path", "count", "metadata"], defaults=[None])
 

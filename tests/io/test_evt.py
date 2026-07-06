@@ -71,10 +71,10 @@ def test_RAW_real_read(real_event_files: Any, fmt: Any) -> None:
 
     for ef in real_event_files[fmt]:
         with EventReader(ef.path) as reader:
-            assert reader._is_initialized == False
+            assert not reader._is_initialized
             events = reader.read()
             assert not isinstance(events, tuple)
-            assert reader._is_initialized == True
+            assert reader._is_initialized
 
             assert reader.shape() in [(1280, 720), (1220, 688)]
             assert len(events) > 0

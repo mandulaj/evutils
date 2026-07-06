@@ -3,12 +3,13 @@
 import numpy as np
 import pytest
 
-h5py = pytest.importorskip("h5py")
 
 from evutils.io import EventReader, EventWriter
 from evutils.types import Event_dtype
 
 from typing import Any
+
+h5py = pytest.importorskip("h5py")
 
 def make_events(n: int=20_000, t_max: int=200_000, seed: int=3) -> Any:
     rng = np.random.default_rng(seed)

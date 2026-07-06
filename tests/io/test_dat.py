@@ -46,7 +46,8 @@ def test_DAT_matches_expelliarmus(tmp_path: Any, test_events: Any) -> None:
 
 
 def test_DAT_timestamp_overflow(tmp_path: Any) -> None:
-    """DAT timestamps are 32-bit us on disk (~71 min); the decoder must extend
+    """DAT timestamps are 32-bit us on disk (~71 min)
+    the decoder must extend
     them past the wrap."""
     from evutils.io import EventReader, EventWriter
     from evutils.types import Event_dtype
@@ -54,7 +55,9 @@ def test_DAT_timestamp_overflow(tmp_path: Any) -> None:
     t = np.array([2**32 - 30, 2**32 - 10, 2**32 + 10, 2**32 + 30, 2**33 + 5], dtype=np.int64)
     ev = np.zeros(len(t), dtype=Event_dtype)
     ev['t'] = t
-    ev['x'] = np.arange(len(t)); ev['y'] = np.arange(len(t)); ev['p'] = [0, 1, 0, 1, 1]
+    ev['x'] = np.arange(len(t))
+    ev['y'] = np.arange(len(t))
+    ev['p'] = [0, 1, 0, 1, 1]
 
     p = tmp_path / "overflow.dat"
     with EventWriter(p) as w:
@@ -66,7 +69,8 @@ def test_DAT_timestamp_overflow(tmp_path: Any) -> None:
 
 
 def test_DAT_coordinate_extremes(tmp_path: Any) -> None:
-    """DAT coordinates are 14-bit; extremes must survive."""
+    """DAT coordinates are 14-bit
+    extremes must survive."""
     from evutils.io import EventReader, EventWriter
     from evutils.types import Event_dtype
 

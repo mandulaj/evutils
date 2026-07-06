@@ -1,6 +1,6 @@
 
 
-from evutils.random import random_events, random_events_generator, event_jitter, event_jitter_n
+from evutils.random import random_events, random_events_generator, event_jitter
 
 from evutils.types import is_monotonically_increasing
 

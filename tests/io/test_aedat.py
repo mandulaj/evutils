@@ -62,9 +62,12 @@ def test_aedat2_davis_skips_aps(tmp_path: Any) -> None:
 
 
 def test_aedat2_timestamp_wrap(tmp_path: Any) -> None:
-    """32-bit µs timestamps wrap; the decoder must extend them to 64 bits."""
+    """32-bit µs timestamps wrap
+    the decoder must extend them to 64 bits."""
     t32 = np.array([2**32 - 20, 2**32 - 10, 5, 15], dtype=np.uint64)
-    x = np.array([1, 2, 3, 4]); y = np.array([5, 6, 7, 8]); p = np.array([0, 1, 0, 1])
+    x = np.array([1, 2, 3, 4])
+    y = np.array([5, 6, 7, 8])
+    p = np.array([0, 1, 0, 1])
     f = tmp_path / "wrap.aedat"
     f.write_bytes(make_aedat2(t32 & 0xFFFFFFFF, x, y, p))
     with EventReader(f) as r:
