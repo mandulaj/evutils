@@ -12,7 +12,7 @@ import numpy as np
 import pytest
 from typing import Any, cast
 
-from evutils.io import EventReader  # type: ignore
+from evutils.io import EventReader
 
 sys.path.append(str(Path(__file__).parent.parent / "tests"))
 from conftest_utils import EventFile, download_and_extract_gdrive, load_event_files  # type: ignore

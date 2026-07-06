@@ -33,7 +33,7 @@ def test_read_compare(benchmark: Any, benchmark_rounds: int, real_event_files: d
     ef = next((f for f in real_event_files[fmt] if 'hand' in f.path.name), real_event_files[fmt][0])
 
     try:
-        n = benchmark.pedantic(
+        n, n_pos = benchmark.pedantic(
             lambda: reader.read(ef.path, fmt),
             rounds=benchmark_rounds, iterations=1, warmup_rounds=1,
         )
@@ -41,4 +41,4 @@ def test_read_compare(benchmark: Any, benchmark_rounds: int, real_event_files: d
         pytest.skip(f"{reader.name} not available: {exc}")
 
     assert n > 0
-    benchmark.extra_info.update(library=reader.name, fmt=fmt, n_events=n)
+    benchmark.extra_info.update(library=reader.name, fmt=fmt, n_events=n, n_pos=n_pos)

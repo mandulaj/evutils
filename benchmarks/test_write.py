@@ -12,7 +12,7 @@ import pytest
 
 from typing import Any
 
-from evutils.io import EventWriter  # type: ignore
+from evutils.io import EventWriter
 
 FORMATS = ["evt3", "evt2", "evt21"]
 

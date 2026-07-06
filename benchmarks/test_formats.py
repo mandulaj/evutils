@@ -22,7 +22,7 @@ import numpy as np
 import pytest
 from typing import Any
 
-from evutils.io import EventReader, EventWriter  # type: ignore
+from evutils.io import EventReader, EventWriter
 
 # fmt -> benchmark group (EVT formats get a -uniform suffix; see module docs).
 READ_FORMATS = {
