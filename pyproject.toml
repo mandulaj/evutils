@@ -27,7 +27,7 @@ aedat = [
     "lz4>=4.0",
     "zstandard>=0.22; python_version < '3.14'",
 ]
-pandas = ["pandas>=2.3.3"]
+
 torch = ["torch>=2.0"]
 hdf5 = ["hdf5plugin==6.0.0", "h5py>=3.16.0"]
 vis = [
@@ -69,7 +69,7 @@ docs = [
 ]
 
 # Meta-groups
-all = ["evutils[aedat,pandas,torch,hdf5,vis]"]
+all = ["evutils[aedat,torch,hdf5,vis]"]
 dev = ["evutils[all,test,docs]"]
 
 
@@ -97,7 +97,7 @@ check_untyped_defs = true
 # Untyped third-party libraries (no stubs published).
 module = [
     "numba", "numba.*",
-    "pandas", "pandas.*",
+
     "h5py", "h5py.*",
     "hdf5plugin",
     "cv2", "cv2.*",

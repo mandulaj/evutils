@@ -179,7 +179,7 @@ jobs:
           # GITHUB_REF_NAME contains the tag name (e.g. v1.0.0). We strip the 'v' for pip.
           VERSION=${GITHUB_REF_NAME#v}
           for i in {1..12}; do
-            uv pip install --system "evutils[test,pandas,hdf5,aedat]==$VERSION" --no-cache && break
+            uv pip install --system "evutils[test,hdf5,aedat]==$VERSION" --no-cache && break
             echo "Waiting for PyPI index..."
             sleep 10
           done

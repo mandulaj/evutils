@@ -17,8 +17,7 @@ from evutils.types import Event_dtype
 def skip_missing_deps(request: Any) -> None:
     if "fmt" in request.fixturenames:
         fmt = request.getfixturevalue("fmt")
-        if fmt == "csv":
-            pytest.importorskip("pandas")
+
         elif fmt == "hdf5":
             pytest.importorskip("h5py")
             pytest.importorskip("hdf5plugin")
