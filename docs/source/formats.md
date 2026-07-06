@@ -5,7 +5,16 @@
 (or from magic bytes for extensionless streams). This page lists every format,
 its support status, and format-specific options.
 
-## Overview
+## IO Roadmap & Goals
+We are aiming for universal event format support with the highest possible performance and extensibility:
+- [x] Full Read/Write parity where possible
+- [x] Chunked & Streaming access
+- [x] External trigger data decoding
+- [ ] Random access / Indexing (`ms_to_idx` implemented for HDF5, big TODO for `.raw` streams)
+- [ ] Arbitrary inputs (file-like objects, `io.BytesIO`, memory-mapped files)
+- [ ] Compression wrappers (e.g., passing streams through `zstd` transparently)
+
+## Format Matrix
 
 | Format | Extensions | Read | Write | Backend | Notes |
 |---|---|:---:|:---:|---|---|

@@ -3,7 +3,13 @@
 [![Test](https://github.com/mandulaj/evutils/actions/workflows/test.yaml/badge.svg)](https://github.com/mandulaj/evutils/actions/workflows/test.yaml)
 
 ## Overview
-EV-Utils (``evutils``) is a performant collection of utilities for working with event-based vision data. Built with minimal dependencies, it relies on compiled C backed for speed while offering a clean, modular Python interface.
+EV-Utils (`evutils`) is a performant collection of utilities for working with event-based vision data. Built with minimal dependencies, it relies on a compiled C backend for speed while offering a clean, modular Python interface.
+
+### Core Philosophy
+* **Fast & Lightweight:** Highly optimized C parsers for zero-bottleneck data ingestion.
+* **Minimal Footprint:** Core features run entirely on NumPy and Numba.
+* **Lazy Loading:** All heavy integrations (PyTorch, Pandas, HDF5, Polars, etc.) are lazy-loaded. If you don't use them, you don't need them installed, and they won't slow down import times.
+* **Simple & Extensible:** Clean modular APIs.
 
 
 
@@ -139,6 +145,18 @@ uv run pytest benchmarks/ --benchmark-group-by=param:fmt    # compare libraries 
 ```
 
 The benchmarks download a real Prophesee recording on first use. Optional cross-library comparisons run automatically once the libraries are installed (`uv pip install -e ".[compare]"`); OpenEB/Metavision is compared via the Docker image in `benchmarks/docker/`. See [`benchmarks/README.md`](benchmarks/README.md) for details.
+
+
+
+## & Roadmap
+We aim for universal event format support, prioritizing blazing fast read/write speeds, completeness, and extensibility. 
+- [x] Universal format support (`.raw`, `.evt2`, `.dat`, `.aedat4`, `.hdf5`, `.npz`, `.csv`, etc.)
+- [x] Full Read/Write parity where possible
+- [x] Chunked & Streaming access
+- [x] External trigger data parsing
+- [ ] **Random access / Timestamp indexing** (Big TODO for the future)
+- [ ] **Arbitrary input sources:** memory-mapped IO, pure in-memory streams, HTTP streams
+- [ ] **On-the-fly Compression wrappers:** passing file handles through `zstd` or `lz4` compression transparently before decoding
 
 
 ## Acknowledgements
