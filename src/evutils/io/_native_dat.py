@@ -1,3 +1,9 @@
+"""ctypes bindings for the native Prophesee DAT parser.
+
+:class:`DatInput` views the 2x-uint32 records zero-copy; :class:`DatParser`
+owns the opaque C state (tracks the 32-bit timestamp overflow). Shared SoA
+buffers and parse helpers live in :mod:`evutils.io._native_core`.
+"""
 from __future__ import annotations
 import ctypes
 from ctypes import POINTER, c_uint32, cast as c_cast, c_char, c_void_p, byref

@@ -1,3 +1,9 @@
+"""ctypes bindings for the native AER parser.
+
+AER records carry no timestamps; :class:`AerParser` configures how ``t`` is
+generated (``AER_TS_ZERO`` or ``AER_TS_SEQUENTIAL``, carried across chunks).
+Shared SoA buffers and parse helpers live in :mod:`evutils.io._native_core`.
+"""
 from __future__ import annotations
 import ctypes
 from ctypes import POINTER, c_uint32, cast as c_cast, c_char, c_void_p, c_uint64, byref

@@ -1,3 +1,9 @@
+"""ctypes bindings for the native CSV/TXT parser and writer.
+
+Registers ``evutils_read_csv`` / ``evutils_write_csv`` (csrc/csv.c) with the
+shared library handle; the Python-side chunking logic lives in
+:mod:`evutils.io._csv`.
+"""
 from __future__ import annotations
 import ctypes
 from ctypes import POINTER, c_void_p, c_int, c_char_p, c_size_t, c_char

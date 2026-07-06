@@ -1,3 +1,10 @@
+"""ctypes bindings for the native EVT2 / EVT2.1 / EVT3 parsers.
+
+Input wrappers (:class:`Evt2Input`, :class:`Evt21Input`, :class:`Evt3Input`)
+view the payload words zero-copy; the ``Evt*Parser`` classes own the opaque
+C parser state. Shared SoA output buffers and the parse loop helpers live in
+:mod:`evutils.io._native_core`.
+"""
 from __future__ import annotations
 import ctypes
 from ctypes import POINTER, c_uint16, c_uint32, c_uint64, cast as c_cast, c_char, c_void_p, byref
