@@ -92,3 +92,47 @@ def benchmark_rounds(request):
 @pytest.fixture(scope="session")
 def benchmark_dataset(request):
     return request.config.getoption("--dataset")
+
+
+@pytest.fixture(scope="session")
+def uniform_files(reference_events, tmp_path_factory):
+    """The same ``N_REFERENCE`` real events transcoded into every format.
+
+    All per-format read/write benchmarks (benchmarks/test_formats.py) operate
+    on these files, so throughput numbers are comparable across formats: same
+    events, same count. AER is the one lossy exception -- it has no timestamps
+    and 9-bit coordinates, so its file carries the same events with coordinates
+    masked to 0..511 (the event count is identical).
+    """
+    from evutils.io import EventWriter
+
+    sys.path.append(str(Path(__file__).parent.parent / "tests"))
+    from aedat_synth import make_aedat4
+
+    d = tmp_path_factory.mktemp("uniform")
+    ev = reference_events
+    files = {}
+
+    for fmt in ("evt3", "evt21", "evt2"):
+        files[fmt] = d / f"ref_{fmt}.raw"
+        with EventWriter(files[fmt], width=1280, height=720, format=fmt) as w:
+            w.write(ev)
+
+    for fmt, name in (("dat", "ref.dat"), ("npz", "ref.npz"),
+                      ("hdf5", "ref.h5"), ("csv", "ref.csv")):
+        files[fmt] = d / name
+        with EventWriter(files[fmt], width=1280, height=720) as w:
+            w.write(ev)
+
+    aer = ev.copy()
+    aer["x"] &= 0x1FF
+    aer["y"] &= 0x1FF
+    files["aer"] = d / "ref.aer"
+    with EventWriter(files["aer"]) as w:
+        w.write(aer)
+
+    files["aedat4"] = d / "ref.aedat4"
+    files["aedat4"].write_bytes(
+        make_aedat4(ev["t"], ev["x"], ev["y"], ev["p"], events_per_packet=65536)
+    )
+    return files

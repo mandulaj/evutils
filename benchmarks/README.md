@@ -40,13 +40,13 @@ pytest benchmarks/ -k "not evlib and not openeb"
 
 | File | What it benchmarks |
 |------|--------------------|
-| `test_read.py`          | `evutils` decode throughput (evt2/evt21/evt3), asserts count vs reference |
+| `test_read.py`          | `evutils` decode throughput on the full real recordings (evt2/evt21/evt3), asserts count vs reference |
 | `test_write.py`         | `evutils` encode throughput (payload = first 5M events of the real evt3 file) |
-| `test_fixed_formats.py` | `evutils` read/write for DAT and AER (+ expelliarmus on DAT read) |
-| `test_compare.py`       | third-party readers from `readers.py` (auto-skip if not installed) |
+| `test_formats.py`       | **uniform per-format read/write**: the same 5M real events transcoded into every format (EVT3/EVT2.1/EVT2, DAT, AER, NPZ, HDF5, CSV, AEDAT4), so numbers are comparable across formats; expelliarmus (DAT) and evlib (HDF5, AEDAT4) compared on the identical files |
+| `test_compare.py`       | third-party readers from `readers.py` on the full real recordings (auto-skip if not installed) |
 | `readers.py`            | adapter registry — one entry per external library |
 
-*Note: DAT reuses the shared EVT3 reference events (its 14-bit coords fit 1280×720). AER is 9-bit and timestamp-less (GenX320-class), so it uses a separate small synthetic fixture.*
+*Note: in `test_formats.py` AER is the one lossy transcode — the format has no timestamps and 9-bit coordinates, so the same events are written with coordinates masked to 0–511 (identical event count).*
 
 ## Comparing Against Other Libraries
 
