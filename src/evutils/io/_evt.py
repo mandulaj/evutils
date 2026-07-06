@@ -320,7 +320,7 @@ class EventDecoder_EVT(EventDecoder):
     def read_all(self) -> 'EventArray | tuple[EventArray, TriggerArray]':
         """Decode the whole remaining payload into one buffer (no per-chunk copy).
 
-        See :func:`evutils.io._native_evt.decode_all_soa`. Note this materialises
+        See :func:`evutils.io._native_core.decode_all_soa`. Note this materialises
         every event at once; for very large recordings that do not fit in memory,
         iterate with :meth:`read_chunk` (via ``EventReader``) instead.
         """
@@ -343,7 +343,7 @@ class EventDecoder_EVT(EventDecoder):
         
         # NOTE: decode_all_soa doesn't currently return triggers. 
         # But for full implementation we might need to modify decode_all_soa.
-        # Actually, decode_all_soa in _native_evt doesn't return triggers.
+        # Actually, decode_all_soa in _native_core doesn't return triggers.
         if self.read_external_triggers:
             raise NotImplementedError("read_all with external triggers is not yet implemented for EVT.")
         return out

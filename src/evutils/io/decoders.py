@@ -31,7 +31,8 @@ try:
     _READER_MAPPING[".txt"] = EventDecoder_Csv
 except ImportError:
     _UNAVAILABLE[".csv"] = _UNAVAILABLE[".txt"] = (
-        "reading CSV/TXT event files requires pandas: install `evutils[pandas]`"
+        "reading CSV/TXT event files requires the evutils native library "
+        "(build it with `uv pip install -e .`)"
     )
 
 from ._dat import EventDecoder_Dat

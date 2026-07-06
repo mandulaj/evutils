@@ -5,7 +5,7 @@ import numpy as np
 from typing import Any
 
 
-@numba.njit # type: ignore[untyped-decorator]
+@numba.njit
 def histogram(events: np.ndarray, width: int = 1280, height: int = 720, fill: bool = False, dtype: Any = np.uint8) -> np.ndarray:
     """Generate a histogram frame from the events.
 
@@ -60,7 +60,7 @@ def histogram(events: np.ndarray, width: int = 1280, height: int = 720, fill: bo
     return buffer
 
 
-@numba.njit # type: ignore[untyped-decorator]
+@numba.njit
 def wedge_histogram(events: np.ndarray, width: int = 1280, height: int = 720, tl: float = 30e6, dtype: Any = np.uint8) -> np.ndarray:   
     """Generate a wedge histogram frame from the events.
 

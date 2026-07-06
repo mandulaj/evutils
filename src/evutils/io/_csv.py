@@ -73,7 +73,7 @@ class EventDecoder_Csv(EventDecoder):
             # We expect a header:
             if "t" in first_line and "x" in first_line and "y" in first_line and "p" in first_line:
                 # Header found
-                order = first_line.split(",")
+                order = [c.strip() for c in first_line.split(self._delimiter)]
 
                 if self._order is not None and order != self._order:
                     warnings.warn(f"Header order {order} in file takes precedence over requested order {self._order}")
@@ -101,6 +101,7 @@ class EventDecoder_Csv(EventDecoder):
 
         """
         self._check_header()
+        assert self._order is not None  # set by _check_header
 
         # Build col_mapping: maps CSV index to out_array index
         # out_arrays index: 0=t, 1=x, 2=y, 3=p
@@ -172,6 +173,15 @@ class EventDecoder_Csv(EventDecoder):
             if consumed == 0:
                 if self._eof:
                     break
+                # No full line in the buffered window (a line longer than the
+                # refill threshold): pull more data regardless of the usual
+                # low-water mark, otherwise this loop would never progress.
+                new_data = self._fd.read(4 * 1024 * 1024)
+                if not new_data:
+                    self._eof = True
+                    self._buffer.extend(b'\n')  # guarantee final-line newline
+                else:
+                    self._buffer.extend(new_data)
                 continue
 
             del self._buffer[:consumed]

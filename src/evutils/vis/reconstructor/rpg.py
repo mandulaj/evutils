@@ -33,7 +33,7 @@ def set_inference_options(params: Any) -> None:
     None
 
     """
-    rpg_set_inference_options(params) # type: ignore[no-untyped-call]
+    rpg_set_inference_options(params)
 
 
 
@@ -100,18 +100,18 @@ class RPG_Reconstructor(Reconstructor):
 
         sn_args = SimpleNamespace(**args)
 
-        self.model = rpg_load_model(sn_args.model_path) # type: ignore[no-untyped-call]
+        self.model = rpg_load_model(sn_args.model_path)
         self.model.eval().to(self.device)
 
         self.no_recurrent = args['no_recurrent']
 
-        self.crop = CropParameters(self.width, self.height, self.model.num_encoders) # type: ignore[no-untyped-call]
+        self.crop = CropParameters(self.width, self.height, self.model.num_encoders)
         self.last_states_for_each_channel = {'grayscale': None}
 
-        self.event_preprocessor = EventPreprocessor(sn_args) # type: ignore[no-untyped-call]
-        self.intensity_rescaler = IntensityRescaler(sn_args) # type: ignore[no-untyped-call]
-        self.image_filter = ImageFilter(sn_args) # type: ignore[no-untyped-call]
-        self.unsharp_mask_filter = UnsharpMaskFilter(sn_args, device=self.device) # type: ignore[no-untyped-call]
+        self.event_preprocessor = EventPreprocessor(sn_args)
+        self.intensity_rescaler = IntensityRescaler(sn_args)
+        self.image_filter = ImageFilter(sn_args)
+        self.unsharp_mask_filter = UnsharpMaskFilter(sn_args, device=self.device)
         # self.image_writer = ImageWriter(args)
         # self.image_display = ImageDisplay(args)
 
@@ -246,13 +246,13 @@ class RPG_Reconstructor(Reconstructor):
 
 
         if self.args['compute_voxel_grid_on_cpu']:
-            event_tensor = events_to_voxel_grid(events, # type: ignore[no-untyped-call]
+            event_tensor = events_to_voxel_grid(events,
                                                 num_bins=self.model.num_bins,
                                                 width=self.width,
                                                 height=self.height)
             event_tensor = torch.from_numpy(event_tensor)
         else:
-            event_tensor = events_to_voxel_grid_pytorch(events, # type: ignore[no-untyped-call]
+            event_tensor = events_to_voxel_grid_pytorch(events,
                                                         num_bins=self.model.num_bins,
                                                         width=self.width,
                                                         height=self.height,

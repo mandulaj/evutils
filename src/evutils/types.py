@@ -7,7 +7,7 @@ together with small helpers for checking event arrays.
 
 
 import ctypes
-from typing import Any
+from typing import Any, TypeVar
 
 import numpy as np
 
@@ -75,6 +75,9 @@ def is_monotonically_increasing(events: np.ndarray) -> bool:
 
 
 
+_S = TypeVar("_S", bound="SoaArray")
+
+
 class SoaArray:
     """Abstract base class for struct-of-arrays (SoA) layout."""
 
@@ -115,19 +118,19 @@ class SoaArray:
         
         return f"{name}(n={n}):\n{head_str}\n ...\n  {tail_str}]"
 
-    def copy(self) -> Any:
+    def copy(self: _S) -> _S:
         """Return a deep copy with independent column arrays."""
         copied_args = {f: getattr(self, f).copy() for f in self._fields}
         return self.__class__(**copied_args)
 
     @classmethod
-    def empty(cls) -> Any:
+    def empty(cls: 'type[_S]') -> _S:
         """Return an empty SoA array with correctly-typed (zero-length) columns."""
         args = {f: np.empty(0, dtype=cls._aos_dtype[f]) for f in cls._fields}
         return cls(**args)
 
     @classmethod
-    def from_aos(cls, aos_array: np.ndarray) -> Any:
+    def from_aos(cls: 'type[_S]', aos_array: np.ndarray) -> _S:
         """Constructs a SoA array from an array of structures (AoS) numpy array."""
         args = {f: np.ascontiguousarray(aos_array[f]) for f in cls._fields}
         return cls(**args)

@@ -5,7 +5,7 @@ import numpy as np
 import numba
 from typing import Any 
 
-@numba.njit # type: ignore[untyped-decorator]
+@numba.njit
 def timesurface(events: np.ndarray, width: int = 1280, height: int = 720, tau: int = 10_000, dtype: Any = np.float32) -> np.ndarray:
     """Generate a time surface frame from the events.
 

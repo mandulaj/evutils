@@ -34,4 +34,4 @@ def mask_events(events: np.ndarray, mask: np.ndarray) -> np.ndarray:
     y = events['y']
     valid_events = mask[y, x] > 0
     
-    return events[valid_events] # type: ignore[no-any-return]
+    return events[valid_events]

@@ -300,7 +300,7 @@ class EventReader():
 
         """
         self._check_no_active_prefetch()
-        return self._read(delta_t, n_events)  # type: ignore
+        return self._read(delta_t, n_events)
 
     def _read(self, delta_t:int|None=None, n_events:int|None=None) -> Any:
         """Unguarded body of :meth:`read` (also driven by the prefetch worker)."""

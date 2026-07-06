@@ -5,7 +5,7 @@ import numpy as np
 from typing import Any
 
 
-@numba.njit # type: ignore[untyped-decorator]
+@numba.njit
 def frame_gray(events: np.ndarray, width: int = 1280, height: int = 720, dtype: Any = np.uint8) -> np.ndarray:
     """Generate a grayscale frame from the events.
 
@@ -44,7 +44,7 @@ def frame_gray(events: np.ndarray, width: int = 1280, height: int = 720, dtype: 
     return buffer
 
 
-@numba.njit # type: ignore[untyped-decorator]
+@numba.njit
 def frame_rgb(ev: np.ndarray, width: int = 1280, height: int = 720, bg_color: Any = np.array((0, 0, 0)), pos_color: Any = np.array((255, 0, 0)), neg_color: Any = np.array((0, 0, 255))) -> np.ndarray:
     """Generate an RGB frame from the events.
 
@@ -85,7 +85,7 @@ def frame_rgb(ev: np.ndarray, width: int = 1280, height: int = 720, bg_color: An
     return buffer
 
 
-@numba.njit # type: ignore[untyped-decorator]
+@numba.njit
 def frame_diff(ev: np.ndarray, width: int = 1280, height: int = 720, dtype: Any = np.int8) -> np.ndarray:
     """Generate a differential frame from the events.
 

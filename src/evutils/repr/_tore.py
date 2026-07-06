@@ -6,7 +6,7 @@ import numpy as np
 
 from typing import Any
 
-@numba.njit # type: ignore[untyped-decorator]
+@numba.njit
 def tore(events: np.ndarray, width: int = 1280, height: int = 720, n_events: int = 4, tau: int = 10_000, dtype: Any = np.uint8) -> np.ndarray:
     """Generate a TORE from the events.
 
