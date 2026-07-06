@@ -75,7 +75,83 @@ def is_monotonically_increasing(events: np.ndarray) -> bool:
 
 
 
-class EventArray:
+class SoaArray:
+    """Abstract base class for struct-of-arrays (SoA) layout."""
+
+    __slots__ = ()
+    _aos_dtype: np.dtype
+    _fields: tuple[str, ...]
+
+    def __getitem__(self, key: Any) -> Any:
+        if isinstance(key, str):
+            return getattr(self, key)
+        
+        # When indexing a single element, return a NumPy void record to match AoS behaviour exactly.
+        if isinstance(key, (int, np.integer)):
+            record = np.empty((), dtype=self._aos_dtype)
+            for f in self._fields:
+                record[f] = getattr(self, f)[key]
+            return record[()]  # Returns a scalar np.void
+
+        # Otherwise, slice all columns and return a new SoA array
+        sliced_args = {f: getattr(self, f)[key] for f in self._fields}
+        return self.__class__(**sliced_args)
+
+    def __len__(self) -> int:
+        return len(getattr(self, self._fields[0]))
+
+    def __repr__(self) -> str:
+        n = len(self)
+        name = self.__class__.__name__
+        if n == 0:
+            return f"{name}(empty)"
+            
+        if n <= 10:
+            return f"{name}(n={n}):\n{self.to_aos()}"
+            
+        # Slice before AoS conversion for speed
+        head_str = str(self[:3].to_aos()).rstrip(']')
+        tail_str = str(self[-3:].to_aos()).lstrip('[')
+        
+        return f"{name}(n={n}):\n{head_str}\n ...\n  {tail_str}]"
+
+    def copy(self) -> Any:
+        """Return a deep copy with independent column arrays."""
+        copied_args = {f: getattr(self, f).copy() for f in self._fields}
+        return self.__class__(**copied_args)
+
+    @classmethod
+    def empty(cls) -> Any:
+        """Return an empty SoA array with correctly-typed (zero-length) columns."""
+        args = {f: np.empty(0, dtype=cls._aos_dtype[f]) for f in cls._fields}
+        return cls(**args)
+
+    @classmethod
+    def from_aos(cls, aos_array: np.ndarray) -> Any:
+        """Constructs a SoA array from an array of structures (AoS) numpy array."""
+        args = {f: np.ascontiguousarray(aos_array[f]) for f in cls._fields}
+        return cls(**args)
+
+    def to_aos(self) -> np.ndarray:
+        """Converts the SoA array to an array of structures (AoS) numpy array."""
+        aos_array = np.empty(len(self), dtype=self._aos_dtype)
+        for f in self._fields:
+            aos_array[f] = getattr(self, f)
+        return aos_array
+
+    def to_numpy(self) -> np.ndarray:
+        """Converts the SoA array to a structured numpy array. Alias for to_aos."""
+        return self.to_aos()
+
+    def __array__(self, dtype: Any = None, copy: Any = None) -> np.ndarray:
+        """Numpy interop: ``np.asarray(arr)`` returns the AoS structured array."""
+        aos = self.to_aos()
+        if dtype is not None:
+            return aos.astype(dtype)
+        return aos
+
+
+class EventArray(SoaArray):
     """A container for storing event data in a struct-of-arrays (SoA) layout.
 
     The four fields ``t``, ``x``, ``y`` and ``p`` are kept as separate
@@ -91,209 +167,23 @@ class EventArray:
 
     __slots__ = ['t', 'x', 'y', 'p']
     _aos_dtype = Event_dtype
+    _fields = ('t', 'x', 'y', 'p')
 
     def __init__(self, t: Any, x: Any, y: Any, p: Any) -> None:
-        """Initializes the EventArray with columns.
-
-        Parameters
-        ----------
-        t : array_like
-            Timestamps of the events.
-        x : array_like
-            X-coordinates of the events.
-        y : array_like
-            Y-coordinates of the events.
-        p : array_like
-            Polarities of the events.
-
-        """
         self.t = np.asarray(t, dtype=np.int64)
         self.x = np.asarray(x, dtype=np.uint16)
         self.y = np.asarray(y, dtype=np.uint16)
         self.p = np.asarray(p, dtype=np.uint8)
 
-    def __getitem__(self, key: Any) -> Any:
-        if isinstance(key, str):
-            return getattr(self, key)
 
-        return EventArray(self.t[key], self.x[key], self.y[key], self.p[key])
-
-    def __len__(self) -> int:
-        return len(self.t)
-
-    def __repr__(self) -> str:
-        return f"EventArray(n={len(self)})"
-
-    def copy(self) -> "EventArray":
-        """Return a deep copy with independent column arrays."""
-        return EventArray(self.t.copy(), self.x.copy(), self.y.copy(), self.p.copy())
-
-    @classmethod
-    def empty(cls) -> "EventArray":
-        """Return an empty EventArray with correctly-typed (zero-length) columns."""
-        return cls(
-            np.empty(0, dtype=np.int64),
-            np.empty(0, dtype=np.uint16),
-            np.empty(0, dtype=np.uint16),
-            np.empty(0, dtype=np.uint8),
-        )
-
-    @classmethod
-    def from_aos(cls, aos_array: Any) -> "EventArray":
-        """Constructs an EventArray from an array of structures (AoS) numpy array.
-
-        Parameters
-        ----------
-        aos_array : np.ndarray
-            Structured numpy array of events.
-
-        Returns
-        -------
-        EventArray
-            The constructed EventArray in struct-of-arrays format.
-
-        """
-        return cls(
-            np.ascontiguousarray(aos_array['t']),
-            np.ascontiguousarray(aos_array['x']),
-            np.ascontiguousarray(aos_array['y']),
-            np.ascontiguousarray(aos_array['p'])
-        )
-
-    def to_aos(self) -> np.ndarray:
-        """Converts the EventArray to an array of structures (AoS) numpy array.
-
-        Returns
-        -------
-        np.ndarray
-            Structured numpy array of events.
-
-        """
-        aos_array = np.empty(len(self), dtype=self._aos_dtype)
-        aos_array['t'] = self.t
-        aos_array['x'] = self.x
-        aos_array['y'] = self.y
-        aos_array['p'] = self.p
-        return aos_array
-
-    def __array__(self, dtype: Any = None, copy: Any = None) -> np.ndarray:
-        """Numpy interop: ``np.asarray(events)`` returns the AoS structured array.
-
-        This is the automatic SoA->AoS bridge for code (and tests) that still
-        operate on :data:`Event_dtype` arrays.
-
-        Parameters
-        ----------
-        dtype : data-type, optional
-            Desired data type for the array.
-        copy : bool, optional
-            Whether to copy the data (ignored).
-
-        Returns
-        -------
-        np.ndarray
-            The structured array of events.
-
-        """
-        aos = self.to_aos()
-        if dtype is not None:
-            return aos.astype(dtype)
-        return aos
-
-
-class TriggerArray:
+class TriggerArray(SoaArray):
     """A container for storing trigger data in a struct-of-arrays (SoA) layout."""
 
     __slots__ = ['t', 'p', 'id']
     _aos_dtype = Trigger_dtype
+    _fields = ('t', 'p', 'id')
 
     def __init__(self, t: Any, p: Any, id: Any) -> None:
-        """Initializes the TriggerArray with columns.
-
-        Parameters
-        ----------
-        t : array_like
-            Timestamps of the triggers.
-        p : array_like
-            Polarities of the triggers.
-        id : array_like
-            Identifiers of the triggers.
-
-        """
         self.t = np.asarray(t, dtype=np.int64)
         self.p = np.asarray(p, dtype=np.uint8)
         self.id = np.asarray(id, dtype=np.uint8)
-
-    def __getitem__(self, key: Any) -> Any:
-        if isinstance(key, str):
-            return getattr(self, key)
-        return TriggerArray(self.t[key], self.p[key], self.id[key])
-
-    def __len__(self) -> int:
-        return len(self.t)
-
-    def __repr__(self) -> str:
-        return f"TriggerArray(n={len(self)})"
-
-    def copy(self) -> "TriggerArray":
-        """Return a deep copy with independent column arrays.
-
-        Returns
-        -------
-        TriggerArray
-            A deep copy of the trigger array.
-
-        """
-        return TriggerArray(self.t.copy(), self.p.copy(), self.id.copy())
-
-    @classmethod
-    def empty(cls) -> "TriggerArray":
-        """Return an empty TriggerArray with correctly-typed (zero-length) columns.
-
-        Returns
-        -------
-        TriggerArray
-            An empty trigger array.
-
-        """
-        return cls(
-            np.empty(0, dtype=np.int64),
-            np.empty(0, dtype=np.uint8),
-            np.empty(0, dtype=np.uint8),
-        )
-
-    def to_aos(self) -> np.ndarray:
-        """Converts the TriggerArray to an array of structures (AoS) numpy array.
-
-        Returns
-        -------
-        np.ndarray
-            Structured numpy array of triggers.
-
-        """
-        aos_array = np.empty(len(self), dtype=self._aos_dtype)
-        aos_array['t'] = self.t
-        aos_array['p'] = self.p
-        aos_array['id'] = self.id
-        return aos_array
-
-    def __array__(self, dtype: Any = None, copy: Any = None) -> np.ndarray:
-        """Numpy interop: ``np.asarray(triggers)`` returns the AoS structured array.
-
-        Parameters
-        ----------
-        dtype : data-type, optional
-            Desired data type for the array.
-        copy : bool, optional
-            Whether to copy the data (ignored).
-
-        Returns
-        -------
-        np.ndarray
-            The structured array of triggers.
-
-        """
-        aos = self.to_aos()
-        if dtype is not None:
-            return aos.astype(dtype)
-        return aos
