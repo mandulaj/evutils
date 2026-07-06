@@ -30,7 +30,7 @@ We recommend installing `evutils` using `uv`.
 ### From PyPi
 ```bash
 uv add evutils # Basic library
-uv add evutils[all] # All groups (pandas, numba, torch, hdf5, etc..)
+uv add evutils[all] # All groups (torch, hdf5, aedat, vis, etc..)
 uv add evutils[dev] # Dev group
 ```
 
@@ -49,14 +49,17 @@ The library is divided into several discrete modules. Many can be used independe
 
 ```
 └── augment     - Event augmentations
+└── chunking    - Splitting event streams into fixed-size windows
 └── dataset     - Wrappers for various dataset loaders
-└── events      - Core event handling logic
 └── io          - Event reading and writing interfaces
     ├── reader 
     └── writer
+└── processing  - Event stream processing and filtering (denoising, masking)
 └── random      - Random event generation and noise injection
+└── repr        - Dense representations (voxel grids, time surfaces, histograms)
 └── torch       - PyTorch integration (requires evutils[torch])
 └── types       - Standard types for representing Events in NumPy arrays
+└── utils       - General-purpose helpers
 └── vis         - Visualization methods
     ├── histogram
     └── reconstructor
@@ -87,7 +90,7 @@ Supported formats (see the [formats documentation](https://mandulaj.github.io/ev
 | HDF5 (DSEC/RVT layout) | `.h5`, `.hdf5` | ✅ | ✅ | `evutils[hdf5]`, ms-index random access |
 | HDF5 (Prophesee layout) | `.h5`, `.hdf5` | ✅ | 🚧 | ECF-compressed files need the ECF plugin |
 | NPZ | `.npz` | ✅ | ✅ | streaming, `np.load`-compatible |
-| CSV / TXT | `.csv`, `.txt` | ✅ | ✅ | `evutils[pandas]` |
+| CSV / TXT | `.csv`, `.txt` | ✅ | ✅ | native C parser |
 | BIN | `.bin` | 🚧 | 🚧 | planned |
 
 ```python

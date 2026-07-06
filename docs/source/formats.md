@@ -27,7 +27,7 @@ We are aiming for universal event format support with the highest possible perfo
 | HDF5 (DSEC/RVT layout) | `.h5`, `.hdf5` | ✅ | ✅ | h5py | needs `evutils[hdf5]`; `ms_to_idx` random access |
 | HDF5 (Prophesee layout) | `.h5`, `.hdf5` | ✅ | 🚧 planned | h5py | ECF-compressed files need the ECF codec plugin |
 | NPZ | `.npz` | ✅ | ✅ | numpy | streaming both ways; `np.load`/`np.savez` compatible |
-| CSV / TXT | `.csv`, `.txt` | ✅ | ✅ | pandas | needs `evutils[pandas]`; column order configurable |
+| CSV / TXT | `.csv`, `.txt` | ✅ | ✅ | C | native C parser (no extra deps); column order configurable |
 | BIN | `.bin` | 🚧 planned | 🚧 planned | -- | reserved, raises `NotImplementedError` |
 
 All decoders stream: only one chunk of events is held in memory at a time, so
@@ -116,7 +116,8 @@ deflates the archive.
 
 ## CSV / TXT
 
-Requires `evutils[pandas]`. A header line is auto-detected; the column order
+Parsed and written by the native C backend -- no extra dependencies.
+A header line is auto-detected; the column order
 is configurable on both ends (`order=['t', 'x', 'y', 'p']`), as are the
 delimiter and (for writing) whether to emit a header.
 
