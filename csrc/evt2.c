@@ -70,7 +70,6 @@ parser_result_t EVT2_parse_chunk_soa(
         uint32_t packet_data = *current & 0x0FFFFFFF;
         uint8_t value = 0, channel = 0;
 
-
         // printf("%01lx %08lx\n", packet_type, packet_data);
         switch(packet_type){
             case EVT2_CD_OFF:
@@ -98,6 +97,9 @@ parser_result_t EVT2_parse_chunk_soa(
                 }
                 break;
             case EVT2_EXT_TRIGGER:
+                // Bits 11..8 carry the trigger channel id, bit 0 the edge value.
+                channel = (packet_data >> 8) & 0x0F;
+                value = packet_data & 0x01;
 
                 trigger_ts[n_triggers_read] = ts_high_high | last_ts_high | ((packet_data >> 22) & 0x3F);
                 trigger_id[n_triggers_read] = channel;
