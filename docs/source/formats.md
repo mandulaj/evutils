@@ -6,7 +6,9 @@
 its support status, and format-specific options.
 
 ## IO Roadmap & Goals
+
 We are aiming for universal event format support with the highest possible performance and extensibility:
+
 - [x] Full Read/Write parity where possible
 - [x] Chunked & Streaming access
 - [x] External trigger data decoding
@@ -16,23 +18,64 @@ We are aiming for universal event format support with the highest possible perfo
 
 ## Format Matrix
 
-| Format | Extensions | Read | Write | Backend | Notes |
-|---|---|:---:|:---:|---|---|
-| EVT3 (Prophesee RAW) | `.raw`, `.evt`, `.evt3` | ✅ | ✅ | C | external triggers; vectorized events |
-| EVT2.1 (Prophesee RAW) | `.raw`, `.evt21` | ✅ | ✅ | C | write is one event per word (valid, not vectorized) |
-| EVT2 (Prophesee RAW) | `.raw`, `.evt2` | ✅ | ✅ | C | |
-| DAT (Prophesee) | `.dat` | ✅ | ✅ | C / numpy | 32-bit timestamp overflow tracked |
-| AER (Prophesee) | `.aer` | ✅ | ✅ | C / numpy | no timestamps -- see [AER timestamps](#aer-timestamps) |
-| AEDAT 1.0 / 2.0 / 3.1 / 4.0 | `.aedat`, `.aedat4` | ✅ | 🚧 planned | numpy | AEDAT4 compression needs `evutils[aedat]` |
-| HDF5 (DSEC/RVT layout) | `.h5`, `.hdf5` | ✅ | ✅ | h5py | needs `evutils[hdf5]`; `ms_to_idx` random access |
-| HDF5 (Prophesee layout) | `.h5`, `.hdf5` | ✅ | 🚧 planned | h5py | ECF-compressed files need the ECF codec plugin |
-| NPZ | `.npz` | ✅ | ✅ | numpy | streaming both ways; `np.load`/`np.savez` compatible |
-| CSV / TXT | `.csv`, `.txt` | ✅ | ✅ | C | native C parser (no extra deps); column order configurable |
-| BIN | `.bin` | 🚧 planned | 🚧 planned | -- | reserved, raises `NotImplementedError` |
+| Format                      | Extensions              |   Read    |   Write   | Backend   | Notes                                                      |
+| --------------------------- | ----------------------- | :-------: | :-------: | --------- | ---------------------------------------------------------- |
+| EVT3 (Prophesee RAW)        | `.raw`, `.evt`, `.evt3` |     ✅     |     ✅     | C         | external triggers; vectorized events                       |
+| EVT2.1 (Prophesee RAW)      | `.raw`, `.evt21`        |     ✅     |     ✅     | C         | write is one event per word (valid, not vectorized)        |
+| EVT2 (Prophesee RAW)        | `.raw`, `.evt2`         |     ✅     |     ✅     | C         |                                                            |
+| DAT (Prophesee)             | `.dat`                  |     ✅     |     ✅     | C / numpy | 32-bit timestamp overflow tracked                          |
+| AER (Prophesee)             | `.aer`                  |     ✅     |     ✅     | C / numpy | no timestamps -- see [AER timestamps](#aer-timestamps)     |
+| AEDAT 1.0 / 2.0 / 3.1 / 4.0 | `.aedat`, `.aedat4`     |     ✅     | 🚧 planned | numpy     | AEDAT4 compression needs `evutils[aedat]`                  |
+| HDF5 (DSEC/RVT layout)      | `.h5`, `.hdf5`          |     ✅     |     ✅     | h5py      | needs `evutils[hdf5]`; `ms_to_idx` random access           |
+| HDF5 (Prophesee layout)     | `.h5`, `.hdf5`          |     ✅     | 🚧 planned | h5py      | ECF-compressed files need the ECF codec plugin             |
+| NPZ                         | `.npz`                  |     ✅     |     ✅     | numpy     | streaming both ways; `np.load`/`np.savez` compatible       |
+| CSV / TXT                   | `.csv`, `.txt`          |     ✅     |     ✅     | C         | native C parser (no extra deps); column order configurable |
+| BIN                         | `.bin`                  | 🚧 planned | 🚧 planned | --        | reserved, raises `NotImplementedError`                     |
 
 All decoders stream: only one chunk of events is held in memory at a time, so
 arbitrarily large recordings can be iterated. `read_all()` is the explicit
 opt-in that materialises a whole recording.
+
+## Format overview
+
+# Prophesee Event Format Comparison
+
+A side-by-side reference for Prophesee's event stream encodings (AER, EVT2.0, EVT2.1, EVT3.0, EVT4)
+and the decoded file formats (DAT, CSV).
+
+| Property                | AER                                                                     | EVT2.0                                                                   | EVT2.1                                                                    | EVT3.0                                                                   | EVT4                       | DAT                                                                 | CSV                                                                                     |
+| ----------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------- | ------------------------------------------------------------------------ | -------------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| **Word size**           | 19-bit address                                                          | 32-bit                                                                   | 64-bit                                                                    | 16-bit                                                                   | 32-bit                     | 64-bit / event (8 B)                                                | text line                                                                               |
+| **Vectorized**          | no                                                                      | no                                                                       | yes (32 px / word)                                                        | yes (12+12+8)                                                            | yes (32 px / 2 words)      | n/a¹                                                                | n/a¹                                                                                    |
+| **Stateful decode**     | no                                                                      | minimal                                                                  | minimal                                                                   | heavy (differential)                                                     | minimal (+ vector pairing) | no                                                                  | no                                                                                      |
+| **Timestamp**           | implicit (none stored)                                                  | 34-bit (6 low + 28 high)                                                 | 34-bit (6 + 28)                                                           | 24-bit (12 + 12) + loop                                                  | 34-bit (6 + 28)            | absolute 32-bit µs                                                  | absolute µs (text)                                                                      |
+| **Bytes / single CD**   | ~2.4 (19-bit)                                                           | 4                                                                        | 8                                                                         | 2                                                                        | 4                          | 8                                                                   | ~15–20 (ASCII)                                                                          |
+| **Bytes / 32-px burst** | ~76                                                                     | 128                                                                      | 8                                                                         | ~6–8                                                                     | 8                          | 256                                                                 | ~500+                                                                                   |
+| **Best for**            | neuromorphic HW                                                         | low rate, robust                                                         | high rate                                                                 | highest rate / most compact                                              | EVT2 datapath + vectors    | offline processing / legacy tooling                                 | human inspection / interchange                                                          |
+| **Docs**                | [link](https://docs.prophesee.ai/stable/data/encoding_formats/aer.html) | [link](https://docs.prophesee.ai/stable/data/encoding_formats/evt2.html) | [link](https://docs.prophesee.ai/stable/data/encoding_formats/evt21.html) | [link](https://docs.prophesee.ai/stable/data/encoding_formats/evt3.html) | none (HAL only)            | [link](https://docs.prophesee.ai/stable/data/file_formats/dat.html) | [File-to-CSV](https://docs.prophesee.ai/stable/samples/modules/stream/file_to_csv.html) |
+
+## Caveats
+
+The columns are not strictly apples-to-apples:
+
+1. **DAT and CSV are not sensor-side encodings** — they store *already-decoded* events, so
+   "vectorized" and "stateful decode" don't really apply. A DAT CD event is a fixed 8-byte (64-bit)
+   word: a `uint32` timestamp plus a data word (event size is 8 for all common types; EventCd = `0x0C`,
+   EventExtTrigger = `0x0E`). Timestamps are stored absolutely per event, so there's no high/low split
+   to track. CSV isn't a native recorded format — it's produced by the File-to-CSV sample, which
+   converts a DAT file to text (one event per line, e.g. `x, y, polarity, t`).
+2. **EVT4 has no public spec** — that entire column is reverse-engineered from the Metavision HAL
+   headers, so treat the numbers as inference, not documented fact. EVT4 is absent from Prophesee's
+   official format list, which covers only EVT2.0 / 2.1 / 3.0.
+3. **The 32-px burst row is best-case** — it assumes 32 same-row, same-polarity, same-timestamp
+   events, which is exactly what the vectorized formats are optimized for and where
+   EVT2.0 / DAT / CSV look worst.
+
+## Sources
+
+- Data Encoding Formats index: <https://docs.prophesee.ai/stable/data/encoding_formats/index.html>
+- Recorded File Formats index: <https://docs.prophesee.ai/stable/data/file_formats/index.html>
+- EVT4 details are derived from the Metavision HAL `evt4_*` headers (no public documentation).
 
 ## Prophesee RAW / EVT
 
@@ -61,6 +104,7 @@ A raw 32-bit-per-event stream with 9-bit coordinates and **no header and no
 timestamps** (GenX320-style). Coordinates above 511 cannot be represented.
 
 (aer-timestamps)=
+
 ### AER timestamps
 
 Because the format carries no time information, the decoder's `timestamps`
@@ -77,13 +121,13 @@ EventReader("f.aer", timestamps=my_int64_array)           # user-provided
 All four AEDAT container versions are read; the version is detected from the
 `#!AER-DATx.y` header line (headerless files default to 1.0, per jAER):
 
-* **1.0** -- 6-byte big-endian records, DVS128 address layout.
-* **2.0** -- 8-byte big-endian records. The address layout depends on the
+- **1.0** -- 6-byte big-endian records, DVS128 address layout.
+- **2.0** -- 8-byte big-endian records. The address layout depends on the
   camera; select it with `EventReader(..., layout="davis")` (default, skips
   APS/IMU words) or `layout="dvs128"`.
-* **3.1** -- cAER packet stream; polarity-event packets are decoded,
+- **3.1** -- cAER packet stream; polarity-event packets are decoded,
   frame/IMU/trigger packets are skipped.
-* **4.0** -- DV-framework FlatBuffer packets. LZ4- or Zstd-compressed files
+- **4.0** -- DV-framework FlatBuffer packets. LZ4- or Zstd-compressed files
   need the optional dependencies: `pip install evutils[aedat]`.
 
 Writing AEDAT is not implemented yet.
@@ -93,11 +137,11 @@ Writing AEDAT is not implemented yet.
 Requires `evutils[hdf5]` (h5py + hdf5plugin). Two on-disk layouts are read,
 detected automatically:
 
-* **DSEC / RVT layout** (also what the writer produces): the four columns
+- **DSEC / RVT layout** (also what the writer produces): the four columns
   under `events/{t,x,y,p}`, `width`/`height` file attributes, a `ms_to_idx`
   index and an optional DSEC `t_offset`. The index gives O(1) random access
   by time: `decoder.read(start_ms, end_ms)`.
-* **Prophesee layout** (`.hdf5` from Metavision): a compound `CD/events`
+- **Prophesee layout** (`.hdf5` from Metavision): a compound `CD/events`
   dataset. Prophesee compresses it with their ECF codec, which is a separate
   HDF5 plugin -- install it from
   [prophesee-ai/hdf5_ecf](https://github.com/prophesee-ai/hdf5_ecf) (or read
