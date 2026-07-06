@@ -14,6 +14,7 @@ import numpy as np
 from ..types import Event_dtype, EventArray, TriggerArray
 
 from . import decoders as ev_decoders
+from ._prefetch import PrefetchIterator
 from ._source import ByteSource, make_source
 from .buffer import EventAccumulator
 
@@ -48,6 +49,15 @@ class EventReader():
         Height of the frame, by default infered from the file
     ext_trigger: bool, default=False
         Whether to read external trigger events, by default False
+    async_read: bool, default=False
+        Decode ahead in a background thread while iterating: the next window
+        is parsed while the caller processes the current one (the native
+        parsers release the GIL). Helps whenever per-chunk processing takes
+        meaningful time (numpy pipelines, GPU inference -- the read becomes
+        essentially free); can slightly hurt when the processing already
+        saturates memory bandwidth. Affects iteration only; ``read()`` /
+        ``read_all()`` stay synchronous and raise while an asynchronous
+        iterator is active.
     file_decoder: ev_decoders.EventDecoder or type[ev_decoders.EventDecoder] or None, default=None
         File decoder to use, by default None - automatic
     **kwargs
@@ -78,6 +88,7 @@ class EventReader():
                  max_events:int=10_000_000,
                  width:int | None=None, height:int | None=None,
                  ext_trigger: bool=False,
+                 async_read: bool=False,
                  file_decoder: ev_decoders.EventDecoder | type[ev_decoders.EventDecoder] | None = None,
                  **kwargs):
 
@@ -203,6 +214,12 @@ class EventReader():
         self._acc_capacity = max(self._n_events, max_events) + 2 * self._step
         self._native_fill = hasattr(self._file_decoder, "parse_step")
 
+        # Asynchronous iteration: when enabled, __iter__ decodes ahead in a
+        # worker thread (see io/_prefetch.py). The active iterator owns the
+        # decoder until it is exhausted or closed.
+        self._async_read = async_read
+        self._active_prefetch: PrefetchIterator | None = None
+
         self._n_read_events = 0 # Number of events read (not includeing events stored in buffer)
 
 
@@ -213,6 +230,15 @@ class EventReader():
             return
         self._file_decoder.init()
         self._is_initialized = True
+
+    def _check_no_active_prefetch(self) -> None:
+        """Direct reads are not allowed while a prefetching iterator owns the
+        decoder (its worker thread is reading concurrently)."""
+        if self._active_prefetch is not None:
+            raise RuntimeError(
+                "An asynchronous iterator is active on this reader: exhaust or "
+                "close() it before calling read()/read_all(), or iterate instead."
+            )
 
     def _pull(self, acc: EventAccumulator, delta_t: int, n_events: int) -> int:
         """Pull more events into the accumulator, returning the number added
@@ -273,6 +299,11 @@ class EventReader():
             An array with the events
 
         """
+        self._check_no_active_prefetch()
+        return self._read(delta_t, n_events)
+
+    def _read(self, delta_t:int|None=None, n_events:int|None=None) -> Any:
+        """Unguarded body of :meth:`read` (also driven by the prefetch worker)."""
         # If not initialized, initialize
         if not self._is_initialized:
             self.init()
@@ -368,6 +399,7 @@ class EventReader():
             All remaining events.
 
         """
+        self._check_no_active_prefetch()
         if not self._is_initialized:
             self.init()
 
@@ -423,7 +455,13 @@ class EventReader():
         return out
 
     def reset(self):
-        """Reset file reader back to the beginning of the file."""
+        """Reset file reader back to the beginning of the file.
+
+        An active asynchronous iterator is cancelled first (its remaining
+        buffered chunks are discarded).
+        """
+        if self._active_prefetch is not None:
+            self._active_prefetch.close()
         self._n_read_events = 0
         self._eof = False
         if self._buffer is not None:
@@ -446,8 +484,10 @@ class EventReader():
 
     def close(self):
         """Close the reader and release resources (decoder buffer views, then the
-        underlying byte source).
+        underlying byte source). Cancels any active asynchronous iterator first.
         """
+        if self._active_prefetch is not None:
+            self._active_prefetch.close()
         # Drop decoder views (e.g. into an mmap) before closing the source.
         self._file_decoder.close()
         self._source.close()
@@ -469,16 +509,34 @@ class EventReader():
     def __iter__(self):
         """Iterate over the events in the file.
 
+        With ``async_read=True`` the windows are decoded ahead in a background
+        thread (bounded to a couple of windows), overlapping decode with the
+        caller's per-chunk processing. Only one asynchronous iterator can be
+        active per reader; direct :meth:`read` / :meth:`read_all` calls raise
+        until it is exhausted or closed.
+
         Yields
         ------
         EventArray
             An array with the events
 
         """
+        if self._async_read:
+            self._check_no_active_prefetch()
+            it = PrefetchIterator(
+                self._iter_sync(),
+                on_finish=lambda: setattr(self, "_active_prefetch", None),
+            )
+            self._active_prefetch = it
+            return it
+        return self._iter_sync()
+
+    def _iter_sync(self):
+        """The plain synchronous window generator behind :meth:`__iter__`."""
         if not self._is_initialized:
             self.init()
         while not self.is_eof():
-            yield self.read()
+            yield self._read()
 
     def shape(self) -> tuple[int|None, int|None]:
         """Get the shape of the frame.
