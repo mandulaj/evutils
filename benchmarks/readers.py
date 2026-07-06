@@ -12,7 +12,7 @@ helper below; the benchmark harness stays the same.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable
+from typing import Any, Callable
 
 ALL_FORMATS = ("evt3", "evt2", "evt21")
 
@@ -20,7 +20,7 @@ ALL_FORMATS = ("evt3", "evt2", "evt21")
 _CHUNK = 5_000_000
 
 
-def _count(obj) -> int:
+def _count(obj: Any) -> int:
     """Best-effort event count across the return types the libraries use
     (numpy structured array, polars DataFrame, dict of columns, ...)."""
     try:
@@ -41,7 +41,7 @@ def _count(obj) -> int:
 # --------------------------------------------------------------------------- #
 def _read_expelliarmus(path: str, fmt: str) -> int:
     # https://github.com/open-neuromorphic/expelliarmus  (evt2, evt3, dat)
-    from expelliarmus import Wizard
+    from expelliarmus import Wizard  # type: ignore
     wiz = Wizard(encoding=fmt)
     wiz.set_file(str(path))
     total = 0
@@ -60,21 +60,21 @@ def _read_evlib(path: str, fmt: str) -> int:
     # https://github.com/tallamjr/evlib  (Rust-backed). Auto-detects the format;
     # load_events() returns a polars LazyFrame. To avoid OOM on huge files,
     # we use an aggregation (pl.len()) and stream it using Polars streaming engine.
-    import evlib
-    import polars as pl
+    import evlib  # type: ignore
+    import polars as pl  # type: ignore
     df = evlib.load_events(str(path))
     if hasattr(df, "collect"):
         try:
-            return df.select(pl.len()).collect(engine='streaming').item()
+            return int(df.select(pl.len()).collect(engine='streaming').item())
         except TypeError:
             # Fallback for older Polars versions
-            return df.select(pl.len()).collect(streaming=True).item()
+            return int(df.select(pl.len()).collect(streaming=True).item())
     return _count(df)
 
 
 def _read_openeb(path: str, fmt: str) -> int:
     # OpenEB / Metavision SDK (not on PyPI -- see benchmarks/docker).
-    from metavision_core.event_io import RawReader
+    from metavision_core.event_io import RawReader  # type: ignore
     reader = RawReader(str(path))
     n = 0
     while not reader.is_done():
@@ -82,10 +82,29 @@ def _read_openeb(path: str, fmt: str) -> int:
     return n
 
 
+def _read_evt3(path: str, fmt: str) -> int:
+    import evt3  # type: ignore
+    if fmt != "evt3":
+        raise ValueError(f"evt3 package does not support {fmt}")
+    return len(evt3.decode_file(str(path)))
+
+
+def _read_event_vision_library(path: str, fmt: str) -> int:
+    # event-vision-library by shiba24 (installs as evlib, shadows Rust evlib)
+    import evlib.codec.fileformat as ff  # type: ignore
+    if fmt != "evt3":
+        raise ValueError(f"event-vision-library benchmark snippet only supports evt3")
+    it = ff.IteratorEvk3(str(path))
+    total = 0
+    for chunk in it:
+        total += len(chunk.x)
+    return total
+
+
 @dataclass(frozen=True)
 class Reader:
     name: str
-    formats: tuple            # subset of ALL_FORMATS this library can read
+    formats: tuple[str, ...]            # subset of ALL_FORMATS this library can read
     read: Callable[[str, str], int]
 
 
@@ -96,4 +115,6 @@ READERS = [
     Reader("expelliarmus", ("evt2", "evt3"), _read_expelliarmus),
     Reader("evlib", ("evt2", "evt3"), _read_evlib),
     Reader("openeb", ALL_FORMATS, _read_openeb),
+    Reader("evt3", ("evt3",), _read_evt3),
+    Reader("event-vision-library", ("evt3",), _read_event_vision_library),
 ]

@@ -11,19 +11,21 @@ the results by format::
 """
 import pytest
 
-from evutils.io import EventReader
+from typing import Any
+
+from evutils.io import EventReader  # type: ignore
 
 FORMATS = ["evt3", "evt2", "evt21"]
 
 
 @pytest.mark.parametrize("fmt", FORMATS)
-def test_read_evutils(benchmark, benchmark_rounds, real_event_files, fmt):
+def test_read_evutils(benchmark: Any, benchmark_rounds: int, real_event_files: dict[str, list[Any]], fmt: str) -> None:
     benchmark.group = f"read-{fmt}"
     if fmt not in real_event_files or not real_event_files[fmt]:
         pytest.skip(f"No files for format {fmt}")
     ef = next((f for f in real_event_files[fmt] if 'hand' in f.path.name), real_event_files[fmt][0])
 
-    def decode():
+    def decode() -> int:
         total = 0
         with EventReader(ef.path) as reader:
             for chunk in reader:

@@ -10,18 +10,20 @@ each encoder so it isn't counted in the timed rounds.
 """
 import pytest
 
-from evutils.io import EventWriter
+from typing import Any
+
+from evutils.io import EventWriter  # type: ignore
 
 FORMATS = ["evt3", "evt2", "evt21"]
 
 
 @pytest.mark.parametrize("fmt", FORMATS)
-def test_write_evutils(benchmark, benchmark_rounds, reference_events, tmp_path, fmt):
+def test_write_evutils(benchmark: Any, benchmark_rounds: int, reference_events: Any, tmp_path: Any, fmt: str) -> None:
     benchmark.group = f"write-{fmt}"
     events = reference_events
     out = tmp_path / f"out_{fmt}.raw"
 
-    def write():
+    def write() -> None:
         with EventWriter(out, format=fmt) as writer:
             writer.write(events)
 
@@ -35,10 +37,10 @@ def test_write_evutils(benchmark, benchmark_rounds, reference_events, tmp_path, 
 
 
 @pytest.mark.parametrize("fmt", ["evt2", "evt3"])
-def test_write_expelliarmus(benchmark, benchmark_rounds, reference_events, tmp_path, fmt):
+def test_write_expelliarmus(benchmark: Any, benchmark_rounds: int, reference_events: Any, tmp_path: Any, fmt: str) -> None:
     benchmark.group = f"write-{fmt}"
     try:
-        from expelliarmus import Wizard
+        from expelliarmus import Wizard  # type: ignore
     except ImportError as exc:
         pytest.skip(f"expelliarmus not available: {exc}")
     
@@ -46,7 +48,7 @@ def test_write_expelliarmus(benchmark, benchmark_rounds, reference_events, tmp_p
     out = tmp_path / f"out_{fmt}.raw"
     wizard = Wizard(encoding=fmt)
 
-    def write():
+    def write() -> None:
         wizard.save(str(out), events)
 
     benchmark.pedantic(write, rounds=benchmark_rounds, iterations=1, warmup_rounds=1)

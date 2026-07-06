@@ -10,11 +10,12 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from typing import Any, cast
 
-from evutils.io import EventReader
+from evutils.io import EventReader  # type: ignore
 
 sys.path.append(str(Path(__file__).parent.parent / "tests"))
-from conftest_utils import EventFile, download_and_extract_gdrive, load_event_files
+from conftest_utils import EventFile, download_and_extract_gdrive, load_event_files  # type: ignore
 
 #: Cap on how many events are held in memory for the write benchmarks. Large
 #: enough for a stable throughput measurement, small enough to stay light.
@@ -22,7 +23,7 @@ N_REFERENCE = 5_000_000
 
 
 @pytest.fixture(scope='session')
-def real_event_files(request, benchmark_dataset):
+def real_event_files(request: Any, benchmark_dataset: str) -> dict[str, list[Any]]:
     """Real Prophesee recordings (downloaded + cached on first use).
 
     Returns ``{format: [EventFile(path, count)]}``.
@@ -38,7 +39,7 @@ def real_event_files(request, benchmark_dataset):
         data_dir = Path(override)
         if not data_dir.is_dir():
             pytest.skip(f"EVUTILS_BENCH_DATA={override} is not a directory")
-        return load_event_files(data_dir)
+        return cast(dict[str, list[Any]], load_event_files(data_dir))
 
     if benchmark_dataset == "large":
         temp_dir = request.config.cache.mkdir("event_files_huge")
@@ -48,7 +49,7 @@ def real_event_files(request, benchmark_dataset):
         if not json_files:
             download_and_extract_gdrive(file_id, temp_dir, "huge.tar.zst")
             
-        return load_event_files(temp_dir)
+        return cast(dict[str, list[Any]], load_event_files(temp_dir))
     else:
         temp_dir = request.config.cache.mkdir("event_files")
         file_id = "1uhOsWbp2o3CktsHrFkzGCNFbx0bQLsct"
@@ -64,11 +65,11 @@ def real_event_files(request, benchmark_dataset):
                 download_and_extract_gdrive(file_id, temp_dir, "hand.tar.zst")
                 break
                 
-        return load_event_files(temp_dir)
+        return cast(dict[str, list[Any]], load_event_files(temp_dir))
 
 
 @pytest.fixture(scope='session')
-def reference_events(real_event_files):
+def reference_events(real_event_files: dict[str, list[Any]]) -> Any:
     """First ``N_REFERENCE`` events of the real EVT3 recording as an AoS array.
 
     Decoded once and reused as the payload for every write benchmark, so the
@@ -89,7 +90,7 @@ def reference_events(real_event_files):
     return np.concatenate(parts)[:N_REFERENCE]
 
 
-def pytest_addoption(parser):
+def pytest_addoption(parser: Any) -> None:
     parser.addoption(
         "--rounds", action="store", default=4, type=int, help="Number of benchmark rounds"
     )
@@ -99,16 +100,16 @@ def pytest_addoption(parser):
     )
 
 @pytest.fixture(scope="session")
-def benchmark_rounds(request):
-    return request.config.getoption("--rounds")
+def benchmark_rounds(request: Any) -> int:
+    return int(request.config.getoption("--rounds"))
 
 @pytest.fixture(scope="session")
-def benchmark_dataset(request):
-    return request.config.getoption("--dataset")
+def benchmark_dataset(request: Any) -> str:
+    return str(request.config.getoption("--dataset"))
 
 
 @pytest.hookimpl(hookwrapper=True)
-def pytest_benchmark_group_stats(config, benchmarks, group_by):
+def pytest_benchmark_group_stats(config: Any, benchmarks: list[dict[str, Any]], group_by: str) -> Any:
     """Guard against a pytest-benchmark crash with ``--benchmark-group-by=param:<name>``.
 
     Benchmarks collected from non-parametrized tests have ``params = None``,
@@ -127,7 +128,7 @@ def pytest_benchmark_group_stats(config, benchmarks, group_by):
 
 
 @pytest.fixture(scope="session")
-def uniform_files(reference_events, tmp_path_factory):
+def uniform_files(reference_events: Any, tmp_path_factory: Any) -> dict[str, Any]:
     """The same ``N_REFERENCE`` real events transcoded into every format.
 
     All per-format read/write benchmarks (benchmarks/test_formats.py) operate
@@ -139,7 +140,7 @@ def uniform_files(reference_events, tmp_path_factory):
     from evutils.io import EventWriter
 
     sys.path.append(str(Path(__file__).parent.parent / "tests"))
-    from aedat_synth import make_aedat4
+    from aedat_synth import make_aedat4  # type: ignore
 
     d = tmp_path_factory.mktemp("uniform")
     ev = reference_events

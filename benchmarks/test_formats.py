@@ -20,8 +20,9 @@ the installed build rejects the file).
 """
 import numpy as np
 import pytest
+from typing import Any
 
-from evutils.io import EventReader, EventWriter
+from evutils.io import EventReader, EventWriter  # type: ignore
 
 # fmt -> benchmark group (EVT formats get a -uniform suffix; see module docs).
 READ_FORMATS = {
@@ -42,7 +43,7 @@ WRITE_FORMATS = ("dat", "aer", "npz", "hdf5", "csv")
 _SUFFIX = {"dat": ".dat", "aer": ".aer", "npz": ".npz", "hdf5": ".h5", "csv": ".csv"}
 
 
-def _read_all(path):
+def _read_all(path: Any) -> int:
     with EventReader(path) as reader:
         return len(reader.read_all())
 
@@ -51,7 +52,7 @@ def _read_all(path):
 # Reads (evutils, every format, same events)
 # --------------------------------------------------------------------------- #
 @pytest.mark.parametrize("fmt", sorted(READ_FORMATS))
-def test_read_uniform_evutils(benchmark, benchmark_rounds, uniform_files, fmt):
+def test_read_uniform_evutils(benchmark: Any, benchmark_rounds: int, uniform_files: dict[str, Any], fmt: str) -> None:
     benchmark.group = READ_FORMATS[fmt]
     n = benchmark.pedantic(lambda: _read_all(uniform_files[fmt]),
                            rounds=benchmark_rounds, iterations=1, warmup_rounds=1)
@@ -63,7 +64,7 @@ def test_read_uniform_evutils(benchmark, benchmark_rounds, uniform_files, fmt):
 # Writes (evutils, same events)
 # --------------------------------------------------------------------------- #
 @pytest.mark.parametrize("fmt", sorted(WRITE_FORMATS))
-def test_write_uniform_evutils(benchmark, benchmark_rounds, reference_events, tmp_path, fmt):
+def test_write_uniform_evutils(benchmark: Any, benchmark_rounds: int, reference_events: Any, tmp_path: Any, fmt: str) -> None:
     benchmark.group = f"write-{fmt}"
     ev = reference_events
     if fmt == "aer":
@@ -72,7 +73,7 @@ def test_write_uniform_evutils(benchmark, benchmark_rounds, reference_events, tm
         ev["y"] &= 0x1FF
     out = tmp_path / f"out{_SUFFIX[fmt]}"
 
-    def write():
+    def write() -> None:
         with EventWriter(out, width=1280, height=720) as w:
             w.write(ev)
 
@@ -89,9 +90,9 @@ def test_write_uniform_evutils(benchmark, benchmark_rounds, reference_events, tm
 # benchmarks without params (see also the guard hook in conftest.py).
 @pytest.mark.benchmark(group="read-dat")
 @pytest.mark.parametrize("fmt", ["dat"])
-def test_read_dat_expelliarmus(benchmark, benchmark_rounds, uniform_files, fmt):
+def test_read_dat_expelliarmus(benchmark: Any, benchmark_rounds: int, uniform_files: dict[str, Any], fmt: str) -> None:
     try:
-        from expelliarmus import Wizard
+        from expelliarmus import Wizard  # type: ignore
     except ImportError as exc:
         pytest.skip(f"expelliarmus not available: {exc}")
     wizard = Wizard(encoding=fmt)
@@ -103,7 +104,7 @@ def test_read_dat_expelliarmus(benchmark, benchmark_rounds, uniform_files, fmt):
 
 @pytest.mark.benchmark(group="write-dat")
 @pytest.mark.parametrize("fmt", ["dat"])
-def test_write_dat_expelliarmus(benchmark, benchmark_rounds, reference_events, tmp_path, fmt):
+def test_write_dat_expelliarmus(benchmark: Any, benchmark_rounds: int, reference_events: Any, tmp_path: Any, fmt: str) -> None:
     try:
         from expelliarmus import Wizard
     except ImportError as exc:
@@ -116,27 +117,27 @@ def test_write_dat_expelliarmus(benchmark, benchmark_rounds, reference_events, t
     benchmark.extra_info.update(library="expelliarmus", n_events=len(reference_events), fmt=fmt)
 
 
-def _evlib_count(path):
+def _evlib_count(path: Any) -> int:
     """Read with evlib, skipping if it is absent or rejects the file."""
     try:
-        import evlib
-        import polars as pl
+        import evlib  # type: ignore
+        import polars as pl  # type: ignore
     except ImportError as exc:
         pytest.skip(f"evlib not available: {exc}")
     try:
         df = evlib.load_events(str(path))
         if hasattr(df, "collect"):
             try:
-                return df.select(pl.len()).collect(engine="streaming").item()
+                return int(df.select(pl.len()).collect(engine="streaming").item())
             except TypeError:
-                return df.select(pl.len()).collect(streaming=True).item()
+                return int(df.select(pl.len()).collect(streaming=True).item())
         return len(df)
     except Exception as exc:  # noqa: BLE001 - any rejection is a skip, not a failure
         pytest.skip(f"evlib could not read {path.name}: {exc}")
 
 
 @pytest.mark.parametrize("fmt", ["hdf5", "aedat4"])
-def test_read_uniform_evlib(benchmark, benchmark_rounds, uniform_files, fmt):
+def test_read_uniform_evlib(benchmark: Any, benchmark_rounds: int, uniform_files: dict[str, Any], fmt: str) -> None:
     benchmark.group = READ_FORMATS[fmt]
     n = benchmark.pedantic(lambda: _evlib_count(uniform_files[fmt]),
                            rounds=benchmark_rounds, iterations=1, warmup_rounds=1)
@@ -145,10 +146,10 @@ def test_read_uniform_evlib(benchmark, benchmark_rounds, uniform_files, fmt):
 
 
 @pytest.mark.parametrize("fmt", ["evt3"])
-def test_read_evt3_muthmann(benchmark, benchmark_rounds, uniform_files, fmt):
+def test_read_evt3_muthmann(benchmark: Any, benchmark_rounds: int, uniform_files: dict[str, Any], fmt: str) -> None:
     """muthmann/evt3: Rust EVT3 decoder (PyPI package ``evt3``)."""
     try:
-        import evt3
+        import evt3  # type: ignore
     except ImportError as exc:
         pytest.skip(f"evt3 not available: {exc}")
     benchmark.group = READ_FORMATS[fmt]
@@ -160,7 +161,7 @@ def test_read_evt3_muthmann(benchmark, benchmark_rounds, uniform_files, fmt):
 
 
 @pytest.mark.parametrize("fmt", ["evt3"])
-def test_read_evt3_event_vision_library(benchmark, benchmark_rounds, uniform_files, fmt):
+def test_read_evt3_event_vision_library(benchmark: Any, benchmark_rounds: int, uniform_files: dict[str, Any], fmt: str) -> None:
     """shiba24/event-vision-library: vectorized-numpy EVT3 decoder.
 
     It installs as ``evlib`` -- the same import name as the Rust evlib in the
@@ -169,7 +170,7 @@ def test_read_evt3_event_vision_library(benchmark, benchmark_rounds, uniform_fil
     (this test then runs and the Rust-evlib benchmarks skip instead).
     """
     try:
-        from evlib.codec.fileformat._evt3 import Evt3RawReader
+        from evlib.codec.fileformat._evt3 import Evt3RawReader  # type: ignore
     except ImportError as exc:
         pytest.skip(
             "event-vision-library not importable (it shares the `evlib` import "
@@ -177,7 +178,7 @@ def test_read_evt3_event_vision_library(benchmark, benchmark_rounds, uniform_fil
         )
     benchmark.group = READ_FORMATS[fmt]
 
-    def read():
+    def read() -> int:
         reader = Evt3RawReader(str(uniform_files[fmt]), chunk_size=1 << 20)
         return sum(len(chunk.t) for chunk in reader.read_chunks())
 

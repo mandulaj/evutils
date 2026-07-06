@@ -16,12 +16,14 @@ it appears in the same grouped table as the readers below.
 """
 import pytest
 
-from readers import ALL_FORMATS, READERS
+from typing import Any
+
+from readers import ALL_FORMATS, READERS  # type: ignore
 
 
 @pytest.mark.parametrize("fmt", ALL_FORMATS)
 @pytest.mark.parametrize("reader", READERS, ids=lambda r: r.name)
-def test_read_compare(benchmark, benchmark_rounds, real_event_files, reader, fmt):
+def test_read_compare(benchmark: Any, benchmark_rounds: int, real_event_files: dict[str, list[Any]], reader: Any, fmt: str) -> None:
     if fmt not in reader.formats:
         pytest.skip(f"{reader.name} does not support {fmt}")
 
