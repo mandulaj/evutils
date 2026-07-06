@@ -40,8 +40,8 @@ endif()
 # ctypes loader finds it next to evutils/__init__.py.
 if(DEFINED SKBUILD_PROJECT_NAME)
   install(TARGETS evutils_native
-          LIBRARY DESTINATION "${SKBUILD_PROJECT_NAME}"
-          RUNTIME DESTINATION "${SKBUILD_PROJECT_NAME}")
+          LIBRARY DESTINATION "${SKBUILD_PROJECT_NAME}/io"
+          RUNTIME DESTINATION "${SKBUILD_PROJECT_NAME}/io")
 else()
   # Standalone `cmake --build build` leaves the .so in build/ where the
   # loader's dev-mode search also looks.
