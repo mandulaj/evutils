@@ -53,7 +53,7 @@
 #endif
 
 #if defined(__GNUC__) && defined(__x86_64__) && !defined(__clang__)
-  #define EVUTILS_TARGET_CLONES __attribute__((target_clones("arch=x86-64-v3", "default")))
+  #define EVUTILS_TARGET_CLONES __attribute__((target_clones("avx2", "default")))
 #else
   #define EVUTILS_TARGET_CLONES
 #endif
