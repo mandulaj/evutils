@@ -42,3 +42,41 @@ def test_DAT_matches_expelliarmus(tmp_path, test_events):
     assert np.array_equal(evutils_arr["x"], exp_arr["x"])
     assert np.array_equal(evutils_arr["y"], exp_arr["y"])
     assert np.array_equal(evutils_arr["p"], exp_arr["p"])
+
+
+def test_DAT_timestamp_overflow(tmp_path):
+    """DAT timestamps are 32-bit us on disk (~71 min); the decoder must extend
+    them past the wrap."""
+    from evutils.io import EventReader, EventWriter
+    from evutils.types import Event_dtype
+
+    t = np.array([2**32 - 30, 2**32 - 10, 2**32 + 10, 2**32 + 30, 2**33 + 5], dtype=np.int64)
+    ev = np.zeros(len(t), dtype=Event_dtype)
+    ev['t'] = t
+    ev['x'] = np.arange(len(t)); ev['y'] = np.arange(len(t)); ev['p'] = [0, 1, 0, 1, 1]
+
+    p = tmp_path / "overflow.dat"
+    with EventWriter(p) as w:
+        w.write(ev)
+    with EventReader(p) as r:
+        out = r.read_all()
+    assert np.array_equal(out.t, t)
+
+
+def test_DAT_coordinate_extremes(tmp_path):
+    """DAT coordinates are 14-bit; extremes must survive."""
+    from evutils.io import EventReader, EventWriter
+    from evutils.types import Event_dtype
+
+    ev = np.zeros(4, dtype=Event_dtype)
+    ev['t'] = [0, 1, 2, 3]
+    ev['x'] = [0, 2**14 - 1, 5, 2**14 - 2]
+    ev['y'] = [2**14 - 1, 0, 6, 2**14 - 3]
+    ev['p'] = [1, 0, 1, 0]
+
+    p = tmp_path / "coords.dat"
+    with EventWriter(p) as w:
+        w.write(ev)
+    with EventReader(p) as r:
+        out = r.read_all()
+    assert np.array_equal(np.asarray(out), ev)

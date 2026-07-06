@@ -301,3 +301,113 @@ def test_RAW_delta_t_read(real_event_files, fmt, delta_t):
             assert len(events) > 0
             # All events fall within the requested time window.
             assert int(events.t.max()) - int(events.t.min()) <= delta_t
+
+####################################
+# Timestamp wrap / edge cases
+####################################
+
+def _roundtrip(tmp_path, ev, fmt):
+    from evutils.io import EventReader, EventWriter
+    p = tmp_path / f"wrap_{fmt}.raw"
+    with EventWriter(p, format=fmt) as w:
+        w.write(ev)
+    with EventReader(p) as r:
+        return r.read_all()
+
+
+def _wrap_events(t_values):
+    ev = np.zeros(len(t_values), dtype=np.dtype([('t', np.int64), ('x', np.uint16), ('y', np.uint16), ('p', np.uint8)]))
+    ev['t'] = np.asarray(t_values, dtype=np.int64)
+    ev['x'] = np.arange(len(t_values)) % 1280
+    ev['y'] = np.arange(len(t_values)) % 720
+    ev['p'] = np.arange(len(t_values)) % 2
+    return ev
+
+
+def test_EVT3_time_high_wrap(tmp_path):
+    """EVT3's rolling time base is 24-bit (~16.7 s). Recordings longer than
+    that must round-trip exactly: the decoder counts TIME_HIGH wraps."""
+    step = 1_000_000  # 1 s steps << 2^24 us, crossing several wraps
+    t = np.arange(0, 90_000_000, step)  # 90 s: 5+ wraps of 2^24 us
+    ev = _wrap_events(t)
+    out = _roundtrip(tmp_path, ev, "evt3")
+    assert np.array_equal(out.t, ev['t'])
+    assert np.array_equal(out.x, ev['x'])
+
+
+@pytest.mark.parametrize("fmt", ["evt2", "evt21"])
+def test_EVT2_time_high_wrap(tmp_path, fmt):
+    """EVT2/EVT2.1 time bases are 34-bit (~4.8 h); crossing that boundary
+    must be tracked by the wrap accumulator."""
+    base = (1 << 34) - 50
+    t = base + np.arange(0, 100, 10)  # crosses 2^34
+    ev = _wrap_events(t)
+    out = _roundtrip(tmp_path, ev, fmt)
+    assert np.array_equal(out.t, ev['t'])
+
+
+@pytest.mark.parametrize("fmt", ["evt3", "evt2", "evt21"])
+def test_EVT_long_recording_hours(tmp_path, fmt):
+    """Sparse multi-hour timestamps survive as long as gaps stay below the
+    format's wrap period (2^24 us for EVT3, 2^34 us for EVT2/2.1)."""
+    if fmt == "evt3":
+        t = np.arange(0, 3600_000_000, 10_000_000)  # 1 h in 10 s steps
+    else:
+        t = np.arange(0, 10 * 3600_000_000, 3600_000_000)  # 10 h in 1 h steps
+    ev = _wrap_events(t)
+    out = _roundtrip(tmp_path, ev, fmt)
+    assert np.array_equal(out.t, ev['t'])
+
+
+@pytest.mark.parametrize("fmt", ["evt3", "evt2", "evt21"])
+def test_EVT_truncated_payload(tmp_path, fmt):
+    """A file cut mid-word must not crash: all complete events decode."""
+    from evutils.io import EventReader, EventWriter
+    ev = _wrap_events(np.arange(1000) * 17)
+    p = tmp_path / f"trunc_{fmt}.raw"
+    with EventWriter(p, format=fmt) as w:
+        w.write(ev)
+    data = p.read_bytes()
+    p.write_bytes(data[:-3])  # not a multiple of any word size
+
+    with EventReader(p) as r:
+        out = r.read_all()
+    assert 0 < len(out) <= 1000
+    assert np.array_equal(out.t, ev['t'][:len(out)])
+
+
+def test_EVT_header_only_file(tmp_path):
+    """A header with no payload reads as zero events (not an error)."""
+    from evutils.io import EventReader, EventWriter
+    p = tmp_path / "header_only.raw"
+    w = EventWriter(p, format="evt3")
+    w.init()
+    w.close()
+    with EventReader(p) as r:
+        assert len(r.read_all()) == 0
+
+
+def test_EVT_from_bytes_and_stream(tmp_path, test_events):
+    """The reader accepts raw bytes and binary streams, not just paths."""
+    import io as _io
+    from evutils.io import EventReader, EventWriter
+    p = tmp_path / "stream.raw"
+    with EventWriter(p) as w:
+        w.write(test_events)
+    data = p.read_bytes()
+
+    for source in (data, _io.BytesIO(data)):
+        with EventReader(source) as r:
+            assert np.array_equal(np.asarray(r.read_all()), test_events)
+
+
+def test_EVT3_coordinate_extremes(tmp_path):
+    """Max 11-bit coordinates and both polarities survive the trip."""
+    ev = _wrap_events(np.arange(6))
+    ev['x'] = [0, 2047, 0, 2047, 1, 2046]
+    ev['y'] = [0, 2047, 2047, 0, 2, 2045]
+    ev['p'] = [0, 1, 0, 1, 1, 0]
+    out = _roundtrip(tmp_path, ev, "evt3")
+    assert np.array_equal(out.x, ev['x'])
+    assert np.array_equal(out.y, ev['y'])
+    assert np.array_equal(out.p, ev['p'])
