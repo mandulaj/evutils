@@ -13,6 +13,16 @@ from typing import Any
 from evutils.io import EventReader, EventWriter
 from evutils.types import Event_dtype
 
+@pytest.fixture(autouse=True)
+def skip_missing_deps(request: Any) -> None:
+    if "fmt" in request.fixturenames:
+        fmt = request.getfixturevalue("fmt")
+        if fmt == "csv":
+            pytest.importorskip("pandas")
+        elif fmt == "hdf5":
+            pytest.importorskip("h5py")
+            pytest.importorskip("hdf5plugin")
+
 # name -> (suffix, writer kwargs, capabilities)
 FORMATS = {
     "evt3": (".raw", {"format": "evt3"}, {}),

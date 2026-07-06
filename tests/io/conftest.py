@@ -37,9 +37,12 @@ def event_files(tmp_path_factory: Any, test_events: Any) -> dict[str, Any]:
     event_file_paths['bin'] = temp_dir / "events.bin"
     event_file_paths['txt'] = temp_dir / "events.txt"
 
-    from evutils.io import EventWriter
-    with EventWriter(event_file_paths['csv']) as writer:
-        writer.write(test_events)
+    try:
+        from evutils.io import EventWriter
+        with EventWriter(event_file_paths['csv']) as writer:
+            writer.write(test_events)
+    except ImportError:
+        pass
 
     with EventWriter(event_file_paths['evt3'], format="EVT3") as writer:
         writer.write(test_events)
