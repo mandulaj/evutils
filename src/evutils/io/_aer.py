@@ -24,16 +24,18 @@ import numpy as np
 
 from ..types import EventArray, TriggerArray
 from .common import EventDecoder, EventEncoder
-from ._native_evt import (
-    AER_TS_SEQUENTIAL,
-    AER_TS_ZERO,
-    AerInput,
-    AerParser,
+from ._native_core import (
     EventSoABuffers,
     TriggerSoABuffers,
     decode_all_soa,
     events_view,
     parse_step,
+)
+from ._native_aer import (
+    AER_TS_SEQUENTIAL,
+    AER_TS_ZERO,
+    AerInput,
+    AerParser,
 )
 from ._source import ByteSource
 

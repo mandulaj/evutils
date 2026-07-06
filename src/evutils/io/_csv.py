@@ -116,7 +116,7 @@ class EventDecoder_Csv(EventDecoder):
     def read_chunk(self, delta_t_hint:int | None = None, n_events_hint:int | None = None) -> 'EventArray':
         """Read a chunk of events from the CSV file."""
         import ctypes
-        from ._native_evt import lib
+        from . import _native_csv; from ._native_core import lib
         
         assert self._is_initialized, "Reader is not initialized"
         chunk_size = self._chunk_size
@@ -257,7 +257,7 @@ class EventEncoder_Csv(EventEncoder):
     def write(self, events: 'np.ndarray | EventArray', triggers: 'np.ndarray | TriggerArray | None' = None) -> int:
         """Write events to the CSV file."""
         import ctypes
-        from ._native_evt import lib
+        from . import _native_csv; from ._native_core import lib
         
         if not self._is_initialized:
             self.init()

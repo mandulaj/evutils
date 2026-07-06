@@ -7,7 +7,7 @@ in memory efficiently.
 import numpy as np
 
 from ..types import EventArray, TriggerArray
-from ._native_evt import EventSoABuffers, TriggerSoABuffers
+from ._native_core import EventSoABuffers, TriggerSoABuffers
 
 
 class EventAccumulator():

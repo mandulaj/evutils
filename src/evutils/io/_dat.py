@@ -17,16 +17,18 @@ import numpy as np
 
 from ..types import EventArray, TriggerArray
 from .common import EventDecoder, EventEncoder
-from ._native_evt import (
+from ._native_core import (
     EVUTILS_PARSE_ERROR,
-    DatInput,
-    DatParser,
     EventSoABuffers,
     TriggerSoABuffers,
     decode_all_soa,
     events_view,
     triggers_view,
     parse_step,
+)
+from ._native_dat import (
+    DatInput,
+    DatParser,
 )
 from ._source import ByteSource
 

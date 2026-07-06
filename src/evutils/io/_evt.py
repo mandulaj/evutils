@@ -31,20 +31,22 @@ import numpy as np
 
 from ..types import Event_dtype, EventArray, Trigger_dtype
 from .common import EventDecoder, EventEncoder
-from ._native_evt import (
+from ._native_core import (
     EVUTILS_PARSE_ERROR,
     EventSoABuffers,
+    TriggerSoABuffers,
+    decode_all_soa,
+    events_view,
+    triggers_view,
+    parse_step,
+)
+from ._native_evt import (
     Evt2Input,
     Evt2Parser,
     Evt3Input,
     Evt3Parser,
     Evt21Input,
     Evt21Parser,
-    TriggerSoABuffers,
-    decode_all_soa,
-    events_view,
-    triggers_view,
-    parse_step,
 )
 from ._source import ByteSource
 
