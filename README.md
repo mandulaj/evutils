@@ -132,11 +132,17 @@ img = reconstructor.gen_frame(events)
 
 ## Running tests
 
-Tests are managed via `pytest`. If you installed the package with the `[dev]` or `[test]` flag, you can run them via:
+Tests are managed via `pytest`. If you installed the package with the `[dev]` or `[test]` flag, you can run the standard test suite via:
 ```bash
 uv run pytest -s
 ```
 
+### Testing Docstrings
+The library uses `doctest` to ensure all Python `>>>` examples inside docstrings are correct and functional. Because the default configuration only scans the `tests/` directory, you must explicitly tell pytest to scan the source code and ignore legacy submodules (like `rpg_e2vid` which contains Python 2 syntax):
+
+```bash
+uv run pytest --doctest-modules src/evutils --ignore=src/evutils/vis/reconstructor/rpg_e2vid/
+```
 
 ## [Benchmarks](benchmarks/README.md)
 

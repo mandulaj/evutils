@@ -114,7 +114,10 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 # Bare `pytest` runs only the correctness suite. Benchmarks are heavy and run
 # explicitly with `pytest benchmarks/`.
-testpaths = ["tests"]
+testpaths = [
+    "tests",
+    "src/evutils",
+]
 
 
 [project.urls]
