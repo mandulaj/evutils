@@ -98,10 +98,24 @@ The container's default command is `pytest benchmarks/ --benchmark-group-by=para
 
 ### Useful Variations
 
-Persist the downloaded recording across runs (otherwise `--rm` discards the pytest cache and it re-downloads every time):
+The recordings are **not** baked into the image (`.dockerignore` excludes the
+data and cache directories), so the fixture tries to download them on first
+use. If the container has no network access, mount the host's already-cached
+recordings and point `EVUTILS_BENCH_DATA` at them:
 
 ```bash
-docker run --rm -v evutils-cache:/work/.pytest_cache evutils-openeb
+# after benchmarks have run at least once on the host:
+docker run --rm \
+  -v "$(pwd)/.pytest_cache/d/event_files:/data:ro" \
+  -e EVUTILS_BENCH_DATA=/data \
+  evutils-openeb
+```
+
+Alternatively, persist the container's own download across runs with a named
+volume (note the workdir is `/home/user/work`):
+
+```bash
+docker run --rm -v evutils-cache:/home/user/work/.pytest_cache evutils-openeb
 ```
 
 Run only the OpenEB comparison (skip the `evutils` rows):

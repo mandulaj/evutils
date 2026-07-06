@@ -39,8 +39,20 @@ def real_event_files(request):
     """Real Prophesee recordings (downloaded + cached on first use).
 
     Returns ``{format: EventFile(path, count)}`` where ``count`` is the
-    reference OpenEB event count.
+    reference OpenEB event count (from the JSON sidecars).
+
+    Set ``EVUTILS_BENCH_DATA`` to a directory that already contains the
+    extracted recordings + JSON sidecars to skip the download (offline
+    environments, e.g. the OpenEB Docker container).
     """
+    import os
+    override = os.environ.get("EVUTILS_BENCH_DATA")
+    if override:
+        data_dir = Path(override)
+        if not data_dir.is_dir():
+            pytest.skip(f"EVUTILS_BENCH_DATA={override} is not a directory")
+        return load_event_files(data_dir)
+
     temp_dir = request.config.cache.mkdir("event_files")
 
     filenames = {
@@ -55,4 +67,4 @@ def real_event_files(request):
             download_and_extract_gdrive("1uhOsWbp2o3CktsHrFkzGCNFbx0bQLsct", temp_dir, "hand.tar.zst")
             break
 
-    return load_event_files(temp_dir, paths)
+    return load_event_files(temp_dir)

@@ -41,6 +41,9 @@ vis = [
 test = [
     "pytest>=9.0.2",
     "pytest-benchmark>=5.2.3",
+    # Extracting the .tar.zst test recordings without relying on system tar
+    # having zstd support (Python 3.14+ reads zstd via the stdlib).
+    "zstandard>=0.22; python_version < '3.14'",
 ]
 # Optional third-party readers used only by the comparison benchmarks. OpenEB's
 # `metavision_*` packages are not on PyPI (install from Prophesee, e.g. via the

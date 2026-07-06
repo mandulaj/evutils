@@ -25,8 +25,21 @@ N_REFERENCE = 5_000_000
 def real_event_files(request, benchmark_dataset):
     """Real Prophesee recordings (downloaded + cached on first use).
 
-    Returns ``{format: [EventFile(path, count)]}``. 
+    Returns ``{format: [EventFile(path, count)]}``.
+
+    Set ``EVUTILS_BENCH_DATA`` to a directory that already contains the
+    extracted recordings (+ JSON metadata) to skip the download entirely --
+    useful in offline environments such as the OpenEB benchmark container
+    (mount the host cache there).
     """
+    import os
+    override = os.environ.get("EVUTILS_BENCH_DATA")
+    if override:
+        data_dir = Path(override)
+        if not data_dir.is_dir():
+            pytest.skip(f"EVUTILS_BENCH_DATA={override} is not a directory")
+        return load_event_files(data_dir)
+
     if benchmark_dataset == "large":
         temp_dir = request.config.cache.mkdir("event_files_huge")
         file_id = "1QPuilR1VD0rKyhVOlu1Y-HtkO4ZBc2Cz"
@@ -51,7 +64,7 @@ def real_event_files(request, benchmark_dataset):
                 download_and_extract_gdrive(file_id, temp_dir, "hand.tar.zst")
                 break
                 
-        return load_event_files(temp_dir, paths)
+        return load_event_files(temp_dir)
 
 
 @pytest.fixture(scope='session')
@@ -92,6 +105,25 @@ def benchmark_rounds(request):
 @pytest.fixture(scope="session")
 def benchmark_dataset(request):
     return request.config.getoption("--dataset")
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_benchmark_group_stats(config, benchmarks, group_by):
+    """Guard against a pytest-benchmark crash with ``--benchmark-group-by=param:<name>``.
+
+    Benchmarks collected from non-parametrized tests have ``params = None``,
+    which the plugin's param-grouping code cannot handle (TypeError) -- and the
+    crash also swallows the whole error/summary report. Give such benchmarks an
+    explicit null param instead, so they group under ``<name>=None``.
+    """
+    if isinstance(group_by, str) and group_by.startswith("param:"):
+        names = group_by.split(":", 1)[1].split(",")
+        for bench in benchmarks:
+            if bench.get("params") is None:
+                bench["params"] = {}
+            for name in names:
+                bench["params"].setdefault(name, None)
+    yield
 
 
 @pytest.fixture(scope="session")

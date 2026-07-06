@@ -84,31 +84,36 @@ def test_write_uniform_evutils(benchmark, benchmark_rounds, reference_events, tm
 # --------------------------------------------------------------------------- #
 # Third-party comparisons on the identical files
 # --------------------------------------------------------------------------- #
+# NOTE: keep every benchmark parametrized with `fmt` -- the suite is commonly
+# run with --benchmark-group-by=param:fmt, and pytest-benchmark crashes on
+# benchmarks without params (see also the guard hook in conftest.py).
 @pytest.mark.benchmark(group="read-dat")
-def test_read_dat_expelliarmus(benchmark, benchmark_rounds, uniform_files):
+@pytest.mark.parametrize("fmt", ["dat"])
+def test_read_dat_expelliarmus(benchmark, benchmark_rounds, uniform_files, fmt):
     try:
         from expelliarmus import Wizard
     except ImportError as exc:
         pytest.skip(f"expelliarmus not available: {exc}")
-    wizard = Wizard(encoding="dat")
-    n = benchmark.pedantic(lambda: len(wizard.read(str(uniform_files["dat"]))),
+    wizard = Wizard(encoding=fmt)
+    n = benchmark.pedantic(lambda: len(wizard.read(str(uniform_files[fmt]))),
                            rounds=benchmark_rounds, iterations=1, warmup_rounds=1)
     assert n > 0
-    benchmark.extra_info.update(library="expelliarmus", n_events=n, fmt="dat")
+    benchmark.extra_info.update(library="expelliarmus", n_events=n, fmt=fmt)
 
 
 @pytest.mark.benchmark(group="write-dat")
-def test_write_dat_expelliarmus(benchmark, benchmark_rounds, reference_events, tmp_path):
+@pytest.mark.parametrize("fmt", ["dat"])
+def test_write_dat_expelliarmus(benchmark, benchmark_rounds, reference_events, tmp_path, fmt):
     try:
         from expelliarmus import Wizard
     except ImportError as exc:
         pytest.skip(f"expelliarmus not available: {exc}")
-    wizard = Wizard(encoding="dat")
+    wizard = Wizard(encoding=fmt)
     out = tmp_path / "out.dat"
     benchmark.pedantic(lambda: wizard.save(str(out), reference_events),
                        rounds=benchmark_rounds, iterations=1, warmup_rounds=1)
     assert len(wizard.read(str(out))) == len(reference_events)
-    benchmark.extra_info.update(library="expelliarmus", n_events=len(reference_events), fmt="dat")
+    benchmark.extra_info.update(library="expelliarmus", n_events=len(reference_events), fmt=fmt)
 
 
 def _evlib_count(path):
