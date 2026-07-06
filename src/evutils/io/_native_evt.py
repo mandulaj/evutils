@@ -23,7 +23,7 @@ from ctypes import (
     POINTER,
     Structure,
     byref,
-    cast,
+    cast as c_cast,
     c_char_p,
     c_char,
     c_int,
@@ -35,6 +35,7 @@ from ctypes import (
     c_void_p,
 )
 from pathlib import Path
+from typing import cast, Any
 
 import numpy as np
 
@@ -369,7 +370,7 @@ class EventSoABuffers:
         self.capacity = new_capacity
         self.c.capacity = new_capacity
 
-    def view(self):
+    def view(self) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """View the active elements in the buffer.
 
         Returns
@@ -435,7 +436,7 @@ class TriggerSoABuffers:
         self.capacity = new_capacity
         self.c.capacity = new_capacity
 
-    def view(self):
+    def view(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """View the active elements in the buffer.
 
         Returns
@@ -461,8 +462,8 @@ class Evt3Input:
         self.arr = words
         base = words.ctypes.data
         self.c = Evt3InputBuffer()
-        self.c.begin = cast(base, POINTER(c_uint16))
-        self.c.end = cast(base + words.nbytes, POINTER(c_uint16))  # one-past-last
+        self.c.begin = c_cast(base, POINTER(c_uint16))
+        self.c.end = c_cast(base + words.nbytes, POINTER(c_uint16))  # one-past-last
  
     def consumed(self, result: "ParserResult") -> int:
         """Number of uint16 words consumed, from a returned result.current.
@@ -478,7 +479,7 @@ class Evt3Input:
             Number of words consumed.
 
         """
-        cur = cast(result.current, c_void_p).value or self.arr.ctypes.data
+        cur = c_cast(result.current, c_void_p).value or self.arr.ctypes.data
         return (cur - self.arr.ctypes.data) // 2
  
  
@@ -496,11 +497,11 @@ class Evt3Parser:
  
     __slots__ = ("_state", "_buf")
  
-    def __init__(self):
+    def __init__(self) -> None:
         handle = lib()
 
         self._buf = (c_char * int(handle.EVT3_state_size()))()  # zero-initialised
-        self._state = cast(self._buf, c_void_p)
+        self._state = c_cast(self._buf, c_void_p)
 
 
     def reset(self) -> None:
@@ -533,11 +534,11 @@ class Evt3Parser:
             The result of the parsing operation.
 
         """
-        return lib().EVT3_parse_chunk_soa(
+        return cast(ParserResult, lib().EVT3_parse_chunk_soa(
             self._state, byref(inp.c), byref(events.c), byref(triggers.c)
-        )
+        ))
 
-    def __enter__(self):
+    def __enter__(self) -> "Evt3Parser":
         return self
 
 
@@ -559,8 +560,8 @@ class Evt2Input:
         self.arr = words
         base = words.ctypes.data
         self.c = Evt2InputBuffer()
-        self.c.begin = cast(base, POINTER(c_uint32))
-        self.c.end = cast(base + words.nbytes, POINTER(c_uint32))
+        self.c.begin = c_cast(base, POINTER(c_uint32))
+        self.c.end = c_cast(base + words.nbytes, POINTER(c_uint32))
 
     def consumed(self, result: "ParserResult") -> int:
         """Number of uint32 words consumed, from a returned result.current.
@@ -576,7 +577,7 @@ class Evt2Input:
             Number of words consumed.
 
         """
-        cur = cast(result.current, c_void_p).value or self.arr.ctypes.data
+        cur = c_cast(result.current, c_void_p).value or self.arr.ctypes.data
         return (cur - self.arr.ctypes.data) // 4
 
 
@@ -591,8 +592,8 @@ class Evt21Input:
         self.arr = words
         base = words.ctypes.data
         self.c = Evt21InputBuffer()
-        self.c.begin = cast(base, POINTER(c_uint64))
-        self.c.end = cast(base + words.nbytes, POINTER(c_uint64))
+        self.c.begin = c_cast(base, POINTER(c_uint64))
+        self.c.end = c_cast(base + words.nbytes, POINTER(c_uint64))
 
     def consumed(self, result: "ParserResult") -> int:
         """Number of uint64 words consumed, from a returned result.current.
@@ -608,7 +609,7 @@ class Evt21Input:
             Number of words consumed.
 
         """
-        cur = cast(result.current, c_void_p).value or self.arr.ctypes.data
+        cur = c_cast(result.current, c_void_p).value or self.arr.ctypes.data
         return (cur - self.arr.ctypes.data) // 8
 
 
@@ -617,10 +618,10 @@ class Evt2Parser:
 
     __slots__ = ("_state", "_buf")
 
-    def __init__(self):
+    def __init__(self) -> None:
         handle = lib()
         self._buf = (c_char * int(handle.EVT2_state_size()))()  # zero-initialised
-        self._state = cast(self._buf, c_void_p)
+        self._state = c_cast(self._buf, c_void_p)
 
     def reset(self) -> None:
         """Reset the parser state.
@@ -651,11 +652,11 @@ class Evt2Parser:
             The result of the parsing operation.
 
         """
-        return lib().EVT2_parse_chunk_soa(
+        return cast(ParserResult, lib().EVT2_parse_chunk_soa(
             self._state, byref(inp.c), byref(events.c), byref(triggers.c)
-        )
+        ))
 
-    def __enter__(self):
+    def __enter__(self) -> "Evt2Parser":
         return self
 
 
@@ -664,10 +665,10 @@ class Evt21Parser:
 
     __slots__ = ("_state", "_buf")
 
-    def __init__(self):
+    def __init__(self) -> None:
         handle = lib()
         self._buf = (c_char * int(handle.EVT21_state_size()))()  # zero-initialised
-        self._state = cast(self._buf, c_void_p)
+        self._state = c_cast(self._buf, c_void_p)
 
     def reset(self) -> None:
         """Reset the parser state.
@@ -698,11 +699,11 @@ class Evt21Parser:
             The result of the parsing operation.
 
         """
-        return lib().EVT21_parse_chunk_soa(
+        return cast(ParserResult, lib().EVT21_parse_chunk_soa(
             self._state, byref(inp.c), byref(events.c), byref(triggers.c)
-        )
+        ))
 
-    def __enter__(self):
+    def __enter__(self) -> "Evt21Parser":
         return self
 
 
@@ -720,11 +721,11 @@ class DatInput:
         self.arr = words
         base = words.ctypes.data
         self.c = DatInputBuffer()
-        self.c.begin = cast(base, POINTER(c_uint32))
-        self.c.end = cast(base + words.nbytes, POINTER(c_uint32))
+        self.c.begin = c_cast(base, POINTER(c_uint32))
+        self.c.end = c_cast(base + words.nbytes, POINTER(c_uint32))
 
     def consumed(self, result: "ParserResult") -> int:
-        cur = cast(result.current, c_void_p).value or self.arr.ctypes.data
+        cur = c_cast(result.current, c_void_p).value or self.arr.ctypes.data
         return (cur - self.arr.ctypes.data) // 4
 
 
@@ -739,11 +740,11 @@ class AerInput:
         self.arr = words
         base = words.ctypes.data
         self.c = AerInputBuffer()
-        self.c.begin = cast(base, POINTER(c_uint32))
-        self.c.end = cast(base + words.nbytes, POINTER(c_uint32))
+        self.c.begin = c_cast(base, POINTER(c_uint32))
+        self.c.end = c_cast(base + words.nbytes, POINTER(c_uint32))
 
     def consumed(self, result: "ParserResult") -> int:
-        cur = cast(result.current, c_void_p).value or self.arr.ctypes.data
+        cur = c_cast(result.current, c_void_p).value or self.arr.ctypes.data
         return (cur - self.arr.ctypes.data) // 4
 
 
@@ -752,10 +753,10 @@ class DatParser:
 
     __slots__ = ("_state", "_buf")
 
-    def __init__(self):
+    def __init__(self) -> None:
         handle = lib()
         self._buf = (c_char * int(handle.DAT_state_size()))()  # zero-initialised
-        self._state = cast(self._buf, c_void_p)
+        self._state = c_cast(self._buf, c_void_p)
 
     def reset(self) -> None:
         """Reset the parser state.
@@ -786,11 +787,11 @@ class DatParser:
             The result of the parsing operation.
 
         """
-        return lib().DAT_parse_chunk_soa(
+        return cast(ParserResult, lib().DAT_parse_chunk_soa(
             self._state, byref(inp.c), byref(events.c), byref(triggers.c)
-        )
+        ))
 
-    def __enter__(self):
+    def __enter__(self) -> "DatParser":
         return self
 
 
@@ -812,7 +813,7 @@ class AerParser:
     def __init__(self, mode: int = AER_TS_ZERO, t_start: int = 0, t_step: int = 1):
         handle = lib()
         self._buf = (c_char * int(handle.AER_state_size()))()  # zero-initialised
-        self._state = cast(self._buf, c_void_p)
+        self._state = c_cast(self._buf, c_void_p)
         self._mode = mode
         self._t_start = t_start
         self._t_step = t_step
@@ -847,11 +848,11 @@ class AerParser:
             The result of the parsing operation.
 
         """
-        return lib().AER_parse_chunk_soa(
+        return cast(ParserResult, lib().AER_parse_chunk_soa(
             self._state, byref(inp.c), byref(events.c), byref(triggers.c)
-        )
+        ))
 
-    def __enter__(self):
+    def __enter__(self) -> "AerParser":
         return self
 
 
@@ -883,8 +884,8 @@ def triggers_view(tr: TriggerSoABuffers) -> TriggerArray:
 # --------------------------------------------------------------------------- #
 # Single parser step, appending into a caller-provided buffer
 # --------------------------------------------------------------------------- #
-def parse_step(words, offset, make_input, parser, events, triggers, *,
-               tail_pad: int = 0, word_dtype=None):
+def parse_step(words: Any, offset: int, make_input: Any, parser: Any, events: Any, triggers: Any, *,
+               tail_pad: int = 0, word_dtype: Any = None) -> tuple[int, int]:
     """Run the parser once, *appending* into ``events`` (from ``events.size``)
     up to ``events.c.capacity``, and advance through ``words``.
 
@@ -920,9 +921,9 @@ def parse_step(words, offset, make_input, parser, events, triggers, *,
 # --------------------------------------------------------------------------- #
 # Single-buffer full decode (the read_all fast path)
 # --------------------------------------------------------------------------- #
-def decode_all_soa(words, start_offset, make_input, parser, *,
+def decode_all_soa(words: Any, start_offset: int, make_input: Any, parser: Any, *,
                    est_events_per_word: float = 1.0, tail_pad: int = 0,
-                   word_dtype=None, trigger_cap: int = 1 << 12):
+                   word_dtype: Any = None, trigger_cap: int = 1 << 12) -> tuple[EventArray, int]:
     """Decode ``words[start_offset:]`` fully into a single, growing SoA buffer.
 
     This is the zero-extra-copy path behind ``EventReader.read_all`` /
