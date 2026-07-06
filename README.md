@@ -14,6 +14,8 @@ This project draws inspiration from several excellent libraries in the event-bas
 * [event_utils](https://github.com/TimoStoff/event_utils)
 * [evlib](https://github.com/tallamjr/evlib)
 * [expelliarmus](https://github.com/open-neuromorphic/expelliarmus)
+* [event-vision-library](https://github.com/shiba24/event-vision-library)
+* [evt3](https://github.com/muthmann/evt3)
 * [openeb](https://github.com/prophesee-ai/openeb)
 
 
