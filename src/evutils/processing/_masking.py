@@ -19,6 +19,23 @@ def mask_events(events: np.ndarray, mask: np.ndarray) -> np.ndarray:
     np.ndarray
         Array of events that fall within the valid regions of the mask.
 
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from evutils.processing import mask_events
+    >>> events = np.array(
+    ...     [(0, 0, 100, 1), (1, 1, 200, 1), (2, 2, 300, 0)],
+    ...     dtype=[('x', 'u2'), ('y', 'u2'), ('t', 'i8'), ('p', 'i1')]
+    ... )
+    >>> mask = np.array([
+    ...     [1, 0, 0],
+    ...     [0, 0, 0],
+    ...     [0, 0, 1]
+    ... ])
+    >>> masked_events = mask_events(events, mask)
+    >>> masked_events[['x', 'y']].tolist()
+    [(0, 0), (2, 2)]
+
     """
     # Check if mask is a 2D array
     if mask.ndim != 2:

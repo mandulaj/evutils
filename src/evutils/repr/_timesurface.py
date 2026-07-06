@@ -27,6 +27,16 @@ def timesurface(events: np.ndarray, width: int = 1280, height: int = 720, tau: i
     np.ndarray
         A numpy array with the time surface frame (height, width).
 
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from evutils.repr import timesurface
+    >>> events = np.array([(10, 20, 100, 1), (15, 25, 200, 0)],
+    ...                   dtype=[('x', '<u2'), ('y', '<u2'), ('t', '<i8'), ('p', 'i1')])
+    >>> frame = timesurface(events, width=100, height=100)
+    >>> frame.shape
+    (100, 100)
+
     [1] Lagorce et al. 2016, Hots: a hierarchy of event-based time-surfaces for pattern recognition https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=7508476
 
     """

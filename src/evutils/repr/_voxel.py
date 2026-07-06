@@ -32,6 +32,15 @@ def voxel_histogram(events: np.ndarray, width: int = 1280, height: int = 720, n_
     np.ndarray
         A numpy array with the voxel grid (n_bins, height, width, 3).
 
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from evutils.repr import voxel_histogram
+    >>> events = np.array([(10, 20, 100, 1), (15, 25, 200, 0), (20, 30, 10000, 1)],
+    ...                   dtype=[('x', '<u2'), ('y', '<u2'), ('t', '<i8'), ('p', 'i1')])
+    >>> grid = voxel_histogram(events, width=100, height=100, n_bins=10, dt=10000)
+    >>> grid.shape
+    (10, 100, 100, 3)
     """
     buffer = np.zeros((n_bins, height, width, 3), dtype=dtype)
 

@@ -25,6 +25,15 @@ def frame_gray(events: np.ndarray, width: int = 1280, height: int = 720, dtype: 
     np.ndarray
         A numpy array with the frame (height, width)
 
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from evutils.repr import frame_gray
+    >>> events = np.array([(10, 20, 100, 1), (15, 25, 200, 0)],
+    ...                   dtype=[('x', '<u2'), ('y', '<u2'), ('t', '<i8'), ('p', 'i1')])
+    >>> frame = frame_gray(events, width=100, height=100)
+    >>> frame.shape
+    (100, 100)
     """
     buffer = np.full((height, width), 128, dtype=dtype)
 
@@ -68,6 +77,15 @@ def frame_rgb(ev: np.ndarray, width: int = 1280, height: int = 720, bg_color: An
     np.ndarray
         A numpy array with the frame (height, width, 3)
 
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from evutils.repr import frame_rgb
+    >>> events = np.array([(10, 20, 100, 1), (15, 25, 200, 0)],
+    ...                   dtype=[('x', '<u2'), ('y', '<u2'), ('t', '<i8'), ('p', 'i1')])
+    >>> frame = frame_rgb(events, width=100, height=100)
+    >>> frame.shape
+    (100, 100, 3)
     """
     buffer = np.zeros((height, width, 3), dtype=np.uint8)
     buffer[:, :] = bg_color
@@ -105,6 +123,15 @@ def frame_diff(ev: np.ndarray, width: int = 1280, height: int = 720, dtype: Any 
     np.ndarray
         A numpy array with the frame (height, width)
 
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from evutils.repr import frame_diff
+    >>> events = np.array([(10, 20, 100, 1), (15, 25, 200, 0)],
+    ...                   dtype=[('x', '<u2'), ('y', '<u2'), ('t', '<i8'), ('p', 'i1')])
+    >>> frame = frame_diff(events, width=100, height=100)
+    >>> frame.shape
+    (100, 100)
     """
     buffer = np.zeros((height, width), dtype=dtype)
 

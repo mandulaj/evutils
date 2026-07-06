@@ -11,7 +11,7 @@ from typing import Any, TypeVar
 
 import numpy as np
 
-__all__ = ['Event_dtype', 'Trigger_dtype', 'Event', 'Events', 'IndexedEvents', 'EventArray', 'TriggerArray', 'is_monotonically_increasing']
+__all__ = ['Event_dtype', 'Trigger_dtype', 'Event', 'EventArray', 'TriggerArray', 'is_monotonically_increasing']
 
 
 #: A structured numpy dtype for event data.
@@ -79,7 +79,19 @@ _S = TypeVar("_S", bound="SoaArray")
 
 
 class SoaArray:
-    """Abstract base class for struct-of-arrays (SoA) layout."""
+    """Abstract base class for struct-of-arrays (SoA) layout.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from evutils.types import EventArray
+    >>> events = EventArray(t=[1, 2], x=[10, 20], y=[30, 40], p=[1, 0])
+    >>> float(np.mean(events.x))  # SoA layout allows fast operations on single columns
+    15.0
+    >>> events.to_numpy()  # doctest: +SKIP
+    array([(1, 10, 30, 1), (2, 20, 40, 0)],
+          dtype=[('t', '<i8'), ('x', '<u2'), ('y', '<u2'), ('p', 'u1')])
+    """
 
     __slots__ = ()
     _aos_dtype: np.dtype
@@ -166,6 +178,24 @@ class EventArray(SoaArray):
     working. ``np.asarray(events)`` yields the array-of-structures form (see
     :meth:`__array__`), which lets EventArray flow into code that still expects
     :data:`Event_dtype`.
+
+    Examples
+    --------
+    >>> from evutils.types import EventArray
+    >>> events = EventArray(t=[100, 150], x=[10, 20], y=[30, 40], p=[1, 0])
+    >>> events.t
+    array([100, 150])
+    >>> events.x
+    array([10, 20], dtype=uint16)
+    >>> events.y
+    array([30, 40], dtype=uint16)
+    >>> events.p
+    array([1, 0], dtype=uint8)
+    >>> events[:10]
+    EventArray(n=2):
+    [(100, 10, 30, 1) (150, 20, 40, 0)]
+    >>> events[0]  # doctest: +SKIP
+    np.void((100, 10, 30, 1), dtype=[('t', '<i8'), ('x', '<u2'), ('y', '<u2'), ('p', 'u1')])
     """
 
     __slots__ = ['t', 'x', 'y', 'p']
@@ -180,7 +210,19 @@ class EventArray(SoaArray):
 
 
 class TriggerArray(SoaArray):
-    """A container for storing trigger data in a struct-of-arrays (SoA) layout."""
+    """A container for storing trigger data in a struct-of-arrays (SoA) layout.
+
+    Examples
+    --------
+    >>> from evutils.types import TriggerArray
+    >>> triggers = TriggerArray(t=[1000, 2000], p=[1, 0], id=[0, 1])
+    >>> triggers.t
+    array([1000, 2000])
+    >>> triggers.p
+    array([1, 0], dtype=uint8)
+    >>> triggers.id
+    array([0, 1], dtype=uint8)
+    """
 
     __slots__ = ['t', 'p', 'id']
     _aos_dtype = Trigger_dtype

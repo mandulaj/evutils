@@ -6,7 +6,7 @@ Provides the `EventWriter` class for writing event data to various file formats.
 import io
 from datetime import datetime
 from pathlib import Path
-from typing import Union, Any
+from typing import Any
 
 import numpy as np
 
@@ -34,9 +34,18 @@ class EventWriter():
 
     Examples
     --------
-    >>> events = np.array([(0, 0, 0, 1), (1000, 10, 10, 0)], dtype=Event_dtype)
-    >>> with EventWriter("events.raw") as writer:
-    >>>     writer.write(events)
+    >>> import numpy as np
+    >>> from evutils.types import EventArray
+    >>> # Create an EventArray
+    >>> events = EventArray(
+    ...     t=np.array([0, 1000]),
+    ...     x=np.array([0, 10]),
+    ...     y=np.array([0, 10]),
+    ...     p=np.array([1, 0])
+    ... )
+    >>> # Write the events to a raw file
+    >>> with EventWriter("events.raw") as writer: # doctest: +SKIP
+    ...     writer.write(events) # doctest: +SKIP
 
     """
 
@@ -116,10 +125,45 @@ class EventWriter():
         int
             Number of events written
 
+        Examples
+        --------
+        >>> from evutils.types import EventArray
+        >>> events = EventArray(t=[0, 100], x=[10, 11], y=[20, 21], p=[1, 0])
+        >>> writer = EventWriter("events.raw") # doctest: +SKIP
+        >>> num_written = writer.write(events) # doctest: +SKIP
+        >>> print(f"Wrote {num_written} events") # doctest: +SKIP
+        >>> writer.close() # doctest: +SKIP
+
         """
         n_written = self._file_encoder.write(events)
         self._n_written_events += n_written
         return n_written
+
+    def write_external_triggers(self, triggers: np.ndarray) -> int:
+        """Write external triggers to the file.
+
+        Parameters
+        ----------
+        triggers : np.ndarray
+            Buffer of triggers to write (structured array or TriggerArray).
+
+        Returns
+        -------
+        int
+            Number of triggers written.
+
+        Examples
+        --------
+        >>> from evutils.types import TriggerArray
+        >>> triggers = TriggerArray(t=[1000, 2000], p=[1, 0], id=[0, 0])
+        >>> writer = EventWriter("events.raw") # doctest: +SKIP
+        >>> writer.write_external_triggers(triggers) # doctest: +SKIP
+        >>> writer.close() # doctest: +SKIP
+
+        """
+        from ..types import EventArray
+        self._file_encoder.write(EventArray.empty(), triggers=triggers)
+        return len(triggers)
 
     def flush(self) -> None:
         """Flush the buffer to the file."""

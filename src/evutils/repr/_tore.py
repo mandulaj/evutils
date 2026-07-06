@@ -30,6 +30,16 @@ def tore(events: np.ndarray, width: int = 1280, height: int = 720, n_events: int
     np.ndarray
         A numpy array with the TORE representation (height, width, n_events, 2)
 
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from evutils.repr import tore
+    >>> events = np.array([(10, 20, 100, 1), (15, 25, 200, 0)],
+    ...                   dtype=[('x', '<u2'), ('y', '<u2'), ('t', '<i8'), ('p', 'i1')])
+    >>> frame = tore(events, width=100, height=100, n_events=4)
+    >>> frame.shape
+    (100, 100, 4, 2)
+
     [1] Baldwin, R. W., Liu, R., Almatrafi, M., Asari, V., & Hirakawa, K. (2022). Time-ordered recent event (tore) volumes for event cameras. IEEE Transactions on Pattern Analysis and Machine Intelligence, 45(2), 2519-2532.
 
     """

@@ -83,8 +83,14 @@ class EventReader():
 
     Examples
     --------
-    >>> for events in EventReader("events.raw", delta_t=10000):  
-    >>>     print(events['x'], events['y'])
+    >>> from evutils.io import EventReader
+    >>> # Read events in chunks of 10ms (10,000 microseconds)
+    >>> reader = EventReader(b"% format EVT3;height=720;width=1280\\n% end\\n", delta_t=10000)
+    >>> for events in reader:
+    ...     # Access fields directly
+    ...     x, y, p, t = events.x, events.y, events.p, events.t
+    ...     print(f"Processed {len(events)} events")
+    Processed 0 events
 
     """
 
@@ -322,6 +328,15 @@ class EventReader():
         EventArray
             An array with the events
 
+        Examples
+        --------
+        >>> reader = EventReader(b"% format EVT3;height=720;width=1280\\n% end\\n", delta_t=10000)
+        >>> events = reader.read()
+        >>> print(len(events))
+        0
+        >>> # Override the time window for a single read
+        >>> more_events = reader.read(delta_t=5000)
+
         """
         self._check_no_active_prefetch()
         out = self._read(delta_t, n_events)
@@ -455,6 +470,13 @@ class EventReader():
         EventArray
             All remaining events.
 
+        Examples
+        --------
+        >>> reader = EventReader(b"% format EVT3;height=720;width=1280\\n% end\\n")
+        >>> all_events = reader.read_all()
+        >>> print(f"Total events: {len(all_events)}")
+        Total events: 0
+
         """
         self._check_no_active_prefetch()
         if not self._is_initialized:
@@ -579,6 +601,13 @@ class EventReader():
         ------
         EventArray
             An array with the events
+
+        Examples
+        --------
+        >>> reader = EventReader(b"% format EVT3;height=720;width=1280\\n% end\\n", n_events=5000)
+        >>> for events in reader:
+        ...     print(f"Received chunk of {len(events)} events")
+        Received chunk of 0 events
 
         """
         it: Any
