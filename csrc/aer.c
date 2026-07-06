@@ -17,6 +17,7 @@ void AER_state_configure(aer_state_t *state, int32_t mode,
     state->t_step = t_step;
 }
 
+EVUTILS_TARGET_CLONES
 parser_result_t AER_parse_chunk_soa(
     aer_state_t              *state,
     const aer_input_buffer_t *input_buffer,

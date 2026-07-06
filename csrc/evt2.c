@@ -26,6 +26,7 @@ enum EVT2_PacketType {
 };
 
 
+EVUTILS_TARGET_CLONES
 parser_result_t EVT2_parse_chunk_soa(
     evt2_state_t *state,
     const evt2_input_buffer_t *input_buffer,

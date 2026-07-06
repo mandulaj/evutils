@@ -10,6 +10,7 @@ size_t DAT_state_size(void) {
     return sizeof(dat_state_t);
 }
 
+EVUTILS_TARGET_CLONES
 parser_result_t DAT_parse_chunk_soa(
     dat_state_t              *state,
     const dat_input_buffer_t *input_buffer,

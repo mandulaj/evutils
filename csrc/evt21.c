@@ -32,6 +32,7 @@ size_t EVT21_state_size(void) {
 #define EVT21_MAX_VECTOR_EVENTS 32
 
 
+EVUTILS_TARGET_CLONES
 parser_result_t EVT21_parse_chunk_soa(
     evt21_state_t *state,
     const evt21_input_buffer_t *input_buffer,

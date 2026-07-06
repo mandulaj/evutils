@@ -211,6 +211,7 @@ static inline size_t EVT3_expand_simd(
 } while (0)
 
 
+__attribute__((always_inline))
 static inline const uint16_t * EVT3_parse_vector_12_12_8_soa(
     const uint16_t * __restrict__ current,
     evt3_state_t * __restrict__ state,
@@ -252,7 +253,10 @@ static inline const uint16_t * EVT3_parse_vector_12_12_8_soa(
 // (e.g., using __attribute__((target_clones("avx2", "default"))) on GCC/Clang)
 // or manual cpuid + function pointers to enable SIMD decoding on supported
 // hardware without breaking universal portability on older CPUs.
+
+
 #define EVT3_INPUT_PADDING 4
+EVUTILS_TARGET_CLONES
 parser_result_t EVT3_parse_chunk_soa(
     evt3_state_t *state,
     const evt3_input_buffer_t *input_buffer,
@@ -402,6 +406,7 @@ parser_result_t EVT3_parse_chunk_soa(
 } while (0)
 
 
+__attribute__((always_inline))
 static inline const uint16_t * EVT3_parse_vector_12_12_8(
     const uint16_t * __restrict__ current,
     evt3_state_t * __restrict__ state,
@@ -439,6 +444,7 @@ static inline const uint16_t * EVT3_parse_vector_12_12_8(
 
 
 #define EVT3_INPUT_PADDING 4
+EVUTILS_TARGET_CLONES
 parser_result_t EVT3_parse_chunk(
     evt3_state_t *state,
     const evt3_input_buffer_t *input_buffer,
