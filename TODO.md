@@ -27,11 +27,13 @@ We aim for universal event format support, prioritizing blazing fast read/write 
 ### Medium Priority
 - [ ] **Transparent Compression Wrappers:** Allow `EventReader` to seamlessly read `.raw.zst` or `.csv.lz4` by wrapping the file handle in `zstandard` or `lz4` decoders, performing decompression on-the-fly directly into the C-parsers.
 - [ ] **Comprehensive IO Testing:** Add real-file fixtures for `DAT`, `AER`, `AEDAT`, and `HDF5`. Implement "fuzzing/malformed data" tests to guarantee C-parser stability against corrupted byte streams without segfaulting.
-- [ ] **Real-time playback:** Optionally pace iteration so chunks are yielded at recording speed (or a chosen speed multiple) — a delay on the yield so streams behave as if live.
 
 ### Completed
 - [x] **Native C CSV Parser:** Eliminate the heavy `pandas` dependency by writing a heavily optimized native C parser for text-based event files.
+- [x] **Real-time playback:** `EventReader(real_time=True, playback_speed=...)` paces `read()` and iteration against an absolute wall-clock anchor so chunks stream as if live; consumer processing time is absorbed automatically, and no delay is added when decoding falls behind.
 
 ### Future / Ongoing
 - [ ] **Arbitrary input sources:** memory-mapped IO, pure in-memory streams, HTTP streams.
 - [ ] **Performance Chasing:** Continuously benchmark against `evlib`, `expelliarmus`, and others, striving for the absolute fastest decoding times in the ecosystem.
+
+
