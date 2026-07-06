@@ -7,6 +7,7 @@ together with small helpers for checking event arrays.
 
 
 import ctypes
+from typing import Any
 
 import numpy as np
 
@@ -91,7 +92,7 @@ class EventArray:
     __slots__ = ['t', 'x', 'y', 'p']
     _aos_dtype = Event_dtype
 
-    def __init__(self, t, x, y, p):
+    def __init__(self, t: Any, x: Any, y: Any, p: Any) -> None:
         """Initializes the EventArray with columns.
 
         Parameters
@@ -111,24 +112,24 @@ class EventArray:
         self.y = np.asarray(y, dtype=np.uint16)
         self.p = np.asarray(p, dtype=np.uint8)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: Any) -> Any:
         if isinstance(key, str):
             return getattr(self, key)
 
         return EventArray(self.t[key], self.x[key], self.y[key], self.p[key])
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.t)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"EventArray(n={len(self)})"
 
-    def copy(self):
+    def copy(self) -> "EventArray":
         """Return a deep copy with independent column arrays."""
         return EventArray(self.t.copy(), self.x.copy(), self.y.copy(), self.p.copy())
 
     @classmethod
-    def empty(cls):
+    def empty(cls) -> "EventArray":
         """Return an empty EventArray with correctly-typed (zero-length) columns."""
         return cls(
             np.empty(0, dtype=np.int64),
@@ -138,7 +139,7 @@ class EventArray:
         )
 
     @classmethod
-    def from_aos(cls, aos_array):
+    def from_aos(cls, aos_array: Any) -> "EventArray":
         """Constructs an EventArray from an array of structures (AoS) numpy array.
 
         Parameters
@@ -159,7 +160,7 @@ class EventArray:
             np.ascontiguousarray(aos_array['p'])
         )
 
-    def to_aos(self):
+    def to_aos(self) -> np.ndarray:
         """Converts the EventArray to an array of structures (AoS) numpy array.
 
         Returns
@@ -175,7 +176,7 @@ class EventArray:
         aos_array['p'] = self.p
         return aos_array
 
-    def __array__(self, dtype=None, copy=None):
+    def __array__(self, dtype: Any = None, copy: Any = None) -> np.ndarray:
         """Numpy interop: ``np.asarray(events)`` returns the AoS structured array.
 
         This is the automatic SoA->AoS bridge for code (and tests) that still
@@ -206,7 +207,7 @@ class TriggerArray:
     __slots__ = ['t', 'p', 'id']
     _aos_dtype = Trigger_dtype
 
-    def __init__(self, t, p, id):
+    def __init__(self, t: Any, p: Any, id: Any) -> None:
         """Initializes the TriggerArray with columns.
 
         Parameters
@@ -223,18 +224,18 @@ class TriggerArray:
         self.p = np.asarray(p, dtype=np.uint8)
         self.id = np.asarray(id, dtype=np.uint8)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: Any) -> Any:
         if isinstance(key, str):
             return getattr(self, key)
         return TriggerArray(self.t[key], self.p[key], self.id[key])
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.t)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"TriggerArray(n={len(self)})"
 
-    def copy(self):
+    def copy(self) -> "TriggerArray":
         """Return a deep copy with independent column arrays.
 
         Returns
@@ -246,7 +247,7 @@ class TriggerArray:
         return TriggerArray(self.t.copy(), self.p.copy(), self.id.copy())
 
     @classmethod
-    def empty(cls):
+    def empty(cls) -> "TriggerArray":
         """Return an empty TriggerArray with correctly-typed (zero-length) columns.
 
         Returns
@@ -261,7 +262,7 @@ class TriggerArray:
             np.empty(0, dtype=np.uint8),
         )
 
-    def to_aos(self):
+    def to_aos(self) -> np.ndarray:
         """Converts the TriggerArray to an array of structures (AoS) numpy array.
 
         Returns
@@ -276,7 +277,7 @@ class TriggerArray:
         aos_array['id'] = self.id
         return aos_array
 
-    def __array__(self, dtype=None, copy=None):
+    def __array__(self, dtype: Any = None, copy: Any = None) -> np.ndarray:
         """Numpy interop: ``np.asarray(triggers)`` returns the AoS structured array.
 
         Parameters

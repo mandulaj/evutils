@@ -24,6 +24,7 @@ import io
 import mmap
 from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import Any
 
 
 class ByteSource(ABC):
@@ -134,10 +135,10 @@ class ByteSource(ABC):
         """
         pass
 
-    def __enter__(self):
+    def __enter__(self) -> "ByteSource":
         return self
 
-    def __exit__(self, *exc):
+    def __exit__(self, *exc: Any) -> None:
         self.close()
 
 
@@ -160,7 +161,7 @@ class StreamSource(ByteSource):
     read from it sequentially.
     """
 
-    def __init__(self, stream, name: str | None = None, owns: bool = False):
+    def __init__(self, stream: Any, name: str | None = None, owns: bool = False) -> None:
         if not hasattr(stream, "read"):
             raise TypeError("stream must have a read() method")
         self._s = stream
@@ -169,11 +170,11 @@ class StreamSource(ByteSource):
         self._owns = owns
 
     def read(self, size: int = -1) -> bytes:
-        return self._s.read(size)
+        return bytes(self._s.read(size))
 
     def readline(self) -> bytes:
         if hasattr(self._s, "readline"):
-            return self._s.readline()
+            return bytes(self._s.readline())
         return super().readline()
 
     def peek(self, size: int) -> bytes:
@@ -183,7 +184,7 @@ class StreamSource(ByteSource):
         if s.seekable():
             pos = s.tell()
             try:
-                return s.read(size)
+                return bytes(s.read(size))
             finally:
                 s.seek(pos)
         raise io.UnsupportedOperation(
@@ -191,13 +192,13 @@ class StreamSource(ByteSource):
         )
 
     def seekable(self) -> bool:
-        return self._s.seekable()
+        return bool(self._s.seekable())
 
     def seek(self, pos: int, whence: int = io.SEEK_SET) -> int:
-        return self._s.seek(pos, whence)
+        return int(self._s.seek(pos, whence))
 
     def tell(self) -> int:
-        return self._s.tell()
+        return int(self._s.tell())
 
     def close(self) -> None:
         if self._owns:
@@ -209,7 +210,7 @@ class BufferSource(ByteSource):
     / ``BytesIO.getbuffer()``).
     """
 
-    def __init__(self, data, name: str | None = None):
+    def __init__(self, data: Any, name: str | None = None) -> None:
         self._mv = memoryview(data).cast("B")  # 1-D uint8 view, no copy
         self.name = name
         self._pos = 0
@@ -248,7 +249,7 @@ class MmapSource(ByteSource):
     Drop any ``buffer()``/``np.frombuffer`` views before :meth:`close`.
     """
 
-    def __init__(self, path):
+    def __init__(self, path: str | Path) -> None:
         path = Path(path)
         self._f = open(path, "rb")
         try:
@@ -291,7 +292,7 @@ class MmapSource(ByteSource):
         self._f.close()
 
 
-def make_source(inp, *, mmap_files: bool = True) -> ByteSource:
+def make_source(inp: Any, *, mmap_files: bool = True) -> ByteSource:
     """Normalise ``inp`` into a :class:`ByteSource`.
 
     Accepts a path (str/Path), an in-memory buffer (bytes/bytearray/memoryview),

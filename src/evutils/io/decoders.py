@@ -7,7 +7,7 @@ CSV, h5py for HDF5) are not registered; asking for them raises an
 """
 
 from pathlib import Path
-from typing import Type
+from typing import Type, Any, cast
 
 from .common import EventDecoder
 
@@ -132,7 +132,7 @@ _SNIFFERS = [
 ]
 
 
-def resolve_decoder_cls(source) -> Type[EventDecoder]:
+def resolve_decoder_cls(source: Any) -> Type[EventDecoder]:
     """Determine the decoder class for a :class:`ByteSource`.
 
     Tries the filename extension first (cheap, usually right), then falls back
@@ -163,7 +163,7 @@ def resolve_decoder_cls(source) -> Type[EventDecoder]:
 
     for matches, cls_name in _SNIFFERS:
         if matches(head):
-            return globals()[cls_name]
+            return cast(Type[EventDecoder], globals()[cls_name])
 
     raise ValueError(
         "Could not determine the event format: unknown/absent extension "

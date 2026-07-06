@@ -37,7 +37,7 @@ class EventDecoder(ABC):
 
     SUPPORTS_EXT_TRIGGERS = False
 
-    def __init__(self, source, chunk_size:int = 10000, read_external_triggers: bool = False):
+    def __init__(self, source: Any, chunk_size: int = 10000, read_external_triggers: bool = False):
         """Initialize the decoder.
 
         Parameters
@@ -70,7 +70,7 @@ class EventDecoder(ABC):
             warnings.warn(f"{self.__class__.__name__} does not support reading external triggers.")
 
     @abstractmethod
-    def init(self):
+    def init(self) -> None:
         """Initialize the file for reading."""
         raise NotImplementedError
 
@@ -94,7 +94,7 @@ class EventDecoder(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def reset(self):
+    def reset(self) -> None:
         """Reset the file pointer to the beginning of the file."""
         raise NotImplementedError
 
@@ -167,7 +167,7 @@ class EventDecoder(ABC):
             
         return res_ev
 
-    def close(self):
+    def close(self) -> None:
         """Release any resources held by the decoder (e.g. buffer views).
 
         The owning source is closed separately by the EventReader.
@@ -183,10 +183,10 @@ class EventDecoder(ABC):
             The current position in the file
 
         """
-        return self._fd.tell()
+        return int(self._fd.tell())
 
 
-    def set_chunk_size(self, chunk_size:int):
+    def set_chunk_size(self, chunk_size:int) -> None:
         """Set the chunk size.
 
         Parameters
@@ -283,12 +283,12 @@ class EventEncoder(ABC):
             self._dt = dt
     
     @abstractmethod
-    def init(self):
+    def init(self) -> None:
         """Initialize the file for writing."""
         raise NotImplementedError
 
     @abstractmethod
-    def write(self, events: np.ndarray[Any, np.dtype[Any]]) -> int:
+    def write(self, events: 'np.ndarray | EventArray', triggers: 'np.ndarray | TriggerArray | None' = None) -> int:
         """Write a chunk of events."""
         raise NotImplementedError
 
@@ -296,7 +296,7 @@ class EventEncoder(ABC):
         return self._n_written_events
 
 
-    def __enter__(self):
+    def __enter__(self) -> "EventEncoder":
         return self
 
 
@@ -307,11 +307,11 @@ class EventEncoder(ABC):
             is_initialized_txt = "not initialized"
         return f"{self.__class__.__name__} - {is_initialized_txt}, {self._width}x{self._height})"
 
-    def flush(self):
+    def flush(self) -> None:
         """Flush any buffered data to the underlying stream."""
         self._fd.flush()
 
-    def close(self):
+    def close(self) -> None:
         """Finalize the encoder.
 
         Container formats (NPZ, HDF5) override this to write the archive /

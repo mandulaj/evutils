@@ -7,6 +7,8 @@
 """
 from typing import Any
 
+import numpy as np
+from ..types import EventArray, TriggerArray
 from .common import EventDecoder, EventEncoder
 
 _NOT_IMPLEMENTED = (
@@ -81,6 +83,6 @@ class EventEncoder_Bin(EventEncoder):
         """Initialize the file for writing."""
         raise NotImplementedError(_NOT_IMPLEMENTED)
 
-    def write(self, events: Any) -> int:
+    def write(self, events: 'np.ndarray | EventArray', triggers: 'np.ndarray | TriggerArray | None' = None) -> int:
         """Write a chunk of events."""
         raise NotImplementedError(_NOT_IMPLEMENTED)

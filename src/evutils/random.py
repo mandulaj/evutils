@@ -24,7 +24,7 @@ def random_events(n_events: int, width: int = 1280, height: int = 720, start_ts:
     return events
 
 
-def random_events_generator(n_events: int, width: int = 1280, height: int = 720, start_ts: int = 0, end_ts: int = 10_000_000, chunk_size=10000) -> Generator[np.ndarray, None, None]:
+def random_events_generator(n_events: int, width: int = 1280, height: int = 720, start_ts: int = 0, end_ts: int = 10_000_000, chunk_size: int = 10000) -> Generator[np.ndarray, None, None]:
     """Generates n_events random events with x and y coordinates in the range [0, width) and [0, height) respectively."""
     n_chunks = int(np.ceil(n_events / chunk_size))
 

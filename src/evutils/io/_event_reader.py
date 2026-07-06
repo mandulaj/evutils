@@ -90,7 +90,7 @@ class EventReader():
                  ext_trigger: bool=False,
                  async_read: bool=False,
                  file_decoder: ev_decoders.EventDecoder | type[ev_decoders.EventDecoder] | None = None,
-                 **kwargs):
+                 **kwargs: Any) -> None:
 
         # Remember the path (if any) for repr / reset semantics.
         self._file_name: Path | None = Path(file) if isinstance(file, (str, Path)) else None
@@ -224,7 +224,7 @@ class EventReader():
 
 
 
-    def init(self):
+    def init(self) -> None:
         """Initialize the reader, can be used explicitly or implicitly by the read method."""
         if self._is_initialized:
             return
@@ -269,7 +269,7 @@ class EventReader():
                 ev, tr = acc.prepare(self._step)
                 added = dec.parse_step(ev, tr)  # type: ignore[attr-defined]
                 if added > 0:
-                    return added
+                    return int(added)
                 if dec.is_eof():
                     return 0
                 # else: consumed only state/timing words; step again.
@@ -281,7 +281,7 @@ class EventReader():
         if len(chunk) == 0:
             return 0
         acc.append(chunk, triggers)
-        return len(chunk)
+        return int(len(chunk))
 
     def read(self, delta_t:int|None=None, n_events:int|None=None) -> 'EventArray | tuple[EventArray, TriggerArray]':
         """Read events on the files based on the mode and the parameters.
@@ -300,7 +300,7 @@ class EventReader():
 
         """
         self._check_no_active_prefetch()
-        return self._read(delta_t, n_events)
+        return self._read(delta_t, n_events)  # type: ignore
 
     def _read(self, delta_t:int|None=None, n_events:int|None=None) -> Any:
         """Unguarded body of :meth:`read` (also driven by the prefetch worker)."""
@@ -454,7 +454,7 @@ class EventReader():
             return out, out_tr
         return out
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset file reader back to the beginning of the file.
 
         An active asynchronous iterator is cancelled first (its remaining
@@ -468,7 +468,7 @@ class EventReader():
             self._buffer.reset()
         self._file_decoder.reset()
 
-    def __enter__(self):
+    def __enter__(self) -> "EventReader":
         return self
 
     def is_eof(self) -> bool:
@@ -482,7 +482,7 @@ class EventReader():
         """
         return self._eof and (self._buffer is None or len(self._buffer) == 0)
 
-    def close(self):
+    def close(self) -> None:
         """Close the reader and release resources (decoder buffer views, then the
         underlying byte source). Cancels any active asynchronous iterator first.
         """
@@ -492,7 +492,7 @@ class EventReader():
         self._file_decoder.close()
         self._source.close()
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
         self.close()
 
     def __repr__(self) -> str:
@@ -506,7 +506,7 @@ class EventReader():
     def __len__(self) -> int:
         return self._n_read_events
 
-    def __iter__(self):
+    def __iter__(self) -> Any:
         """Iterate over the events in the file.
 
         With ``async_read=True`` the windows are decoded ahead in a background
@@ -531,7 +531,7 @@ class EventReader():
             return it
         return self._iter_sync()
 
-    def _iter_sync(self):
+    def _iter_sync(self) -> Any:
         """The plain synchronous window generator behind :meth:`__iter__`."""
         if not self._is_initialized:
             self.init()

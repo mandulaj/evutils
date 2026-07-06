@@ -6,7 +6,8 @@ Bridges between evutils and PyTorch: tensor conversion, ``Dataset`` /
 
 __all__: list[str] = []
 
-def _try_import_torch(require: bool = True):
+from typing import Any
+def _try_import_torch(require: bool = True) -> Any:
     try:
         import torch  # noqa: F401
     except ImportError as exc:  # pragma: no cover

@@ -43,7 +43,7 @@ from typing import Any, Callable
 
 import numpy as np
 
-from ..types import EventArray
+from ..types import EventArray, TriggerArray
 from .common import EventDecoder, EventEncoder
 from ._source import ByteSource
 
@@ -86,19 +86,19 @@ _V2_LAYOUTS = {
 # flatbuffers runtime (cf. the evlib reference reader).
 # ---------------------------------------------------------------------------#
 def _u16(b: bytes, o: int) -> int:
-    return struct.unpack_from("<H", b, o)[0]
+    return int(struct.unpack_from("<H", b, o)[0])
 
 
 def _i32(b: bytes, o: int) -> int:
-    return struct.unpack_from("<i", b, o)[0]
+    return int(struct.unpack_from("<i", b, o)[0])
 
 
 def _u32(b: bytes, o: int) -> int:
-    return struct.unpack_from("<I", b, o)[0]
+    return int(struct.unpack_from("<I", b, o)[0])
 
 
 def _i64(b: bytes, o: int) -> int:
-    return struct.unpack_from("<q", b, o)[0]
+    return int(struct.unpack_from("<q", b, o)[0])
 
 
 def _fb_field_pos(buf: bytes, table: int, index: int) -> int | None:
@@ -207,13 +207,13 @@ def _decompress_lz4(body: bytes) -> bytes:
             "This AEDAT4 file uses LZ4-compressed packets: install "
             "`evutils[aedat]` (or `pip install lz4`)."
         ) from exc
-    return lz4.frame.decompress(body)
+    return bytes(lz4.frame.decompress(body))
 
 
 def _decompress_zstd(body: bytes) -> bytes:
     try:
         from compression import zstd  # Python >= 3.14
-        return zstd.decompress(body)
+        return bytes(zstd.decompress(body))
     except ImportError:
         pass
     try:
@@ -223,7 +223,7 @@ def _decompress_zstd(body: bytes) -> bytes:
             "This AEDAT4 file uses Zstd-compressed packets: install "
             "`evutils[aedat]` (or `pip install zstandard`)."
         ) from exc
-    return zstandard.ZstdDecompressor().decompress(body)
+    return bytes(zstandard.ZstdDecompressor().decompress(body))
 
 
 #: DV CompressionType enum -> decompressor. LZ4_HIGH/ZSTD_HIGH share decoders.
@@ -560,6 +560,6 @@ class EventEncoder_Aedat(EventEncoder):
         """Initialize the file for writing."""
         raise NotImplementedError(self._NOT_IMPLEMENTED)
 
-    def write(self, events: Any) -> int:
+    def write(self, events: 'np.ndarray | EventArray', triggers: 'np.ndarray | TriggerArray | None' = None) -> int:
         """Write a chunk of events."""
         raise NotImplementedError(self._NOT_IMPLEMENTED)

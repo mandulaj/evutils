@@ -9,7 +9,7 @@ from matplotlib import pyplot as plt
 
 
 
-def o3d_draw_events(events: np.ndarray):
+def o3d_draw_events(events: np.ndarray) -> None:
     """Visualizes events using Open3D.
 
     Parameters

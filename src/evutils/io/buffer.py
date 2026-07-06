@@ -94,7 +94,7 @@ class EventAccumulator():
             t.c.size = n_tr
             self._tr_start = 0
 
-    def prepare(self, step: int):
+    def prepare(self, step: int) -> tuple[EventSoABuffers, TriggerSoABuffers]:
         """Ready the buffer for the decoder to append up to ``step`` events, and
         return ``(events_soa, triggers_soa)`` for ``decoder.parse_step``.
 
@@ -121,7 +121,7 @@ class EventAccumulator():
         t.c.capacity = t.capacity
         return b, t
 
-    def append(self, data: EventArray, triggers=None) -> None:
+    def append(self, data: EventArray, triggers: TriggerArray | None = None) -> None:
         """Copy an EventArray in (fallback path for non-native decoders).
 
         Parameters
@@ -161,7 +161,7 @@ class EventAccumulator():
             t.p[e_tr:e_tr + n_tr] = triggers.p
             t.c.size = e_tr + n_tr
 
-    def slice_copy(self, k: int, tr_k: int = 0):
+    def slice_copy(self, k: int, tr_k: int = 0) -> tuple[EventArray, TriggerArray]:
         """Return an independent copy of the first ``k`` unconsumed events and
         advance past them.
         

@@ -17,7 +17,7 @@ import hdf5plugin
 import numpy as np
 
 from .._jit import lazy_njit
-from ..types import EventArray
+from ..types import EventArray, TriggerArray
 from .common import EventDecoder, EventEncoder
 from ._source import ByteSource
 
@@ -292,7 +292,7 @@ class EventEncoder_HDF5(EventEncoder):
 
         self._is_initialized = True
 
-    def write(self, events: 'np.ndarray | EventArray') -> int:
+    def write(self, events: 'np.ndarray | EventArray', triggers: 'np.ndarray | TriggerArray | None' = None) -> int:
         """Append a chunk of events and extend the millisecond index.
 
         Parameters

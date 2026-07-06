@@ -20,7 +20,7 @@ from types import SimpleNamespace
 from typing import Any, Dict
 from ._base import Reconstructor
 
-def set_inference_options(params):
+def set_inference_options(params: Any) -> None:
     """Sets inference options for the RPG E2VID reconstructor.
 
     Parameters
@@ -33,7 +33,7 @@ def set_inference_options(params):
     None
 
     """
-    rpg_set_inference_options(params)
+    rpg_set_inference_options(params) # type: ignore[no-untyped-call]
 
 
 
@@ -85,7 +85,8 @@ class RPG_Reconstructor(Reconstructor):
         "model_url": "http://rpg.ifi.uzh.ch/data/E2VID/models/E2VID.pth.tar"
     }
 
-    def __init__(self, height, width, args={}):
+    def __init__(self, height: int, width: int, args: Any = None) -> None:
+        if args is None: args = {}
         args = {**RPG_Reconstructor.DEFAULT_ARGS, **args}
 
 
@@ -99,18 +100,18 @@ class RPG_Reconstructor(Reconstructor):
 
         sn_args = SimpleNamespace(**args)
 
-        self.model = rpg_load_model(sn_args.model_path)
+        self.model = rpg_load_model(sn_args.model_path) # type: ignore[no-untyped-call]
         self.model.eval().to(self.device)
 
         self.no_recurrent = args['no_recurrent']
 
-        self.crop = CropParameters(self.width, self.height, self.model.num_encoders)
+        self.crop = CropParameters(self.width, self.height, self.model.num_encoders) # type: ignore[no-untyped-call]
         self.last_states_for_each_channel = {'grayscale': None}
 
-        self.event_preprocessor = EventPreprocessor(sn_args)
-        self.intensity_rescaler = IntensityRescaler(sn_args)
-        self.image_filter = ImageFilter(sn_args)
-        self.unsharp_mask_filter = UnsharpMaskFilter(sn_args, device=self.device)
+        self.event_preprocessor = EventPreprocessor(sn_args) # type: ignore[no-untyped-call]
+        self.intensity_rescaler = IntensityRescaler(sn_args) # type: ignore[no-untyped-call]
+        self.image_filter = ImageFilter(sn_args) # type: ignore[no-untyped-call]
+        self.unsharp_mask_filter = UnsharpMaskFilter(sn_args, device=self.device) # type: ignore[no-untyped-call]
         # self.image_writer = ImageWriter(args)
         # self.image_display = ImageDisplay(args)
 
@@ -118,7 +119,7 @@ class RPG_Reconstructor(Reconstructor):
         self.last_ts = 0
         self.reset_states = False
 
-    def download_model(self):
+    def download_model(self) -> None:
         """Downloads the pre-trained E2VID model weights.
 
         Returns
@@ -151,7 +152,7 @@ class RPG_Reconstructor(Reconstructor):
         print("Model downloaded successfully.")
 
 
-    def _update_reconstruction(self, event_tensor):
+    def _update_reconstruction(self, event_tensor: Any) -> np.ndarray:
         """Updates the reconstruction with a new event tensor.
 
         Parameters
@@ -210,11 +211,11 @@ class RPG_Reconstructor(Reconstructor):
             # self.image_display(out, events)
 
 
-            return out
+            return np.asarray(out)
 
 
 
-    def gen_frame(self, e):
+    def gen_frame(self, e: np.ndarray) -> np.ndarray:
         """Reconstructs a frame from the given events.
 
         Parameters
@@ -229,10 +230,15 @@ class RPG_Reconstructor(Reconstructor):
 
         """
         if len(e) == 0:
-            events = np.hstack((np.float32(np.array([self.last_ts])[None].T/1e6), np.array([0])[None].T, np.array([0])[None].T, np.array([0])[None].T))
+            events = np.array([[self.last_ts / 1e6, 0, 0, 0]], dtype=np.float32)
             self.reset_states = True
         else:
-            events = np.hstack((np.float32(e['t'][None].T/1e6), e['x'][None].T, e['y'][None].T, e['p'][None].T))
+            events = np.column_stack((
+                e['t'].astype(np.float32) / 1e6,
+                e['x'].astype(np.float32),
+                e['y'].astype(np.float32),
+                e['p'].astype(np.float32)
+            ))
             self.last_ts = e['t'][-1]
             self.reset_states = False
 
@@ -240,13 +246,13 @@ class RPG_Reconstructor(Reconstructor):
 
 
         if self.args['compute_voxel_grid_on_cpu']:
-            event_tensor = events_to_voxel_grid(events,
+            event_tensor = events_to_voxel_grid(events, # type: ignore[no-untyped-call]
                                                 num_bins=self.model.num_bins,
                                                 width=self.width,
                                                 height=self.height)
             event_tensor = torch.from_numpy(event_tensor)
         else:
-            event_tensor = events_to_voxel_grid_pytorch(events,
+            event_tensor = events_to_voxel_grid_pytorch(events, # type: ignore[no-untyped-call]
                                                         num_bins=self.model.num_bins,
                                                         width=self.width,
                                                         height=self.height,

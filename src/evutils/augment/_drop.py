@@ -4,7 +4,7 @@ import numpy as np
 
 
 
-def drop_random_events(events: np.ndarray, drop_rate: float = 0.1):
+def drop_random_events(events: np.ndarray, drop_rate: float = 0.1) -> np.ndarray:
     """Drops a percentage of events randomly using slicing.
     
     Parameters

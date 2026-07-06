@@ -6,7 +6,7 @@ Provides the `EventWriter` class for writing event data to various file formats.
 import io
 from datetime import datetime
 from pathlib import Path
-from typing import Union
+from typing import Union, Any
 
 import numpy as np
 
@@ -40,7 +40,7 @@ class EventWriter():
 
     """
 
-    def __init__(self, file: Path | str | io.BufferedIOBase, width:int=1280, height:int=720, dt: datetime|None = None,  file_encoder: ev_encoders.EventEncoder | None = None, **kwargs):
+    def __init__(self, file: Path | str | io.BufferedIOBase, width:int=1280, height:int=720, dt: datetime|None = None,  file_encoder: ev_encoders.EventEncoder | None = None, **kwargs: Any):
 
         self._file_name: Path | None = None
 
@@ -91,7 +91,7 @@ class EventWriter():
         # readable and seekable, and it costs nothing for the append-only ones.
         return open(str(file_name), 'w+b')
 
-    def init(self):
+    def init(self) -> None:
         """Initialize the writer (e.g. open the file, write the header).
 
         This method can be called explicitly, but it is also called automatically when the first event is written
@@ -121,11 +121,11 @@ class EventWriter():
         self._n_written_events += n_written
         return n_written
 
-    def flush(self):
+    def flush(self) -> None:
         """Flush the buffer to the file."""
         self._file_encoder.flush()
 
-    def __enter__(self):
+    def __enter__(self) -> "EventWriter":
         return self
 
     def __repr__(self) -> str:
@@ -138,7 +138,7 @@ class EventWriter():
     def __len__(self) -> int:
         return self._n_written_events
 
-    def close(self):
+    def close(self) -> None:
         """Close the writer and release the resources.
 
         Finalizes the encoder first (container formats write their archive /
@@ -147,5 +147,5 @@ class EventWriter():
         self._file_encoder.close()
         self._file.close()
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
         self.close()

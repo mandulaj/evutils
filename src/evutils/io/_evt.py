@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import io
 from datetime import datetime
-from typing import Any, List, TYPE_CHECKING
+from typing import Any, List, TYPE_CHECKING, Dict
 
 if TYPE_CHECKING:
     from ..types import TriggerArray
@@ -86,7 +86,7 @@ class EventDecoder_EVT(EventDecoder):
         super().__init__(source, chunk_size, read_external_triggers=read_external_triggers)
 
         self._format: str | None = None
-        self._header: dict = {
+        self._header: Dict[str, Any] = {
              "date": datetime.now(),
              "evt": None,
              "format": None,
@@ -113,7 +113,7 @@ class EventDecoder_EVT(EventDecoder):
     # ------------------------------------------------------------------ #
     # Header
     # ------------------------------------------------------------------ #
-    def _parse_header(self, buf) -> int:
+    def _parse_header(self, buf: Any) -> int:
         """Scan the leading ``%``-prefixed ASCII header of ``buf`` (a bytes-like).
 
         Returns the byte offset of the first non-header byte (start of payload).
@@ -246,7 +246,7 @@ class EventDecoder_EVT(EventDecoder):
     def _tail_pad(self) -> int:
         return self._TAIL_PAD if self._format == "evt3" else 0
 
-    def parse_step(self, events, triggers) -> int:
+    def parse_step(self, events: EventSoABuffers, triggers: TriggerSoABuffers) -> int:
         """Run the parser once, appending decoded events into ``events``.
 
         Advances the internal word offset and sets EOF when the input is drained.
@@ -407,7 +407,7 @@ EVT3_CONTINUED_12 = 0xF000
 
 
 @lazy_njit
-def get_raw_evt3_buffer(events: np.ndarray, last_lower12_ts: int, last_upper12_ts: int, last_y: int, master=True):
+def get_raw_evt3_buffer(events: np.ndarray, last_lower12_ts: int, last_upper12_ts: int, last_y: int, master: bool = True) -> tuple[np.ndarray, int, int, int]:
     """Encode events as EVT3.
 
     Parameters
@@ -483,7 +483,7 @@ def get_raw_evt3_buffer(events: np.ndarray, last_lower12_ts: int, last_upper12_t
 
 
 @lazy_njit
-def get_raw_evt2_buffer(events: np.ndarray, last_ts_high: int):
+def get_raw_evt2_buffer(events: np.ndarray, last_ts_high: int) -> tuple[np.ndarray, int]:
     """Encode events as EVT2 (32-bit words).
 
     Timestamp is split into a 28-bit high part (EVT_TIME_HIGH word) and a 6-bit
@@ -527,7 +527,7 @@ def get_raw_evt2_buffer(events: np.ndarray, last_ts_high: int):
 
 
 @lazy_njit
-def get_raw_evt21_buffer(events: np.ndarray, last_ts_high: int):
+def get_raw_evt21_buffer(events: np.ndarray, last_ts_high: int) -> tuple[np.ndarray, int]:
     """Encode events as EVT2.1 (64-bit words, legacy endianness).
 
     Same descriptor layout as EVT2 in the low 32 bits (type[28:31],
@@ -620,7 +620,7 @@ class EventEncoder_EVT(EventEncoder):
 
         self._formatted_datetime = self._dt.strftime("%Y-%m-%d %H:%M:%S")
 
-    def init(self):
+    def init(self) -> None:
         """Initialize the EVT writer.
 
         Returns
@@ -650,7 +650,7 @@ f"""% camera_integrator_name Prophesee
 """.encode('utf-8'))
         self._is_initialized = True
 
-    def write(self, events: np.ndarray) -> int:
+    def write(self, events: 'np.ndarray | EventArray', triggers: 'np.ndarray | TriggerArray | None' = None) -> int:
         """Write events to the EVT file.
 
         Parameters

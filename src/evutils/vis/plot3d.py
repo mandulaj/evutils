@@ -12,14 +12,15 @@ from mpl_toolkits.mplot3d import Axes3D
 
 from typing import Union, Optional
 from matplotlib.colors import Colormap
+from matplotlib.figure import Figure
 
 
 def plot_3d(events: np.ndarray, 
             width: int =1280, 
             height: int = 720, 
             colormap: Union[str, Colormap] ='Spectral', 
-            fig: Optional[plt.Figure] = None, 
-            ax: Optional[Axes3D] = None) -> tuple:   
+            fig: Optional[Figure] = None, 
+            ax: Optional[Axes3D] = None) -> tuple[Optional[Figure], Optional[Axes3D]]:   
     """Plot a 3D scatter plot of events.
     
     Parameters
@@ -82,8 +83,8 @@ def plot_3d(events: np.ndarray,
 
 def plot_3d_histogram(histogram: np.ndarray,
                       down_sample: int = 4,
-                      fig: Optional[plt.Figure] = None,
-                      ax: Optional[Axes3D] = None) -> tuple:
+                      fig: Optional[Figure] = None,
+                      ax: Optional[Axes3D] = None) -> tuple[Optional[Figure], Optional[Axes3D]]:
     """Plot a 3D histogram of events.
 
     Parameters
@@ -158,8 +159,8 @@ def plot_3d_timesurface(events: np.ndarray,
             width: int =1280, 
             height: int = 720,
             tau: int = 10_000,
-            fig: Optional[plt.Figure] = None, 
-            ax: Optional[Axes3D] = None) -> tuple:   
+            fig: Optional[Figure] = None, 
+            ax: Optional[Axes3D] = None) -> tuple[Optional[Figure], Optional[Axes3D]]:   
     """Plot a 3D time surface of events.
 
     Parameters

@@ -8,6 +8,7 @@ tracks the 32-bit timestamp overflow); encoding is vectorised numpy.
 """
 from __future__ import annotations
 
+import io
 from datetime import datetime
 
 from typing import Any
@@ -55,7 +56,7 @@ class EventDecoder_Dat(EventDecoder):
 
     def __init__(self, source: ByteSource, chunk_size: int = 1_000_000):
         super().__init__(source, chunk_size)
-        self._header: dict = {}
+        self._header: dict[str, Any] = {}
         self._buf: Any = None
         self._payload_off: int = 0
         self._words: Any = None       # uint32 view of the payload (2 words / event)
@@ -65,7 +66,7 @@ class EventDecoder_Dat(EventDecoder):
         self._triggers: Any = None
 
     # ------------------------------------------------------------------ #
-    def _parse_header(self, buf) -> int:
+    def _parse_header(self, buf: Any) -> int:
         """Scan the leading ``%`` ASCII header; return the byte offset of the
         first non-header byte (the event-type byte).
         """
@@ -141,7 +142,7 @@ class EventDecoder_Dat(EventDecoder):
         self._triggers = TriggerSoABuffers(1)  # DAT CD files have no triggers
         self._is_initialized = True
 
-    def parse_step(self, events, triggers) -> int:
+    def parse_step(self, events: EventSoABuffers, triggers: TriggerSoABuffers) -> int:
         """Run the parser once, appending into ``events``; advance the offset.
         See :meth:`EventDecoder_EVT.parse_step`.
         """
@@ -259,12 +260,12 @@ class EventEncoder_Dat(EventEncoder):
 
     """
 
-    def __init__(self, writable, width: int = 1280, height: int = 720,
+    def __init__(self, writable: io.BufferedWriter, width: int = 1280, height: int = 720,
                  dt: datetime | None = None, version: int = 2):
         super().__init__(writable, width, height, dt)
         self._version = version
 
-    def init(self):
+    def init(self) -> None:
         """Initialize the DAT writer.
 
         Returns
@@ -285,7 +286,7 @@ class EventEncoder_Dat(EventEncoder):
         self._fd.write(bytes([DAT_EVENT_TYPE_CD, DAT_EVENT_SIZE]))
         self._is_initialized = True
 
-    def write(self, events) -> int:
+    def write(self, events: 'np.ndarray | EventArray', triggers: 'np.ndarray | TriggerArray | None' = None) -> int:
         """Write events to the DAT file.
 
         Parameters

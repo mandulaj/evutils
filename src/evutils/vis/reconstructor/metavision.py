@@ -3,6 +3,7 @@
 import numpy as np
 import torch
 import torch.nn.functional as F
+from typing import Any
 
 from ._base import Reconstructor
 
@@ -27,13 +28,13 @@ try:
 
         """
 
-        def __init__(self, height, width, args=None):
+        def __init__(self, height: int, width: int, args: Any = None) -> None:
             super().__init__(height, width, args if args is not None else {})
 
             self.model = EventToVideoLightningModel.load_from_checkpoint("models/e2v.ckpt")
             self.model.eval().to(self.device)
 
-        def gen_frame(self, e):
+        def gen_frame(self, e: np.ndarray) -> np.ndarray:
             """Reconstructs a single frame from the given events.
 
             Parameters
@@ -65,7 +66,7 @@ try:
             gray = self.model.model.predict_gray(state).view(1, 1, self.height, self.width)
             gray = normalize_tiles(gray).view(self.height, self.width)
             gray_np = gray.detach().cpu().numpy() * 255
-            return np.uint8(gray_np)
+            return np.asarray(gray_np, dtype=np.uint8)
         
 except ImportError:
     class Metavision_Reconstructor(Reconstructor):  # type: ignore[no-redef]
@@ -82,7 +83,7 @@ except ImportError:
 
         """
 
-        def __init__(self, height, width, args=None):
+        def __init__(self, height: int, width: int, args: Any = None) -> None:
             raise ImportError("Please install metavision_core_ml to use this class")
         
     

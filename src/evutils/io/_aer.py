@@ -16,11 +16,13 @@ parameter selects how the ``t`` column is generated:
 """
 from __future__ import annotations
 
+import io
+from datetime import datetime
 from typing import Any
 
 import numpy as np
 
-from ..types import EventArray
+from ..types import EventArray, TriggerArray
 from .common import EventDecoder, EventEncoder
 from ._native_evt import (
     AER_TS_SEQUENTIAL,
@@ -139,7 +141,7 @@ class EventDecoder_AER(EventDecoder):
         n = len(t_out)
         t_out.view(np.int64)[:] = self._custom_ts[self._n_decoded:self._n_decoded + n]
 
-    def parse_step(self, events, triggers) -> int:
+    def parse_step(self, events: EventSoABuffers, triggers: TriggerSoABuffers) -> int:
         """Run the parser once, appending into ``events``; advance the offset.
         See :meth:`EventDecoder_EVT.parse_step`.
         """
@@ -258,10 +260,10 @@ class EventEncoder_AER(EventEncoder):
 
     """
 
-    def __init__(self, writable, width: int = 512, height: int = 512, dt=None):
+    def __init__(self, writable: io.BufferedWriter, width: int = 512, height: int = 512, dt: datetime | None = None):
         super().__init__(writable, width, height, dt)
 
-    def init(self):
+    def init(self) -> None:
         """Initialize the AER writer.
 
         Returns
@@ -271,7 +273,7 @@ class EventEncoder_AER(EventEncoder):
         """
         self._is_initialized = True  # AER has no header
 
-    def write(self, events) -> int:
+    def write(self, events: 'np.ndarray | EventArray', triggers: 'np.ndarray | TriggerArray | None' = None) -> int:
         """Write events to the AER file.
 
         Parameters

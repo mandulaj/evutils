@@ -7,7 +7,8 @@ import numpy as np
 from types import SimpleNamespace
 
 
-def get_freer_gpu(cuda_string=False):
+from typing import Any, Union
+def get_freer_gpu(cuda_string: bool = False) -> Union[int, str, None]:
     """Finds the GPU with the most free memory.
 
     Parameters
@@ -55,13 +56,14 @@ class Reconstructor():
     DEFAULT_ARGS = {
         'device': "auto"
     }
-    def __init__(self, height, width, args={}):
+    def __init__(self, height: int, width: int, args: Any = None) -> None:
+        if args is None: args = {}
         self.args = {**Reconstructor.DEFAULT_ARGS, **args}
         
 
         if self.args['device'] == "auto":
             if torch.cuda.is_available():
-                self.device = torch.device(get_freer_gpu(cuda_string=True))
+                self.device = torch.device(get_freer_gpu(cuda_string=True)) # type: ignore[arg-type]
             else:
                 self.device = torch.device("cpu")
         else:

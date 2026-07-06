@@ -21,7 +21,7 @@ class EventsChecker():
 
         self.events = events
 
-    def is_sorted(self):
+    def is_sorted(self) -> bool:
         """Check if events are sorted by timestamp.
         
         Returns
@@ -30,9 +30,9 @@ class EventsChecker():
             True if events are sorted in non-decreasing order of timestamps.
 
         """
-        return np.all(self.events['t'][1:] >= self.events['t'][:-1])
+        return bool(np.all(self.events['t'][1:] >= self.events['t'][:-1]))
 
-    def has_valid_polarity(self):
+    def has_valid_polarity(self) -> bool:
         """Check if events have valid polarity (0 or 1).
         
         Returns
@@ -41,9 +41,9 @@ class EventsChecker():
             True if all events have polarity 0 or 1.
 
         """
-        return np.all((self.events['p'] == 0) | (self.events['p'] == 1))
+        return bool(np.all((self.events['p'] == 0) | (self.events['p'] == 1)))
     
-    def has_valid_x(self, width: int):
+    def has_valid_x(self, width: int) -> bool:
         """Check if events have valid x coordinates.
         
         Parameters
@@ -57,9 +57,9 @@ class EventsChecker():
             True if all events have x coordinates in [0, width).
 
         """
-        return np.all((self.events['x'] >= 0) & (self.events['x'] < width))
+        return bool(np.all((self.events['x'] >= 0) & (self.events['x'] < width)))
     
-    def has_valid_y(self, height: int):
+    def has_valid_y(self, height: int) -> bool:
         """Check if events have valid y coordinates.
         
         Parameters
@@ -73,9 +73,9 @@ class EventsChecker():
             True if all events have y coordinates in [0, height).
 
         """
-        return np.all((self.events['y'] >= 0) & (self.events['y'] < height))
+        return bool(np.all((self.events['y'] >= 0) & (self.events['y'] < height)))
     
-    def is_valid(self, width: int = 1280, height: int = 720):
+    def is_valid(self, width: int = 1280, height: int = 720) -> bool:
         """Check if all events are valid (sorted, valid polarity, and valid coordinates).
         
         Parameters
@@ -93,7 +93,7 @@ class EventsChecker():
         """
         return self.is_sorted() and self.has_valid_polarity() and self.has_valid_x(width) and self.has_valid_y(height)
     
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Return string representation of the EventsChecker.
         
         Returns

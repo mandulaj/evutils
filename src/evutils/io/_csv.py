@@ -12,7 +12,7 @@ import pandas as pd
 from pandas._typing import CSVEngine
 from pandas.io.parsers import TextFileReader
 
-from ..types import Event_dtype, EventArray
+from ..types import Event_dtype, EventArray, TriggerArray
 from .common import EventDecoder, EventEncoder
 
 
@@ -39,7 +39,7 @@ class EventDecoder_Csv(EventDecoder):
 
     """
 
-    def __init__(self, readable:io.BufferedReader,  order:list|None=None, chunk_size:int=1_000_000, delimiter:str=",", engine:CSVEngine='c'):
+    def __init__(self, readable:io.BufferedReader,  order:list[str]|None=None, chunk_size:int=1_000_000, delimiter:str=",", engine:CSVEngine='c'):
         super().__init__(readable, chunk_size)
 
 
@@ -59,7 +59,7 @@ class EventDecoder_Csv(EventDecoder):
 
         self._chunk_reader:TextFileReader|None= None
 
-    def _check_header(self):
+    def _check_header(self) -> None:
         have_header = False
 
         # Check first line to see if it is a header
@@ -96,7 +96,7 @@ class EventDecoder_Csv(EventDecoder):
 
 
 
-    def init(self):
+    def init(self) -> None:
         """Initialize the CSV reader.
 
         Returns
@@ -152,7 +152,7 @@ class EventDecoder_Csv(EventDecoder):
         return events
 
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset the CSV reader to the beginning of the file.
 
         Returns
@@ -211,7 +211,7 @@ class EventEncoder_Csv(EventEncoder):
         self._header = header
         self._sep = sep
 
-    def init(self):
+    def init(self) -> None:
         """Initialize the CSV writer.
 
         Returns
@@ -226,7 +226,7 @@ class EventEncoder_Csv(EventEncoder):
         self._is_initialized = True
 
 
-    def write(self, events: np.ndarray[Any, np.dtype[Any]]) -> int:
+    def write(self, events: 'np.ndarray | EventArray', triggers: 'np.ndarray | TriggerArray | None' = None) -> int:
         """Write events to the CSV file.
 
         Parameters

@@ -27,7 +27,7 @@ from typing import IO, Any
 import numpy as np
 from numpy.lib import format as npy_format
 
-from ..types import EventArray
+from ..types import EventArray, TriggerArray
 from .common import EventDecoder, EventEncoder
 from ._source import ByteSource
 
@@ -240,7 +240,7 @@ class EventEncoder_Npz(EventEncoder):
         self._spools = {name: tempfile.TemporaryFile() for name, _ in _COLUMNS}
         self._is_initialized = True
 
-    def write(self, events: 'np.ndarray | EventArray') -> int:
+    def write(self, events: 'np.ndarray | EventArray', triggers: 'np.ndarray | TriggerArray | None' = None) -> int:
         """Append a chunk of events to the column spools.
 
         Parameters

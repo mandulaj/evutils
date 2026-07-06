@@ -2,10 +2,11 @@
 
 import numba 
 import numpy as np
+from typing import Any
 
 
-@numba.njit
-def histogram(events: np.ndarray, width: int = 1280, height: int = 720, fill=False, dtype=np.uint8):
+@numba.njit # type: ignore[untyped-decorator]
+def histogram(events: np.ndarray, width: int = 1280, height: int = 720, fill: bool = False, dtype: Any = np.uint8) -> np.ndarray:
     """Generate a histogram frame from the events.
 
     Parameters
@@ -59,8 +60,8 @@ def histogram(events: np.ndarray, width: int = 1280, height: int = 720, fill=Fal
     return buffer
 
 
-@numba.njit
-def wedge_histogram(events: np.ndarray, width: int = 1280, height: int = 720, tl: float = 30e6, dtype=np.uint8):   
+@numba.njit # type: ignore[untyped-decorator]
+def wedge_histogram(events: np.ndarray, width: int = 1280, height: int = 720, tl: float = 30e6, dtype: Any = np.uint8) -> np.ndarray:   
     """Generate a wedge histogram frame from the events.
 
     Parameters

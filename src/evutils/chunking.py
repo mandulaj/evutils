@@ -5,10 +5,11 @@ count or by time interval.
 """
 
 import numpy as np
+from typing import Iterator
 
 
 
-def window_delta_t(events: np.ndarray, delta_t: int = 10_000):
+def window_delta_t(events: np.ndarray, delta_t: int = 10_000) -> Iterator[np.ndarray]:
     """Returns a generator that chunks the events array into windows of size delta_t.
     
     Parameters
@@ -36,7 +37,7 @@ def window_delta_t(events: np.ndarray, delta_t: int = 10_000):
         current_ts += delta_t
         index_start += next_index
 
-def sliding_window(events: np.ndarray, delta_t: int = 10_000, window_size: int = 20_000, full_window: bool = False):
+def sliding_window(events: np.ndarray, delta_t: int = 10_000, window_size: int = 20_000, full_window: bool = False) -> Iterator[np.ndarray]:
     """Returns a generator that chunks the events array into windows of size delta_t.
     
     Parameters
@@ -83,7 +84,7 @@ def sliding_window(events: np.ndarray, delta_t: int = 10_000, window_size: int =
 
 
 
-def sort_events(events: np.ndarray):
+def sort_events(events: np.ndarray) -> np.ndarray:
     """Sorts the events array by timestamp.
     
     Parameters
@@ -94,7 +95,7 @@ def sort_events(events: np.ndarray):
     """
     return np.sort(events, order="t")
 
-def get_dt_events(events: np.ndarray, dt: int =10_000):
+def get_dt_events(events: np.ndarray, dt: int =10_000) -> np.ndarray:
     """Returns the events that are within a time window of dt from the first event's timestamp.
 
     Parameters

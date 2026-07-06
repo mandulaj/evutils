@@ -8,7 +8,8 @@ from ..chunking import window_delta_t
 import numpy as np
 
 
-def voxel_histogram(events: np.ndarray, width: int = 1280, height: int = 720, n_bins: int = 10, dt: int = 10_000, dtype=np.uint8) -> np.ndarray:
+from typing import Any
+def voxel_histogram(events: np.ndarray, width: int = 1280, height: int = 720, n_bins: int = 10, dt: int = 10_000, dtype: Any = np.uint8) -> np.ndarray:
     """Generate a voxel grid from the events.
 
     Parameters
