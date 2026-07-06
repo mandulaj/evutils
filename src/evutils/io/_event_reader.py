@@ -480,6 +480,8 @@ class EventReader():
             True if the end of the file is reached, False otherwise
 
         """
+        if not self._is_initialized:
+            self.init()
         return self._eof and (self._buffer is None or len(self._buffer) == 0)
 
     def close(self) -> None:
@@ -547,6 +549,8 @@ class EventReader():
             The shape of the frame (width, height)
 
         """
+        if not self._is_initialized:
+            self.init()
         if self._width is not None and self._height is not None:
             return self._width, self._height
         else:
@@ -562,6 +566,8 @@ class EventReader():
             The current position in the file
 
         """
+        if not self._is_initialized:
+            self.init()
         return self._file_decoder.tell()
 
 
