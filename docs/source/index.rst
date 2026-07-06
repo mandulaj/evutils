@@ -12,6 +12,7 @@
 .. toctree::
    :hidden:
 
+   formats
    benchmarks/README
 
 API Reference

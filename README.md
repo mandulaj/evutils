@@ -68,6 +68,20 @@ Wrappers for various dataset loaders -->
 
 The `io` module provides methods for reading and writing events into various event formats. It provides a simple `.read()` and `.write()` interface as well as more advanced interfaces using iterators and slicing.
 
+Supported formats (see the [formats documentation](https://mandulaj.github.io/evutils/formats.html) for details):
+
+| Format | Extensions | Read | Write | Notes |
+|---|---|:---:|:---:|---|
+| EVT3 / EVT2.1 / EVT2 (Prophesee RAW) | `.raw`, `.evt*` | ✅ | ✅ | native C decoder, external triggers |
+| DAT (Prophesee) | `.dat` | ✅ | ✅ | native C decoder |
+| AER (Prophesee) | `.aer` | ✅ | ✅ | timestamp generation selectable |
+| AEDAT 1.0 / 2.0 / 3.1 / 4.0 | `.aedat`, `.aedat4` | ✅ | 🚧 | AEDAT4 compression: `evutils[aedat]` |
+| HDF5 (DSEC/RVT layout) | `.h5`, `.hdf5` | ✅ | ✅ | `evutils[hdf5]`, ms-index random access |
+| HDF5 (Prophesee layout) | `.h5`, `.hdf5` | ✅ | 🚧 | ECF-compressed files need the ECF plugin |
+| NPZ | `.npz` | ✅ | ✅ | streaming, `np.load`-compatible |
+| CSV / TXT | `.csv`, `.txt` | ✅ | ✅ | `evutils[pandas]` |
+| BIN | `.bin` | 🚧 | 🚧 | planned |
+
 ```python
 from evutils.io import EventReader
 
