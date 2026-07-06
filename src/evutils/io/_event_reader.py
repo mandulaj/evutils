@@ -5,6 +5,7 @@ from a file or byte stream.
 """
 
 import io
+import time
 from pathlib import Path
 from typing import Any
 
@@ -57,6 +58,19 @@ class EventReader():
         saturates memory bandwidth. Affects iteration only; ``read()`` /
         ``read_all()`` stay synchronous and raise while an asynchronous
         iterator is active.
+    real_time: bool, default=False
+        Pace :meth:`read` and iteration to the recording's own timeline: each
+        chunk is released only once the wall-clock time since the first chunk
+        matches the event time it covers, so the stream plays back as if live.
+        Pacing is anchored to an absolute start time, so time spent processing
+        a chunk is absorbed automatically (no drift); if decoding or
+        processing falls behind, chunks are released immediately with no added
+        delay. ``read_all()`` is never paced. Combine with ``async_read=True``
+        to decode ahead while waiting out the pacing delay.
+    playback_speed: float, default=1.0
+        Playback rate multiplier for ``real_time`` mode: ``2.0`` plays twice
+        as fast as the recording, ``0.5`` at half speed. Ignored when
+        ``real_time=False``.
     file_decoder: ev_decoders.EventDecoder or type[ev_decoders.EventDecoder] or None, default=None
         File decoder to use, by default None - automatic
     **kwargs
@@ -88,6 +102,8 @@ class EventReader():
                  width:int | None=None, height:int | None=None,
                  ext_trigger: bool=False,
                  async_read: bool=False,
+                 real_time: bool=False,
+                 playback_speed: float=1.0,
                  file_decoder: ev_decoders.EventDecoder | type[ev_decoders.EventDecoder] | None = None,
                  **kwargs: Any) -> None:
 
@@ -219,6 +235,15 @@ class EventReader():
         self._async_read = async_read
         self._active_prefetch: PrefetchIterator | None = None
 
+        # Real-time playback: chunks are released against an absolute
+        # wall-clock anchor set when the first chunk is delivered, so the
+        # stream is paced like a live sensor (see _pace()).
+        if not isinstance(playback_speed, (int, float)) or playback_speed <= 0:
+            raise ValueError("playback_speed must be a positive number")
+        self._real_time = real_time
+        self._playback_speed = float(playback_speed)
+        self._pace_anchor: tuple[float, int] | None = None  # (wall time, event ts)
+
         self._n_read_events = 0 # Number of events read (not includeing events stored in buffer)
 
 
@@ -299,7 +324,31 @@ class EventReader():
 
         """
         self._check_no_active_prefetch()
-        return self._read(delta_t, n_events)
+        out = self._read(delta_t, n_events)
+        if self._real_time:
+            self._pace(out)
+        return out
+
+    def _pace(self, out: Any) -> None:
+        """Sleep until the chunk's last event timestamp aligns with wall-clock
+        playback time (anchored at the first delivered chunk).
+
+        The anchor is absolute, so time the caller spends between chunks is
+        subtracted from the delay automatically; when the target time is
+        already past (slow decode or slow consumer), no delay is added.
+        """
+        ev = out[0] if isinstance(out, tuple) else out
+        if len(ev) == 0:
+            return
+        t_last = int(ev.t[-1])
+        now = time.perf_counter()
+        if self._pace_anchor is None:
+            self._pace_anchor = (now, int(ev.t[0]))
+        wall0, ts0 = self._pace_anchor
+        target = wall0 + (t_last - ts0) / (1e6 * self._playback_speed)
+        delay = target - now
+        if delay > 0:
+            time.sleep(delay)
 
     def _read(self, delta_t:int|None=None, n_events:int|None=None) -> Any:
         """Unguarded body of :meth:`read` (also driven by the prefetch worker)."""
@@ -472,6 +521,7 @@ class EventReader():
             self._active_prefetch.close()
         self._n_read_events = 0
         self._eof = False
+        self._pace_anchor = None
         if self._buffer is not None:
             self._buffer.reset()
         self._file_decoder.reset()
@@ -531,6 +581,7 @@ class EventReader():
             An array with the events
 
         """
+        it: Any
         if self._async_read:
             self._check_no_active_prefetch()
             it = PrefetchIterator(
@@ -538,8 +589,25 @@ class EventReader():
                 on_finish=lambda: setattr(self, "_active_prefetch", None),
             )
             self._active_prefetch = it
-            return it
-        return self._iter_sync()
+        else:
+            it = self._iter_sync()
+        if self._real_time:
+            # Pace on the consumer side, never inside the decode path: with
+            # async_read the worker keeps decoding ahead while we sleep.
+            return self._paced_iter(it)
+        return it
+
+    def _paced_iter(self, it: Any) -> Any:
+        """Wrap an iterator so each chunk is released on the playback clock."""
+        try:
+            for chunk in it:
+                self._pace(chunk)
+                yield chunk
+        finally:
+            # Propagate early termination (break / close) to a prefetching
+            # iterator so its worker thread is released.
+            if hasattr(it, "close"):
+                it.close()
 
     def _iter_sync(self) -> Any:
         """The plain synchronous window generator behind :meth:`__iter__`."""
