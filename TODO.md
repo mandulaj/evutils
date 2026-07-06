@@ -12,6 +12,7 @@ We aim for universal event format support, prioritizing blazing fast read/write 
 - [x] Full Read/Write parity where possible
 - [x] Chunked & Streaming access
 - [x] External trigger data parsing
+- [ ] parquet 
 - [ ] **Random access / Timestamp indexing** (Big TODO for the future)
 - [ ] **Arbitrary input sources:** memory-mapped IO, pure in-memory streams, HTTP streams
 - [ ] **On-the-fly Compression wrappers:** passing file handles through `zstd` or `lz4` compression transparently before decoding
