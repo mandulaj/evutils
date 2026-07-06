@@ -22,6 +22,11 @@ keywords = ["events", "dvs", "neuromorphic", "vision", "event-based"]
 
 [project.optional-dependencies]
 # Feature toggles
+# Decompression for AEDAT 4.0 packet bodies (uncompressed files work without).
+aedat = [
+    "lz4>=4.0",
+    "zstandard>=0.22; python_version < '3.14'",
+]
 pandas = ["pandas>=2.3.3"]
 torch = ["torch>=2.0"]
 hdf5 = ["hdf5plugin==6.0.0", "h5py>=3.16.0"]
@@ -57,9 +62,19 @@ docs = [
 ]
 
 # Meta-groups
-all = ["evutils[pandas,torch,hdf5,vis]"]
+all = ["evutils[aedat,pandas,torch,hdf5,vis]"]
 dev = ["evutils[all,test,docs]"]
 
+
+[tool.uv]
+# Rebuild the wheel when the C sources change, not just pyproject.toml
+# (uv's default cache keys ignore csrc/, leaving a stale native library).
+cache-keys = [
+    { file = "pyproject.toml" },
+    { file = "CMakeLists.txt" },
+    { file = "csrc/**/*.c" },
+    { file = "csrc/**/*.h" },
+]
 
 [tool.mypy]
 files = ["src/evutils"]
@@ -83,6 +98,9 @@ module = [
     "scipy", "scipy.*",
     "mpl_toolkits.*",
     "tqdm",
+    "lz4", "lz4.*",
+    "zstandard",
+    "compression.*",  # stdlib only from Python 3.14 (zstd)
 ]
 ignore_missing_imports = true
 

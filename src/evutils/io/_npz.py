@@ -4,19 +4,28 @@ Events are stored as four flat arrays under the keys ``t``, ``x``, ``y`` and
 ``p`` (the SoA layout of :class:`~evutils.types.EventArray`), plus optional
 scalar ``width`` / ``height`` entries. A single structured array under the key
 ``events`` (:data:`~evutils.types.Event_dtype`-like) is also accepted when
-reading.
+reading. The layout is fully compatible with plain
+``np.savez(f, t=..., x=..., y=..., p=...)`` / ``np.load``.
 
-``.npz`` is a zip container, so it cannot be appended to incrementally: the
-encoder buffers written chunks in memory and writes the archive once, when the
-writer is closed.
+Both directions stream and never materialise the whole recording:
+
+* The decoder reads the ``.npy`` members through zip streams chunk by chunk
+  (works for stored and deflated members alike).
+* The encoder cannot write four zip members simultaneously (the zip format is
+  strictly sequential), so :meth:`~EventEncoder_Npz.write` spools each column
+  to an unlinked temporary file as raw bytes; :meth:`~EventEncoder_Npz.close`
+  then streams every spool into the archive as a proper ``.npy`` member.
 """
 from __future__ import annotations
 
 import io
+import tempfile
+import zipfile
 from datetime import datetime
-from typing import Any
+from typing import IO, Any
 
 import numpy as np
+from numpy.lib import format as npy_format
 
 from ..types import EventArray
 from .common import EventDecoder, EventEncoder
@@ -24,13 +33,53 @@ from ._source import ByteSource
 
 _EMPTY_EVENTS = EventArray.empty()
 
+#: Column name -> on-disk dtype (matches EventArray's column dtypes).
+_COLUMNS = (("t", np.dtype(np.int64)), ("x", np.dtype(np.uint16)),
+            ("y", np.dtype(np.uint16)), ("p", np.dtype(np.uint8)))
+
+
+def _read_npy_header(fp: IO[bytes]) -> tuple[tuple[int, ...], np.dtype]:
+    """Read the ``.npy`` magic + header from a stream, returning (shape, dtype).
+
+    Leaves ``fp`` positioned at the first data byte. Fortran-ordered arrays are
+    rejected (event columns are 1-D, written C-ordered).
+    """
+    version = npy_format.read_magic(fp)
+    read_header = {
+        (1, 0): npy_format.read_array_header_1_0,
+        (2, 0): npy_format.read_array_header_2_0,
+    }.get(version)
+    if read_header is None:
+        raise ValueError(f"unsupported .npy format version {version}")
+    shape, fortran, dtype = read_header(fp)
+    if fortran:
+        raise ValueError("Fortran-ordered .npy members are not supported")
+    return shape, dtype
+
+
+def _read_exact(fp: IO[bytes], nbytes: int) -> bytearray:
+    """Read exactly ``nbytes`` from a (possibly decompressing) stream.
+
+    Returns a writable buffer so the numpy views over it are mutable.
+    """
+    out = bytearray(nbytes)
+    view = memoryview(out)
+    got = 0
+    while got < nbytes:
+        n = fp.readinto(view[got:])  # type: ignore[attr-defined]
+        if not n:
+            raise EOFError(f"truncated .npy member: expected {nbytes} bytes, got {got}")
+        got += n
+    return out
+
 
 class EventDecoder_Npz(EventDecoder):
-    """Decode events from an ``.npz`` archive.
+    """Decode events from an ``.npz`` archive, streaming chunk by chunk.
 
-    The whole archive is loaded on :meth:`init` (npz is a random-access
-    container, not a stream format); :meth:`read_chunk` then serves
-    ``chunk_size``-sized slices of the loaded columns.
+    The archive members are read through zip streams: only ``chunk_size``
+    events are held in memory at a time, so arbitrarily large recordings can
+    be iterated. Accepts either the four column members ``t/x/y/p`` or a
+    single structured ``events`` member.
 
     Parameters
     ----------
@@ -44,62 +93,100 @@ class EventDecoder_Npz(EventDecoder):
 
     def __init__(self, source: ByteSource, chunk_size: int = 1_000_000):
         super().__init__(source, chunk_size)
-        self._data: EventArray | None = None
+        self._zf: zipfile.ZipFile | None = None
+        self._streams: dict[str, IO[bytes]] = {}
+        self._aos_dtype: np.dtype | None = None  # set when reading an 'events' member
+        self._n = 0
         self._pos = 0
 
+    def _open_streams(self) -> None:
+        """(Re)open the member streams and position them past the npy headers."""
+        assert self._zf is not None
+        for fp in self._streams.values():
+            fp.close()
+        self._streams = {}
+
+        names = set(self._zf.namelist())
+        if {"t.npy", "x.npy", "y.npy", "p.npy"} <= names:
+            n = None
+            for name, _ in _COLUMNS:
+                fp = self._zf.open(f"{name}.npy")
+                shape, dtype = _read_npy_header(fp)
+                if len(shape) != 1:
+                    raise ValueError(f"member {name}.npy is not 1-D: shape {shape}")
+                if n is None:
+                    n = shape[0]
+                elif shape[0] != n:
+                    raise ValueError("event columns have mismatched lengths")
+                self._streams[name] = fp
+            self._n = n or 0
+            self._aos_dtype = None
+        elif "events.npy" in names:
+            fp = self._zf.open("events.npy")
+            shape, dtype = _read_npy_header(fp)
+            if dtype.names is None or not {"t", "x", "y", "p"} <= set(dtype.names):
+                raise ValueError("'events' member must be a structured array with t/x/y/p fields")
+            self._streams["events"] = fp
+            self._aos_dtype = dtype
+            self._n = shape[0]
+        else:
+            raise ValueError(
+                f"NPZ archive does not contain event data: expected members "
+                f"'t/x/y/p' or 'events', found {sorted(names)}"
+            )
+
     def init(self) -> None:
-        """Load the archive and locate the event columns."""
+        """Open the archive and locate the event members."""
         if self._is_initialized:
             return
 
         f: Any = self._source if self._source.seekable() else io.BytesIO(self._source.read(-1))
-        with np.load(f) as npz:
-            keys = set(npz.files)
-            if {"t", "x", "y", "p"} <= keys:
-                self._data = EventArray(npz["t"], npz["x"], npz["y"], npz["p"])
-            elif "events" in keys:
-                self._data = EventArray.from_aos(npz["events"])
-            else:
-                raise ValueError(
-                    f"NPZ archive does not contain event data: expected keys "
-                    f"'t'/'x'/'y'/'p' or 'events', found {sorted(keys)}"
-                )
-            if "width" in keys:
-                self._width = int(npz["width"])
-            if "height" in keys:
-                self._height = int(npz["height"])
+        self._zf = zipfile.ZipFile(f)
 
+        names = set(self._zf.namelist())
+        for attr, member in (("_width", "width.npy"), ("_height", "height.npy")):
+            if member in names:
+                with self._zf.open(member) as fp:
+                    setattr(self, attr, int(npy_format.read_array(fp).item()))
+
+        self._open_streams()
         self._pos = 0
         self._is_initialized = True
+
+    def _read_n(self, n: int) -> EventArray:
+        """Stream the next ``n`` events out of the member streams."""
+        if self._aos_dtype is not None:
+            fp = self._streams["events"]
+            buf = _read_exact(fp, n * self._aos_dtype.itemsize)
+            return EventArray.from_aos(np.frombuffer(buf, dtype=self._aos_dtype))
+        cols = {}
+        for name, dtype in _COLUMNS:
+            # The member's own dtype was validated against 1-D at open; event
+            # columns are cast to the canonical dtypes by EventArray.
+            buf = _read_exact(self._streams[name], n * dtype.itemsize)
+            cols[name] = np.frombuffer(buf, dtype=dtype)
+        return EventArray(cols["t"], cols["x"], cols["y"], cols["p"])
 
     def read_chunk(self, delta_t_hint: int | None = None,
                    n_events_hint: int | None = None) -> EventArray:
         if not self._is_initialized:
             self.init()
-        assert self._data is not None
 
-        if self._pos >= len(self._data):
+        if self._pos >= self._n:
             self._eof = True
             return _EMPTY_EVENTS
 
-        chunk = self._data[self._pos:self._pos + self._chunk_size]
-        self._pos += len(chunk)
-        if self._pos >= len(self._data):
+        n = min(self._chunk_size, self._n - self._pos)
+        chunk = self._read_n(n)
+        self._pos += n
+        if self._pos >= self._n:
             self._eof = True
         return chunk
 
-    def read_all(self) -> EventArray:
-        """Return every remaining event at once (zero-copy slice of the archive)."""
-        if not self._is_initialized:
-            self.init()
-        assert self._data is not None
-        out = self._data[self._pos:] if self._pos else self._data
-        self._pos = len(self._data)
-        self._eof = True
-        return out
-
     def reset(self) -> None:
         """Reset the reader to the beginning of the archive."""
+        if self._is_initialized:
+            self._open_streams()
         self._pos = 0
         self._eof = False
 
@@ -108,15 +195,23 @@ class EventDecoder_Npz(EventDecoder):
         return self._pos
 
     def close(self) -> None:
-        """Drop the loaded columns."""
-        self._data = None
+        """Close the member streams and the archive."""
+        for fp in self._streams.values():
+            fp.close()
+        self._streams = {}
+        if self._zf is not None:
+            self._zf.close()
+            self._zf = None
 
 
 class EventEncoder_Npz(EventEncoder):
-    """Encode events into an ``.npz`` archive.
+    """Encode events into an ``.npz`` archive with bounded memory.
 
-    Chunks passed to :meth:`write` are buffered in memory; the archive itself
-    is written once on :meth:`close` (zip containers cannot be appended to).
+    Zip members can only be written one after another, while :meth:`write`
+    receives all four columns interleaved -- so each column is spooled to an
+    unlinked temporary file (raw bytes, no size limit from RAM) and the
+    archive is assembled on :meth:`close` by streaming every spool into its
+    ``.npy`` member.
 
     Parameters
     ----------
@@ -127,23 +222,26 @@ class EventEncoder_Npz(EventEncoder):
     dt : datetime, optional
         Unused; npz stores no recording timestamp.
     compressed : bool
-        Use ``np.savez_compressed`` instead of ``np.savez``.
+        Deflate the archive members (like ``np.savez_compressed``).
 
     """
 
-    def __init__(self, writable: io.BufferedWriter, width: int = 1280, height: int = 720,
+    def __init__(self, writable: io.BufferedIOBase, width: int = 1280, height: int = 720,
                  dt: datetime | None = None, compressed: bool = False):
         super().__init__(writable, width, height, dt)
         self._compressed = compressed
-        self._chunks: list[EventArray] = []
+        self._spools: dict[str, IO[bytes]] = {}
         self._closed = False
 
     def init(self) -> None:
-        """Nothing to write up front; the archive is produced on close."""
+        """Open one spool file per column (unlinked, cleaned up automatically)."""
+        if self._is_initialized:
+            return
+        self._spools = {name: tempfile.TemporaryFile() for name, _ in _COLUMNS}
         self._is_initialized = True
 
     def write(self, events: 'np.ndarray | EventArray') -> int:
-        """Buffer a chunk of events for the archive.
+        """Append a chunk of events to the column spools.
 
         Parameters
         ----------
@@ -153,40 +251,53 @@ class EventEncoder_Npz(EventEncoder):
         Returns
         -------
         int
-            Number of buffered events.
+            Number of events written.
 
         """
         if not self._is_initialized:
             self.init()
-        arr = events if isinstance(events, EventArray) else EventArray.from_aos(events)
-        self._chunks.append(arr.copy())
-        self._n_written_events += len(arr)
-        return len(arr)
+
+        n = len(events)
+        for name, dtype in _COLUMNS:
+            col = np.ascontiguousarray(events[name], dtype=dtype)
+            self._spools[name].write(col.data)
+        self._n_written_events += n
+        return n
 
     def flush(self) -> None:
-        """No-op: the archive can only be written once, on :meth:`close`."""
+        """No-op: the archive can only be assembled once, on :meth:`close`."""
 
     def close(self) -> None:
-        """Concatenate the buffered chunks and write the archive."""
+        """Assemble the archive: stream each column spool into a ``.npy`` member."""
         if self._closed:
             return
         self._closed = True
-        if len(self._chunks) == 1:
-            all_events = self._chunks[0]
-        elif self._chunks:
-            all_events = EventArray(
-                np.concatenate([c.t for c in self._chunks]),
-                np.concatenate([c.x for c in self._chunks]),
-                np.concatenate([c.y for c in self._chunks]),
-                np.concatenate([c.p for c in self._chunks]),
-            )
-        else:
-            all_events = _EMPTY_EVENTS
-        save = np.savez_compressed if self._compressed else np.savez
-        save(
-            self._fd,
-            t=all_events.t, x=all_events.x, y=all_events.y, p=all_events.p,
-            width=np.uint16(self._width), height=np.uint16(self._height),
-        )
-        self._chunks = []
+        if not self._is_initialized:
+            self.init()
+
+        compression = zipfile.ZIP_DEFLATED if self._compressed else zipfile.ZIP_STORED
+        with zipfile.ZipFile(self._fd, "w", compression=compression, allowZip64=True) as zf:
+            for name, dtype in _COLUMNS:
+                spool = self._spools[name]
+                spool.flush()
+                spool.seek(0)
+                header = {
+                    "descr": npy_format.dtype_to_descr(dtype),
+                    "fortran_order": False,
+                    "shape": (self._n_written_events,),
+                }
+                with zf.open(f"{name}.npy", "w", force_zip64=True) as dest:
+                    npy_format.write_array_header_2_0(dest, header)
+                    while True:
+                        block = spool.read(1 << 22)
+                        if not block:
+                            break
+                        dest.write(block)
+                spool.close()
+            self._spools = {}
+
+            for name, value in (("width", np.uint16(self._width)),
+                                ("height", np.uint16(self._height))):
+                with zf.open(f"{name}.npy", "w") as dest:
+                    npy_format.write_array(dest, np.asarray(value))
         self._fd.flush()

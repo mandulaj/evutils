@@ -20,6 +20,7 @@ _UNAVAILABLE: dict[str, str] = {}
 
 from ._aedat import EventDecoder_Aedat
 _READER_MAPPING[".aedat"] = EventDecoder_Aedat
+_READER_MAPPING[".aedat4"] = EventDecoder_Aedat
 
 from ._bin import EventDecoder_Bin
 _READER_MAPPING[".bin"] = EventDecoder_Bin
@@ -108,8 +109,26 @@ def _sniff_prophesee(head: bytes) -> bool:
     return head[:1] == b"%"
 
 
+def _sniff_aedat(head: bytes) -> bool:
+    """Check if the first bytes match an AEDAT version line.
+
+    Parameters
+    ----------
+    head : bytes
+        The first bytes of the file/stream.
+
+    Returns
+    -------
+    bool
+        True if it matches the AEDAT format, False otherwise.
+
+    """
+    return head.startswith(b"#!AER-DAT")
+
+
 _SNIFFERS = [
     (_sniff_prophesee, "EventDecoder_EVT"),
+    (_sniff_aedat, "EventDecoder_Aedat"),
 ]
 
 

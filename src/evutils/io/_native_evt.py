@@ -269,9 +269,20 @@ def _bind(handle: ctypes.CDLL) -> ctypes.CDLL:
         ]
         handle.DAT_parse_chunk_soa.restype = ParserResult
 
+    if hasattr(handle, "AER_state_size"):
+        handle.AER_state_size.argtypes = []
+        handle.AER_state_size.restype = c_size_t
+    if hasattr(handle, "AER_state_configure"):
+        handle.AER_state_configure.argtypes = [
+            c_void_p,                    # opaque aer_state_t*
+            ctypes.c_int32,              # mode (AER_TS_*)
+            c_uint64,                    # t_next
+            c_uint64,                    # t_step
+        ]
+        handle.AER_state_configure.restype = None
     if hasattr(handle, "AER_parse_chunk_soa"):
-        # AER is stateless: (input, events, triggers) -- no state pointer.
         handle.AER_parse_chunk_soa.argtypes = [
+            c_void_p,                    # opaque aer_state_t*
             POINTER(AerInputBuffer),
             POINTER(EventBufferSOA),
             POINTER(TriggerBufferSOA),
@@ -783,20 +794,39 @@ class DatParser:
         return self
 
 
-class AerParser:
-    """Stateless AER parser (no timestamps, no cross-chunk carry)."""
+#: AER timestamp generation modes (mirror of the enum in csrc/include/evutils/aer.h).
+AER_TS_ZERO = 0
+AER_TS_SEQUENTIAL = 1
 
-    __slots__ = ()
+
+class AerParser:
+    """AER parser with a small timestamp-generator state.
+
+    AER itself carries no timestamps; the state selects how ``t`` is filled:
+    ``AER_TS_ZERO`` writes 0, ``AER_TS_SEQUENTIAL`` writes
+    ``t_start + i * t_step`` carried across chunks.
+    """
+
+    __slots__ = ("_state", "_buf", "_mode", "_t_start", "_t_step")
+
+    def __init__(self, mode: int = AER_TS_ZERO, t_start: int = 0, t_step: int = 1):
+        handle = lib()
+        self._buf = (c_char * int(handle.AER_state_size()))()  # zero-initialised
+        self._state = cast(self._buf, c_void_p)
+        self._mode = mode
+        self._t_start = t_start
+        self._t_step = t_step
+        handle.AER_state_configure(self._state, mode, t_start, t_step)
 
     def reset(self) -> None:
-        """Reset the parser state.
+        """Reset the parser state (restarts sequential timestamps at t_start).
 
         Returns
         -------
         None
 
         """
-        pass
+        lib().AER_state_configure(self._state, self._mode, self._t_start, self._t_step)
 
     def parse_chunk_soa(self, inp: AerInput, events: EventSoABuffers,
                         triggers: TriggerSoABuffers) -> ParserResult:
@@ -818,7 +848,7 @@ class AerParser:
 
         """
         return lib().AER_parse_chunk_soa(
-            byref(inp.c), byref(events.c), byref(triggers.c)
+            self._state, byref(inp.c), byref(events.c), byref(triggers.c)
         )
 
     def __enter__(self):
