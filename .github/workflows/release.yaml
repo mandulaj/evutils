@@ -141,3 +141,52 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+
+  test_pypi_wheels:
+    name: Test PyPI Wheel (${{ matrix.os }}, Py ${{ matrix.python }})
+    needs: publish_pypi
+    runs-on: ${{ matrix.os }}
+    if: github.event_name == 'release'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-14]
+        python: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          enable-cache: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install evutils from PyPI
+        shell: bash
+        run: |
+          # Retry loop to wait for PyPI index to update with the new release
+          # GITHUB_REF_NAME contains the tag name (e.g. v1.0.0). We strip the 'v' for pip.
+          VERSION=${GITHUB_REF_NAME#v}
+          for i in {1..12}; do
+            uv pip install --system "evutils[test]==$VERSION" --no-cache && break
+            echo "Waiting for PyPI index..."
+            sleep 10
+          done
+
+      - name: Remove local source tree
+        shell: bash
+        run: |
+          # Remove local source so Python is forced to import from the installed PyPI wheel
+          rm -rf src/evutils
+
+      - name: Run tests against PyPI wheel
+        shell: bash
+        run: |
+          python -m pytest -s -v tests/
