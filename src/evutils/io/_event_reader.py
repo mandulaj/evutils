@@ -5,13 +5,12 @@ from a file or byte stream.
 """
 
 import io
-import os
 from pathlib import Path
-from typing import Any, Tuple, Union
+from typing import Any
 
 import numpy as np
 
-from ..types import Event_dtype, EventArray, TriggerArray
+from ..types import EventArray, TriggerArray
 
 from . import decoders as ev_decoders
 from ._prefetch import PrefetchIterator
@@ -127,7 +126,7 @@ class EventReader():
 
 
         # Validate the parameters
-        if not mode in EventReader.READING_MODES:
+        if mode not in EventReader.READING_MODES:
             raise ValueError(f"Mode {mode} not supported. Supported modes are: {EventReader.READING_MODES}")
 
 
@@ -313,6 +312,11 @@ class EventReader():
             self._buffer = EventAccumulator(self._acc_capacity)
         acc = self._buffer
 
+        # "all" mode (without per-call overrides) means the whole remaining
+        # stream: skip the window cutoffs entirely and drain to EOF, so files
+        # exceeding max_time/max_events are still returned in full.
+        drain = self._mode == "all" and delta_t is None and n_events is None
+
         # Override the parameters if they are specified
         if delta_t is None:
             delta_t = self._delta_t
@@ -338,22 +342,26 @@ class EventReader():
 
         # Gather events until we hit the n_events count, the delta_t time window,
         # or the end of the stream. Work directly on the SoA `t` column.
+        # Both cutoffs are evaluated together: whichever falls earlier in the
+        # stream wins (the buffer may hold far more than one window's worth).
         while True:
-            # n_events cutoff
-            if len(acc) > n_events:
-                end_idx = n_events
-                self._current_ts = int(acc.t_window()[n_events])
-                tr_t = acc.t_window_tr()
-                tr_end_idx = int(np.searchsorted(tr_t, self._current_ts, side='right'))
-                break
-
-            # time (delta_t) cutoff
             t = acc.t_window()
-            if len(t) > 0 and t[-1] > end_ts:
-                end_idx = int(np.searchsorted(t, end_ts))
-                self._current_ts += delta_t
+            time_ready = not drain and len(t) > 0 and t[-1] > end_ts
+            count_ready = not drain and len(acc) > n_events
+
+            if time_ready or count_ready:
+                time_idx = int(np.searchsorted(t, end_ts)) if time_ready else len(acc) + 1
                 tr_t = acc.t_window_tr()
-                tr_end_idx = int(np.searchsorted(tr_t, end_ts, side='right'))
+                if count_ready and time_idx > n_events:
+                    # n_events cutoff comes first
+                    end_idx = n_events
+                    self._current_ts = int(t[n_events])
+                    tr_end_idx = int(np.searchsorted(tr_t, self._current_ts, side='right'))
+                else:
+                    # delta_t cutoff comes first (ties go to the time window)
+                    end_idx = time_idx
+                    self._current_ts += delta_t
+                    tr_end_idx = int(np.searchsorted(tr_t, end_ts, side='right'))
                 break
 
             # Not enough buffered yet: pull more from the decoder.

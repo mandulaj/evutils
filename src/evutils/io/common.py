@@ -4,11 +4,9 @@ Defines the abstract base classes `EventDecoder` and `EventEncoder`.
 """
 
 import io
-import os
 from abc import ABC, abstractmethod
 from datetime import datetime
-from pathlib import Path
-from typing import IO, Any, Optional, TYPE_CHECKING
+from typing import Any, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ..types import EventArray, TriggerArray
@@ -133,6 +131,10 @@ class EventDecoder(ABC):
             else:
                 ev_chunk = _chunk # type: ignore
             if len(ev_chunk) == 0:
+                # The final chunk can carry triggers with no events (trigger
+                # packets after the last CD event): keep them before stopping.
+                if self.read_external_triggers and len(tr_chunk) > 0:
+                    trigger_chunks.append(tr_chunk.copy())
                 break
             chunks.append(ev_chunk.copy())
             if self.read_external_triggers:

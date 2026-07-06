@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import io
 from datetime import datetime
-from typing import Any, List, TYPE_CHECKING, Dict
+from typing import Any, TYPE_CHECKING, Dict
 
 if TYPE_CHECKING:
     from ..types import TriggerArray
@@ -29,10 +29,9 @@ if TYPE_CHECKING:
 from .._jit import lazy_njit
 import numpy as np
 
-from ..types import Event_dtype, EventArray, Trigger_dtype
+from ..types import EventArray
 from .common import EventDecoder, EventEncoder
 from ._native_core import (
-    EVUTILS_PARSE_ERROR,
     EventSoABuffers,
     TriggerSoABuffers,
     decode_all_soa,
@@ -326,11 +325,15 @@ class EventDecoder_EVT(EventDecoder):
         """
         if not self._is_initialized:
             self.init()
+
+        # decode_all_soa is an events-only fast path; with external triggers
+        # requested, fall back to the chunked base implementation (which
+        # carries the trigger stream through).
+        if self.read_external_triggers:
+            return super().read_all()
+
         if self._words is None or self._offset >= len(self._words):
             self._eof = True
-            if self.read_external_triggers:
-                from ..types import TriggerArray
-                return _EMPTY_EVENTS, TriggerArray.empty()
             return _EMPTY_EVENTS
 
         assert self._format is not None  # set by init()
@@ -340,12 +343,6 @@ class EventDecoder_EVT(EventDecoder):
             tail_pad=self._tail_pad, word_dtype=self._word_dtype,
         )
         self._eof = True
-        
-        # NOTE: decode_all_soa doesn't currently return triggers. 
-        # But for full implementation we might need to modify decode_all_soa.
-        # Actually, decode_all_soa in _native_core doesn't return triggers.
-        if self.read_external_triggers:
-            raise NotImplementedError("read_all with external triggers is not yet implemented for EVT.")
         return out
 
     def reset(self) -> None:
