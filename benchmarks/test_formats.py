@@ -142,3 +142,45 @@ def test_read_uniform_evlib(benchmark, benchmark_rounds, uniform_files, fmt):
                            rounds=benchmark_rounds, iterations=1, warmup_rounds=1)
     assert n > 0
     benchmark.extra_info.update(library="evlib", n_events=n, fmt=fmt)
+
+
+@pytest.mark.parametrize("fmt", ["evt3"])
+def test_read_evt3_muthmann(benchmark, benchmark_rounds, uniform_files, fmt):
+    """muthmann/evt3: Rust EVT3 decoder (PyPI package ``evt3``)."""
+    try:
+        import evt3
+    except ImportError as exc:
+        pytest.skip(f"evt3 not available: {exc}")
+    benchmark.group = READ_FORMATS[fmt]
+    path = str(uniform_files[fmt])
+    n = benchmark.pedantic(lambda: len(evt3.decode_file(path).timestamp),
+                           rounds=benchmark_rounds, iterations=1, warmup_rounds=1)
+    assert n > 0
+    benchmark.extra_info.update(library="evt3(muthmann)", n_events=n, fmt=fmt)
+
+
+@pytest.mark.parametrize("fmt", ["evt3"])
+def test_read_evt3_event_vision_library(benchmark, benchmark_rounds, uniform_files, fmt):
+    """shiba24/event-vision-library: vectorized-numpy EVT3 decoder.
+
+    It installs as ``evlib`` -- the same import name as the Rust evlib in the
+    ``compare`` extra -- so the two cannot coexist in one environment. Run
+    ``pip install event-vision-library`` in a separate venv to benchmark it
+    (this test then runs and the Rust-evlib benchmarks skip instead).
+    """
+    try:
+        from evlib.codec.fileformat._evt3 import Evt3RawReader
+    except ImportError as exc:
+        pytest.skip(
+            "event-vision-library not importable (it shares the `evlib` import "
+            f"name with the Rust evlib package; use a separate venv): {exc}"
+        )
+    benchmark.group = READ_FORMATS[fmt]
+
+    def read():
+        reader = Evt3RawReader(str(uniform_files[fmt]), chunk_size=1 << 20)
+        return sum(len(chunk.t) for chunk in reader.read_chunks())
+
+    n = benchmark.pedantic(read, rounds=benchmark_rounds, iterations=1, warmup_rounds=1)
+    assert n > 0
+    benchmark.extra_info.update(library="event-vision-library", n_events=n, fmt=fmt)
