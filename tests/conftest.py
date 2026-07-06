@@ -15,11 +15,12 @@ from evutils.types import Event_dtype
 
 # Add tests dir to path to import conftest_utils
 sys.path.append(str(Path(__file__).parent))
-from conftest_utils import EventFile, download_and_extract_gdrive, load_event_files
+from conftest_utils import EventFile, download_and_extract_gdrive, load_event_files # type: ignore
 
 
+from typing import Any
 @pytest.fixture(scope='session')
-def test_events():
+def test_events() -> Any:
     """Small synthetic, time-sorted event array for correctness tests."""
     N_EVENTS = 1000
     np.random.seed(42)
@@ -35,7 +36,7 @@ def test_events():
 
 
 @pytest.fixture(scope='session')
-def real_event_files(request):
+def real_event_files(request: Any) -> Any:
     """Real Prophesee recordings (downloaded + cached on first use).
 
     Returns ``{format: EventFile(path, count)}`` where ``count`` is the

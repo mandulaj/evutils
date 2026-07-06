@@ -12,8 +12,9 @@ from evutils.io._prefetch import PrefetchIterator
 from evutils.types import Event_dtype
 
 
+from typing import Any
 @pytest.fixture()
-def raw_file(tmp_path):
+def raw_file(tmp_path: Any) -> Any:
     rng = np.random.default_rng(7)
     n = 200_000
     ev = np.zeros(n, dtype=Event_dtype)
@@ -28,7 +29,7 @@ def raw_file(tmp_path):
 
 
 @pytest.mark.parametrize("suffix", [".raw", ".npz"])
-def test_async_matches_sync(tmp_path, raw_file, suffix):
+def test_async_matches_sync(tmp_path: Any, raw_file: Any, suffix: str) -> None:
     """Async iteration yields the same windows as sync, for a native (C)
     decoder and a pure-Python one."""
     p, ev = raw_file
@@ -48,7 +49,7 @@ def test_async_matches_sync(tmp_path, raw_file, suffix):
         assert np.array_equal(s, a)
 
 
-def test_async_ext_triggers(raw_file):
+def test_async_ext_triggers(raw_file: Any) -> None:
     """(events, triggers) tuples pass through the prefetch queue unchanged."""
     p, _ = raw_file
     with EventReader(p, n_events=50_000, ext_trigger=True, async_read=True) as r:
@@ -57,7 +58,7 @@ def test_async_ext_triggers(raw_file):
             assert hasattr(tr, "id")
 
 
-def test_direct_read_guarded_while_iterating(raw_file):
+def test_direct_read_guarded_while_iterating(raw_file: Any) -> None:
     p, _ = raw_file
     with EventReader(p, n_events=50_000, async_read=True) as r:
         it = iter(r)
@@ -72,7 +73,7 @@ def test_direct_read_guarded_while_iterating(raw_file):
         assert len(r.read_all()) == 0  # EOF, but no guard error
 
 
-def test_early_break_and_reset(raw_file):
+def test_early_break_and_reset(raw_file: Any) -> None:
     """Breaking out of async iteration must not deadlock; reset() cancels the
     worker and a fresh (async) iteration sees the whole file again."""
     p, ev = raw_file
@@ -85,7 +86,7 @@ def test_early_break_and_reset(raw_file):
     assert total == len(ev)
 
 
-def test_close_with_active_iterator(raw_file):
+def test_close_with_active_iterator(raw_file: Any) -> None:
     p, _ = raw_file
     r = EventReader(p, n_events=10_000, async_read=True)
     it = iter(r)
@@ -94,7 +95,7 @@ def test_close_with_active_iterator(raw_file):
     assert r._active_prefetch is None
 
 
-def test_only_one_active_iterator(raw_file):
+def test_only_one_active_iterator(raw_file: Any) -> None:
     p, _ = raw_file
     with EventReader(p, n_events=50_000, async_read=True) as r:
         it = iter(r)
@@ -105,9 +106,9 @@ def test_only_one_active_iterator(raw_file):
         assert sum(len(c) for c in r) > 0  # a new iterator is fine now
 
 
-def test_worker_exception_propagates():
+def test_worker_exception_propagates() -> None:
     """An exception raised by the source surfaces in the consumer thread."""
-    def broken():
+    def broken() -> Any:
         yield 1
         yield 2
         raise ValueError("decoder blew up")
@@ -119,13 +120,13 @@ def test_worker_exception_propagates():
         next(it)
 
 
-def test_prefetch_iterator_bounded():
+def test_prefetch_iterator_bounded() -> None:
     """The queue never buffers more than `depth` chunks ahead."""
     import time
 
     produced = []
 
-    def source():
+    def source() -> Any:
         for i in range(100):
             produced.append(i)
             yield i
@@ -137,7 +138,7 @@ def test_prefetch_iterator_bounded():
     assert list(it) == list(range(100))
 
 
-def test_prefetch_iterator_close_idempotent():
+def test_prefetch_iterator_close_idempotent() -> None:
     it = PrefetchIterator(iter(range(10)), depth=1)
     next(it)
     it.close()

@@ -3,7 +3,8 @@ import numpy as np
 from evutils.types import Event_dtype
 
 
-def test_AER_writer(tmp_path):
+from typing import Any
+def test_AER_writer(tmp_path: Any) -> None:
     """AER carries no timestamps and only 9-bit coords, so round-trip preserves
     x/y/p (with t == 0) for events that fit in 512x512."""
     from evutils.io import EventReader, EventWriter
@@ -25,14 +26,15 @@ def test_AER_writer(tmp_path):
     with EventReader(p) as reader:
         out = reader.read()
 
+    assert not isinstance(out, tuple)
     assert len(out) == N
-    assert np.array_equal(out.x, ev["x"])
-    assert np.array_equal(out.y, ev["y"])
-    assert np.array_equal(out.p, ev["p"])
-    assert bool(np.all(out.t == 0))  # AER has no timestamps
+    assert np.array_equal(out["x"], ev["x"])
+    assert np.array_equal(out["y"], ev["y"])
+    assert np.array_equal(out["p"], ev["p"])
+    assert bool(np.all(out["t"] == 0))
 
 
-def _write_aer(tmp_path, n=1000, seed=7):
+def _write_aer(tmp_path: Any, n: int=1000, seed: int=7) -> Any:
     from evutils.io import EventWriter
 
     np.random.seed(seed)
@@ -46,7 +48,7 @@ def _write_aer(tmp_path, n=1000, seed=7):
     return p, ev
 
 
-def test_AER_timestamps_sequential(tmp_path):
+def test_AER_timestamps_sequential(tmp_path: Any) -> None:
     """timestamps='sequential' generates t = t_start + i * t_step, carried
     across chunks and restarted by reset()."""
     from evutils.io import EventReader
@@ -54,17 +56,19 @@ def test_AER_timestamps_sequential(tmp_path):
     p, _ = _write_aer(tmp_path)
     with EventReader(p, timestamps="sequential", t_start=100, t_step=5) as r:
         out = r.read_all()
-    assert np.array_equal(out.t, 100 + 5 * np.arange(1000))
+    assert not isinstance(out, tuple)
+    assert np.array_equal(out["t"], 100 + 5 * np.arange(1000))
 
     with EventReader(p, n_events=300, timestamps="sequential") as r:
-        ts = np.concatenate([np.asarray(c)["t"] for c in r])
+        ts = np.concatenate([np.asarray(c[0] if isinstance(c, tuple) else c)["t"] for c in r])
         assert np.array_equal(ts, np.arange(1000))
         r.reset()
         out = r.read_all()
-    assert np.array_equal(out.t, np.arange(1000))  # restarted at t_start
+    assert not isinstance(out, tuple)
+    assert np.array_equal(out["t"], np.arange(1000))
 
 
-def test_AER_timestamps_custom(tmp_path):
+def test_AER_timestamps_custom(tmp_path: Any) -> None:
     """A user-provided array is assigned positionally, in bulk and chunked."""
     from evutils.io import EventReader
 
@@ -72,14 +76,16 @@ def test_AER_timestamps_custom(tmp_path):
     custom = np.sort(np.random.randint(0, 10**9, 1000))
 
     with EventReader(p, timestamps=custom) as r:
-        assert np.array_equal(r.read_all().t, custom)
+        out = r.read_all()
+        assert not isinstance(out, tuple)
+        assert np.array_equal(out["t"], custom)
 
     with EventReader(p, n_events=300, timestamps=custom) as r:
-        ts = np.concatenate([np.asarray(c)["t"] for c in r])
+        ts = np.concatenate([np.asarray(c[0] if isinstance(c, tuple) else c)["t"] for c in r])
     assert np.array_equal(ts, custom)
 
 
-def test_AER_timestamps_validation(tmp_path):
+def test_AER_timestamps_validation(tmp_path: Any) -> None:
     """Bad mode strings and too-short custom arrays raise ValueError."""
     import pytest
 

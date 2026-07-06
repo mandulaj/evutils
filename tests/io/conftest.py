@@ -6,10 +6,12 @@ import pytest
 # they are shared with the benchmarks; only io-test-specific fixtures live here.
 
 
+from typing import Any, Callable
+
 @pytest.fixture
-def dummy_file_factory(tmp_path):
+def dummy_file_factory(tmp_path: Any) -> Callable[[str], str]:
     # Create a temporary dummy (non-event) file.
-    def _filefactory(name):
+    def _filefactory(name: str) -> str:
         test_file_path = os.path.join(tmp_path, name)
         with open(test_file_path, 'w') as f:
             f.write('This is a dummy test file.')
@@ -19,8 +21,8 @@ def dummy_file_factory(tmp_path):
 
 
 @pytest.fixture(scope='session')
-def event_files(tmp_path_factory, test_events):
-    event_file_paths = {}
+def event_files(tmp_path_factory: Any, test_events: Any) -> dict[str, Any]:
+    event_file_paths: dict[str, Any] = {}
 
     temp_dir = tmp_path_factory.mktemp("data")
     event_file_paths['csv'] = temp_dir / "events.csv"

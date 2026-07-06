@@ -7,8 +7,9 @@ import pytest
 from evutils.io import EventReader, EventWriter
 from evutils.types import Event_dtype
 
+from typing import Any
 
-def make_events(n=10_000, seed=11):
+def make_events(n: int=10_000, seed: int=11) -> Any:
     rng = np.random.default_rng(seed)
     ev = np.zeros(n, dtype=Event_dtype)
     ev["t"] = np.sort(rng.integers(0, 1_000_000, n))
@@ -18,7 +19,7 @@ def make_events(n=10_000, seed=11):
     return ev
 
 
-def test_np_load_reads_our_files(tmp_path):
+def test_np_load_reads_our_files(tmp_path: Any) -> None:
     """Files we write are plain npz archives np.load understands."""
     ev = make_events()
     p = tmp_path / "ours.npz"
@@ -32,7 +33,7 @@ def test_np_load_reads_our_files(tmp_path):
     assert (int(d["width"]), int(d["height"])) == (640, 480)
 
 
-def test_we_read_np_savez_soa(tmp_path):
+def test_we_read_np_savez_soa(tmp_path: Any) -> None:
     ev = make_events()
     p = tmp_path / "soa.npz"
     np.savez(p, t=ev["t"], x=ev["x"], y=ev["y"], p=ev["p"])
@@ -40,7 +41,7 @@ def test_we_read_np_savez_soa(tmp_path):
         assert np.array_equal(np.asarray(r.read_all()), ev)
 
 
-def test_we_read_np_savez_structured(tmp_path):
+def test_we_read_np_savez_structured(tmp_path: Any) -> None:
     """A single structured 'events' member (compressed) is accepted too."""
     ev = make_events()
     p = tmp_path / "aos.npz"
@@ -49,7 +50,7 @@ def test_we_read_np_savez_structured(tmp_path):
         assert np.array_equal(np.asarray(r.read_all()), ev)
 
 
-def test_compressed_write(tmp_path):
+def test_compressed_write(tmp_path: Any) -> None:
     ev = make_events()
     plain = tmp_path / "plain.npz"
     packed = tmp_path / "packed.npz"
@@ -62,7 +63,7 @@ def test_compressed_write(tmp_path):
         assert np.array_equal(np.asarray(r.read_all()), ev)
 
 
-def test_geometry_roundtrip(tmp_path):
+def test_geometry_roundtrip(tmp_path: Any) -> None:
     p = tmp_path / "geo.npz"
     with EventWriter(p, width=346, height=260) as w:
         w.write(make_events(10))
@@ -71,14 +72,14 @@ def test_geometry_roundtrip(tmp_path):
         assert r.shape() == (346, 260)
 
 
-def test_missing_event_keys_errors(tmp_path):
+def test_missing_event_keys_errors(tmp_path: Any) -> None:
     p = tmp_path / "bogus.npz"
     np.savez(p, foo=np.arange(5))
     with pytest.raises(ValueError, match="does not contain event data"):
         EventReader(p).read_all()
 
 
-def test_mismatched_column_lengths_errors(tmp_path):
+def test_mismatched_column_lengths_errors(tmp_path: Any) -> None:
     p = tmp_path / "ragged.npz"
     np.savez(p, t=np.arange(10), x=np.arange(9, dtype=np.uint16),
              y=np.zeros(10, np.uint16), p=np.zeros(10, np.uint8))
@@ -86,11 +87,13 @@ def test_mismatched_column_lengths_errors(tmp_path):
         EventReader(p).read_all()
 
 
-def test_large_timestamps(tmp_path):
+def test_large_timestamps(tmp_path: Any) -> None:
     ev = make_events(100)
     ev["t"] += 2**40  # far beyond 32 bits
     p = tmp_path / "big_t.npz"
     with EventWriter(p) as w:
         w.write(ev)
     with EventReader(p) as r:
-        assert np.array_equal(r.read_all().t, ev["t"])
+        out = r.read_all()
+        assert not isinstance(out, tuple)
+        assert np.array_equal(out["t"], ev["t"])

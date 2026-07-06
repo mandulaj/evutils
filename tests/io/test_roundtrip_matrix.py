@@ -9,6 +9,7 @@ modules.
 import numpy as np
 import pytest
 
+from typing import Any
 from evutils.io import EventReader, EventWriter
 from evutils.types import Event_dtype
 
@@ -27,7 +28,7 @@ FORMATS = {
 PARAMS = sorted(FORMATS)
 
 
-def make_events(n=5000, coord_max=None, seed=42, t_max=100_000):
+def make_events(n: int=5000, coord_max: Any=None, seed: int=42, t_max: int=100_000) -> Any:
     rng = np.random.default_rng(seed)
     ev = np.zeros(n, dtype=Event_dtype)
     ev["t"] = np.sort(rng.integers(0, t_max, n))
@@ -37,7 +38,7 @@ def make_events(n=5000, coord_max=None, seed=42, t_max=100_000):
     return ev
 
 
-def expected(ev, caps):
+def expected(ev: Any, caps: Any) -> Any:
     """The array a lossless read should return (AER drops timestamps)."""
     if caps.get("lossy_t"):
         ev = ev.copy()
@@ -45,16 +46,16 @@ def expected(ev, caps):
     return ev
 
 
-def write_file(tmp_path, fmt, ev, n_chunks=1):
+def write_file(tmp_path: Any, fmt: str, ev: Any, n_chunks: int=1) -> Any:
     suffix, kwargs, _ = FORMATS[fmt]
     p = tmp_path / f"events_{fmt}{suffix}"
-    with EventWriter(p, **kwargs) as w:
+    with EventWriter(p, **kwargs) as w: # type: ignore
         for part in np.array_split(ev, n_chunks):
             w.write(part)
     return p
 
 
-def assert_events_equal(out, ref, context=""):
+def assert_events_equal(out: Any, ref: Any, context: str="") -> None:
     out = np.asarray(out)
     assert len(out) == len(ref), f"{context}: length {len(out)} != {len(ref)}"
     for f in ("t", "x", "y", "p"):
@@ -62,7 +63,7 @@ def assert_events_equal(out, ref, context=""):
 
 
 @pytest.mark.parametrize("fmt", PARAMS)
-def test_bulk_roundtrip(tmp_path, fmt):
+def test_bulk_roundtrip(tmp_path: Any, fmt: str) -> None:
     caps = FORMATS[fmt][2]
     ev = make_events(coord_max=caps.get("coord_max"))
     p = write_file(tmp_path, fmt, ev)
@@ -71,7 +72,7 @@ def test_bulk_roundtrip(tmp_path, fmt):
 
 
 @pytest.mark.parametrize("fmt", PARAMS)
-def test_chunked_write_roundtrip(tmp_path, fmt):
+def test_chunked_write_roundtrip(tmp_path: Any, fmt: str) -> None:
     """Writing in many small chunks must be byte-equivalent to one bulk write."""
     caps = FORMATS[fmt][2]
     ev = make_events(coord_max=caps.get("coord_max"))
@@ -81,7 +82,7 @@ def test_chunked_write_roundtrip(tmp_path, fmt):
 
 
 @pytest.mark.parametrize("fmt", PARAMS)
-def test_windowed_n_events(tmp_path, fmt):
+def test_windowed_n_events(tmp_path: Any, fmt: str) -> None:
     caps = FORMATS[fmt][2]
     ev = make_events(coord_max=caps.get("coord_max"))
     p = write_file(tmp_path, fmt, ev)
@@ -92,7 +93,7 @@ def test_windowed_n_events(tmp_path, fmt):
 
 
 @pytest.mark.parametrize("fmt", PARAMS)
-def test_windowed_delta_t(tmp_path, fmt):
+def test_windowed_delta_t(tmp_path: Any, fmt: str) -> None:
     caps = FORMATS[fmt][2]
     if caps.get("lossy_t"):
         pytest.skip("format has no timestamps")
@@ -107,7 +108,7 @@ def test_windowed_delta_t(tmp_path, fmt):
 
 
 @pytest.mark.parametrize("fmt", PARAMS)
-def test_reset(tmp_path, fmt):
+def test_reset(tmp_path: Any, fmt: str) -> None:
     caps = FORMATS[fmt][2]
     ev = make_events(coord_max=caps.get("coord_max"))
     p = write_file(tmp_path, fmt, ev)
@@ -119,23 +120,24 @@ def test_reset(tmp_path, fmt):
 
 
 @pytest.mark.parametrize("fmt", PARAMS)
-def test_empty_write_then_read(tmp_path, fmt):
+def test_empty_write_then_read(tmp_path: Any, fmt: str) -> None:
     """A writer that never receives events must still produce a readable,
     zero-event file."""
     suffix, kwargs, _ = FORMATS[fmt]
     p = tmp_path / f"empty{suffix}"
-    with EventWriter(p, **kwargs) as w:
+    with EventWriter(p, **kwargs) as w: # type: ignore
         w.write(np.zeros(0, dtype=Event_dtype))
     with EventReader(p) as r:
         out = r.read_all()
+    assert not isinstance(out, tuple)
     assert len(out) == 0
     # The empty columns keep their canonical dtypes.
-    assert out.t.dtype == np.int64
-    assert out.x.dtype == np.uint16
+    assert out["t"].dtype == np.int64
+    assert out["x"].dtype == np.uint16
 
 
 @pytest.mark.parametrize("fmt", PARAMS)
-def test_read_after_eof_is_empty(tmp_path, fmt):
+def test_read_after_eof_is_empty(tmp_path: Any, fmt: str) -> None:
     caps = FORMATS[fmt][2]
     ev = make_events(n=100, coord_max=caps.get("coord_max"))
     p = write_file(tmp_path, fmt, ev)
@@ -146,7 +148,7 @@ def test_read_after_eof_is_empty(tmp_path, fmt):
 
 
 @pytest.mark.parametrize("fmt", PARAMS)
-def test_normalize_ts(tmp_path, fmt):
+def test_normalize_ts(tmp_path: Any, fmt: str) -> None:
     caps = FORMATS[fmt][2]
     if caps.get("lossy_t"):
         pytest.skip("format has no timestamps")
@@ -155,5 +157,6 @@ def test_normalize_ts(tmp_path, fmt):
     p = write_file(tmp_path, fmt, ev)
     with EventReader(p, normalize_ts=True) as r:
         out = r.read_all()
-    assert int(out.t[0]) == 0
-    assert np.array_equal(np.diff(out.t), np.diff(ev["t"].astype(np.int64)))
+    assert not isinstance(out, tuple)
+    assert int(out["t"][0]) == 0
+    assert np.array_equal(np.diff(out["t"]), np.diff(ev["t"].astype(np.int64)))

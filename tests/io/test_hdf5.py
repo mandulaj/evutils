@@ -8,8 +8,9 @@ h5py = pytest.importorskip("h5py")
 from evutils.io import EventReader, EventWriter
 from evutils.types import Event_dtype
 
+from typing import Any
 
-def make_events(n=20_000, t_max=200_000, seed=3):
+def make_events(n: int=20_000, t_max: int=200_000, seed: int=3) -> Any:
     rng = np.random.default_rng(seed)
     ev = np.zeros(n, dtype=Event_dtype)
     ev["t"] = np.sort(rng.integers(0, t_max, n))
@@ -19,7 +20,7 @@ def make_events(n=20_000, t_max=200_000, seed=3):
     return ev
 
 
-def test_geometry_attrs_roundtrip(tmp_path):
+def test_geometry_attrs_roundtrip(tmp_path: Any) -> None:
     p = tmp_path / "geo.h5"
     with EventWriter(p, width=640, height=480) as w:
         w.write(make_events(100))
@@ -28,7 +29,7 @@ def test_geometry_attrs_roundtrip(tmp_path):
         assert r.shape() == (640, 480)
 
 
-def test_ms_to_idx_random_access(tmp_path):
+def test_ms_to_idx_random_access(tmp_path: Any) -> None:
     """decoder.read(start_ms, end_ms) must return exactly the events with
     start_ms*1000 <= t < end_ms*1000."""
     ev = make_events()
@@ -39,7 +40,7 @@ def test_ms_to_idx_random_access(tmp_path):
 
     with EventReader(p) as r:
         r.init()
-        dec = r._file_decoder
+        dec: Any = r._file_decoder
         for start_ms, end_ms in [(0, 50), (50, 120), (13, 14), (0, -1), (150, 10_000)]:
             got = dec.read(start_ms, end_ms)
             lo = start_ms * 1000
@@ -47,7 +48,7 @@ def test_ms_to_idx_random_access(tmp_path):
                 else end_ms * 1000
             ref = ev[(ev["t"] >= lo) & (ev["t"] < hi)]
             assert len(got) == len(ref), (start_ms, end_ms)
-            assert np.array_equal(got.t, ref["t"])
+            assert np.array_equal(got["t"], ref["t"])
 
         # Past-the-end start is empty; invalid ranges raise.
         assert len(dec.read(10**6, -1)) == 0
@@ -57,7 +58,7 @@ def test_ms_to_idx_random_access(tmp_path):
             dec.read(100, 50)
 
 
-def test_dsec_t_offset(tmp_path):
+def test_dsec_t_offset(tmp_path: Any) -> None:
     """A DSEC-style ``t_offset`` dataset shifts the decoded timestamps."""
     ev = make_events(1000)
     p = tmp_path / "dsec.h5"
@@ -68,10 +69,11 @@ def test_dsec_t_offset(tmp_path):
 
     with EventReader(p) as r:
         out = r.read_all()
-    assert np.array_equal(out.t, ev["t"].astype(np.int64) + 1_000_000)
+    assert not isinstance(out, tuple)
+    assert np.array_equal(out["t"], ev["t"].astype(np.int64) + 1_000_000)
 
 
-def _write_prophesee_layout(path, ev, root="CD"):
+def _write_prophesee_layout(path: Any, ev: Any, root: Any="CD") -> None:
     """Synthesize the Metavision HDF5 layout: compound CD/events dataset."""
     prophesee_dtype = np.dtype([("x", "<u2"), ("y", "<u2"), ("p", "<i2"), ("t", "<i8")])
     rec = np.zeros(len(ev), dtype=prophesee_dtype)
@@ -85,7 +87,7 @@ def _write_prophesee_layout(path, ev, root="CD"):
             f.create_dataset("events", data=rec, chunks=chunks)
 
 
-def test_prophesee_layout(tmp_path):
+def test_prophesee_layout(tmp_path: Any) -> None:
     """Uncompressed Metavision-layout files (CD/events compound dataset) read
     transparently through the same EventReader interface."""
     ev = make_events()
@@ -103,17 +105,18 @@ def test_prophesee_layout(tmp_path):
     assert total == len(ev)
 
 
-def test_root_level_structured_dataset(tmp_path):
+def test_root_level_structured_dataset(tmp_path: Any) -> None:
     """A compound 'events' dataset at the root (no CD group) also reads."""
     ev = make_events(500)
     p = tmp_path / "flat.h5"
     _write_prophesee_layout(p, ev, root=None)
     with EventReader(p) as r:
         out = r.read_all()
-    assert np.array_equal(out.t, ev["t"])
+    assert not isinstance(out, tuple)
+    assert np.array_equal(out["t"], ev["t"])
 
 
-def test_missing_events_errors(tmp_path):
+def test_missing_events_errors(tmp_path: Any) -> None:
     p = tmp_path / "bogus.h5"
     with h5py.File(p, "w") as f:
         f.create_dataset("unrelated", data=np.arange(3))
@@ -121,18 +124,19 @@ def test_missing_events_errors(tmp_path):
         EventReader(p).read_all()
 
 
-def test_no_index_read_raises(tmp_path):
+def test_no_index_read_raises(tmp_path: Any) -> None:
     """Millisecond random access needs ms_to_idx; a clear error otherwise."""
     ev = make_events(100)
     p = tmp_path / "noidx.hdf5"
     _write_prophesee_layout(p, ev)
     with EventReader(p) as r:
         r.init()
+        dec: Any = r._file_decoder
         with pytest.raises(ValueError, match="ms_to_idx"):
-            r._file_decoder.read(0, 10)
+            dec.read(0, 10)
 
 
-def test_large_timestamps(tmp_path):
+def test_large_timestamps(tmp_path: Any) -> None:
     """int64 timestamps (e.g. absolute epoch microseconds) survive, and the
     millisecond index stays small by anchoring at the first event
     (ms_to_idx_offset)."""
@@ -143,11 +147,13 @@ def test_large_timestamps(tmp_path):
     with EventWriter(p) as w:
         w.write(ev)
     with EventReader(p) as r:
-        assert np.array_equal(r.read_all().t, ev["t"])
+        out = r.read_all()
+        assert not isinstance(out, tuple)
+        assert np.array_equal(out["t"], ev["t"])
         # Random access uses absolute milliseconds; the offset is transparent.
-        dec = r._file_decoder
+        dec: Any = r._file_decoder
         start_ms = (epoch // 1000) + 50
         got = dec.read(start_ms, start_ms + 20)
         ref = ev[(ev["t"] >= start_ms * 1000) & (ev["t"] < (start_ms + 20) * 1000)]
         assert len(got) == len(ref)
-        assert np.array_equal(got.t, ref["t"])
+        assert np.array_equal(got["t"], ref["t"])

@@ -8,7 +8,7 @@ import numpy as np
 
 N = 1000
 
-def test_random_events():
+def test_random_events() -> None:
     ev = random_events(N, 1280, 720, 10, 10000)
 
     assert len(ev) == N
@@ -18,7 +18,7 @@ def test_random_events():
     assert ev["t"].min() >= 10 and ev["t"].max() < 10000
 
 
-def test_random_events_generator():
+def test_random_events_generator() -> None:
     for ev in random_events_generator(N, 1280, 720, 10, 10000, chunk_size=100):
         assert len(ev) == 100
         assert ev["x"].min() >= 0 and ev["x"].max() < 1280
@@ -27,7 +27,7 @@ def test_random_events_generator():
         assert ev["t"].min() >= 10 and ev["t"].max() < 10000
 
 
-def test_event_jitter():
+def test_event_jitter() -> None:
     ev = random_events(N, 1280, 720, 10, 10000)
     ev_jitter = event_jitter(ev.copy(), jitter=100, sort=False)
 

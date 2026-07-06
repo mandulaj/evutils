@@ -1,8 +1,8 @@
+from typing import Any
 import numpy as np
 import pytest
 
-
-def test_DAT_writer(tmp_path, test_events):
+def test_DAT_writer(tmp_path: Any, test_events: Any) -> None:
     from evutils.io import EventReader, EventWriter
 
     p = tmp_path / "events.dat"
@@ -17,11 +17,11 @@ def test_DAT_writer(tmp_path, test_events):
     assert np.array_equal(events, test_events)
 
 
-def test_DAT_matches_expelliarmus(tmp_path, test_events):
+def test_DAT_matches_expelliarmus(tmp_path: Any, test_events: Any) -> None:
     """Our DAT output must be readable byte-for-byte by the reference reader,
     and our EventReader must decode it exactly the same as the reference reader."""
     pytest.importorskip("expelliarmus")
-    from expelliarmus import Wizard
+    from expelliarmus import Wizard # type: ignore
 
     from evutils.io import EventWriter, EventReader
 
@@ -35,6 +35,7 @@ def test_DAT_matches_expelliarmus(tmp_path, test_events):
     # 2. Read with evutils
     with EventReader(p) as reader:
         evutils_arr = reader.read()
+    assert not isinstance(evutils_arr, tuple)
 
     # Compare them directly
     assert len(evutils_arr) == len(exp_arr)
@@ -44,7 +45,7 @@ def test_DAT_matches_expelliarmus(tmp_path, test_events):
     assert np.array_equal(evutils_arr["p"], exp_arr["p"])
 
 
-def test_DAT_timestamp_overflow(tmp_path):
+def test_DAT_timestamp_overflow(tmp_path: Any) -> None:
     """DAT timestamps are 32-bit us on disk (~71 min); the decoder must extend
     them past the wrap."""
     from evutils.io import EventReader, EventWriter
@@ -60,10 +61,11 @@ def test_DAT_timestamp_overflow(tmp_path):
         w.write(ev)
     with EventReader(p) as r:
         out = r.read_all()
-    assert np.array_equal(out.t, t)
+    assert not isinstance(out, tuple)
+    assert np.array_equal(out["t"], t)
 
 
-def test_DAT_coordinate_extremes(tmp_path):
+def test_DAT_coordinate_extremes(tmp_path: Any) -> None:
     """DAT coordinates are 14-bit; extremes must survive."""
     from evutils.io import EventReader, EventWriter
     from evutils.types import Event_dtype
@@ -79,4 +81,5 @@ def test_DAT_coordinate_extremes(tmp_path):
         w.write(ev)
     with EventReader(p) as r:
         out = r.read_all()
+    assert not isinstance(out, tuple)
     assert np.array_equal(np.asarray(out), ev)

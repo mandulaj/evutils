@@ -27,7 +27,8 @@ import pytest
 #     assert test_reader is not None
 
 
-def test_CSV_writer(tmp_path, test_events):
+from typing import Any
+def test_CSV_writer(tmp_path: Any, test_events: Any) -> None:
     from evutils.io import EventWriter
     from evutils.io import EventReader
 
@@ -55,7 +56,7 @@ def test_CSV_writer(tmp_path, test_events):
     events = reader.read()
     assert np.array_equal(events, test_events)
 
-def test_CSV_reader_nevents(event_files, test_events):
+def test_CSV_reader_nevents(event_files: Any, test_events: Any) -> None:
     csv_file_path = event_files['csv']
 
     from evutils.io import EventReader
@@ -69,7 +70,7 @@ def test_CSV_reader_nevents(event_files, test_events):
             assert np.array_equal(events, test_events[i:i+STEP])
 
 
-def test_CSV_reader_gen(event_files, test_events):
+def test_CSV_reader_gen(event_files: Any, test_events: Any) -> None:
     csv_file_path = event_files['csv']
 
     from evutils.io import EventReader

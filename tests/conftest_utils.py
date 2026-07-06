@@ -6,6 +6,7 @@ import urllib.parse
 import urllib.request
 from collections import defaultdict, namedtuple
 from pathlib import Path, PurePosixPath
+from typing import Any
 
 EventFile = namedtuple("EventFile", ["path", "count", "metadata"], defaults=[None])
 
@@ -71,7 +72,7 @@ def _extract_tar_zst(tar_file: Path, dest: Path) -> None:
     try:
         import zstandard
     except ImportError:
-        zstandard = None
+        zstandard = None # type: ignore
     if zstandard is not None:
         with open(tar_file, "rb") as f:
             with zstandard.ZstdDecompressor().stream_reader(f) as reader:

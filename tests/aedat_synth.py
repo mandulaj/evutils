@@ -9,6 +9,7 @@ than against themselves.
 import struct
 
 import numpy as np
+from typing import Any
 
 #: AEDAT 4.0 event struct layout (16 bytes: int64 t, int16 x, int16 y, uint8 p).
 _V4_EVENT_DTYPE = np.dtype({
@@ -21,7 +22,7 @@ _V4_EVENT_DTYPE = np.dtype({
 # --------------------------------------------------------------------------- #
 # Synthesis helpers
 # --------------------------------------------------------------------------- #
-def make_aedat1(t, x, y, p, header=True):
+def make_aedat1(t: Any, x: Any, y: Any, p: Any, header: bool=True) -> bytes:
     """AEDAT 1.0: '#' header + big-endian (uint16 addr, uint32 ts) records.
     DVS128 layout: p = bit 0, x = bits 1-7, y = bits 8-14."""
     out = bytearray()
@@ -33,7 +34,7 @@ def make_aedat1(t, x, y, p, header=True):
     return bytes(out)
 
 
-def make_aedat2(t, x, y, p, aps_every=None):
+def make_aedat2(t: Any, x: Any, y: Any, p: Any, aps_every: Any=None) -> bytes:
     """AEDAT 2.0: '#' header + big-endian (uint32 addr, uint32 ts) records.
     DAVIS layout: p = bit 11, x = bits 12-21, y = bits 22-30; bit 31 = APS."""
     out = bytearray(b"#!AER-DAT2.0\r\n# sizeX 240\r\n# sizeY 180\r\n")
@@ -46,24 +47,24 @@ def make_aedat2(t, x, y, p, aps_every=None):
     return bytes(out)
 
 
-def _aedat3_packet(ev_type, records):
+def _aedat3_packet(ev_type: int, records: list[bytes]) -> bytes:
     """One AEDAT 3.1 packet: 28-byte LE header + raw records."""
     body = b"".join(records)
     ev_size = len(body) // max(len(records), 1) if records else 8
     return struct.pack(
         "<hhiiiiii", ev_type, 0, ev_size, 4,
-        _aedat3_packet.ts_overflow, len(records), len(records), len(records),
+        getattr(_aedat3_packet, "ts_overflow", 0), len(records), len(records), len(records),
     ) + body
 
 
-_aedat3_packet.ts_overflow = 0
+setattr(_aedat3_packet, "ts_overflow", 0)
 
 
-def make_aedat3(t, x, y, p, events_per_packet=4, ts_overflow=0):
+def make_aedat3(t: Any, x: Any, y: Any, p: Any, events_per_packet: int=4, ts_overflow: int=0) -> bytes:
     """AEDAT 3.1: header through '#!END-HEADER' + polarity-event packets.
     Event: uint32 data (valid bit 0, p bit 1, y bits 2-16, x bits 17-31)
     + uint32 timestamp, little-endian."""
-    _aedat3_packet.ts_overflow = ts_overflow
+    setattr(_aedat3_packet, "ts_overflow", ts_overflow)
     out = bytearray(
         b"#!AER-DAT3.1\r\n#Format: RAW\r\n#Source 1: Test sizeX 346 sizeY 260\r\n#!END-HEADER\r\n"
     )
@@ -78,7 +79,7 @@ def make_aedat3(t, x, y, p, events_per_packet=4, ts_overflow=0):
     return bytes(out)
 
 
-def _fb_event_packet(t, x, y, p):
+def _fb_event_packet(t: Any, x: Any, y: Any, p: Any) -> bytes:
     """Hand-built size-prefixed EventPacket FlatBuffer (identifier EVTS)."""
     n = len(t)
     rec = np.zeros(n, dtype=_V4_EVENT_DTYPE)
@@ -102,7 +103,7 @@ def _fb_event_packet(t, x, y, p):
     return bytes(buf)
 
 
-def _fb_io_header(compression, data_table_pos, info_node: bytes):
+def _fb_io_header(compression: int, data_table_pos: int, info_node: bytes) -> bytes:
     """Hand-built IOHeader FlatBuffer (not size-prefixed)."""
     buf = bytearray()
     buf += struct.pack("<I", 16)                       # root table offset
@@ -127,7 +128,7 @@ _V4_INFO_XML = (
 )
 
 
-def make_aedat4(t, x, y, p, events_per_packet=5, compression=0, info=_V4_INFO_XML):
+def make_aedat4(t: Any, x: Any, y: Any, p: Any, events_per_packet: int=5, compression: int=0, info: bytes=_V4_INFO_XML) -> bytes:
     """AEDAT 4.0: version line + IOHeader FlatBuffer + (StreamID, Size)-framed
     EventPacket FlatBuffers."""
     io_header = _fb_io_header(compression, -1, info)
