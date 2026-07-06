@@ -1,5 +1,9 @@
 name: Release & Publish Docs
 
+concurrency:
+  group: release-pages-${{ github.ref }}
+  cancel-in-progress: false
+
 on:
   release:
     types: [published]
