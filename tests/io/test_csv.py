@@ -14,19 +14,7 @@ import pytest
 ####################################
 
 
-# def test_CSV_writer_import():
-#     from evutils.io.writer import EventWriter_Csv
-#     assert EventWriter_Csv is not None
-#     test_writer = EventWriter_Csv("test.csv")
-#     assert test_writer is not None
 
-# def test_CSV_reader_import(dummy_file_factory):
-#     test_file = dummy_file_factory("test.csv")
-
-#     from evutils.io.reader import EventReader_Csv
-#     assert EventReader_Csv is not None
-#     test_reader = EventReader_Csv(test_file)
-#     assert test_reader is not None
 
 
 from typing import Any

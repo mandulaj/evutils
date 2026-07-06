@@ -18,9 +18,7 @@ def skip_missing_deps(request: Any) -> None:
     if "fmt" in request.fixturenames:
         fmt = request.getfixturevalue("fmt")
 
-        if fmt == "csv":
-            pass
-        elif fmt == "hdf5":
+        if fmt == "hdf5":
             pytest.importorskip("h5py")
             pytest.importorskip("hdf5plugin")
 
