@@ -410,7 +410,7 @@ class EventReader():
         # stream wins (the buffer may hold far more than one window's worth).
         while True:
             t = acc.t_window()
-            time_ready = not drain and len(t) > 0 and t[-1] > end_ts
+            time_ready = not drain and len(t) > 0 and t[-1] >= end_ts
             count_ready = not drain and len(acc) > n_events
 
             if time_ready or count_ready:
