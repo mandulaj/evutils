@@ -166,6 +166,7 @@ We aim for universal event format support, prioritizing blazing fast read/write 
 - [ ] **Random access / Timestamp indexing** (Big TODO for the future)
 - [ ] **Arbitrary input sources:** memory-mapped IO, pure in-memory streams, HTTP streams
 - [ ] **On-the-fly Compression wrappers:** passing file handles through `zstd` or `lz4` compression transparently before decoding
+- [ ] **EventStreamer Pipeline Refactor:** Decouple `EventReader`'s monolithic chunking logic into composable functional generators in `chunking.py`, exposing a native `EventStreamer` for power-users while turning `EventReader` into a clean Façade.
 
 
 ## Acknowledgements
