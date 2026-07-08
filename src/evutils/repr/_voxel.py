@@ -53,6 +53,8 @@ def voxel_histogram(events: np.ndarray, width: int = 1280, height: int = 720, n_
     bin_dt = dt // n_bins  # Time per bin in microseconds
 
     for i, e in enumerate(window_delta_t(events, delta_t=bin_dt)):
+        if i >= n_bins:
+            break
         hist = histogram(e, width=width, height=height, fill=False, dtype=dtype)
 
         # Only keep the r and b channels
