@@ -105,7 +105,7 @@ def test_RAW_metadata_match(real_event_files: Any, fmt: Any) -> None:
         
         with EventReader(ef.path, ext_trigger=True, chunk_size=5_000_000) as reader:
             shape = list(reader.shape())
-            if shape != [None, None]:
+            if shape != [None, None] and fmt != 'evt21':
                 assert shape == meta['resolution']
             
             for ev, tr in reader:

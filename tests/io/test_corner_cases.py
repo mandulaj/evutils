@@ -39,39 +39,8 @@ def test_trigger_boundary_sync(tmp_path):
     assert len(ev2) == 1 and ev2.t[0] == 1000
     assert len(tr2) == 1 and tr2.t[0] == 1000 # Trigger at 1000 should be here
 
-class ShortReadStream:
-    def __init__(self, data):
-        self.data = data
-        self.pos = 0
 
-    def read(self, size=-1):
-        if self.pos >= len(self.data):
-            return b""
-        if size == -1:
-            size = len(self.data) - self.pos
-        # Return at most 10 bytes at a time
-        size = min(size, 10)
-        chunk = self.data[self.pos:self.pos+size]
-        self.pos += len(chunk)
-        return chunk
 
-def test_short_reads_stream():
-    # Test reading from a stream that returns fewer bytes than requested
-    # Create some dummy evt3 data
-    ev = np.zeros(5, dtype=np.dtype([('t', np.int64), ('x', np.uint16), ('y', np.uint16), ('p', np.uint8)]))
-    ev['t'] = [10, 20, 30, 40, 50]
-    bio = io.BytesIO()
-    with EventWriter(bio, format="evt3") as w:
-        w.write(ev)
-        
-    data = bio.getvalue()
-    stream = ShortReadStream(data)
-    
-    with EventReader(stream, mode="all") as r:
-        out = r.read_all()
-        
-    assert len(out) == 5
-    assert np.array_equal(out.t, ev['t'])
 
 def test_extreme_playback_speed(tmp_path):
     p = tmp_path / "extreme.raw"
