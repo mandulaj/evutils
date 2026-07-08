@@ -420,12 +420,12 @@ class EventReader():
                     # n_events cutoff comes first
                     end_idx = n_events
                     self._current_ts = int(t[n_events])
-                    tr_end_idx = int(np.searchsorted(tr_t, self._current_ts, side='right'))
+                    tr_end_idx = int(np.searchsorted(tr_t, self._current_ts, side='left'))
                 else:
                     # delta_t cutoff comes first (ties go to the time window)
                     end_idx = time_idx
                     self._current_ts += delta_t
-                    tr_end_idx = int(np.searchsorted(tr_t, end_ts, side='right'))
+                    tr_end_idx = int(np.searchsorted(tr_t, end_ts, side='left'))
                 break
 
             # Not enough buffered yet: pull more from the decoder.
