@@ -43,6 +43,8 @@ def generate_metadata(file_path):
 
 
     reader = EventsIterator(str(path))
+
+    height, width = reader.get_size()
     
     total_events = 0
     pos_events = 0
@@ -51,11 +53,15 @@ def generate_metadata(file_path):
     min_y, max_y = float('inf'), float('-inf')
     min_t, max_t = float('inf'), float('-inf')
 
+    first_ts = None
+    last_ts = None
     for events in reader:
         n = len(events)
         if n == 0:
             continue
         total_events += n
+        if first_ts is None:
+            first_ts = int(np.min(events['t']))
         
         pos_events += int(np.sum(events['p'] == 1))
         neg_events += int(np.sum(events['p'] == 0))
@@ -66,6 +72,7 @@ def generate_metadata(file_path):
         max_y = int(max(max_y, np.max(events['y'])))
         min_t = int(min(min_t, np.min(events['t'])))
         max_t = int(max(max_t, np.max(events['t'])))
+        last_ts = int(np.max(events['t']))
     
     external_triggers = reader.get_ext_trigger_events()
     num_external_triggers = len(external_triggers) if external_triggers is not None else 0
@@ -79,12 +86,14 @@ def generate_metadata(file_path):
         "count": total_events,
         "pos_count": pos_events,
         "neg_count": neg_events,
+        "first_ts": first_ts,
+        "last_ts": last_ts,
         "external_triggers": {
             "total": num_external_triggers,
             "positive": num_pos_external_triggers,
             "negative": num_neg_external_triggers
         },
-        "resolution": [int(max_x + 1) if total_events > 0 else 0, int(max_y + 1) if total_events > 0 else 0],
+        "resolution": [width, height],
         "duration_us": int(max_t - min_t) if total_events > 0 else 0
     }
 
