@@ -40,6 +40,9 @@ def mask_events(events: np.ndarray, mask: np.ndarray) -> np.ndarray:
     # Check if mask is a 2D array
     if mask.ndim != 2:
         raise ValueError("Mask must be a 2D array")
+
+    if len(events) == 0:
+        return events
     
     # Check if max x and y in events are within the mask dimensions
     if events['x'].max() < 0 or events['y'].max() < 0:

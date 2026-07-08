@@ -1,6 +1,6 @@
 
 
-from evutils.random import random_events, random_events_generator, event_jitter
+from evutils.random import random_events, random_events_generator, event_jitter, event_jitter_n
 
 from evutils.types import is_monotonically_increasing
 
@@ -41,3 +41,35 @@ def test_event_jitter() -> None:
     ev_s_jitter = event_jitter(ev.copy(), jitter=100, sort=True)
     
     assert is_monotonically_increasing(ev_s_jitter)
+
+def test_event_jitter_n() -> None:
+    ev = random_events(N, 1280, 720, 10, 10000)
+    ev_jitter = event_jitter_n(ev.copy(), mean=0.0, std=10.0, sort=False)
+
+    assert len(ev) == len(ev_jitter)
+    assert np.array_equal(ev["x"], ev_jitter["x"])
+    assert np.array_equal(ev["y"], ev_jitter["y"])
+    assert np.array_equal(ev["p"], ev_jitter["p"])
+
+    assert not is_monotonically_increasing(ev_jitter)
+
+    ev_s_jitter = event_jitter_n(ev.copy(), mean=0.0, std=10.0, sort=True)
+    assert is_monotonically_increasing(ev_s_jitter)
+
+def test_random_events_empty() -> None:
+    ev = random_events(0)
+    assert len(ev) == 0
+
+def test_random_events_generator_empty() -> None:
+    gen = list(random_events_generator(0))
+    assert len(gen) == 0
+
+def test_event_jitter_empty() -> None:
+    ev = random_events(0)
+    ev_jitter = event_jitter(ev.copy(), jitter=10)
+    assert len(ev_jitter) == 0
+
+def test_event_jitter_n_empty() -> None:
+    ev = random_events(0)
+    ev_jitter = event_jitter_n(ev.copy(), mean=0, std=1)
+    assert len(ev_jitter) == 0

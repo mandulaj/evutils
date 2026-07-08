@@ -60,4 +60,74 @@ def test_soa_array_indexing() -> None:
     assert isinstance(trig_single, np.void)
     assert trig_single['t'] == 100
     assert trig_single['id'] == 5
+
+
+def test_event_array_empty() -> None:
+    from evutils.types import EventArray
+    empty_events = EventArray.empty()
+    assert len(empty_events) == 0
+    assert len(empty_events.t) == 0
+    assert empty_events.to_aos().shape == (0,)
+    assert repr(empty_events) == "EventArray(empty)"
+
+
+def test_soa_array_negative_indexing() -> None:
+    from evutils.types import EventArray
+    t = [10, 20, 30]
+    x = [1, 2, 3]
+    y = [4, 5, 6]
+    p = [0, 1, 0]
+    
+    events = EventArray(t, x, y, p)
+    
+    # Negative scalar index
+    ev_last = events[-1]
+    assert isinstance(ev_last, np.void)
+    assert ev_last['t'] == 30
+    assert ev_last['x'] == 3
+    
+    # Negative slice
+    ev_slice = events[-2:]
+    assert isinstance(ev_slice, EventArray)
+    assert len(ev_slice) == 2
+    assert ev_slice.t[0] == 20
+    assert ev_slice.t[1] == 30
+
+
+def test_soa_array_bool_indexing() -> None:
+    from evutils.types import EventArray
+    t = [10, 20, 30]
+    x = [1, 2, 3]
+    y = [4, 5, 6]
+    p = [0, 1, 0]
+    
+    events = EventArray(t, x, y, p)
+    
+    # Bool index
+    mask = events.p == 1
+    ev_bool = events[mask]
+    assert isinstance(ev_bool, EventArray)
+    assert len(ev_bool) == 1
+    assert ev_bool.t[0] == 20
+
+
+def test_soa_array_repr_long() -> None:
+    from evutils.types import EventArray
+    t = np.arange(20)
+    x = np.arange(20)
+    y = np.arange(20)
+    p = np.zeros(20)
+    
+    events = EventArray(t, x, y, p)
+    rep = repr(events)
+    assert "..." in rep
+    assert "EventArray(n=20)" in rep
+
+
+def test_trigger_array_empty() -> None:
+    from evutils.types import TriggerArray
+    empty_trig = TriggerArray.empty()
+    assert len(empty_trig) == 0
+    assert len(empty_trig.t) == 0
+    assert empty_trig.to_aos().shape == (0,)
     

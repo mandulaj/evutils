@@ -146,3 +146,17 @@ def test_aedat_magic_sniffing(tmp_path: Any) -> None:
     f.write_bytes(make_aedat1(t, x, y, p))
     with EventReader(f) as r:
         check(r.read_all(), t, x, y, p)
+
+def test_AEDAT_empty_file(tmp_path: Any) -> None:
+    f = tmp_path / "empty.aedat"
+    f.touch()
+    with EventReader(f) as r:
+        out = r.read_all()
+        assert len(out) == 0
+
+def test_AEDAT_truncated_payload(tmp_path: Any) -> None:
+    f = tmp_path / "truncated.aedat"
+    f.write_bytes(b"\x01\x02\x03\x04") # 4 bytes
+    with EventReader(f) as r:
+        out = r.read_all()
+        assert len(out) == 0

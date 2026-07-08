@@ -48,6 +48,9 @@ def random_events_generator(n_events: int, width: int = 1280, height: int = 720,
     10000
     5000
     """
+    if n_events == 0:
+        return
+        
     n_chunks = int(np.ceil(n_events / chunk_size))
 
     chunk_ts_len = (end_ts - start_ts) // n_chunks

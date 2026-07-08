@@ -158,3 +158,11 @@ def test_large_timestamps(tmp_path: Any) -> None:
         ref = ev[(ev["t"] >= start_ms * 1000) & (ev["t"] < (start_ms + 20) * 1000)]
         assert len(got) == len(ref)
         assert np.array_equal(got["t"], ref["t"])
+
+def test_HDF5_empty_dataset(tmp_path: Any) -> None:
+    p = tmp_path / "empty.h5"
+    with EventWriter(p) as w:
+        pass # write nothing
+    with EventReader(p) as r:
+        out = r.read_all()
+        assert len(out) == 0

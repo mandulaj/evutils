@@ -87,3 +87,41 @@ def test_DAT_coordinate_extremes(tmp_path: Any) -> None:
         out = r.read_all()
     assert not isinstance(out, tuple)
     assert np.array_equal(np.asarray(out), ev)
+
+def test_DAT_empty_file(tmp_path: Any) -> None:
+    from evutils.io import EventReader
+    p = tmp_path / "empty.dat"
+    p.touch()
+    with EventReader(p) as r:
+        assert len(r.read()) == 0
+
+def test_DAT_header_only(tmp_path: Any) -> None:
+    from evutils.io import EventReader
+    p = tmp_path / "header_only.dat"
+    p.write_bytes(b"% Header\n")
+    with EventReader(p) as r:
+        assert len(r.read()) == 0
+
+def test_DAT_unsupported_event_size(tmp_path: Any) -> None:
+    from evutils.io import EventReader
+    p = tmp_path / "unsupported_size.dat"
+    # 0x0C = CD, size 0x10 (unsupported)
+    p.write_bytes(b"% Header\n\x0c\x10")
+    with pytest.raises(NotImplementedError, match="DAT event size 16 not supported"):
+        with EventReader(p) as r:
+            r.read()
+
+def test_DAT_truncated_payload(tmp_path: Any) -> None:
+    # 8 bytes per event. Give 4 bytes.
+    from evutils.io import EventReader
+    p = tmp_path / "truncated.dat"
+    p.write_bytes(b"% Header\n\x0c\x08\x01\x02\x03\x04")
+    with EventReader(p) as r:
+        assert len(r.read()) == 0
+
+def test_DAT_truncated_header_missing_bytes(tmp_path: Any) -> None:
+    from evutils.io import EventReader
+    p = tmp_path / "truncated_header.dat"
+    p.write_bytes(b"% Header\n\x0c") # 1 byte left after header
+    with EventReader(p) as r:
+        assert len(r.read()) == 0

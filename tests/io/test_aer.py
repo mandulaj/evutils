@@ -96,3 +96,17 @@ def test_AER_timestamps_validation(tmp_path: Any) -> None:
         EventReader(p, timestamps="bogus").read_all()
     with pytest.raises(ValueError, match="custom timestamps array has"):
         EventReader(p, timestamps=np.arange(10)).read_all()
+
+def test_AER_empty_file(tmp_path: Any) -> None:
+    from evutils.io import EventReader
+    p = tmp_path / "empty.aer"
+    p.touch()
+    with EventReader(p) as r:
+        assert len(r.read()) == 0
+
+def test_AER_truncated_payload(tmp_path: Any) -> None:
+    from evutils.io import EventReader
+    p = tmp_path / "truncated.aer"
+    p.write_bytes(b"\x01\x02\x03") # 3 bytes, AER is 4 bytes
+    with EventReader(p) as r:
+        assert len(r.read()) == 0

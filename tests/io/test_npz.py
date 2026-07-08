@@ -97,3 +97,19 @@ def test_large_timestamps(tmp_path: Any) -> None:
         out = r.read_all()
         assert not isinstance(out, tuple)
         assert np.array_equal(out["t"], ev["t"])
+
+def test_NPZ_empty_arrays(tmp_path: Any) -> None:
+    p = tmp_path / "empty_arrays.npz"
+    np.savez(p, t=np.zeros(0, dtype=np.int64), x=np.zeros(0, dtype=np.uint16),
+             y=np.zeros(0, dtype=np.uint16), p=np.zeros(0, dtype=np.uint8))
+    with EventReader(p) as r:
+        out = r.read_all()
+        assert len(out) == 0
+
+def test_NPZ_empty_file(tmp_path: Any) -> None:
+    import zipfile
+    p = tmp_path / "empty_file.npz"
+    p.touch()
+    with pytest.raises(zipfile.BadZipFile):
+        with EventReader(p) as r:
+            r.read_all()

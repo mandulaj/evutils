@@ -418,3 +418,17 @@ def test_EVT3_coordinate_extremes(tmp_path: Any) -> None:
     assert np.array_equal(out["x"], ev['x'])
     assert np.array_equal(out["y"], ev['y'])
     assert np.array_equal(out["p"], ev['p'])
+
+def test_EVT_empty_file(tmp_path: Any) -> None:
+    from evutils.io import EventReader
+    p = tmp_path / "empty.raw"
+    p.touch()
+    with EventReader(p) as r:
+        assert len(r.read()) == 0
+
+def test_EVT_corrupted_header_no_end(tmp_path: Any) -> None:
+    from evutils.io import EventReader
+    p = tmp_path / "no_end_header.raw"
+    p.write_bytes(b"% camera_integrator_name Prophesee\n% date 2026-07-08 12:00:00\n\x00\x00")
+    with EventReader(p) as r:
+        assert len(r.read()) == 0
