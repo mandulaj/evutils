@@ -20,14 +20,43 @@ def download_and_extract_github(url: str, temp_dir: Path, tar_name: str) -> None
 
     A sentinel file records the URL of a completed extraction; on later runs
     the download is skipped if the sentinel matches, so cached data is reused.
+
+    Raises ``RuntimeError`` with a readable message if the download fails or
+    returns something that clearly isn't the tarball (e.g. a GitHub "Not
+    Found" page), instead of letting ``tar`` fail cryptically downstream.
     """
     marker = temp_dir / ".downloaded"
     if marker.is_file() and marker.read_text().strip() == url:
         return  # already downloaded + extracted this exact release
 
     tar_path = temp_dir / tar_name
-    subprocess.run(["curl", "-L", url, "-o", str(tar_path)], check=True)
-    subprocess.run(["tar", "-x", "--strip-components=1", "-C", str(temp_dir), "-f", str(tar_path)], check=True)
+    # -f: fail (non-zero) on HTTP >= 400 instead of saving the error body.
+    # -L: follow redirects (release assets 302 to a signed URL).
+    # --retry: ride out transient CI network / GitHub hiccups.
+    curl = subprocess.run(
+        ["curl", "-fL", "--retry", "3", "--retry-delay", "2",
+         url, "-o", str(tar_path)],
+        capture_output=True, text=True,
+    )
+    if curl.returncode != 0:
+        tar_path.unlink(missing_ok=True)
+        raise RuntimeError(
+            f"Failed to download {url} (curl exit {curl.returncode}). "
+            f"{curl.stderr.strip()}"
+        )
+
+    # A real tarball is many MB; anything tiny is an error page, not data.
+    size = tar_path.stat().st_size
+    if size < 10_000:
+        snippet = tar_path.read_bytes()[:200]
+        tar_path.unlink(missing_ok=True)
+        raise RuntimeError(
+            f"Download from {url} produced only {size} bytes -- this looks like "
+            f"an error response, not the tarball. Check the release URL/asset. "
+            f"First bytes: {snippet!r}"
+        )
+
+    subprocess.run(["tar", "-xf", str(tar_path), "--strip-components=1", "-C", str(temp_dir)], check=True)
     tar_path.unlink()
     marker.write_text(url)
 
