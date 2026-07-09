@@ -92,22 +92,39 @@ def get_reader_from_filename(file: Path) -> Type[EventDecoder]:
 
 # Content sniffers: (predicate over the first bytes -> decoder class). Tried in
 # order when the filename extension is unknown or absent (streams, USB).
-def _sniff_prophesee(head: bytes) -> bool:
-    """Check if the first bytes match the Prophesee RAW/EVT format.
+def _header_lines(head: bytes) -> list[str]:
+    """The ``"% ..."`` ASCII header lines at the start of ``head``."""
+    text = head.decode("ascii", "ignore")
+    return [ln for ln in text.split("\n") if ln.startswith("% ")]
 
-    Parameters
-    ----------
-    head : bytes
-        The first bytes of the file/stream.
 
-    Returns
-    -------
-    bool
-        True if it matches the Prophesee format, False otherwise.
+def _sniff_dat(head: bytes) -> bool:
+    """Prophesee DAT: header carries ``% Version`` / ``% Data file containing``.
 
+    DAT and RAW/EVT both open with a ``%`` header, so they can only be told
+    apart by the keywords inside it.
     """
-    # Prophesee RAW/EVT files begin with an ASCII '% ...' header.
-    return head[:1] == b"%"
+    for ln in _header_lines(head):
+        low = ln.lower()
+        if "data file containing" in low or low.startswith("% version"):
+            return True
+    return False
+
+
+def _sniff_evt(head: bytes) -> bool:
+    """Prophesee RAW/EVT: header carries ``% evt`` / ``% format EVT`` / ``% geometry``."""
+    for ln in _header_lines(head):
+        low = ln.lower()
+        if (low.startswith("% evt")
+                or low.startswith("% format evt")
+                or low.startswith("% geometry")):
+            return True
+    return False
+
+
+def _sniff_prophesee(head: bytes) -> bool:
+    """Fallback: any other ``"% "``-headed stream is treated as RAW/EVT."""
+    return head[:2] == b"% "
 
 
 def _sniff_aedat(head: bytes) -> bool:
@@ -128,8 +145,10 @@ def _sniff_aedat(head: bytes) -> bool:
 
 
 _SNIFFERS = [
-    (_sniff_prophesee, "EventDecoder_EVT"),
+    (_sniff_dat, "EventDecoder_Dat"),
+    (_sniff_evt, "EventDecoder_EVT"),
     (_sniff_aedat, "EventDecoder_Aedat"),
+    (_sniff_prophesee, "EventDecoder_EVT"),  # generic "% "-headed fallback
 ]
 
 

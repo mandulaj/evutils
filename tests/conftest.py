@@ -15,7 +15,7 @@ from evutils.types import Event_dtype
 
 # Add tests dir to path to import conftest_utils
 sys.path.append(str(Path(__file__).parent))
-from conftest_utils import download_and_extract_gdrive, load_event_files # type: ignore
+from conftest_utils import download_and_extract_github, load_event_files # type: ignore
 
 
 from typing import Any
@@ -56,16 +56,10 @@ def real_event_files(request: Any) -> Any:
 
     temp_dir = request.config.cache.mkdir("event_files")
 
-    filenames = {
-        'evt3': "hand_evt3.raw",
-        'evt21': "hand_evt21.raw",
-        'evt2': "hand_evt2.raw",
-    }
-    paths = {fmt: temp_dir / name for fmt, name in filenames.items()}
-
-    for key, path in paths.items():
-        if not path.exists():
-            download_and_extract_gdrive("1uhOsWbp2o3CktsHrFkzGCNFbx0bQLsct", temp_dir, "hand.tar.zst")
-            break
+    download_and_extract_github(
+        "https://github.com/mandulaj/evutils/releases/download/v0.3.14/testfiles.tar.xz",
+        temp_dir,
+        "testfiles.tar.xz"
+    )
 
     return load_event_files(temp_dir)

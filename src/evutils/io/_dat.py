@@ -75,7 +75,9 @@ class EventDecoder_Dat(EventDecoder):
         mv = memoryview(buf)
         n = len(mv)
         off = 0
-        while off < n and mv[off] == 0x25:  # '%'
+        # Header lines start with "% "; the binary section (event-type byte,
+        # then records) begins at the first line without that prefix.
+        while off + 1 < n and mv[off] == 0x25 and mv[off + 1] == 0x20:
             window = bytes(mv[off:off + 8192])
             rel = window.find(b"\n")
             if rel < 0:

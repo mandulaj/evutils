@@ -1,7 +1,7 @@
 """EVT (Prophesee EVT2 / EVT2.1 / EVT3) decoder backed by the native C parser.
 
 Reads the Prophesee ASCII header from a :class:`ByteSource`, then decodes the
-binary EVT payload into ``Event_dtype`` chunks using the compiled parser in
+binary EVT payload into ``EventArray`` chunks using the compiled parser in
 ``csrc`` (via :mod:`evutils.io._native_evt`).
 
 Input strategy:
@@ -20,6 +20,7 @@ header ``format`` field: EVT3 (16-bit words), EVT2 (32-bit words) and EVT2.1
 from __future__ import annotations
 
 import io
+import re
 from datetime import datetime
 from typing import Any, TYPE_CHECKING, Dict
 
@@ -51,6 +52,48 @@ from ._source import ByteSource
 
 _EMPTY_EVENTS = EventArray.empty()
 
+# Prophesee sensor generation -> (width, height). Older EVT2 RAWs omit an
+# explicit `format`/`geometry` field, so the geometry has to be inferred from
+# the sensor identity -- the same thing the Metavision SDK does.
+_GEN_RESOLUTION = {
+    "1": (304, 240), "1.0": (304, 240),       # Gen1 ATIS
+    "2": (640, 480), "2.0": (640, 480),       # Gen2 VGA
+    "3": (640, 480), "3.0": (640, 480),       # Gen3 VGA
+    "3.1": (640, 480),                        # Gen3.1 VGA
+    "4": (1280, 720), "4.0": (1280, 720),     # Gen4 HD
+    "4.1": (1280, 720),                       # Gen4.1 HD
+    "4.2": (1280, 720),                       # Gen4.2 (IMX636) HD
+}
+
+# Sensor model name -> (width, height).
+_SENSOR_RESOLUTION = {
+    "imx636": (1280, 720),                    # Gen4.2 HD
+}
+
+# system_ID -> (width, height), for headers that carry nothing else. Values
+# observed on Prophesee EVKs: 21-29 are Gen3/Gen3.1 VGA, 40-49 are Gen4.x HD.
+_SYSTEM_ID_RESOLUTION = {
+    21: (640, 480), 22: (640, 480), 23: (640, 480),
+    28: (640, 480), 29: (640, 480),
+    40: (1280, 720), 41: (1280, 720), 42: (1280, 720),
+    48: (1280, 720), 49: (1280, 720),
+}
+
+
+def _resolution_from_generation(gen: Any) -> tuple[int, int] | None:
+    """Map a generation string (``"4.2"``, ``"gen31"``, ...) to a resolution."""
+    if gen is None:
+        return None
+    g = str(gen).strip().lower()
+    if g in _GEN_RESOLUTION:
+        return _GEN_RESOLUTION[g]
+    m = re.fullmatch(r"gen(\d)(\d?)", g)  # "gen31" -> "3.1", "gen4" -> "4"
+    if m:
+        key = m.group(1) + ("." + m.group(2) if m.group(2) else "")
+        return _GEN_RESOLUTION.get(key)
+    return None
+
+
 # Per-format native backend: parser class, zero-copy input wrapper, and the
 # numpy word dtype the binary payload is viewed as.
 _BACKENDS = {
@@ -61,7 +104,7 @@ _BACKENDS = {
 
 
 class EventDecoder_EVT(EventDecoder):
-    """Decode Prophesee EVT2, EVT2.1, and EVT3 streams into ``Event_dtype`` chunks.
+    """Decode Prophesee EVT2, EVT2.1, and EVT3 streams into ``EventArray`` chunks.
 
     Parameters
     ----------
@@ -122,7 +165,10 @@ class EventDecoder_EVT(EventDecoder):
         mv = memoryview(buf)
         n = len(mv)
         off = 0
-        while off < n and mv[off] == 0x25:  # '%'
+        # A header line always starts with "% " (0x25 0x20). The `% end` marker
+        # is optional -- the payload begins at the first line that does *not*
+        # start with "% ", so that two-byte prefix is the real terminator.
+        while off + 1 < n and mv[off] == 0x25 and mv[off + 1] == 0x20:
             window = bytes(mv[off:off + 8192])
             rel = window.find(b"\n")
             if rel < 0:
@@ -185,13 +231,53 @@ class EventDecoder_EVT(EventDecoder):
         if self._format is None:
             self._format = "evt3"  # sensible default for Prophesee RAW
 
+        # Geometry not stated explicitly (older EVT2 RAWs): infer it from the
+        # sensor identity, the way the Metavision SDK does.
         if self._width is None or self._height is None:
-            if self._header.get("sensor_name") == "IMX636":
-                self._width, self._height = 1280, 720
+            res = self._infer_resolution()
+            if res is not None:
+                self._width, self._height = res
+
         if self._width is None or not (0 < self._width <= 2048):
             self._width = 2048
         if self._height is None or not (0 < self._height <= 2048):
             self._height = 2048
+
+    def _infer_resolution(self) -> tuple[int, int] | None:
+        """Guess (width, height) from the sensor identity fields in the header.
+
+        Tries, in order of reliability: an explicit sensor model, the
+        ``sensor_generation`` / ``generation`` fields, the generation token
+        embedded in ``plugin_name`` (e.g. ``hal_plugin_gen31_fx3``), and
+        finally the ``system_ID``. Returns ``None`` if nothing matches.
+        """
+        h = self._header
+
+        name = h.get("sensor_name")
+        if isinstance(name, str):
+            res = _SENSOR_RESOLUTION.get(name.strip().lower())
+            if res:
+                return res
+
+        for key in ("sensor_generation", "generation"):
+            res = _resolution_from_generation(h.get(key))
+            if res:
+                return res
+
+        plugin = h.get("plugin_name")
+        if isinstance(plugin, str):
+            low = plugin.lower()
+            for model, res in _SENSOR_RESOLUTION.items():
+                if model in low:
+                    return res
+            m = re.search(r"gen(\d)(\d?)", low)  # hal_plugin_gen31_fx3 -> "3.1"
+            if m:
+                key = m.group(1) + ("." + m.group(2) if m.group(2) else "")
+                res = _GEN_RESOLUTION.get(key)
+                if res:
+                    return res
+
+        return _SYSTEM_ID_RESOLUTION.get(h.get("system_id"))
 
     # ------------------------------------------------------------------ #
     # Lifecycle
