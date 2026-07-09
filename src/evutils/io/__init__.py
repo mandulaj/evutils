@@ -9,6 +9,11 @@ degrade gracefully and only raise on use.
 
 from ._event_reader import EventReader
 from ._event_writer import EventWriter
+from .stream import EventStreamer
 
 
-__all__ = ["EventReader", "EventWriter"]
+__all__ = [
+    "EventReader",
+    "EventWriter",
+    "EventStreamer",
+]

@@ -5,7 +5,13 @@ count or by time interval.
 """
 
 import numpy as np
-from typing import Iterator
+
+import time
+import queue
+import threading
+from typing import Iterator, Any
+from evutils.io.buffer import EventAccumulator
+
 
 
 
@@ -150,3 +156,161 @@ def get_dt_events(events: np.ndarray, dt: int =10_000) -> np.ndarray:
     next_index = np.searchsorted(events['t'], last_ts)
     
     return events[:next_index]
+def stream_delta_t(raw_stream: Iterator[Any], delta_t: int) -> Iterator[Any]:
+    """A pipeline generator that turns a raw stream into perfect delta_t chunks.
+    This maintains a small internal buffer for events that cross boundaries.
+    """
+    acc = EventAccumulator(capacity=100_000_000)
+    current_ts = None
+    
+    for incoming in raw_stream:
+        # Handle unpacking depending on if the stream yields triggers or not
+        if isinstance(incoming, tuple):
+            ev, tr = incoming
+            acc.append(ev, tr)
+        else:
+            acc.append(incoming, None)
+            
+        if len(acc) == 0:
+            continue
+            
+        # Initialize our absolute time anchor from the very first event
+        if current_ts is None:
+            current_ts = int(acc.t_window()[0])
+            
+        # Yield as many full windows as we have accumulated
+        while True:
+            end_ts = current_ts + delta_t
+            t = acc.t_window()
+            
+            if len(t) == 0 or t[-1] < end_ts:
+                # Not enough data for a full window yet; fetch more chunks
+                break
+                
+            # Find boundary
+            idx = int(np.searchsorted(t, end_ts, side='left'))
+            
+            # Slice and yield
+            if acc._tr is not None:
+                tr_t = acc.t_window_tr()
+                tr_idx = int(np.searchsorted(tr_t, end_ts, side='left'))
+                chunk_ev, chunk_tr = acc.slice_copy(idx, tr_idx)
+                yield chunk_ev, chunk_tr
+            else:
+                chunk_ev, _ = acc.slice_copy(idx, 0)
+                yield chunk_ev
+                
+            current_ts += delta_t
+
+    # Stream finished! Yield whatever is leftover in the buffer
+    if len(acc) > 0:
+        if acc._tr is not None:
+            yield acc.slice_copy(len(acc), acc._tr.size - acc._tr_start)
+        else:
+            yield acc.slice_copy(len(acc), 0)[0]
+
+
+def stream_n_events(raw_stream: Iterator[Any], n_events: int) -> Iterator[Any]:
+    """Pipeline generator: chunks stream by event count."""
+    acc = EventAccumulator(capacity=max(1_000_000, n_events * 2))
+    for incoming in raw_stream:
+        if isinstance(incoming, tuple):
+            acc.append(incoming[0], incoming[1])
+        else:
+            acc.append(incoming, None)
+            
+        while len(acc) >= n_events:
+            if acc._tr is not None:
+                if len(acc) == n_events:
+                    tr_idx = acc._tr.size - acc._tr_start
+                else:
+                    tr_idx = int(np.searchsorted(acc.t_window_tr(), acc.t_window()[n_events], side='left'))
+                yield acc.slice_copy(n_events, tr_idx)
+            else:
+                yield acc.slice_copy(n_events, 0)[0]
+                
+    if len(acc) > 0:
+        if acc._tr is not None:
+            yield acc.slice_copy(len(acc), acc._tr.size - acc._tr_start)
+        else:
+            yield acc.slice_copy(len(acc), 0)[0]
+
+def stream_skip_to_time(stream: Iterator[Any], start_ts: int) -> Iterator[Any]:
+    """Pipeline generator: drops events until start_ts is reached."""
+    skipping = True
+    for incoming in stream:
+        ev = incoming[0] if isinstance(incoming, tuple) else incoming
+        if skipping:
+            if len(ev) == 0 or ev.t[-1] < start_ts:
+                continue  # Drop whole chunk
+            
+            # Found the boundary! Slice the chunk and stop skipping
+            idx = int(np.searchsorted(ev.t, start_ts))
+            skipping = False
+            
+            if isinstance(incoming, tuple):
+                tr_idx = int(np.searchsorted(incoming[1].t, start_ts))
+                yield incoming[0][idx:], incoming[1][tr_idx:]
+            else:
+                yield incoming[idx:]
+        else:
+            yield incoming
+
+def stream_async(stream: Iterator[Any], maxsize: int = 5) -> Iterator[Any]:
+    """Pipeline generator: runs upstream decoding in a background thread."""
+    q: queue.Queue[Any] = queue.Queue(maxsize=maxsize)
+    
+    def worker() -> None:
+        try:
+            for item in stream:
+                # IMPORTANT: C-parsers reuse internal buffers! We MUST copy the chunk
+                # before placing it in the queue to prevent the next read_chunk() 
+                # from overwriting the memory of the chunk we just yielded!
+                if isinstance(item, tuple):
+                    ev = item[0].copy() if item[0] is not None else None
+                    tr = item[1].copy() if item[1] is not None else None
+                    q.put((ev, tr))
+                else:
+                    q.put(item.copy())
+        except Exception as e:
+            q.put(e)
+        finally:
+            q.put(None)  # Sentinel
+        
+    t = threading.Thread(target=worker, daemon=True)
+    t.start()
+    
+    while True:
+        item = q.get()
+        if item is None:
+            break
+        if isinstance(item, Exception):
+            raise item
+        yield item
+
+def stream_paced_playback(stream: Iterator[Any], playback_speed: float = 1.0) -> Iterator[Any]:
+    """Pipeline generator: spaces out yielding chunks to match wall-clock real-time."""
+    start_wall = None
+    start_ts = None
+    
+    for incoming in stream:
+        ev = incoming[0] if isinstance(incoming, tuple) else incoming
+        if len(ev) == 0:
+            yield incoming
+            continue
+            
+        if start_ts is None:
+            start_ts = ev.t[0]
+            start_wall = time.perf_counter()
+            
+        # How far into the stream is this chunk's end?
+        stream_elapsed_us = ev.t[-1] - start_ts
+        expected_wall_elapsed = (stream_elapsed_us / 1_000_000) / playback_speed
+        
+        target_wall = start_wall + expected_wall_elapsed
+        now = time.perf_counter()
+        
+        if target_wall > now:
+            time.sleep(target_wall - now)
+            
+        yield incoming
