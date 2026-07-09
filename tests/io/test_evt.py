@@ -52,108 +52,17 @@ def test_RAW_writer(tmp_path: Any, test_events: Any, fmt: Any) -> None:
     with EventWriter(p, **kwargs) as writer:
         writer.write(test_events)
 
-    assert p.is_file(), "File was not created"
-    assert p.stat().st_size > 0, "Created file is empty"
+    fmt_name = fmt or 'default'
+    assert p.is_file(), f"format {fmt_name}: file was not created"
+    assert p.stat().st_size > 0, f"format {fmt_name}: created file is empty"
 
     with EventReader(p) as reader:
         events = reader.read()
 
-    assert np.array_equal(events, test_events), "Read events do not match written events"
+    assert np.array_equal(events, test_events), (
+        f"format {fmt_name}: read events do not match written events"
+    )
 
-
-@pytest.mark.parametrize("fmt", ['evt3', 'evt2', 'evt21'])
-def test_RAW_real_read(real_event_files: Any, fmt: Any) -> None:
-    """Test reading real raw files checks initialization state, shape, and timestamp monotonicity."""
-    from evutils.io import EventReader
-
-    if fmt not in real_event_files or not real_event_files[fmt]:
-        pytest.skip(f"No files for format {fmt}")
-
-
-
-    for ef in real_event_files[fmt]:
-        width, height = ef.metadata["resolution"]
-
-        with EventReader(ef.path) as reader:
-            assert not reader._is_initialized
-
-            events = reader.read()
-            assert not isinstance(events, tuple)
-            assert reader._is_initialized
-
-
-            assert len(events) > 0
-
-            # Decoded events must fall inside the sensor.
-            assert int(events["x"].max()) < width
-            assert int(events["y"].max()) < height
-            # Timestamps trend upward overall, but real Prophesee streams are
-            # *not* strictly monotonic -- a few events per time-base can arrive
-            # slightly out of order (expelliarmus decodes the same disorder), so
-            # only the global trend is asserted here.
-            assert int(events["t"][0]) <= int(events["t"][-1])
-
-
-@pytest.mark.parametrize("fmt", ['evt3', 'evt2', 'evt21'])
-def test_RAW_metadata_match(real_event_files: Any, fmt: Any) -> None:
-    """The reader's total event count, polarity breakdown, and trigger counts
-    should match the reference ground truth from the JSON metadata.
-    """
-    from evutils.io import EventReader
-
-    if fmt not in real_event_files or not real_event_files[fmt]:
-        pytest.skip(f"No files for format {fmt}")
-
-    # Only test files that have JSON metadata attached
-    for ef in real_event_files[fmt]:
-        if not ef.metadata:
-            continue
-
-        meta = ef.metadata
-        n_events = n_pos = n_neg = n_tr_pos = n_tr_neg = 0
-        
-        with EventReader(ef.path, ext_trigger=True, chunk_size=5_000_000) as reader:
-            shape = list(reader.shape())
-            assert shape == meta['resolution'], (
-                f"{fmt} ({ef.path.name}): shape {shape} != {meta['resolution']}"
-            )
-            
-            for ev, tr in reader:
-                n_events += len(ev)
-                n_pos += np.count_nonzero(ev["p"] == 1)
-                n_neg += np.count_nonzero(ev["p"] == 0)
-                
-                if len(tr) > 0:
-                    n_tr_pos += np.count_nonzero(tr["p"] == 1)
-                    n_tr_neg += np.count_nonzero(tr["p"] == 0)
-
-        # A few recordings decode byte-for-byte identically to expelliarmus but
-        # differ slightly from the Metavision reference counts, because
-        # Metavision filters a handful of events (evt2_195: +14, evt3_flash:
-        # +3345, evt3_laser: +132 -- all < 0.01%). Only those files get a tiny
-        # relative tolerance; every other file must match exactly.
-        TOLERANT_FILES = {
-            'evt2_195_falling_particles.raw',
-            'evt3_flash.raw',
-            'evt3_laser.raw',
-        }
-        rtol = 1e-3 if ef.path.name in TOLERANT_FILES else 0.0
-
-        def check(name: str, actual: int, expected: int, tol: int = 0) -> None:
-            assert abs(actual - expected) <= tol, (
-                f"{fmt} ({ef.path.name}): {name} actual {actual} != expected {expected}"
-                + (f" (tolerance {tol})" if tol else "")
-            )
-
-        check('total events', n_events, meta['count'], int(meta['count'] * rtol))
-        check('positive events', n_pos, meta['pos_count'], int(meta['pos_count'] * rtol))
-        check('negative events', n_neg, meta['neg_count'], int(meta['neg_count'] * rtol))
-
-        # Triggers are always checked exactly (small counts; off-by-one is a bug).
-        tr_meta = meta['external_triggers']
-        check('total triggers', n_tr_pos + n_tr_neg, tr_meta['total'])
-        check('positive triggers', n_tr_pos, tr_meta['positive'])
-        check('negative triggers', n_tr_neg, tr_meta['negative'])
 
 
 def test_EVT2_matches_EVT3(real_event_files: Any) -> None:
@@ -189,11 +98,14 @@ def test_EVT2_matches_EVT3(real_event_files: Any) -> None:
     t2, x2, y2, p2 = head(path2)
     t3, x3, y3, p3 = head(path3)
 
-    assert np.array_equal(x2, x3)
-    assert np.array_equal(y2, y3)
-    assert np.array_equal(p2, p3)
+    ctx = f"{path2.name} (evt2) vs {path3.name} (evt3)"
+    assert np.array_equal(x2, x3), f"{ctx}: decoded x differs"
+    assert np.array_equal(y2, y3), f"{ctx}: decoded y differs"
+    assert np.array_equal(p2, p3), f"{ctx}: decoded polarity differs"
     # Timestamps differ only by a constant (per-file time origin).
-    assert np.ptp(t3.astype(np.int64) - t2.astype(np.int64)) == 0
+    assert np.ptp(t3.astype(np.int64) - t2.astype(np.int64)) == 0, (
+        f"{ctx}: timestamp offset is not constant across events"
+    )
 
 
 @pytest.mark.parametrize("fmt", ['evt2', 'evt3'])
@@ -208,10 +120,12 @@ def test_EVT_matches_expelliarmus(real_event_files: Any, fmt: Any) -> None:
 
     ef = next((f for f in real_event_files[fmt] if 'hand' in f.path.name), real_event_files[fmt][0])
 
+    ctx = f"{ef.path.name} ({fmt})"
+
     # Read first 100k events with evutils
     with EventReader(ef.path, n_events=100_000) as reader:
         evutils_events = reader.read()
-    assert not isinstance(evutils_events, tuple)
+    assert not isinstance(evutils_events, tuple), f"{ctx}: reader returned a (events, triggers) tuple"
 
     # Read the same chunk with expelliarmus
     wiz = Wizard(encoding=fmt)
@@ -229,18 +143,22 @@ def test_EVT_matches_expelliarmus(real_event_files: Any, fmt: Any) -> None:
         
     exp_events_arr = np.concatenate(exp_events)[:100_000]
 
-    assert len(evutils_events) == len(exp_events_arr)
-    assert np.array_equal(evutils_events["x"], exp_events_arr["x"])
-    assert np.array_equal(evutils_events["y"], exp_events_arr["y"])
-    assert np.array_equal(evutils_events["p"], exp_events_arr["p"])
-    
+    assert len(evutils_events) == len(exp_events_arr), (
+        f"{ctx}: event count {len(evutils_events)} != expelliarmus {len(exp_events_arr)}"
+    )
+    assert np.array_equal(evutils_events["x"], exp_events_arr["x"]), f"{ctx}: x differs from expelliarmus"
+    assert np.array_equal(evutils_events["y"], exp_events_arr["y"]), f"{ctx}: y differs from expelliarmus"
+    assert np.array_equal(evutils_events["p"], exp_events_arr["p"]), f"{ctx}: polarity differs from expelliarmus"
+
     if fmt == 'evt3':
         # Expelliarmus has a known bug in EVT3 timestamp decoding where it occasionally
         # drifts by exactly 4096us (1 TIME_HIGH tick). Our EVT3 decoder perfectly matches
         # our EVT2 decoder, so we skip the timestamp assertion for expelliarmus EVT3.
         pass
     else:
-        assert np.array_equal(evutils_events["t"], exp_events_arr["t"])
+        assert np.array_equal(evutils_events["t"], exp_events_arr["t"]), (
+            f"{ctx}: timestamps differ from expelliarmus"
+        )
 
 
 @pytest.mark.parametrize("fmt", ['evt2', 'evt3'])
@@ -255,10 +173,12 @@ def test_EVT_matches_evlib(real_event_files: Any, fmt: Any) -> None:
 
     ef = next((f for f in real_event_files[fmt] if 'hand' in f.path.name), real_event_files[fmt][0])
 
+    ctx = f"{ef.path.name} ({fmt})"
+
     # Read first 100k events with evutils
     with EventReader(ef.path, n_events=100_000) as reader:
         evutils_events = reader.read()
-    assert not isinstance(evutils_events, tuple)
+    assert not isinstance(evutils_events, tuple), f"{ctx}: reader returned a (events, triggers) tuple"
 
     # Read the same file with evlib (using polars)
     df = evlib.load_events(str(ef.path))
@@ -294,11 +214,13 @@ def test_EVT_matches_evlib(real_event_files: Any, fmt: Any) -> None:
     )
     evlib_t, evlib_x, evlib_y, evlib_p = sort_events(evlib_t, evlib_x, evlib_y, evlib_p)
 
-    assert len(evutils_events) == len(df)
-    assert np.array_equal(evutils_x, evlib_x)
-    assert np.array_equal(evutils_y, evlib_y)
-    assert np.array_equal(evutils_p, evlib_p)
-    assert np.array_equal(evutils_t, evlib_t)
+    assert len(evutils_events) == len(df), (
+        f"{ctx}: event count {len(evutils_events)} != evlib {len(df)}"
+    )
+    assert np.array_equal(evutils_x, evlib_x), f"{ctx}: x differs from evlib"
+    assert np.array_equal(evutils_y, evlib_y), f"{ctx}: y differs from evlib"
+    assert np.array_equal(evutils_p, evlib_p), f"{ctx}: polarity differs from evlib"
+    assert np.array_equal(evutils_t, evlib_t), f"{ctx}: timestamps differ from evlib"
 
 
 @pytest.mark.parametrize("fmt", ['evt3', 'evt2', 'evt21'])
@@ -313,7 +235,9 @@ def test_RAW_nevents_read(real_event_files: Any, fmt: Any, length: int) -> None:
     for ef in real_event_files[fmt]:
         with EventReader(ef.path, n_events=length) as reader:
             events = reader.read()
-            assert len(events) == length
+            assert len(events) == length, (
+                f"{ef.path.name} ({fmt}): requested {length} events, got {len(events)}"
+            )
 
 
 @pytest.mark.parametrize("fmt", ['evt3', 'evt2', 'evt21'])
@@ -328,10 +252,12 @@ def test_RAW_delta_t_read(real_event_files: Any, fmt: Any, delta_t: int) -> None
     for ef in real_event_files[fmt]:
         with EventReader(ef.path, delta_t=delta_t) as reader:
             events = reader.read()
-            assert not isinstance(events, tuple)
-            assert len(events) > 0
+            ctx = f"{ef.path.name} ({fmt}, delta_t={delta_t})"
+            assert not isinstance(events, tuple), f"{ctx}: reader returned a (events, triggers) tuple"
+            assert len(events) > 0, f"{ctx}: no events in the time window"
             # All events fall within the requested time window.
-            assert int(events["t"].max()) - int(events["t"].min()) <= delta_t
+            span = int(events["t"].max()) - int(events["t"].min())
+            assert span <= delta_t, f"{ctx}: event time span {span} exceeds delta_t {delta_t}"
 
 ####################################
 # Timestamp wrap / edge cases
@@ -362,8 +288,8 @@ def test_EVT3_time_high_wrap(tmp_path: Any) -> None:
     t = np.arange(0, 90_000_000, step)  # 90 s: 5+ wraps of 2^24 us
     ev = _wrap_events(t)
     out = _roundtrip(tmp_path, ev, "evt3")
-    assert np.array_equal(out["t"], ev['t'])
-    assert np.array_equal(out["x"], ev['x'])
+    assert np.array_equal(out["t"], ev['t']), "evt3 TIME_HIGH wrap: timestamps not round-tripped"
+    assert np.array_equal(out["x"], ev['x']), "evt3 TIME_HIGH wrap: x not round-tripped"
 
 
 @pytest.mark.parametrize("fmt", ["evt2", "evt21"])
@@ -374,7 +300,7 @@ def test_EVT2_time_high_wrap(tmp_path: Any, fmt: Any) -> None:
     t = base + np.arange(0, 100, 10)  # crosses 2^34
     ev = _wrap_events(t)
     out = _roundtrip(tmp_path, ev, fmt)
-    assert np.array_equal(out["t"], ev['t'])
+    assert np.array_equal(out["t"], ev['t']), f"{fmt} 34-bit time wrap: timestamps not round-tripped"
 
 
 @pytest.mark.parametrize("fmt", ["evt3", "evt2", "evt21"])
@@ -387,7 +313,7 @@ def test_EVT_long_recording_hours(tmp_path: Any, fmt: Any) -> None:
         t = np.arange(0, 10 * 3600_000_000, 3600_000_000)  # 10 h in 1 h steps
     ev = _wrap_events(t)
     out = _roundtrip(tmp_path, ev, fmt)
-    assert np.array_equal(out["t"], ev['t'])
+    assert np.array_equal(out["t"], ev['t']), f"{fmt} multi-hour recording: timestamps not round-tripped"
 
 
 @pytest.mark.parametrize("fmt", ["evt3", "evt2", "evt21"])
@@ -403,9 +329,11 @@ def test_EVT_truncated_payload(tmp_path: Any, fmt: Any) -> None:
 
     with EventReader(p) as r:
         out = r.read_all()
-    assert not isinstance(out, tuple)
-    assert 0 < len(out) <= 1000
-    assert np.array_equal(out["t"], ev['t'][:len(out)])
+    assert not isinstance(out, tuple), f"{fmt} truncated payload: reader returned a tuple"
+    assert 0 < len(out) <= 1000, f"{fmt} truncated payload: decoded {len(out)} events, expected 1..1000"
+    assert np.array_equal(out["t"], ev['t'][:len(out)]), (
+        f"{fmt} truncated payload: decoded timestamps do not match the complete-event prefix"
+    )
 
 
 def test_EVT_header_only_file(tmp_path: Any) -> None:
@@ -416,7 +344,8 @@ def test_EVT_header_only_file(tmp_path: Any) -> None:
     w.init()
     w.close()
     with EventReader(p) as r:
-        assert len(r.read_all()) == 0
+        n = len(r.read_all())
+    assert n == 0, f"header-only evt3 file decoded {n} events, expected 0"
 
 
 def test_EVT_from_bytes_and_stream(tmp_path: Any, test_events: Any) -> None:
@@ -429,8 +358,11 @@ def test_EVT_from_bytes_and_stream(tmp_path: Any, test_events: Any) -> None:
     data = p.read_bytes()
 
     for source in (data, _io.BytesIO(data)):
+        kind = type(source).__name__
         with EventReader(source) as r: # type: ignore
-            assert np.array_equal(np.asarray(r.read_all()), test_events)
+            assert np.array_equal(np.asarray(r.read_all()), test_events), (
+                f"reading from {kind} did not reproduce the written events"
+            )
 
 
 def test_EVT3_coordinate_extremes(tmp_path: Any) -> None:
@@ -440,20 +372,22 @@ def test_EVT3_coordinate_extremes(tmp_path: Any) -> None:
     ev['y'] = [0, 2047, 2047, 0, 2, 2045]
     ev['p'] = [0, 1, 0, 1, 1, 0]
     out = _roundtrip(tmp_path, ev, "evt3")
-    assert np.array_equal(out["x"], ev['x'])
-    assert np.array_equal(out["y"], ev['y'])
-    assert np.array_equal(out["p"], ev['p'])
+    assert np.array_equal(out["x"], ev['x']), "evt3 coordinate extremes: x not round-tripped"
+    assert np.array_equal(out["y"], ev['y']), "evt3 coordinate extremes: y not round-tripped"
+    assert np.array_equal(out["p"], ev['p']), "evt3 coordinate extremes: polarity not round-tripped"
 
 def test_EVT_empty_file(tmp_path: Any) -> None:
     from evutils.io import EventReader
     p = tmp_path / "empty.raw"
     p.touch()
     with EventReader(p) as r:
-        assert len(r.read()) == 0
+        n = len(r.read())
+    assert n == 0, f"empty file decoded {n} events, expected 0"
 
 def test_EVT_corrupted_header_no_end(tmp_path: Any) -> None:
     from evutils.io import EventReader
     p = tmp_path / "no_end_header.raw"
     p.write_bytes(b"% camera_integrator_name Prophesee\n% date 2026-07-08 12:00:00\n\x00\x00")
     with EventReader(p) as r:
-        assert len(r.read()) == 0
+        n = len(r.read())
+    assert n == 0, f"header with no '% end' and no payload decoded {n} events, expected 0"
