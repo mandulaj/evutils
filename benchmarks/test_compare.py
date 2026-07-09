@@ -9,10 +9,12 @@ default. Enable libraries by installing them::
 
 Then line every library up against evutils per format::
 
-    pytest benchmarks/ --benchmark-group-by=param:fmt
+    pytest benchmarks/ --benchmark-group-by=group
 
-evutils itself is benchmarked in test_read.py; it shares the ``fmt`` param, so
-it appears in the same grouped table as the readers below.
+evutils itself is benchmarked in test_read.py; it shares the same ``read-<fmt>``
+group, so it appears in the same grouped table as the readers below. (Grouping
+by ``group`` rather than ``param:fmt`` also keeps reads and writes -- from
+test_write.py -- in separate buckets when the whole suite is run together.)
 """
 import pytest
 

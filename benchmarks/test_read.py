@@ -5,9 +5,13 @@ Run with::
     pytest benchmarks/test_read.py
 
 To compare evutils against the optional reference libraries side by side, group
-the results by format::
+the results by the benchmark ``group`` attribute (``read-<fmt>`` / ``write-<fmt>``)
+so reads and writes stay in separate buckets::
 
-    pytest benchmarks/ --benchmark-group-by=param:fmt
+    pytest benchmarks/ --benchmark-group-by=group
+
+(Grouping by ``param:fmt`` instead would merge the read and write benchmarks of
+each format, since neither is distinguished by a parameter.)
 """
 import pytest
 

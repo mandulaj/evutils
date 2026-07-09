@@ -1,10 +1,15 @@
 """Benchmark fixtures.
 
-``EventFile`` and ``real_event_files`` are duplicated from ``tests/conftest.py``
-on purpose: pytest only shares conftest fixtures downward, and ``benchmarks/``
-is a sibling of ``tests/``, so there is no clean way to reuse them without a
-repo-root conftest. Keep the two copies in sync.
+The download/discovery helpers live in ``tests/conftest_utils.py`` and are
+shared with ``tests/conftest.py`` (pytest only shares conftest *fixtures*
+downward, and ``benchmarks/`` is a sibling of ``tests/``, so the fixtures
+themselves are re-declared here -- but they call the same underlying helpers,
+so the two cannot drift on data source, caching, or metadata).
+
+The default dataset is the same GitHub-release tarball the tests use; the
+optional ``--dataset large`` pulls a bigger recording set from Google Drive.
 """
+import os
 import sys
 from pathlib import Path
 
@@ -15,7 +20,12 @@ from typing import Any, cast
 from evutils.io import EventReader
 
 sys.path.append(str(Path(__file__).parent.parent / "tests"))
-from conftest_utils import EventFile, download_and_extract_gdrive, load_event_files  # type: ignore
+from conftest_utils import (  # type: ignore
+    LARGE_RELEASE_TAR,
+    LARGE_RELEASE_URL,
+    fetch_real_event_files,
+    load_event_files,
+)
 
 #: Cap on how many events are held in memory for the write benchmarks. Large
 #: enough for a stable throughput measurement, small enough to stay light.
@@ -26,14 +36,16 @@ N_REFERENCE = 5_000_000
 def real_event_files(request: Any, benchmark_dataset: str) -> dict[str, list[Any]]:
     """Real Prophesee recordings (downloaded + cached on first use).
 
-    Returns ``{format: [EventFile(path, count)]}``.
+    Returns ``{format: [EventFile(path, count, metadata), ...]}``. The default
+    dataset is the same GitHub-release tarball the tests use (shared cache dir
+    + sentinel, so it is downloaded at most once for both); ``--dataset large``
+    pulls a bigger GitHub-release tarball into its own cache dir.
 
     Set ``EVUTILS_BENCH_DATA`` to a directory that already contains the
     extracted recordings (+ JSON metadata) to skip the download entirely --
     useful in offline environments such as the OpenEB benchmark container
     (mount the host cache there).
     """
-    import os
     override = os.environ.get("EVUTILS_BENCH_DATA")
     if override:
         data_dir = Path(override)
@@ -43,29 +55,13 @@ def real_event_files(request: Any, benchmark_dataset: str) -> dict[str, list[Any
 
     if benchmark_dataset == "large":
         temp_dir = request.config.cache.mkdir("event_files_huge")
-        file_id = "1QPuilR1VD0rKyhVOlu1Y-HtkO4ZBc2Cz"
-        
-        json_files = list(temp_dir.glob("*.json"))
-        if not json_files:
-            download_and_extract_gdrive(file_id, temp_dir, "huge.tar.zst")
-            
-        return cast(dict[str, list[Any]], load_event_files(temp_dir))
-    else:
-        temp_dir = request.config.cache.mkdir("event_files")
-        file_id = "1uhOsWbp2o3CktsHrFkzGCNFbx0bQLsct"
-        filenames = {
-            'evt3': "hand_evt3.raw",
-            'evt21': "hand_evt21.raw",
-            'evt2': "hand_evt2.raw",
-        }
-        paths = {fmt: temp_dir / name for fmt, name in filenames.items()}
+        return cast(dict[str, list[Any]], fetch_real_event_files(
+            temp_dir, url=LARGE_RELEASE_URL, tar_name=LARGE_RELEASE_TAR,
+        ))
 
-        for key, path in paths.items():
-            if not path.exists():
-                download_and_extract_gdrive(file_id, temp_dir, "hand.tar.zst")
-                break
-                
-        return cast(dict[str, list[Any]], load_event_files(temp_dir))
+    # Default dataset: identical to the test suite (shared cache dir "event_files").
+    temp_dir = request.config.cache.mkdir("event_files")
+    return cast(dict[str, list[Any]], fetch_real_event_files(temp_dir))
 
 
 @pytest.fixture(scope='session')

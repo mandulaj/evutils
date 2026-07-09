@@ -18,10 +18,7 @@ from evutils.types import Event_dtype
 
 # Add tests dir to path to import conftest_utils
 sys.path.append(str(Path(__file__).parent))
-from conftest_utils import download_and_extract_github, load_event_files # type: ignore
-
-#: Release tarball holding the reference recordings + JSON sidecars.
-_RELEASE_URL = "https://github.com/mandulaj/evutils/releases/download/v0.3.14/testfiles.tar.xz"
+from conftest_utils import fetch_real_event_files, load_event_files # type: ignore
 
 #: Cached ``{format: [EventFile, ...]}`` for the whole session (the download /
 #: extraction happens at most once, even across collection and fixtures).
@@ -45,9 +42,7 @@ def _load_real_event_files(config: Any) -> dict[str, list]:
         _REAL_FILES_CACHE = load_event_files(data_dir) if data_dir.is_dir() else {}
         return _REAL_FILES_CACHE
 
-    temp_dir = config.cache.mkdir("event_files")
-    download_and_extract_github(_RELEASE_URL, temp_dir, "testfiles.tar.xz")
-    _REAL_FILES_CACHE = load_event_files(temp_dir)
+    _REAL_FILES_CACHE = fetch_real_event_files(config.cache.mkdir("event_files"))
     return _REAL_FILES_CACHE
 
 
