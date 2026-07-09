@@ -102,6 +102,19 @@ _BACKENDS = {
     "evt21": (Evt21Parser, Evt21Input, np.uint64),
 }
 
+# Canonical format name -> (`% evt` token, `% format` token). Drives both header
+# emission (encoder writes `% evt 3.0` + `% format EVT3`) and header parsing
+# (decoder maps either token back to the canonical name). Single source of truth
+# for the three Prophesee EVT variants.
+_EVT_FORMATS: dict[str, tuple[str, str]] = {
+    "evt3":  ("3.0", "EVT3"),
+    "evt21": ("2.1", "EVT21"),
+    "evt2":  ("2.0", "EVT2"),
+}
+
+# `% evt <token>` value -> canonical name, e.g. "3.0" -> "evt3".
+_EVT_TOKEN_TO_NAME = {token: name for name, (token, _) in _EVT_FORMATS.items()}
+
 
 class EventDecoder_EVT(EventDecoder):
     """Decode Prophesee EVT2, EVT2.1, and EVT3 streams into ``EventArray`` chunks.
@@ -121,8 +134,6 @@ class EventDecoder_EVT(EventDecoder):
 
     """
 
-    FORMATS = {"evt3": "evt 3.0", "evt21": "evt 2.1", "evt2": "evt 2"}
-    EVT_FORMATS = {"3.0": "evt3", "2.1": "evt21", "2.0": "evt2"}
     _TAIL_PAD = 8  # >= parser look-ahead padding (EVT3_INPUT_PADDING)
     SUPPORTS_EXT_TRIGGERS = True
 
@@ -214,7 +225,7 @@ class EventDecoder_EVT(EventDecoder):
                     self._width = int(s.split("=")[1])
                 else:
                     s = s.lower().replace(".", "")
-                    if s in self.FORMATS:
+                    if s in _EVT_FORMATS:
                         self._format = s
 
         geom = self._header.get("geometry")
@@ -225,8 +236,8 @@ class EventDecoder_EVT(EventDecoder):
                 self._height = int(parts[1])
 
         evt = self._header.get("evt")
-        if evt in self.EVT_FORMATS:
-            self._format = self.EVT_FORMATS[evt]
+        if evt in _EVT_TOKEN_TO_NAME:
+            self._format = _EVT_TOKEN_TO_NAME[evt]
 
         if self._format is None:
             self._format = "evt3"  # sensible default for Prophesee RAW
@@ -682,16 +693,13 @@ class EventEncoder_EVT(EventEncoder):
 
     """
 
-    FORMATS = {"evt3": "evt 3.0", "evt21": "evt 2.1", "evt2": "evt 2.0"}
-    HEADER_FORMAT = {"evt3": "EVT3", "evt21": "EVT21", "evt2": "EVT2"}
-
     def __init__(self, writable: io.BufferedWriter, width: int = 1280, height: int = 720,
                  dt: datetime | None = None, serial: str = "00000000", format: str = "evt3"):
         super().__init__(writable, width, height, dt)
 
         format = format.lower().replace(".", "")
-        if format not in EventEncoder_EVT.FORMATS.keys():
-            raise ValueError(f"Unsupported format {format}. Supported formats are {list(EventEncoder_EVT.FORMATS.keys())}")
+        if format not in _EVT_FORMATS:
+            raise ValueError(f"Unsupported format {format}. Supported formats are {list(_EVT_FORMATS)}")
         self._format = format
 
         self._system_id = 49
@@ -721,8 +729,8 @@ class EventEncoder_EVT(EventEncoder):
         self._fd.write(
 f"""% camera_integrator_name Prophesee
 % date {self._formatted_datetime}
-{endianness}% {self.FORMATS[self._format]}
-% format {self.HEADER_FORMAT[self._format]};height={self._height};width={self._width}
+{endianness}% evt {_EVT_FORMATS[self._format][0]}
+% format {_EVT_FORMATS[self._format][1]};height={self._height};width={self._width}
 % generation 4.2
 % geometry {self._width}x{self._height}
 % integrator_name Prophesee
