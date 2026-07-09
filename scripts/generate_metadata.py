@@ -21,8 +21,20 @@ def get_evt_format_version(file_path: str) -> str:
             if line.startswith(b'% format '):
                 # Example: b'% format EVT3;height=720;width=1280\n'
                 # Splits by ';' to isolate the format part, then grabs the last word
-                format_val = line.split(b';')[0].split(b' ')[-1]
+                format_val = line.split(b';')[0].split(b' ')[-1].strip()
                 return format_val.decode('ascii').lower()
+            
+            if line.startswith(b"% evt"):
+                # Example: b'% evt 3\n'
+                evt_val = line.split(b' ')[-1].strip().decode('ascii').lower()
+                numeric = float(evt_val)
+                # 2.0 -> 2 3.0 -> 3 2.1 -> 2.1
+                if numeric.is_integer():
+                    return f"evt{int(numeric)}"
+                else: 
+                    return f"evt{numeric}"
+            if line.startswith(b"% Version"):
+                return "dat"
             
             if line.strip() == b'% end':
                 break
@@ -73,8 +85,13 @@ def generate_metadata(file_path):
         min_t = int(min(min_t, np.min(events['t'])))
         max_t = int(max(max_t, np.max(events['t'])))
         last_ts = int(np.max(events['t']))
+
+    try:
+        external_triggers = reader.get_ext_trigger_events()
+    except RuntimeError:
+        external_triggers = np.array([], dtype=[('t', '<i8'), ('p', 'u1')])  # Empty array with the correct dtype
+
     
-    external_triggers = reader.get_ext_trigger_events()
     num_external_triggers = len(external_triggers) if external_triggers is not None else 0
     num_pos_external_triggers = int(np.sum(external_triggers['p'] == 1)) if external_triggers is not None else 0
     num_neg_external_triggers = int(np.sum(external_triggers['p'] == 0)) if external_triggers is not None else 0
@@ -98,6 +115,7 @@ def generate_metadata(file_path):
     }
 
     json_path = path.with_suffix('.json')
+    # Overwirte existing metadata file if it exists
     with open(json_path, 'w') as f:
         json.dump(metadata, f, indent=4)
     print(f"Saved metadata to {json_path}")
