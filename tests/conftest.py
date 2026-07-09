@@ -23,27 +23,46 @@ from conftest_utils import fetch_real_event_files, load_event_files # type: igno
 #: Cached ``{format: [EventFile, ...]}`` for the whole session (the download /
 #: extraction happens at most once, even across collection and fixtures).
 _REAL_FILES_CACHE: dict[str, list] | None = None
+#: Populated when discovery fails, so the skip/marker can explain *why*.
+_REAL_FILES_ERROR: str | None = None
 
 
 def _load_real_event_files(config: Any) -> dict[str, list]:
     """Resolve, download-if-needed, and parse the reference recordings.
 
-    Returns ``{format: [EventFile, ...]}`` (empty if the data is unavailable).
-    Set ``EVUTILS_BENCH_DATA`` to a directory that already holds the extracted
-    recordings + JSON sidecars to skip the download (offline environments).
+    Returns ``{format: [EventFile, ...]}`` -- empty if the data is unavailable
+    (missing override dir, or a failed/blocked download). Never raises: a
+    failure is cached and its message stashed in ``_REAL_FILES_ERROR`` so the
+    dependent tests *skip* with a clear reason instead of aborting collection
+    of the whole suite. Set ``EVUTILS_BENCH_DATA`` to a directory that already
+    holds the extracted recordings + JSON sidecars to skip the download.
     """
-    global _REAL_FILES_CACHE
+    global _REAL_FILES_CACHE, _REAL_FILES_ERROR
     if _REAL_FILES_CACHE is not None:
         return _REAL_FILES_CACHE
 
     override = os.environ.get("EVUTILS_BENCH_DATA")
     if override:
         data_dir = Path(override)
-        _REAL_FILES_CACHE = load_event_files(data_dir) if data_dir.is_dir() else {}
+        if not data_dir.is_dir():
+            _REAL_FILES_ERROR = f"EVUTILS_BENCH_DATA={override} is not a directory"
+            _REAL_FILES_CACHE = {}
+        else:
+            _REAL_FILES_CACHE = load_event_files(data_dir)
         return _REAL_FILES_CACHE
 
-    _REAL_FILES_CACHE = fetch_real_event_files(config.cache.mkdir("event_files"))
+    try:
+        _REAL_FILES_CACHE = fetch_real_event_files(config.cache.mkdir("event_files"))
+    except Exception as exc:
+        _REAL_FILES_ERROR = f"could not fetch reference recordings: {exc}"
+        _REAL_FILES_CACHE = {}
     return _REAL_FILES_CACHE
+
+
+def _real_files_skip_reason() -> str:
+    return _REAL_FILES_ERROR or (
+        "no real event files available (set EVUTILS_BENCH_DATA or allow the download)"
+    )
 
 
 @pytest.fixture(scope='session')
@@ -71,7 +90,7 @@ def real_event_files(request: Any) -> Any:
     """
     files = _load_real_event_files(request.config)
     if not files:
-        pytest.skip("No real event files available (set EVUTILS_BENCH_DATA or allow the download)")
+        pytest.skip(_real_files_skip_reason())
     return files
 
 
@@ -94,5 +113,5 @@ def pytest_generate_tests(metafunc: Any) -> None:
     else:
         metafunc.parametrize(
             "real_event_file",
-            [pytest.param(None, marks=pytest.mark.skip(reason="no real event files available"))],
+            [pytest.param(None, marks=pytest.mark.skip(reason=_real_files_skip_reason()))],
         )
