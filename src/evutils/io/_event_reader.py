@@ -71,6 +71,13 @@ class EventReader():
         Playback rate multiplier for ``real_time`` mode: ``2.0`` plays twice
         as fast as the recording, ``0.5`` at half speed. Ignored when
         ``real_time=False``.
+    max_gap: float or None, default=1.0
+        Longest idle stretch, in real seconds, that ``real_time`` pacing will
+        sleep through. If a recording goes silent for longer (e.g. a
+        late-starting stream, or a pause mid-recording), the pacer skips the
+        dead air and resumes immediately instead of blocking on one long
+        sleep. ``None`` disables the skip (strict real time). Ignored when
+        ``real_time=False``.
     file_decoder: ev_decoders.EventDecoder or type[ev_decoders.EventDecoder] or None, default=None
         File decoder to use, by default None - automatic
     **kwargs
@@ -118,6 +125,7 @@ class EventReader():
                  async_read: bool=False,
                  real_time: bool=False,
                  playback_speed: float=1.0,
+                 max_gap: float | None=1.0,
                  file_decoder: ev_decoders.EventDecoder | type[ev_decoders.EventDecoder] | None = None,
                  **kwargs: Any) -> None:
 
@@ -256,6 +264,13 @@ class EventReader():
             raise ValueError("playback_speed must be a positive number")
         self._real_time = real_time
         self._playback_speed = float(playback_speed)
+        # Longest idle stretch (real seconds) the pacer will sleep through. If a
+        # window would require a longer wait -- a silent gap in the recording,
+        # e.g. a late-starting stream -- the pacer skips the dead air and
+        # re-anchors so playback resumes immediately. None = strict real time.
+        if max_gap is not None and (not isinstance(max_gap, (int, float)) or max_gap <= 0):
+            raise ValueError("max_gap must be a positive number or None")
+        self._max_gap = float(max_gap) if max_gap is not None else None
         self._pace_anchor: tuple[float, int] | None = None  # (wall time, event ts)
 
         self._n_read_events = 0 # Number of events read (not includeing events stored in buffer)
@@ -370,6 +385,13 @@ class EventReader():
         wall0, ts0 = self._pace_anchor
         target = wall0 + (t_last - ts0) / (1e6 * self._playback_speed)
         delay = target - now
+        # A wait longer than max_gap means the recording went idle (e.g. a
+        # silent lead-in before the action starts). Rather than stall on a
+        # single multi-second sleep, skip the dead air: re-anchor to now so the
+        # next window is paced relative to this one.
+        if self._max_gap is not None and delay > self._max_gap:
+            self._pace_anchor = (now, t_last)
+            return
         if delay > 0:
             time.sleep(delay)
 

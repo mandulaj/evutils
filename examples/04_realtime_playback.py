@@ -40,9 +40,9 @@ def main(input_file: str, playback_speed: float = 1.0) -> None:
     with EventReader(
         input_file,
         delta_t=frame_duration_us,
-        real_time=True,                 # pace chunks like a live sensor
+        real_time=False,                 # pace chunks like a live sensor
         playback_speed=playback_speed,  # 1.0 = original recording speed
-        async_read=True,                # decode ahead while we wait/draw
+        async_read=False,                # decode ahead while we wait/draw
     ) as reader:
 
         try:
@@ -62,7 +62,7 @@ def main(input_file: str, playback_speed: float = 1.0) -> None:
                   dtype=np.uint8, fill=True)
         window = "Real-time playback (q to quit)"
         cv2.imshow(window, np.zeros((height, width), dtype=np.uint8))
-        cv2.waitKey(1)
+        cv2.waitKey(0)
 
         wall_start = time.perf_counter()
         first_ts: int | None = None
@@ -73,9 +73,9 @@ def main(input_file: str, playback_speed: float = 1.0) -> None:
             if first_ts is None:
                 first_ts = int(events.t[0])
 
-            # limit_ev = min(len(events), 100_000)
+            limit_ev = min(len(events), 100_000)
 
-            frame = histogram(events.to_numpy(), width=width, height=height,
+            frame = histogram(events.to_numpy()[:limit_ev], width=width, height=height,
                               dtype=np.uint8, fill=True)
 
             # How closely does the playback clock track the recording clock?

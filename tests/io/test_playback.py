@@ -137,3 +137,63 @@ def test_playback_invalid_speed_rejected(recording: Any) -> None:
         EventReader(p, real_time=True, playback_speed=0)
     with pytest.raises(ValueError):
         EventReader(p, real_time=True, playback_speed=-1.5)
+
+
+# --------------------------------------------------------------------------- #
+# Idle-gap handling (max_gap)
+# --------------------------------------------------------------------------- #
+GAP_US = 500_000  # 0.5 s of silence before the action starts
+
+
+@pytest.fixture
+def gapped_recording(tmp_path: Any) -> Any:
+    """A tiny blip at t=0, then 0.5 s of silence, then a short burst.
+
+    Reproduces recordings whose content starts well after t=0 -- without
+    gap-skipping, real-time pacing stalls on one long sleep to reach the burst.
+    """
+    from evutils.io import EventWriter
+    t = np.concatenate([
+        np.array([0], dtype=np.int64),                          # lead-in blip
+        GAP_US + np.arange(50, dtype=np.int64) * 1000,          # burst: 50 ms
+    ])
+    ev = np.zeros(len(t), dtype=np.dtype([('t', np.int64), ('x', np.uint16), ('y', np.uint16), ('p', np.uint8)]))
+    ev['t'] = t
+    ev['x'] = np.arange(len(t)) % 1280
+    ev['y'] = np.arange(len(t)) % 720
+    ev['p'] = np.arange(len(t)) % 2
+    p = tmp_path / "gapped.raw"
+    with EventWriter(p, format="evt2") as w:
+        w.write(ev)
+    return p, ev
+
+
+def test_max_gap_skips_dead_air(gapped_recording: Any) -> None:
+    """With max_gap set, the 0.5 s silent lead-in is skipped, not slept through."""
+    from evutils.io import EventReader
+    p, ev = gapped_recording
+    with EventReader(p, real_time=True, mode="delta_t", delta_t=20_000, max_gap=0.1) as r:
+        total, elapsed = _drain(r)
+    assert total == len(ev)
+    # Only the ~50 ms burst is paced; the 0.5 s gap must not be waited out.
+    assert elapsed < 0.3
+
+
+def test_max_gap_none_is_strict_realtime(gapped_recording: Any) -> None:
+    """max_gap=None keeps strict pacing: the full 0.5 s gap is honoured."""
+    from evutils.io import EventReader
+    p, ev = gapped_recording
+    with EventReader(p, real_time=True, mode="delta_t", delta_t=20_000, max_gap=None) as r:
+        total, elapsed = _drain(r)
+    assert total == len(ev)
+    # Must sleep through the ~0.5 s gap before the burst plays.
+    assert elapsed >= 0.45
+
+
+def test_max_gap_invalid_rejected(recording: Any) -> None:
+    from evutils.io import EventReader
+    p, _ = recording
+    with pytest.raises(ValueError):
+        EventReader(p, real_time=True, max_gap=0)
+    with pytest.raises(ValueError):
+        EventReader(p, real_time=True, max_gap=-1.0)
