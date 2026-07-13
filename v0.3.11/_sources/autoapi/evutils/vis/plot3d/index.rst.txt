@@ -1,0 +1,88 @@
+:py:mod:`evutils.vis.plot3d`
+============================
+
+.. py:module:: evutils.vis.plot3d
+
+.. autoapi-nested-parse::
+
+   Matplotlib 3D visualization utilities for event data.
+
+   This module provides functions to plot event streams, 3D histograms,
+   and time surfaces using matplotlib's 3D plotting capabilities.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   evutils.vis.plot3d.plot_3d
+   evutils.vis.plot3d.plot_3d_histogram
+   evutils.vis.plot3d.plot_3d_timesurface
+
+
+Module Contents
+---------------
+
+.. py:function:: plot_3d(events: numpy.ndarray, width: int = 1280, height: int = 720, colormap: Union[str, matplotlib.colors.Colormap] = 'Spectral', fig: Optional[matplotlib.pyplot.Figure] = None, ax: Optional[mpl_toolkits.mplot3d.Axes3D] = None) -> tuple
+
+   Plot a 3D scatter plot of events.
+
+   :param events: Array of events with fields 't', 'x', 'y', and 'p'.
+   :type events: np.ndarray
+   :param width: Width of the event frame, by default 1280.
+   :type width: int, optional
+   :param height: Height of the event frame, by default 720.
+   :type height: int, optional
+   :param colormap: Colormap to use for the event polarities, by default 'Spectral'.
+   :type colormap: Union[str, Colormap], optional
+   :param fig: Matplotlib figure to plot on, by default None (a new figure will be created).
+   :type fig: Optional[plt.Figure], optional
+   :param ax: Matplotlib 3D axis to plot on, by default None (a new axis will be created).
+   :type ax: Optional[Axes3D], optional
+
+   :returns: A tuple containing the figure and axis objects.
+   :rtype: tuple
+
+   :raises ValueError: If the colormap is not found or invalid.
+
+
+.. py:function:: plot_3d_histogram(histogram: numpy.ndarray, down_sample: int = 4, fig: Optional[matplotlib.pyplot.Figure] = None, ax: Optional[mpl_toolkits.mplot3d.Axes3D] = None) -> tuple
+
+   Plot a 3D histogram of events.
+
+   :param histogram: 3D histogram array with shape (depth, height, width).
+   :type histogram: np.ndarray
+   :param down_sample: Downsampling factor for the histogram, by default 4.
+   :type down_sample: int, optional
+   :param fig: Matplotlib figure to plot on, by default None (a new figure will be created).
+   :type fig: Optional[plt.Figure], optional
+   :param ax: Matplotlib 3D axis to plot on, by default None (a new axis will be created).
+   :type ax: Optional[Axes3D], optional
+
+   :returns: A tuple containing the figure and axis objects.
+   :rtype: tuple
+
+
+.. py:function:: plot_3d_timesurface(events: numpy.ndarray, width: int = 1280, height: int = 720, tau: int = 10000, fig: Optional[matplotlib.pyplot.Figure] = None, ax: Optional[mpl_toolkits.mplot3d.Axes3D] = None) -> tuple
+
+   Plot a 3D time surface of events.
+
+   :param events: Array of events with fields 't', 'x', 'y', and 'p'.
+   :type events: np.ndarray
+   :param width: Width of the event frame, by default 1280.
+   :type width: int, optional
+   :param height: Height of the event frame, by default 720.
+   :type height: int, optional
+   :param tau: Time constant for the time surface exponential decay in microseconds, by default 10_000.
+   :type tau: int, optional
+   :param fig: Matplotlib figure to plot on, by default None (a new figure will be created).
+   :type fig: Optional[plt.Figure], optional
+   :param ax: Matplotlib 3D axis to plot on, by default None (a new axis will be created).
+   :type ax: Optional[Axes3D], optional
+
+   :returns: A tuple containing the figure and axis objects.
+   :rtype: tuple
+
+

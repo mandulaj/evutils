@@ -1,0 +1,49 @@
+:py:mod:`evutils.random`
+========================
+
+.. py:module:: evutils.random
+
+.. autoapi-nested-parse::
+
+   Generation and perturbation of synthetic events.
+
+   Create random event arrays for testing and benchmarking
+   (``random_events``, ``random_events_generator``) and add random timestamp
+   jitter to existing events (``event_jitter``, ``event_jitter_n``).
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   evutils.random.random_events
+   evutils.random.random_events_generator
+   evutils.random.event_jitter_n
+   evutils.random.event_jitter
+
+
+Module Contents
+---------------
+
+.. py:function:: random_events(n_events: int, width: int = 1280, height: int = 720, start_ts: int = 0, end_ts: int = 10000000) -> numpy.ndarray
+
+   Generates n_events random events with x and y coordinates in the range [0, width) and [0, height) respectively.
+
+
+.. py:function:: random_events_generator(n_events: int, width: int = 1280, height: int = 720, start_ts: int = 0, end_ts: int = 10000000, chunk_size=10000) -> Generator[numpy.ndarray, None, None]
+
+   Generates n_events random events with x and y coordinates in the range [0, width) and [0, height) respectively.
+
+
+.. py:function:: event_jitter_n(events: numpy.ndarray, mean: float = 0.0, std: float = 1.0, sort: bool = True) -> numpy.ndarray
+
+   Adds a random jitter to the timestamps of the events.
+
+
+.. py:function:: event_jitter(events: numpy.ndarray, jitter: int = 1, sort: bool = True) -> numpy.ndarray
+
+   Adds a random jitter to the timestamps of the events.
+
+

@@ -1,0 +1,132 @@
+:py:mod:`evutils.vis.reconstructor.rpg`
+=======================================
+
+.. py:module:: evutils.vis.reconstructor.rpg
+
+.. autoapi-nested-parse::
+
+   Event-to-video reconstruction using the RPG E2VID model.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   evutils.vis.reconstructor.rpg.torch
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   evutils.vis.reconstructor.rpg.RPG_Reconstructor
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   evutils.vis.reconstructor.rpg.set_inference_options
+
+
+Module Contents
+---------------
+
+.. py:data:: torch
+   :value: False
+
+
+.. py:function:: set_inference_options(params)
+
+   Sets inference options for the RPG E2VID reconstructor.
+
+   :param params: Options and parameters for inference.
+   :type params: dict or SimpleNamespace
+
+   :rtype: None
+
+
+.. py:class:: RPG_Reconstructor(height, width, args={})
+
+   Bases: :py:obj:`evutils.vis.reconstructor._base.Reconstructor`
+
+   .. autoapi-inheritance-diagram:: evutils.vis.reconstructor.rpg.RPG_Reconstructor
+      :parts: 1
+
+
+   Reconstructor using the E2VID model from RPG.
+
+   :param height: Height of the frame
+   :type height: int
+   :param width: Width of the frame
+   :type width: int
+   :param args: Additional arguments for the RPG E2Vid reconstructor, by default {}
+   :type args: dict, optional
+
+   .. rubric:: References
+
+   [1] High Speed and High Dynamic Range Video with an Event Camera https://github.com/uzh-rpg/rpg_e2vid
+
+
+   .. py:attribute:: DEFAULT_ARGS
+      :type:  Dict[str, Any]
+
+
+   .. py:attribute:: model
+
+
+   .. py:attribute:: no_recurrent
+
+
+   .. py:attribute:: crop
+
+
+   .. py:attribute:: last_states_for_each_channel
+
+
+   .. py:attribute:: event_preprocessor
+
+
+   .. py:attribute:: intensity_rescaler
+
+
+   .. py:attribute:: image_filter
+
+
+   .. py:attribute:: unsharp_mask_filter
+
+
+   .. py:attribute:: last_ts
+      :value: 0
+
+
+
+   .. py:attribute:: reset_states
+      :value: False
+
+
+
+   .. py:method:: download_model()
+
+      Downloads the pre-trained E2VID model weights.
+
+      :rtype: None
+
+
+
+   .. py:method:: gen_frame(e)
+
+      Reconstructs a frame from the given events.
+
+      :param e: Array of events with fields 't', 'x', 'y', and 'p'.
+      :type e: np.ndarray
+
+      :returns: Reconstructed frame as a numpy array.
+      :rtype: np.ndarray
+
+
+

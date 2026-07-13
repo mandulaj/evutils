@@ -1,0 +1,39 @@
+:py:mod:`evutils.augment`
+=========================
+
+.. py:module:: evutils.augment
+
+.. autoapi-nested-parse::
+
+   Data augmentation transforms for events.
+
+   Random and deterministic transformations for augmenting event streams
+   during training, such as spatial flips, time reversal, event dropout and
+   added noise.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   evutils.augment.drop_random_events
+
+
+Package Contents
+----------------
+
+.. py:function:: drop_random_events(events: numpy.ndarray, drop_rate: float = 0.1)
+
+   Drops a percentage of events randomly using slicing.
+
+   :param events: Array of events to drop from.
+   :type events: np.ndarray
+   :param drop_rate: Percentage of events to drop, by default 0.1 (10%).
+   :type drop_rate: float, optional
+
+   :returns: Array of events with the specified percentage dropped.
+   :rtype: np.ndarray
+
+

@@ -1,0 +1,83 @@
+:py:mod:`evutils`
+=================
+
+.. py:module:: evutils
+
+.. autoapi-nested-parse::
+
+   evutils: utilities for event-based data.
+
+   Event-based data processing and visualization utilities.
+
+   To get started::
+
+       import evutils
+       ...
+
+
+
+   .. rubric:: Notes
+
+   Anything worth calling out up front.
+
+
+
+Submodules
+----------
+
+.. toctree::
+   :hidden:
+   :maxdepth: 1
+
+   /autoapi/evutils/augment/index
+   /autoapi/evutils/chunking/index
+   /autoapi/evutils/dataset/index
+   /autoapi/evutils/io/index
+   /autoapi/evutils/processing/index
+   /autoapi/evutils/random/index
+   /autoapi/evutils/repr/index
+   /autoapi/evutils/torch/index
+   /autoapi/evutils/types/index
+   /autoapi/evutils/utils/index
+   /autoapi/evutils/vis/index
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 0
+
+   * - :py:mod:`augment <evutils.augment>`
+     - Data augmentation transforms for events.
+   * - :py:mod:`chunking <evutils.chunking>`
+     - Splitting event streams into chunks.
+   * - :py:mod:`dataset <evutils.dataset>`
+     - Dataset loading and management.
+   * - :py:mod:`io <evutils.io>`
+     - Reading and writing events in various file formats.
+   * - :py:mod:`processing <evutils.processing>`
+     - Event stream processing and filtering.
+   * - :py:mod:`random <evutils.random>`
+     - Generation and perturbation of synthetic events.
+   * - :py:mod:`repr <evutils.repr>`
+     - Dense representations of event data.
+   * - :py:mod:`torch <evutils.torch>`
+     - PyTorch integration.
+   * - :py:mod:`types <evutils.types>`
+     - Core data types for event streams.
+   * - :py:mod:`utils <evutils.utils>`
+     - General-purpose helpers.
+   * - :py:mod:`vis <evutils.vis>`
+     - Visualization tools for event camera data.
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   evutils.__version__
+
+
+Package Contents
+----------------
+
+.. py:data:: __version__
+

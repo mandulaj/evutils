@@ -1,0 +1,36 @@
+:py:mod:`evutils.vis.open3d`
+============================
+
+.. py:module:: evutils.vis.open3d
+
+.. autoapi-nested-parse::
+
+   Open3D visualization utilities for event camera data.
+
+   This module provides functions to visualize event streams in 3D (x, y, time)
+   using Open3D.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   evutils.vis.open3d.o3d_draw_events
+
+
+Module Contents
+---------------
+
+.. py:function:: o3d_draw_events(events: numpy.ndarray) -> None
+
+   Visualizes events using Open3D.
+
+   :param events: Array of events with fields 'x', 'y', 't', and 'p'.
+                  'x' and 'y' are the pixel coordinates, 't' is the timestamp, and 'p' is the polarity.
+   :type events: np.ndarray
+
+   :rtype: None
+
+

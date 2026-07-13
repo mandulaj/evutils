@@ -1,0 +1,388 @@
+:py:mod:`evutils.io.encoders`
+=============================
+
+.. py:module:: evutils.io.encoders
+
+.. autoapi-nested-parse::
+
+   Encoders module.
+
+   Provides mapping and retrieval of event encoders based on file extensions.
+   Backends whose optional dependencies are missing (e.g. pandas for CSV, h5py
+   for HDF5) are not registered; asking for them raises an ``ImportError`` that
+   names the extra to install.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   evutils.io.encoders.EventEncoder
+   evutils.io.encoders.EventEncoder_Aedat
+   evutils.io.encoders.EventEncoder_Bin
+   evutils.io.encoders.EventEncoder_Dat
+   evutils.io.encoders.EventEncoder_Npz
+   evutils.io.encoders.EventEncoder_EVT
+   evutils.io.encoders.EventEncoder_AER
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   evutils.io.encoders.get_file_writer
+
+
+Module Contents
+---------------
+
+.. py:class:: EventEncoder(writable: io.BufferedIOBase, width: int = 1280, height: int = 720, dt: Optional[datetime.datetime] = None)
+
+   Bases: :py:obj:`abc.ABC`
+
+   .. autoapi-inheritance-diagram:: evutils.io.encoders.EventEncoder
+      :parts: 1
+
+
+   ABC for writing chunks of events to a io object.
+
+   :param writable: Destination for writing events
+   :param width: Width of the frame, by default 1280 (not relevant for some formats)
+   :type width: int, optional
+   :param height: Height of the frame, by default 720 (not relevant for some formats)
+   :type height: int, optional
+   :param dt: Timestamp of the recording (default is the current time, but information is not saved in all formats)
+   :type dt: datetime, optional
+
+   :raises NotImplementedError: If the method is not implemented in the subclass
+
+
+   .. py:method:: init()
+      :abstractmethod:
+
+
+      Initialize the file for writing.
+
+
+
+   .. py:method:: write(events: numpy.ndarray[Any, numpy.dtype[Any]]) -> int
+      :abstractmethod:
+
+
+      Write a chunk of events.
+
+
+
+   .. py:method:: __len__() -> int
+
+
+   .. py:method:: __enter__()
+
+
+   .. py:method:: __repr__() -> str
+
+
+   .. py:method:: flush()
+
+      Flush any buffered data to the underlying stream.
+
+
+
+   .. py:method:: close()
+
+      Finalize the encoder.
+
+      Container formats (NPZ, HDF5) override this to write the archive /
+      index before the underlying file is closed. The owning stream itself is
+      closed by the :class:`~evutils.io.EventWriter`, not here.
+
+
+
+.. py:class:: EventEncoder_Aedat(writable: Any, **kwargs: Any)
+
+   Bases: :py:obj:`evutils.io.common.EventEncoder`
+
+   .. autoapi-inheritance-diagram:: evutils.io.encoders.EventEncoder_Aedat
+      :parts: 1
+
+
+   An encoder for writing events to AEDAT files.
+
+   .. note::
+       Not implemented yet -- constructing this class raises
+       :class:`NotImplementedError`.
+
+   :param writable: Destination for writing events.
+   :type writable: io.BufferedIOBase
+   :param \*\*kwargs: Additional encoder arguments (``width``, ``height``, ``dt``, ...).
+
+   :raises NotImplementedError: Always, until the format is implemented.
+
+
+   .. py:method:: init() -> None
+      :abstractmethod:
+
+
+      Initialize the file for writing.
+
+
+
+   .. py:method:: write(events: Any) -> int
+      :abstractmethod:
+
+
+      Write a chunk of events.
+
+
+
+.. py:class:: EventEncoder_Bin(writable: Any, **kwargs: Any)
+
+   Bases: :py:obj:`evutils.io.common.EventEncoder`
+
+   .. autoapi-inheritance-diagram:: evutils.io.encoders.EventEncoder_Bin
+      :parts: 1
+
+
+   An encoder for writing events to binary files.
+
+   .. note::
+       Not implemented yet -- constructing this class raises
+       :class:`NotImplementedError`.
+
+   :param writable: Destination for writing events.
+   :type writable: io.BufferedIOBase
+   :param \*\*kwargs: Additional encoder arguments (``width``, ``height``, ``dt``, ...).
+
+   :raises NotImplementedError: Always, until the format is implemented.
+
+
+   .. py:method:: init() -> None
+      :abstractmethod:
+
+
+      Initialize the file for writing.
+
+
+
+   .. py:method:: write(events: Any) -> int
+      :abstractmethod:
+
+
+      Write a chunk of events.
+
+
+
+.. py:class:: EventEncoder_Dat(writable, width: int = 1280, height: int = 720, dt: datetime.datetime | None = None, version: int = 2)
+
+   Bases: :py:obj:`evutils.io.common.EventEncoder`
+
+   .. autoapi-inheritance-diagram:: evutils.io.encoders.EventEncoder_Dat
+      :parts: 1
+
+
+   Encode events into a Prophesee DAT (.dat) CD file.
+
+   :param writable: Destination stream to write to.
+   :param width: Frame geometry written into the header.
+   :type width: int
+   :param height: Frame geometry written into the header.
+   :type height: int
+   :param dt: Recording timestamp (defaults to now).
+   :type dt: datetime, optional
+   :param version: DAT version (defaults to 2).
+   :type version: int
+
+   .. rubric:: References
+
+   [1] Prophesee DAT file format
+       https://docs.prophesee.ai/stable/data/file_formats/dat.html
+
+
+   .. py:method:: init()
+
+      Initialize the DAT writer.
+
+      :rtype: None
+
+
+
+   .. py:method:: write(events) -> int
+
+      Write events to the DAT file.
+
+      :param events: Array of events to write.
+      :type events: np.ndarray or EventArray
+
+      :returns: Number of written events.
+      :rtype: int
+
+
+
+.. py:class:: EventEncoder_Npz(writable: io.BufferedWriter, width: int = 1280, height: int = 720, dt: datetime.datetime | None = None, compressed: bool = False)
+
+   Bases: :py:obj:`evutils.io.common.EventEncoder`
+
+   .. autoapi-inheritance-diagram:: evutils.io.encoders.EventEncoder_Npz
+      :parts: 1
+
+
+   Encode events into an ``.npz`` archive.
+
+   Chunks passed to :meth:`write` are buffered in memory; the archive itself
+   is written once on :meth:`close` (zip containers cannot be appended to).
+
+   :param writable: Destination stream to write to.
+   :param width: Frame geometry stored in the archive.
+   :type width: int
+   :param height: Frame geometry stored in the archive.
+   :type height: int
+   :param dt: Unused; npz stores no recording timestamp.
+   :type dt: datetime, optional
+   :param compressed: Use ``np.savez_compressed`` instead of ``np.savez``.
+   :type compressed: bool
+
+
+   .. py:method:: init() -> None
+
+      Nothing to write up front; the archive is produced on close.
+
+
+
+   .. py:method:: write(events: numpy.ndarray | EventArray) -> int
+
+      Buffer a chunk of events for the archive.
+
+      :param events: Array of events to write.
+      :type events: np.ndarray or EventArray
+
+      :returns: Number of buffered events.
+      :rtype: int
+
+
+
+   .. py:method:: flush() -> None
+
+      No-op: the archive can only be written once, on :meth:`close`.
+
+
+
+   .. py:method:: close() -> None
+
+      Concatenate the buffered chunks and write the archive.
+
+
+
+.. py:class:: EventEncoder_EVT(writable: io.BufferedWriter, width: int = 1280, height: int = 720, dt: datetime.datetime | None = None, serial: str = '00000000', format: str = 'evt3')
+
+   Bases: :py:obj:`evutils.io.common.EventEncoder`
+
+   .. autoapi-inheritance-diagram:: evutils.io.encoders.EventEncoder_EVT
+      :parts: 1
+
+
+   Encoder for Prophesee RAW/EVT files.
+
+   :param writable: Destination stream to write to.
+   :param width: Frame geometry written into the header.
+   :type width: int
+   :param height: Frame geometry written into the header.
+   :type height: int
+   :param dt: Recording timestamp (defaults to now).
+   :type dt: datetime, optional
+   :param serial: Camera serial number written into the header.
+   :type serial: str
+   :param format: Output format. All three are supported; EVT2.1 is written one event per
+                  word (valid but not vectorised).
+   :type format: {"evt3", "evt21", "evt2"}
+
+   .. rubric:: References
+
+   [1] Prophesee RAW file format
+       https://docs.prophesee.ai/stable/data/file_formats/raw.html
+
+
+   .. py:attribute:: FORMATS
+
+
+   .. py:attribute:: HEADER_FORMAT
+
+
+   .. py:method:: init()
+
+      Initialize the EVT writer.
+
+      :rtype: None
+
+
+
+   .. py:method:: write(events: numpy.ndarray) -> int
+
+      Write events to the EVT file.
+
+      :param events: Array of events to write.
+      :type events: np.ndarray or EventArray
+
+      :returns: Number of written events.
+      :rtype: int
+
+
+
+.. py:class:: EventEncoder_AER(writable, width: int = 512, height: int = 512, dt=None)
+
+   Bases: :py:obj:`evutils.io.common.EventEncoder`
+
+   .. autoapi-inheritance-diagram:: evutils.io.encoders.EventEncoder_AER
+      :parts: 1
+
+
+   Encode events into a raw AER stream. Since AER is designed for real-time
+   streaming, it has no header and no timestamps.
+   Timestamps are dropped and coordinates are masked to 9 bits (values >= 512
+   are truncated), per the AER encoding.
+
+   :param writable: Destination stream to write to.
+   :param width: Frame geometry written into the header.
+   :type width: int
+   :param height: Frame geometry written into the header.
+   :type height: int
+   :param dt: No effect, since AER has no timestamps.
+   :type dt: datetime, optional
+
+   .. rubric:: References
+
+   [1] Prophesee AER format: https://docs.prophesee.ai/stable/data/encoding_formats/aer.html
+
+
+   .. py:method:: init()
+
+      Initialize the AER writer.
+
+      :rtype: None
+
+
+
+   .. py:method:: write(events) -> int
+
+      Write events to the AER file.
+
+      :param events: Array of events to write.
+      :type events: np.ndarray or EventArray
+
+      :returns: Number of written events.
+      :rtype: int
+
+
+
+.. py:function:: get_file_writer(file: pathlib.Path) -> Type[evutils.io.common.EventEncoder]
+
+   Get the appropriate writer for the given file.
+
+   :param file: File to write
+
+   :returns: Writer object for the file
+   :rtype: EventFileWriter
+
+

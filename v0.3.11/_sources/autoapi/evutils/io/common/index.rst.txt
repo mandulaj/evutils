@@ -1,0 +1,204 @@
+:py:mod:`evutils.io.common`
+===========================
+
+.. py:module:: evutils.io.common
+
+.. autoapi-nested-parse::
+
+   Common interface for event decoders and encoders.
+
+   Defines the abstract base classes `EventDecoder` and `EventEncoder`.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   evutils.io.common.EventDecoder
+   evutils.io.common.EventEncoder
+
+
+Module Contents
+---------------
+
+.. py:class:: EventDecoder(source, chunk_size: int = 10000, read_external_triggers: bool = False)
+
+   Bases: :py:obj:`abc.ABC`
+
+   .. autoapi-inheritance-diagram:: evutils.io.common.EventDecoder
+      :parts: 1
+
+
+   ABC for reading chunks of events from a IO source object.
+
+   :param readable: source to read events from
+   :param chunk_size: Size of the chunk to read
+
+   :raises NotImplementedError: If the method is not implemented in the subclass
+
+
+   .. py:attribute:: SUPPORTS_EXT_TRIGGERS
+      :value: False
+
+
+
+   .. py:attribute:: read_external_triggers
+      :value: False
+
+
+
+   .. py:method:: init()
+      :abstractmethod:
+
+
+      Initialize the file for reading.
+
+
+
+   .. py:method:: read_chunk(delta_t_hint: int | None = None, n_events_hint: int | None = None) -> EventArray | tuple[EventArray, TriggerArray]
+      :abstractmethod:
+
+
+      Read a chunk of events.
+
+      :param delta_t_hint: If not None, can be used to provide a hit about the delta_t window to be read
+      :type delta_t_hint: int, optional
+      :param n_events_hint: If not None, can be used to provide a hit about the n_events to be read
+      :type n_events_hint: int, optional
+
+      :returns: Chunk of events read from the source. Optionally returns triggers if `read_external_triggers` is True.
+      :rtype: EventArray or tuple of (EventArray, TriggerArray)
+
+
+
+   .. py:method:: reset()
+      :abstractmethod:
+
+
+      Reset the file pointer to the beginning of the file.
+
+
+
+   .. py:method:: read_all() -> EventArray | tuple[EventArray, TriggerArray]
+
+      Decode and return every remaining event at once.
+
+      The default implementation drains :meth:`read_chunk` and concatenates the
+      chunks. SoA-native decoders (EVT/DAT/AER) override this with a
+      single-buffer decode that avoids the per-chunk copy entirely.
+
+      :returns: All remaining events.
+      :rtype: EventArray
+
+
+
+   .. py:method:: close()
+
+      Release any resources held by the decoder (e.g. buffer views).
+
+      The owning source is closed separately by the EventReader.
+
+
+
+   .. py:method:: tell() -> int
+
+      Get the current position in the file.
+
+      :returns: The current position in the file
+      :rtype: int
+
+
+
+   .. py:method:: set_chunk_size(chunk_size: int)
+
+      Set the chunk size.
+
+      :param chunk_size: Size of the chunk to read
+
+
+
+   .. py:method:: shape() -> tuple[int | None, int | None]
+
+      Get the shape of the frame (width, height).
+
+      :returns: The shape of the frame (width, height), or (None, None) if the shape is not known
+      :rtype: tuple[int|None, int|None]
+
+
+
+   .. py:method:: __repr__() -> str
+
+
+   .. py:method:: is_eof() -> bool
+
+      Check if the end of the file has been reached.
+
+      :returns: True if the end of the file has been reached
+      :rtype: bool
+
+
+
+.. py:class:: EventEncoder(writable: io.BufferedIOBase, width: int = 1280, height: int = 720, dt: Optional[datetime.datetime] = None)
+
+   Bases: :py:obj:`abc.ABC`
+
+   .. autoapi-inheritance-diagram:: evutils.io.common.EventEncoder
+      :parts: 1
+
+
+   ABC for writing chunks of events to a io object.
+
+   :param writable: Destination for writing events
+   :param width: Width of the frame, by default 1280 (not relevant for some formats)
+   :type width: int, optional
+   :param height: Height of the frame, by default 720 (not relevant for some formats)
+   :type height: int, optional
+   :param dt: Timestamp of the recording (default is the current time, but information is not saved in all formats)
+   :type dt: datetime, optional
+
+   :raises NotImplementedError: If the method is not implemented in the subclass
+
+
+   .. py:method:: init()
+      :abstractmethod:
+
+
+      Initialize the file for writing.
+
+
+
+   .. py:method:: write(events: numpy.ndarray[Any, numpy.dtype[Any]]) -> int
+      :abstractmethod:
+
+
+      Write a chunk of events.
+
+
+
+   .. py:method:: __len__() -> int
+
+
+   .. py:method:: __enter__()
+
+
+   .. py:method:: __repr__() -> str
+
+
+   .. py:method:: flush()
+
+      Flush any buffered data to the underlying stream.
+
+
+
+   .. py:method:: close()
+
+      Finalize the encoder.
+
+      Container formats (NPZ, HDF5) override this to write the archive /
+      index before the underlying file is closed. The owning stream itself is
+      closed by the :class:`~evutils.io.EventWriter`, not here.
+
+
+

@@ -1,0 +1,248 @@
+:py:mod:`evutils.types`
+=======================
+
+.. py:module:: evutils.types
+
+.. autoapi-nested-parse::
+
+   Core data types for event streams.
+
+   Defines the structured NumPy dtypes used throughout evutils — ``Events``
+   (timestamp, x, y, polarity) and ``Triggers`` (timestamp, polarity, id) —
+   together with small helpers for checking event arrays.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   evutils.types.Event_dtype
+   evutils.types.Trigger_dtype
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   evutils.types.Event
+   evutils.types.EventArray
+   evutils.types.TriggerArray
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   evutils.types.is_monotonically_increasing
+
+
+Module Contents
+---------------
+
+.. py:data:: Event_dtype
+
+.. py:data:: Trigger_dtype
+
+.. py:class:: Event
+
+   Bases: :py:obj:`ctypes.Structure`
+
+   .. autoapi-inheritance-diagram:: evutils.types.Event
+      :parts: 1
+
+
+   Ctypes structure representing an event.
+
+   Fields
+   ------
+   t : ctypes.c_int64
+       Timestamp of the event (us).
+   x : ctypes.c_uint16
+       X-coordinate.
+   y : ctypes.c_uint16
+       Y-coordinate.
+   p : ctypes.c_uint8
+       Polarity (0: off, 1: on).
+
+
+.. py:function:: is_monotonically_increasing(events: numpy.ndarray) -> bool
+
+   Checks if the event ts is monotonically increasing.
+
+   :param events: Array of events with a 't' field for timestamps.
+   :type events: np.ndarray
+
+   :returns: True if timestamps are monotonically increasing, False otherwise.
+   :rtype: bool
+
+
+.. py:class:: EventArray(t, x, y, p)
+
+   A container for storing event data in a struct-of-arrays (SoA) layout.
+
+   The four fields ``t``, ``x``, ``y`` and ``p`` are kept as separate
+   contiguous numpy arrays. This is the native layout of the C parser and
+   avoids the padding of the packed :data:`Event_dtype` struct.
+
+   Both attribute access (``events.t``) and key access (``events['t']``) return
+   the underlying column, so most code written for structured arrays keeps
+   working. ``np.asarray(events)`` yields the array-of-structures form (see
+   :meth:`__array__`), which lets EventArray flow into code that still expects
+   :data:`Event_dtype`.
+
+
+   .. py:attribute:: __slots__
+      :value: ['t', 'x', 'y', 'p']
+
+
+
+   .. py:attribute:: t
+
+
+   .. py:attribute:: x
+
+
+   .. py:attribute:: y
+
+
+   .. py:attribute:: p
+
+
+   .. py:method:: __getitem__(key)
+
+
+   .. py:method:: __len__()
+
+
+   .. py:method:: __repr__()
+
+
+   .. py:method:: copy()
+
+      Return a deep copy with independent column arrays.
+
+
+
+   .. py:method:: empty()
+      :classmethod:
+
+
+      Return an empty EventArray with correctly-typed (zero-length) columns.
+
+
+
+   .. py:method:: from_aos(aos_array)
+      :classmethod:
+
+
+      Constructs an EventArray from an array of structures (AoS) numpy array.
+
+      :param aos_array: Structured numpy array of events.
+      :type aos_array: np.ndarray
+
+      :returns: The constructed EventArray in struct-of-arrays format.
+      :rtype: EventArray
+
+
+
+   .. py:method:: to_aos()
+
+      Converts the EventArray to an array of structures (AoS) numpy array.
+
+      :returns: Structured numpy array of events.
+      :rtype: np.ndarray
+
+
+
+   .. py:method:: __array__(dtype=None, copy=None)
+
+      Numpy interop: ``np.asarray(events)`` returns the AoS structured array.
+
+      This is the automatic SoA->AoS bridge for code (and tests) that still
+      operate on :data:`Event_dtype` arrays.
+
+      :param dtype: Desired data type for the array.
+      :type dtype: data-type, optional
+      :param copy: Whether to copy the data (ignored).
+      :type copy: bool, optional
+
+      :returns: The structured array of events.
+      :rtype: np.ndarray
+
+
+
+.. py:class:: TriggerArray(t, p, id)
+
+   A container for storing trigger data in a struct-of-arrays (SoA) layout.
+
+
+   .. py:attribute:: __slots__
+      :value: ['t', 'p', 'id']
+
+
+
+   .. py:attribute:: t
+
+
+   .. py:attribute:: p
+
+
+   .. py:attribute:: id
+
+
+   .. py:method:: __getitem__(key)
+
+
+   .. py:method:: __len__()
+
+
+   .. py:method:: __repr__()
+
+
+   .. py:method:: copy()
+
+      Return a deep copy with independent column arrays.
+
+      :returns: A deep copy of the trigger array.
+      :rtype: TriggerArray
+
+
+
+   .. py:method:: empty()
+      :classmethod:
+
+
+      Return an empty TriggerArray with correctly-typed (zero-length) columns.
+
+      :returns: An empty trigger array.
+      :rtype: TriggerArray
+
+
+
+   .. py:method:: to_aos()
+
+      Converts the TriggerArray to an array of structures (AoS) numpy array.
+
+      :returns: Structured numpy array of triggers.
+      :rtype: np.ndarray
+
+
+
+   .. py:method:: __array__(dtype=None, copy=None)
+
+      Numpy interop: ``np.asarray(triggers)`` returns the AoS structured array.
+
+      :param dtype: Desired data type for the array.
+      :type dtype: data-type, optional
+      :param copy: Whether to copy the data (ignored).
+      :type copy: bool, optional
+
+      :returns: The structured array of triggers.
+      :rtype: np.ndarray
+
+
+
