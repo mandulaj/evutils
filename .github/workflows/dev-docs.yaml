@@ -1,30 +1,24 @@
 name: Dev Docs
 
-# Build and publish the "dev" documentation on every push to the dev branch.
-# This does NOT build wheels or publish to PyPI -- it only runs the test suite
-# and, if green, deploys docs into the /dev/ subdir of the versioned site.
-
-concurrency:
-  # Supersede an in-flight dev-docs run when a newer commit lands on dev.
-  group: dev-docs-${{ github.ref }}
-  cancel-in-progress: true
+# Build and publish the "dev" documentation after the test suite passes on dev.
+# It does NOT build wheels or publish to PyPI. Rather than re-run the tests, it
+# reuses the single Test run for that commit via workflow_run: when Test
+# completes successfully on the dev branch, deploy docs into the /dev/ subdir.
 
 on:
-  push:
+  workflow_run:
+    workflows: ["Test"]        # matches the `name:` of test.yaml
+    types: [completed]
     branches: [dev]
 
 permissions:
   contents: read
 
 jobs:
-  # Same gate as a real release: full test matrix must pass before publishing.
-  test:
-    name: Tests
-    uses: ./.github/workflows/test.yaml
-
   publish_dev_docs:
     name: Build & Publish Dev Docs
-    needs: test
+    # Only deploy when the tests actually passed.
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     # The deploy script pushes to the gh-pages branch.
     permissions:
@@ -38,6 +32,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
         with:
+          # Build the exact commit that was tested (workflow_run defaults to the
+          # default branch otherwise).
+          ref: ${{ github.event.workflow_run.head_sha }}
           submodules: recursive
 
       - name: Install uv
