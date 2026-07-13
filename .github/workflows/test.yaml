@@ -9,6 +9,7 @@ on:
 
 jobs:
   test:
+    name: General PyTest
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
