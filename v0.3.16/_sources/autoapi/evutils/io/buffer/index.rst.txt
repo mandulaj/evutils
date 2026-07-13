@@ -1,0 +1,112 @@
+:py:mod:`evutils.io.buffer`
+===========================
+
+.. py:module:: evutils.io.buffer
+
+.. autoapi-nested-parse::
+
+   Event buffering module.
+
+   Provides `EventAccumulator` for buffering and rotating event structures
+   in memory efficiently.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   evutils.io.buffer.EventAccumulator
+
+
+Module Contents
+---------------
+
+.. py:class:: EventAccumulator(capacity: int)
+
+   Reused struct-of-arrays staging buffer that native decoders fill in place.
+
+   The whole point is to avoid a copy on the read path: instead of a decoder
+   parsing into its own buffer and the reader copying that into a ring, the
+   decoder's parser writes *directly* into this accumulator's storage (via
+   :meth:`prepare` + ``decoder.parse_step``). Consumed events at the front are
+   reclaimed by :meth:`_rotate` (moving only the small unconsumed remainder), so
+   the backing arrays are allocated once and never re-faulted. Only the final
+   window handed to the caller is copied (:meth:`slice_copy`).
+
+   Timestamps are stored as ``uint64`` (matching the native ``timestamp64_t``)
+   and exposed as ``int64`` via a zero-copy ``.view`` (values are positive and
+   in range).
+
+
+   .. py:method:: __len__() -> int
+
+
+   .. py:method:: t_window() -> numpy.ndarray
+
+      int64 view of the currently unconsumed timestamps (zero-copy).
+
+      :returns: The unconsumed timestamps as an int64 array.
+      :rtype: np.ndarray
+
+
+
+   .. py:method:: t_window_tr() -> numpy.ndarray
+
+      int64 view of the currently unconsumed trigger timestamps (zero-copy).
+
+      :returns: The unconsumed trigger timestamps as an int64 array.
+      :rtype: np.ndarray
+
+
+
+   .. py:method:: prepare(step: int) -> tuple[evutils.io._native_core.EventSoABuffers, evutils.io._native_core.TriggerSoABuffers]
+
+      Ready the buffer for the decoder to append up to ``step`` events, and
+      return ``(events_soa, triggers_soa)`` for ``decoder.parse_step``.
+
+      Rotates out consumed events if there is not enough tail room, then caps
+      the SoA capacity the parser sees to ``size + step`` so a single step does
+      not overshoot the requested window by more than one step's worth.
+
+      :param step: The number of events the decoder is expected to append.
+      :type step: int
+
+      :returns: A tuple of (events_soa, triggers_soa) buffers.
+      :rtype: tuple
+
+
+
+   .. py:method:: append(data: evutils.types.EventArray, triggers: evutils.types.TriggerArray | None = None) -> None
+
+      Copy an EventArray in (fallback path for non-native decoders).
+
+      :param data: The events to append.
+      :type data: EventArray
+      :param triggers: The triggers to append.
+      :type triggers: TriggerArray, optional
+
+
+
+   .. py:method:: slice_copy(k: int, tr_k: int = 0) -> tuple[evutils.types.EventArray, evutils.types.TriggerArray]
+
+      Return an independent copy of the first ``k`` unconsumed events and
+      advance past them.
+
+      :param k: The number of unconsumed events to slice and copy.
+      :type k: int
+      :param tr_k: The number of unconsumed triggers to slice and copy.
+      :type tr_k: int, optional
+
+      :returns: A tuple of (EventArray, TriggerArray) containing the copied slices.
+      :rtype: tuple
+
+
+
+   .. py:method:: reset() -> None
+
+      Reset the buffer and trigger size to 0 and clear consumed offsets.
+
+
+

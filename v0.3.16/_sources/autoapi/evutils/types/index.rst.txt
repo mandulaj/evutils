@@ -1,0 +1,174 @@
+:py:mod:`evutils.types`
+=======================
+
+.. py:module:: evutils.types
+
+.. autoapi-nested-parse::
+
+   Core data types for event streams.
+
+   Defines the structured NumPy dtypes used throughout evutils — ``Events``
+   (timestamp, x, y, polarity) and ``Triggers`` (timestamp, polarity, id) —
+   together with small helpers for checking event arrays.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   evutils.types.Event_dtype
+   evutils.types.Trigger_dtype
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   evutils.types.Event
+   evutils.types.EventArray
+   evutils.types.TriggerArray
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   evutils.types.is_monotonically_increasing
+
+
+Module Contents
+---------------
+
+.. py:data:: Event_dtype
+
+.. py:data:: Trigger_dtype
+
+.. py:class:: Event
+
+   Bases: :py:obj:`ctypes.Structure`
+
+   .. autoapi-inheritance-diagram:: evutils.types.Event
+      :parts: 1
+
+
+   Ctypes structure representing an event.
+
+   Fields
+   ------
+   t : ctypes.c_int64
+       Timestamp of the event (us).
+   x : ctypes.c_uint16
+       X-coordinate.
+   y : ctypes.c_uint16
+       Y-coordinate.
+   p : ctypes.c_uint8
+       Polarity (0: off, 1: on).
+
+
+.. py:function:: is_monotonically_increasing(events: numpy.ndarray) -> bool
+
+   Checks if the event ts is monotonically increasing.
+
+   :param events: Array of events with a 't' field for timestamps.
+   :type events: np.ndarray
+
+   :returns: True if timestamps are monotonically increasing, False otherwise.
+   :rtype: bool
+
+
+.. py:class:: EventArray(t: Any, x: Any, y: Any, p: Any)
+
+   Bases: :py:obj:`SoaArray`
+
+   .. autoapi-inheritance-diagram:: evutils.types.EventArray
+      :parts: 1
+
+
+   A container for storing event data in a struct-of-arrays (SoA) layout.
+
+   The four fields ``t``, ``x``, ``y`` and ``p`` are kept as separate
+   contiguous numpy arrays. This is the native layout of the C parser and
+   avoids the padding of the packed :data:`Event_dtype` struct.
+
+   Both attribute access (``events.t``) and key access (``events['t']``) return
+   the underlying column, so most code written for structured arrays keeps
+   working. ``np.asarray(events)`` yields the array-of-structures form (see
+   :meth:`__array__`), which lets EventArray flow into code that still expects
+   :data:`Event_dtype`.
+
+   .. rubric:: Examples
+
+   >>> from evutils.types import EventArray
+   >>> events = EventArray(t=[100, 150], x=[10, 20], y=[30, 40], p=[1, 0])
+   >>> events.t
+   array([100, 150])
+   >>> events.x
+   array([10, 20], dtype=uint16)
+   >>> events.y
+   array([30, 40], dtype=uint16)
+   >>> events.p
+   array([1, 0], dtype=uint8)
+   >>> events[:10]
+   EventArray(n=2):
+   [(100, 10, 30, 1) (150, 20, 40, 0)]
+   >>> events[0]  # doctest: +SKIP
+   np.void((100, 10, 30, 1), dtype=[('t', '<i8'), ('x', '<u2'), ('y', '<u2'), ('p', 'u1')])
+
+
+   .. py:attribute:: __slots__
+      :value: ['t', 'x', 'y', 'p']
+
+
+
+   .. py:attribute:: t
+
+
+   .. py:attribute:: x
+
+
+   .. py:attribute:: y
+
+
+   .. py:attribute:: p
+
+
+.. py:class:: TriggerArray(t: Any, p: Any, id: Any)
+
+   Bases: :py:obj:`SoaArray`
+
+   .. autoapi-inheritance-diagram:: evutils.types.TriggerArray
+      :parts: 1
+
+
+   A container for storing trigger data in a struct-of-arrays (SoA) layout.
+
+   .. rubric:: Examples
+
+   >>> from evutils.types import TriggerArray
+   >>> triggers = TriggerArray(t=[1000, 2000], p=[1, 0], id=[0, 1])
+   >>> triggers.t
+   array([1000, 2000])
+   >>> triggers.p
+   array([1, 0], dtype=uint8)
+   >>> triggers.id
+   array([0, 1], dtype=uint8)
+
+
+   .. py:attribute:: __slots__
+      :value: ['t', 'p', 'id']
+
+
+
+   .. py:attribute:: t
+
+
+   .. py:attribute:: p
+
+
+   .. py:attribute:: id
+
+
