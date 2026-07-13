@@ -1,0 +1,271 @@
+:py:mod:`evutils.repr`
+======================
+
+.. py:module:: evutils.repr
+
+.. autoapi-nested-parse::
+
+   Dense representations of event data.
+
+   Convert sparse event streams into dense tensors — voxel grids, time
+   surfaces, event frames and other fixed-size representations for downstream
+   models.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   evutils.repr.histogram
+   evutils.repr.wedge_histogram
+   evutils.repr.voxel_histogram
+   evutils.repr.timesurface
+   evutils.repr.frame_diff
+   evutils.repr.frame_rgb
+   evutils.repr.frame_gray
+   evutils.repr.tore
+
+
+Package Contents
+----------------
+
+.. py:function:: histogram(events: numpy.ndarray, width: int = 1280, height: int = 720, fill: bool = False, dtype: Any = np.uint8) -> numpy.ndarray
+
+   Generate a histogram frame from the events.
+
+   :param events: Array of events in the :class:`~evutils.types.Events` format
+   :type events: np.ndarray
+   :param width: Width of the frame, by default 1280
+   :type width: int, optional
+   :param height: Height of the frame, by default 720
+   :type height: int, optional
+   :param fill: If True, the non-zero values are set to 255, by default False
+   :type fill: bool, optional
+   :param dtype: Data type of the output array, by default np.uint8
+   :type dtype: np.dtype, optional
+
+   :returns: A numpy array with the histogram frame (height, width, 3)
+   :rtype: np.ndarray
+
+   .. rubric:: Examples
+
+   >>> import numpy as np
+   >>> from evutils.repr import histogram
+   >>> events = np.array([(10, 20, 100, 1), (15, 25, 200, 0)],
+   ...                   dtype=[('x', '<u2'), ('y', '<u2'), ('t', '<i8'), ('p', 'i1')])
+   >>> frame = histogram(events, width=100, height=100)
+   >>> frame.shape
+   (100, 100, 3)
+
+
+.. py:function:: wedge_histogram(events: numpy.ndarray, width: int = 1280, height: int = 720, tl: float = 30000000.0, dtype: Any = np.uint8) -> numpy.ndarray
+
+   Generate a wedge histogram frame from the events.
+
+   :param events: Array of events in the :class:`~evutils.types.Events` format
+   :type events: np.ndarray
+   :param width: Width of the frame, by default 1280
+   :type width: int, optional
+   :param height: Height of the frame, by default 720
+   :type height: int, optional
+   :param tl: Time limit for the frame in us, by default 30e6
+   :type tl: float, optional
+   :param dtype: Data type of the output array, by default np.uint8
+   :type dtype: np.dtype, optional
+
+   :returns: A numpy array with the wedge frame (height, width, 3)
+   :rtype: np.ndarray
+
+   .. rubric:: Examples
+
+   >>> import numpy as np
+   >>> from evutils.repr import wedge_histogram
+   >>> events = np.array([(10, 20, 100, 1), (15, 25, 200, 0)],
+   ...                   dtype=[('x', '<u2'), ('y', '<u2'), ('t', '<i8'), ('p', 'i1')])
+   >>> frame = wedge_histogram(events, width=100, height=100)
+   >>> frame.shape
+   (100, 100, 3)
+
+
+.. py:function:: voxel_histogram(events: numpy.ndarray, width: int = 1280, height: int = 720, n_bins: int = 10, dt: int = 10000, dtype: Any = np.uint8) -> numpy.ndarray
+
+   Generate a voxel grid from the events.
+
+   :param events: Array of events in the :class:`~evutils.types.Events` format.
+   :type events: np.ndarray
+   :param width: Width of the voxel grid, by default 1280.
+   :type width: int, optional
+   :param height: Height of the voxel grid, by default 720.
+   :type height: int, optional
+   :param n_bins: Number of depth bins (time slices) in the voxel grid, by default 10.
+   :type n_bins: int, optional
+   :param dt: Time delta in microseconds for events buffer by default 10_000 (10 ms).
+   :type dt: int, optional
+   :param dtype: Data type of the output voxel grid, by default np.uint8.
+   :type dtype: np.dtype, optional
+
+   :returns: A numpy array with the voxel grid (n_bins, height, width, 3).
+   :rtype: np.ndarray
+
+   .. rubric:: Examples
+
+   >>> import numpy as np
+   >>> from evutils.repr import voxel_histogram
+   >>> events = np.array([(10, 20, 100, 1), (15, 25, 200, 0), (20, 30, 10000, 1)],
+   ...                   dtype=[('x', '<u2'), ('y', '<u2'), ('t', '<i8'), ('p', 'i1')])
+   >>> grid = voxel_histogram(events, width=100, height=100, n_bins=10, dt=10000)
+   >>> grid.shape
+   (10, 100, 100, 3)
+
+
+.. py:function:: timesurface(events: numpy.ndarray, width: int = 1280, height: int = 720, tau: int = 10000, dtype: Any = np.float32) -> numpy.ndarray
+
+   Generate a time surface frame from the events.
+
+   :param events: Array of events in the :class:`~evutils.types.Events` format.
+   :type events: np.ndarray
+   :param width: Width of the time surface frame, by default 1280.
+   :type width: int, optional
+   :param height: Height of the time surface frame, by default 720.
+   :type height: int, optional
+   :param tau: Time constant for the exponential decay, by default 10_000 (10 ms).
+   :type tau: int, optional
+   :param dtype: Data type of the output frame, by default np.uint8.
+   :type dtype: np.dtype, optional
+
+   :returns: A numpy array with the time surface frame (height, width).
+   :rtype: np.ndarray
+
+   .. rubric:: Examples
+
+   >>> import numpy as np
+   >>> from evutils.repr import timesurface
+   >>> events = np.array([(10, 20, 100, 1), (15, 25, 200, 0)],
+   ...                   dtype=[('x', '<u2'), ('y', '<u2'), ('t', '<i8'), ('p', 'i1')])
+   >>> frame = timesurface(events, width=100, height=100)
+   >>> frame.shape
+   (100, 100)
+
+   [1] Lagorce et al. 2016, Hots: a hierarchy of event-based time-surfaces for pattern recognition https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=7508476
+
+
+.. py:function:: frame_diff(ev: numpy.ndarray, width: int = 1280, height: int = 720, dtype: Any = np.int8) -> numpy.ndarray
+
+   Generate a differential frame from the events.
+
+   :param ev: Array of events in the :class:`~evutils.types.Events` format
+   :type ev: np.ndarray
+   :param width: Width of the frame, by default 1280
+   :type width: int, optional
+   :param height: Height of the frame, by default 720
+   :type height: int, optional
+   :param dtype: Data type of the output array, by default np.int8
+   :type dtype: np.dtype, optional
+
+   :returns: A numpy array with the frame (height, width)
+   :rtype: np.ndarray
+
+   .. rubric:: Examples
+
+   >>> import numpy as np
+   >>> from evutils.repr import frame_diff
+   >>> events = np.array([(10, 20, 100, 1), (15, 25, 200, 0)],
+   ...                   dtype=[('x', '<u2'), ('y', '<u2'), ('t', '<i8'), ('p', 'i1')])
+   >>> frame = frame_diff(events, width=100, height=100)
+   >>> frame.shape
+   (100, 100)
+
+
+.. py:function:: frame_rgb(ev: numpy.ndarray, width: int = 1280, height: int = 720, bg_color: Any = np.array((0, 0, 0)), pos_color: Any = np.array((255, 0, 0)), neg_color: Any = np.array((0, 0, 255))) -> numpy.ndarray
+
+   Generate an RGB frame from the events.
+
+   :param ev: Array of events in the :class:`~evutils.types.Events` format
+   :type ev: np.ndarray
+   :param width: Width of the frame, by default 1280
+   :type width: int, optional
+   :param height: Height of the frame, by default 720
+   :type height: int, optional
+   :param bg_color: Background color, by default np.array((0, 0, 0))
+   :type bg_color: np.ndarray, optional
+   :param pos_color: Color for positive events, by default np.array((255, 0, 0))
+   :type pos_color: np.ndarray, optional
+   :param neg_color: Color for negative events, by default np.array((0, 0, 255))
+   :type neg_color: np.ndarray, optional
+
+   :returns: A numpy array with the frame (height, width, 3)
+   :rtype: np.ndarray
+
+   .. rubric:: Examples
+
+   >>> import numpy as np
+   >>> from evutils.repr import frame_rgb
+   >>> events = np.array([(10, 20, 100, 1), (15, 25, 200, 0)],
+   ...                   dtype=[('x', '<u2'), ('y', '<u2'), ('t', '<i8'), ('p', 'i1')])
+   >>> frame = frame_rgb(events, width=100, height=100)
+   >>> frame.shape
+   (100, 100, 3)
+
+
+.. py:function:: frame_gray(events: numpy.ndarray, width: int = 1280, height: int = 720, dtype: Any = np.uint8) -> numpy.ndarray
+
+   Generate a grayscale frame from the events.
+
+   :param events: Array of events in the :class:`~evutils.types.Events` format
+   :type events: np.ndarray
+   :param width: Width of the frame, by default 1280
+   :type width: int, optional
+   :param height: Height of the frame, by default 720
+   :type height: int, optional
+   :param dtype: Data type of the output array, by default np.uint8
+   :type dtype: np.dtype, optional
+
+   :returns: A numpy array with the frame (height, width)
+   :rtype: np.ndarray
+
+   .. rubric:: Examples
+
+   >>> import numpy as np
+   >>> from evutils.repr import frame_gray
+   >>> events = np.array([(10, 20, 100, 1), (15, 25, 200, 0)],
+   ...                   dtype=[('x', '<u2'), ('y', '<u2'), ('t', '<i8'), ('p', 'i1')])
+   >>> frame = frame_gray(events, width=100, height=100)
+   >>> frame.shape
+   (100, 100)
+
+
+.. py:function:: tore(events: numpy.ndarray, width: int = 1280, height: int = 720, n_events: int = 4, tau: int = 10000, dtype: Any = np.uint8) -> numpy.ndarray
+
+   Generate a TORE from the events.
+
+   :param events: Array of events in the :class:`~evutils.types.Events` format
+   :type events: np.ndarray
+   :param width: Width of the frame, by default 1280
+   :type width: int, optional
+   :param height: Height of the frame, by default 720
+   :type height: int, optional
+   :param n_events: Number of events to keep in the TORE, by default 4
+   :type n_events: int, optional
+   :param tau: Time constant for the exponential decay, by default 10_000
+   :type tau: int, optional
+   :param dtype: Data type of the output array, by default np.uint8
+   :type dtype: np.dtype, optional
+
+   :returns: A numpy array with the TORE representation (height, width, n_events, 2)
+   :rtype: np.ndarray
+
+   .. rubric:: Examples
+
+   >>> import numpy as np
+   >>> from evutils.repr import tore
+   >>> events = np.array([(10, 20, 100, 1), (15, 25, 200, 0)],
+   ...                   dtype=[('x', '<u2'), ('y', '<u2'), ('t', '<i8'), ('p', 'i1')])
+   >>> frame = tore(events, width=100, height=100, n_events=4)
+   >>> frame.shape
+   (100, 100, 4, 2)
+
+   [1] Baldwin, R. W., Liu, R., Almatrafi, M., Asari, V., & Hirakawa, K. (2022). Time-ordered recent event (tore) volumes for event cameras. IEEE Transactions on Pattern Analysis and Machine Intelligence, 45(2), 2519-2532.
+
+

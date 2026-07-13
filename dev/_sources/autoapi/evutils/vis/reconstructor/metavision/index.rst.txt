@@ -1,0 +1,56 @@
+:py:mod:`evutils.vis.reconstructor.metavision`
+==============================================
+
+.. py:module:: evutils.vis.reconstructor.metavision
+
+.. autoapi-nested-parse::
+
+   Event-to-video reconstruction using the Metavision ML model.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   evutils.vis.reconstructor.metavision.Metavision_Reconstructor
+
+
+Module Contents
+---------------
+
+.. py:class:: Metavision_Reconstructor(height: int, width: int, args: Any = None)
+
+   Bases: :py:obj:`evutils.vis.reconstructor._base.Reconstructor`
+
+   .. autoapi-inheritance-diagram:: evutils.vis.reconstructor.metavision.Metavision_Reconstructor
+      :parts: 1
+
+
+   Reconstructor using the Metavision model.
+
+   :param height: Height of the frame
+   :type height: int
+   :param width: Width of the frame
+   :type width: int
+   :param args: Additional arguments for the Metavision reconstructor, by default {}
+   :type args: dict, optional
+
+
+   .. py:attribute:: model
+
+
+   .. py:method:: gen_frame(e: numpy.ndarray) -> numpy.ndarray
+
+      Reconstructs a single frame from the given events.
+
+      :param e: Array of events.
+      :type e: np.ndarray
+
+      :returns: Reconstructed grayscale image frame as a numpy array of shape (height, width)
+                with dtype uint8.
+      :rtype: np.ndarray
+
+
+

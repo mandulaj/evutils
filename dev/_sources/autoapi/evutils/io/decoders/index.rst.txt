@@ -1,0 +1,618 @@
+:py:mod:`evutils.io.decoders`
+=============================
+
+.. py:module:: evutils.io.decoders
+
+.. autoapi-nested-parse::
+
+   Decoders module.
+
+   Provides mapping and resolution of event decoders based on file extensions or
+   magic bytes. Backends whose optional dependencies are missing (e.g. pandas for
+   CSV, h5py for HDF5) are not registered; asking for them raises an
+   ``ImportError`` that names the extra to install.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   evutils.io.decoders.EventDecoder
+   evutils.io.decoders.EventDecoder_Aedat
+   evutils.io.decoders.EventDecoder_Bin
+   evutils.io.decoders.EventDecoder_Dat
+   evutils.io.decoders.EventDecoder_Npz
+   evutils.io.decoders.EventDecoder_EVT
+   evutils.io.decoders.EventDecoder_AER
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   evutils.io.decoders.get_reader_from_filename
+   evutils.io.decoders.resolve_decoder_cls
+
+
+Module Contents
+---------------
+
+.. py:class:: EventDecoder(source: Any, chunk_size: int = 10000, read_external_triggers: bool = False)
+
+   Bases: :py:obj:`abc.ABC`
+
+   .. autoapi-inheritance-diagram:: evutils.io.decoders.EventDecoder
+      :parts: 1
+
+
+   ABC for reading chunks of events from a IO source object.
+
+   :param readable: source to read events from
+   :param chunk_size: Size of the chunk to read
+
+   :raises NotImplementedError: If the method is not implemented in the subclass
+
+
+   .. py:attribute:: SUPPORTS_EXT_TRIGGERS
+      :value: False
+
+
+
+   .. py:attribute:: read_external_triggers
+      :value: False
+
+
+
+   .. py:method:: init() -> None
+      :abstractmethod:
+
+
+      Initialize the file for reading.
+
+
+
+   .. py:method:: read_chunk(delta_t_hint: int | None = None, n_events_hint: int | None = None) -> EventArray | tuple[EventArray, TriggerArray]
+      :abstractmethod:
+
+
+      Read a chunk of events.
+
+      :param delta_t_hint: If not None, can be used to provide a hit about the delta_t window to be read
+      :type delta_t_hint: int, optional
+      :param n_events_hint: If not None, can be used to provide a hit about the n_events to be read
+      :type n_events_hint: int, optional
+
+      :returns: Chunk of events read from the source. Optionally returns triggers if `read_external_triggers` is True.
+      :rtype: EventArray or tuple of (EventArray, TriggerArray)
+
+
+
+   .. py:method:: reset() -> None
+      :abstractmethod:
+
+
+      Reset the file pointer to the beginning of the file.
+
+
+
+   .. py:method:: read_all() -> EventArray | tuple[EventArray, TriggerArray]
+
+      Decode and return every remaining event at once.
+
+      The default implementation drains :meth:`read_chunk` and concatenates the
+      chunks. SoA-native decoders (EVT/DAT/AER) override this with a
+      single-buffer decode that avoids the per-chunk copy entirely.
+
+      :returns: All remaining events.
+      :rtype: EventArray
+
+
+
+   .. py:method:: close() -> None
+
+      Release any resources held by the decoder (e.g. buffer views).
+
+      The owning source is closed separately by the EventReader.
+
+
+
+   .. py:method:: tell() -> int
+
+      Get the current position in the file.
+
+      :returns: The current position in the file
+      :rtype: int
+
+
+
+   .. py:method:: set_chunk_size(chunk_size: int) -> None
+
+      Set the chunk size.
+
+      :param chunk_size: Size of the chunk to read
+
+
+
+   .. py:method:: shape() -> tuple[int | None, int | None]
+
+      Get the shape of the frame (width, height).
+
+      :returns: The shape of the frame (width, height), or (None, None) if the shape is not known
+      :rtype: tuple[int|None, int|None]
+
+
+
+   .. py:method:: __repr__() -> str
+
+
+   .. py:method:: is_eof() -> bool
+
+      Check if the end of the file has been reached.
+
+      :returns: True if the end of the file has been reached
+      :rtype: bool
+
+
+
+.. py:class:: EventDecoder_Aedat(source: evutils.io._source.ByteSource, chunk_size: int = 1000000, layout: str = 'davis')
+
+   Bases: :py:obj:`evutils.io.common.EventDecoder`
+
+   .. autoapi-inheritance-diagram:: evutils.io.decoders.EventDecoder_Aedat
+      :parts: 1
+
+
+   Decode AEDAT 1.0 / 2.0 / 3.1 / 4.0 files into ``EventArray`` chunks.
+
+   The version is detected from the ``#!AER-DATx.y`` header line (a file
+   with a bare ``#`` header, or none at all, is treated as AEDAT 1.0, per
+   the jAER convention).
+
+   :param source: Byte source to read from.
+   :param chunk_size: Maximum number of events produced per :meth:`read_chunk` call
+                      (AEDAT 3.1/4.0 packets are never split, so a chunk can exceed this
+                      by at most one packet's worth).
+   :param layout: AEDAT 2.0 address layout (the 2.0 container does not name the
+                  camera). Ignored for the other versions.
+   :type layout: {"davis", "dvs128"}, default "davis"
+
+
+   .. py:method:: init() -> None
+
+      Read the header and position the cursor at the first record/packet.
+
+
+
+   .. py:method:: read_chunk(delta_t_hint: int | None = None, n_events_hint: int | None = None) -> evutils.types.EventArray
+
+      Read a chunk of events.
+
+      :param delta_t_hint: If not None, can be used to provide a hit about the delta_t window to be read
+      :type delta_t_hint: int, optional
+      :param n_events_hint: If not None, can be used to provide a hit about the n_events to be read
+      :type n_events_hint: int, optional
+
+      :returns: Chunk of events read from the source. Optionally returns triggers if `read_external_triggers` is True.
+      :rtype: EventArray or tuple of (EventArray, TriggerArray)
+
+
+
+   .. py:method:: reset() -> None
+
+      Reset the reader to the first event.
+
+
+
+   .. py:method:: tell() -> int
+
+      Get the current byte offset.
+
+      :returns: Current byte offset.
+      :rtype: int
+
+
+
+   .. py:method:: close() -> None
+
+      Release the buffer view so the source can be closed.
+
+
+
+.. py:class:: EventDecoder_Bin(source: Any, **kwargs: Any)
+
+   Bases: :py:obj:`evutils.io.common.EventDecoder`
+
+   .. autoapi-inheritance-diagram:: evutils.io.decoders.EventDecoder_Bin
+      :parts: 1
+
+
+   A decoder for reading events from binary files.
+
+   .. note::
+       Not implemented yet -- constructing this class raises
+       :class:`NotImplementedError`.
+
+   :param source: Byte source to read events from.
+   :type source: ByteSource
+   :param \*\*kwargs: Additional decoder arguments.
+
+   :raises NotImplementedError: Always, until the format is implemented.
+
+
+   .. py:method:: init() -> None
+      :abstractmethod:
+
+
+      Initialize the file for reading.
+
+
+
+   .. py:method:: read_chunk(delta_t_hint: int | None = None, n_events_hint: int | None = None) -> Any
+      :abstractmethod:
+
+
+      Read a chunk of events.
+
+
+
+   .. py:method:: reset() -> None
+      :abstractmethod:
+
+
+      Reset the file pointer to the beginning of the file.
+
+
+
+.. py:class:: EventDecoder_Dat(source: evutils.io._source.ByteSource, chunk_size: int = 1000000)
+
+   Bases: :py:obj:`evutils.io.common.EventDecoder`
+
+   .. autoapi-inheritance-diagram:: evutils.io.decoders.EventDecoder_Dat
+      :parts: 1
+
+
+   Decode Prophesee DAT files into ``EventArray`` chunks.
+
+   :param source: Byte source to read from.
+   :param chunk_size: Maximum number of events produced per :meth:`read_chunk` call (the
+                      native output-buffer capacity). Does not bound the file size.
+
+   .. rubric:: References
+
+   [1] Prophesee DAT file format
+       https://docs.prophesee.ai/stable/data/file_formats/dat.html
+
+
+   .. py:method:: init() -> None
+
+      Initialize the DAT reader.
+
+      :rtype: None
+
+
+
+   .. py:method:: parse_step(events: evutils.io._native_core.EventSoABuffers, triggers: evutils.io._native_core.TriggerSoABuffers) -> int
+
+      Run the parser once, appending into ``events``; advance the offset.
+      See :meth:`EventDecoder_EVT.parse_step`.
+
+
+
+   .. py:method:: read_chunk(delta_t_hint: int | None = None, n_events_hint: int | None = None) -> EventArray | tuple[EventArray, TriggerArray]
+
+      Read a chunk of events.
+
+      :param delta_t_hint: If not None, can be used to provide a hit about the delta_t window to be read
+      :type delta_t_hint: int, optional
+      :param n_events_hint: If not None, can be used to provide a hit about the n_events to be read
+      :type n_events_hint: int, optional
+
+      :returns: Chunk of events read from the source. Optionally returns triggers if `read_external_triggers` is True.
+      :rtype: EventArray or tuple of (EventArray, TriggerArray)
+
+
+
+   .. py:method:: read_all() -> EventArray | tuple[EventArray, TriggerArray]
+
+      Decode the whole remaining payload into one buffer (no per-chunk copy).
+
+
+
+   .. py:method:: reset() -> None
+
+      Reset the DAT reader to the beginning.
+
+      :rtype: None
+
+
+
+   .. py:method:: tell() -> int
+
+      Get the current byte offset.
+
+      :returns: Current byte offset.
+      :rtype: int
+
+
+
+   .. py:method:: close() -> None
+
+      Close the DAT reader.
+
+      :rtype: None
+
+
+
+.. py:class:: EventDecoder_Npz(source: evutils.io._source.ByteSource, chunk_size: int = 1000000)
+
+   Bases: :py:obj:`evutils.io.common.EventDecoder`
+
+   .. autoapi-inheritance-diagram:: evutils.io.decoders.EventDecoder_Npz
+      :parts: 1
+
+
+   Decode events from an ``.npz`` archive, streaming chunk by chunk.
+
+   The archive members are read through zip streams: only ``chunk_size``
+   events are held in memory at a time, so arbitrarily large recordings can
+   be iterated. Accepts either the four column members ``t/x/y/p`` or a
+   single structured ``events`` member.
+
+   :param source: Byte source to read from (must be seekable, as required by the zip
+                  format).
+   :param chunk_size: Number of events returned per :meth:`read_chunk` call.
+
+
+   .. py:method:: init() -> None
+
+      Open the archive and locate the event members.
+
+
+
+   .. py:method:: read_chunk(delta_t_hint: int | None = None, n_events_hint: int | None = None) -> evutils.types.EventArray
+
+      Read a chunk of events.
+
+      :param delta_t_hint: If not None, can be used to provide a hit about the delta_t window to be read
+      :type delta_t_hint: int, optional
+      :param n_events_hint: If not None, can be used to provide a hit about the n_events to be read
+      :type n_events_hint: int, optional
+
+      :returns: Chunk of events read from the source. Optionally returns triggers if `read_external_triggers` is True.
+      :rtype: EventArray or tuple of (EventArray, TriggerArray)
+
+
+
+   .. py:method:: reset() -> None
+
+      Reset the reader to the beginning of the archive.
+
+
+
+   .. py:method:: tell() -> int
+
+      Current position, in events (npz has no meaningful byte offset).
+
+
+
+   .. py:method:: close() -> None
+
+      Close the member streams and the archive.
+
+
+
+.. py:class:: EventDecoder_EVT(source: evutils.io._source.ByteSource, chunk_size: int = 1000000, read_external_triggers: bool = False)
+
+   Bases: :py:obj:`evutils.io.common.EventDecoder`
+
+   .. autoapi-inheritance-diagram:: evutils.io.decoders.EventDecoder_EVT
+      :parts: 1
+
+
+   Decode Prophesee EVT2, EVT2.1, and EVT3 streams into ``EventArray`` chunks.
+
+   :param source: Byte source to read from.
+   :param chunk_size: Maximum number of events produced per :meth:`read_chunk` call (the
+                      native output-buffer capacity). Does not bound the file size.
+
+   .. rubric:: References
+
+   [1] Prophesee RAW file format
+       https://docs.prophesee.ai/stable/data/file_formats/raw.html
+
+
+   .. py:attribute:: SUPPORTS_EXT_TRIGGERS
+      :value: True
+
+
+
+   .. py:method:: init() -> None
+
+      Initialize the EVT reader.
+
+      :rtype: None
+
+
+
+   .. py:method:: parse_step(events: evutils.io._native_core.EventSoABuffers, triggers: evutils.io._native_core.TriggerSoABuffers) -> int
+
+      Run the parser once, appending decoded events into ``events``.
+
+      Advances the internal word offset and sets EOF when the input is drained.
+
+      :param events: Buffer to append events to.
+      :type events: EventSoABuffers
+      :param triggers: Buffer to append triggers to.
+      :type triggers: TriggerSoABuffers
+
+      :returns: Number of events appended.
+      :rtype: int
+
+
+
+   .. py:method:: read_chunk(delta_t_hint: int | None = None, n_events_hint: int | None = None) -> EventArray | tuple[EventArray, TriggerArray]
+
+      Read a chunk of events.
+
+      :param delta_t_hint: If not None, can be used to provide a hit about the delta_t window to be read
+      :type delta_t_hint: int, optional
+      :param n_events_hint: If not None, can be used to provide a hit about the n_events to be read
+      :type n_events_hint: int, optional
+
+      :returns: Chunk of events read from the source. Optionally returns triggers if `read_external_triggers` is True.
+      :rtype: EventArray or tuple of (EventArray, TriggerArray)
+
+
+
+   .. py:method:: read_all() -> EventArray | tuple[EventArray, TriggerArray]
+
+      Decode the whole remaining payload into one buffer (no per-chunk copy).
+
+      See :func:`evutils.io._native_core.decode_all_soa`. Note this materialises
+      every event at once; for very large recordings that do not fit in memory,
+      iterate with :meth:`read_chunk` (via ``EventReader``) instead.
+
+
+
+   .. py:method:: reset() -> None
+
+      Reset the EVT reader to the beginning.
+
+      :rtype: None
+
+
+
+   .. py:method:: tell() -> int
+
+      Get the current byte offset.
+
+      :returns: Current byte offset.
+      :rtype: int
+
+
+
+   .. py:method:: close() -> None
+
+      Close the EVT reader.
+
+      :rtype: None
+
+
+
+.. py:class:: EventDecoder_AER(source: evutils.io._source.ByteSource, chunk_size: int = 1000000, timestamps: str | np.ndarray = 'zero', t_start: int = 0, t_step: int = 1)
+
+   Bases: :py:obj:`evutils.io.common.EventDecoder`
+
+   .. autoapi-inheritance-diagram:: evutils.io.decoders.EventDecoder_AER
+      :parts: 1
+
+
+   Decode raw AER streams into ``EventArray`` chunks. Since AER is designed
+   for real-time streaming, it has no header and no timestamps; see the
+   ``timestamps`` parameter for how the ``t`` column is generated.
+
+   :param source: Byte source to read from.
+   :param chunk_size: Maximum number of events produced per :meth:`read_chunk` call (the
+                      native output-buffer capacity). Does not bound the file size.
+   :param timestamps: Timestamp generation mode: ``"zero"`` fills ``t = 0``,
+                      ``"sequential"`` fills ``t = t_start + i * t_step``, and an integer
+                      array assigns user-provided timestamps positionally (its length must
+                      cover every decoded event).
+   :type timestamps: {"zero", "sequential"} or array_like, default "zero"
+   :param t_start: Start value and per-event increment for ``"sequential"`` mode.
+   :type t_start: int
+   :param t_step: Start value and per-event increment for ``"sequential"`` mode.
+   :type t_step: int
+
+   .. rubric:: References
+
+   [1] Prophesee AER format: https://docs.prophesee.ai/stable/data/encoding_formats/aer.html
+
+
+   .. py:method:: init() -> None
+
+      Initialize the AER reader.
+
+      :rtype: None
+
+
+
+   .. py:method:: parse_step(events: evutils.io._native_core.EventSoABuffers, triggers: evutils.io._native_core.TriggerSoABuffers) -> int
+
+      Run the parser once, appending into ``events``; advance the offset.
+      See :meth:`EventDecoder_EVT.parse_step`.
+
+
+
+   .. py:method:: read_chunk(delta_t_hint: int | None = None, n_events_hint: int | None = None) -> evutils.types.EventArray
+
+      Read a chunk of events.
+
+      :param delta_t_hint: If not None, can be used to provide a hit about the delta_t window to be read
+      :type delta_t_hint: int, optional
+      :param n_events_hint: If not None, can be used to provide a hit about the n_events to be read
+      :type n_events_hint: int, optional
+
+      :returns: Chunk of events read from the source. Optionally returns triggers if `read_external_triggers` is True.
+      :rtype: EventArray or tuple of (EventArray, TriggerArray)
+
+
+
+   .. py:method:: read_all() -> evutils.types.EventArray
+
+      Decode the whole remaining payload into one buffer (no per-chunk copy).
+
+
+
+   .. py:method:: reset() -> None
+
+      Reset the AER reader to the beginning.
+
+      :rtype: None
+
+
+
+   .. py:method:: tell() -> int
+
+      Get the current byte offset.
+
+      :returns: Current byte offset.
+      :rtype: int
+
+
+
+   .. py:method:: close() -> None
+
+      Close the AER reader.
+
+      :rtype: None
+
+
+
+.. py:function:: get_reader_from_filename(file: pathlib.Path) -> Type[evutils.io.common.EventDecoder]
+
+   Get the appropriate reader for the given file.
+
+   :param file: File to read
+
+   :returns: Reader object for the file
+   :rtype: EventDecoder
+
+
+.. py:function:: resolve_decoder_cls(source: Any) -> Type[evutils.io.common.EventDecoder]
+
+   Determine the decoder class for a :class:`ByteSource`.
+
+   Tries the filename extension first (cheap, usually right), then falls back
+   to sniffing the leading bytes -- which works for streams and USB devices
+   that have no filename.
+
+   :param source: A ByteSource (see :mod:`evutils.io._source`).
+
+   :returns: The decoder class to instantiate with the source.
+   :rtype: Type[EventDecoder]
+
+

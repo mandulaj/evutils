@@ -1,0 +1,102 @@
+:py:mod:`evutils.utils`
+=======================
+
+.. py:module:: evutils.utils
+
+.. autoapi-nested-parse::
+
+   General-purpose helpers.
+
+   Miscellaneous utilities that don't belong to a specific area, including
+   ``EventsChecker`` for validating that an event array is well-formed —
+   sorted timestamps, valid polarities, and coordinates within the sensor size.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   evutils.utils.EventsChecker
+
+
+Package Contents
+----------------
+
+.. py:class:: EventsChecker(events: numpy.ndarray)
+
+   Class to check if events are valid.
+
+   :param events: Array of events to check.
+   :type events: np.ndarray
+
+
+   .. py:attribute:: events
+
+
+   .. py:method:: is_sorted() -> bool
+
+      Check if events are sorted by timestamp.
+
+      :returns: True if events are sorted in non-decreasing order of timestamps.
+      :rtype: bool
+
+
+
+   .. py:method:: has_valid_polarity() -> bool
+
+      Check if events have valid polarity (0 or 1).
+
+      :returns: True if all events have polarity 0 or 1.
+      :rtype: bool
+
+
+
+   .. py:method:: has_valid_x(width: int) -> bool
+
+      Check if events have valid x coordinates.
+
+      :param width: Maximum valid width (exclusive).
+      :type width: int
+
+      :returns: True if all events have x coordinates in [0, width).
+      :rtype: bool
+
+
+
+   .. py:method:: has_valid_y(height: int) -> bool
+
+      Check if events have valid y coordinates.
+
+      :param height: Maximum valid height (exclusive).
+      :type height: int
+
+      :returns: True if all events have y coordinates in [0, height).
+      :rtype: bool
+
+
+
+   .. py:method:: is_valid(width: int = 1280, height: int = 720) -> bool
+
+      Check if all events are valid (sorted, valid polarity, and valid coordinates).
+
+      :param width: Maximum valid width, by default 1280.
+      :type width: int, optional
+      :param height: Maximum valid height, by default 720.
+      :type height: int, optional
+
+      :returns: True if all checks pass.
+      :rtype: bool
+
+
+
+   .. py:method:: __repr__() -> str
+
+      Return string representation of the EventsChecker.
+
+      :returns: String representation indicating if events are valid.
+      :rtype: str
+
+
+

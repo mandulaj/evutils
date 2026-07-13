@@ -1,0 +1,142 @@
+:py:mod:`evutils.chunking`
+==========================
+
+.. py:module:: evutils.chunking
+
+.. autoapi-nested-parse::
+
+   Splitting event streams into chunks.
+
+   Slice a continuous event stream into fixed-size windows, either by event
+   count or by time interval.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   evutils.chunking.window_delta_t
+   evutils.chunking.sliding_window
+   evutils.chunking.sort_events
+   evutils.chunking.get_dt_events
+   evutils.chunking.stream_delta_t
+   evutils.chunking.stream_n_events
+   evutils.chunking.stream_skip_to_time
+   evutils.chunking.stream_async
+   evutils.chunking.stream_paced_playback
+
+
+Module Contents
+---------------
+
+.. py:function:: window_delta_t(events: numpy.ndarray, delta_t: int = 10000) -> Iterator[numpy.ndarray]
+
+   Returns a generator that chunks the events array into windows of size delta_t.
+
+   :param events: Array of events
+   :type events: np.ndarray
+   :param delta_t: Size of the window in microseconds, by default 10_000
+   :type delta_t: int, optional
+
+   .. rubric:: Examples
+
+   >>> from evutils.random import random_events
+   >>> from evutils.chunking import window_delta_t
+   >>> events = random_events(1000, start_ts=0, end_ts=30_000)
+   >>> chunks = list(window_delta_t(events, delta_t=10_000))
+   >>> len(chunks) > 0
+   True
+
+
+.. py:function:: sliding_window(events: numpy.ndarray, delta_t: int = 10000, window_size: int = 20000, full_window: bool = False) -> Iterator[numpy.ndarray]
+
+   Returns a generator that chunks the events array into windows of size delta_t.
+
+   :param events: Array of events
+   :type events: np.ndarray
+   :param delta_t: Time delta between frames in microseconds, by default 10_000
+   :type delta_t: int, optional
+   :param window_size: Size of the window in microseconds, by default 20_000
+                       can overlap with the next frame
+   :type window_size: int, optional
+   :param full_window: If True, the last window will be full, by default False
+                       If False, the last window will be the remaining events
+   :type full_window: bool, optional
+
+   .. rubric:: Examples
+
+   >>> from evutils.random import random_events
+   >>> from evutils.chunking import sliding_window
+   >>> events = random_events(1000, start_ts=0, end_ts=50_000)
+   >>> chunks = list(sliding_window(events, delta_t=10_000, window_size=20_000))
+   >>> len(chunks) > 0
+   True
+
+
+.. py:function:: sort_events(events: numpy.ndarray) -> numpy.ndarray
+
+   Sorts the events array by timestamp.
+
+   :param events: Array of events
+   :type events: np.ndarray
+
+   .. rubric:: Examples
+
+   >>> import numpy as np
+   >>> from evutils.chunking import sort_events
+   >>> from evutils.random import random_events
+   >>> events = random_events(10)
+   >>> events["t"] = np.arange(10, 0, -1)
+   >>> sorted_events = sort_events(events)
+   >>> int(sorted_events["t"][0])
+   1
+
+
+.. py:function:: get_dt_events(events: numpy.ndarray, dt: int = 10000) -> numpy.ndarray
+
+   Returns the events that are within a time window of dt from the first event's timestamp.
+
+   :param events: Array of events
+   :type events: np.ndarray
+   :param dt: Time window in microseconds, by default 10_000
+   :type dt: int, optional
+
+   .. rubric:: Examples
+
+   >>> import numpy as np
+   >>> from evutils.random import random_events
+   >>> from evutils.chunking import get_dt_events
+   >>> events = random_events(100, start_ts=0, end_ts=50_000)
+   >>> sub_events = get_dt_events(events, dt=10_000)
+   >>> bool((sub_events["t"] <= events["t"][0] + 10_000).all())
+   True
+
+
+.. py:function:: stream_delta_t(raw_stream: Iterator[Any], delta_t: int) -> Iterator[Any]
+
+   A pipeline generator that turns a raw stream into perfect delta_t chunks.
+   This maintains a small internal buffer for events that cross boundaries.
+
+
+.. py:function:: stream_n_events(raw_stream: Iterator[Any], n_events: int) -> Iterator[Any]
+
+   Pipeline generator: chunks stream by event count.
+
+
+.. py:function:: stream_skip_to_time(stream: Iterator[Any], start_ts: int) -> Iterator[Any]
+
+   Pipeline generator: drops events until start_ts is reached.
+
+
+.. py:function:: stream_async(stream: Iterator[Any], maxsize: int = 5) -> Iterator[Any]
+
+   Pipeline generator: runs upstream decoding in a background thread.
+
+
+.. py:function:: stream_paced_playback(stream: Iterator[Any], playback_speed: float = 1.0) -> Iterator[Any]
+
+   Pipeline generator: spaces out yielding chunks to match wall-clock real-time.
+
+

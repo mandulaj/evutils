@@ -1,0 +1,1231 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>evutils.io &#8212; evutils v0.3.15 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../../../_static/documentation_options.js?v=6c55b10c"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'autoapi/evutils/io/index';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://mandulaj.github.io/evutils/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'dev';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="icon" href="../../../_static/event_hexagon_broken.webp"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="evutils.io.buffer" href="buffer/index.html" />
+    <link rel="prev" title="evutils.dataset" href="../dataset/index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/event_hexagon_broken.webp" class="logo__image only-light" alt=""/>
+    <img src="../../../_static/event_hexagon_broken.webp" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">EV-Utils</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../formats.html">
+    Supported Formats
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../benchmarks/README.html">
+    Benchmarks
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/mandulaj/evutils" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/evutils/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-custom fa-lg" data-prefix="fa-custom" data-icon="pypi" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../formats.html">
+    Supported Formats
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../benchmarks/README.html">
+    Benchmarks
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/mandulaj/evutils" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/evutils/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-custom fa-lg" data-prefix="fa-custom" data-icon="pypi" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils</span></code></a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../augment/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.augment</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../chunking/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.chunking</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../dataset/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.dataset</span></code></a></li>
+<li class="toctree-l2 current active has-children"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.io</span></code></a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="buffer/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.io.buffer</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="common/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.io.common</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="decoders/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.io.decoders</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="encoders/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.io.encoders</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="stream/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.io.stream</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="../processing/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.processing</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../random/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.random</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../repr/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.repr</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../torch/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.torch</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../types/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.types</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../utils/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.utils</span></code></a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../vis/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.vis</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../vis/open3d/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.vis.open3d</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../vis/plot3d/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.vis.plot3d</span></code></a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../vis/reconstructor/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.vis.reconstructor</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="../vis/reconstructor/metavision/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.vis.reconstructor.metavision</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../vis/reconstructor/rpg/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.vis.reconstructor.rpg</span></code></a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">API Reference</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils</span></code></a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.io</span></code></span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-evutils.io">
+<span id="evutils-io"></span><h1><a class="reference internal" href="#module-evutils.io" title="evutils.io"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.io</span></code></a><a class="headerlink" href="#module-evutils.io" title="Link to this heading">#</a></h1>
+<p>Reading and writing events in various file formats.</p>
+<p>Format-specific readers and writers (<code class="docutils literal notranslate"><span class="pre">bin</span></code>, <code class="docutils literal notranslate"><span class="pre">csv</span></code>, <code class="docutils literal notranslate"><span class="pre">dat</span></code>, <code class="docutils literal notranslate"><span class="pre">hdf5</span></code>,
+<code class="docutils literal notranslate"><span class="pre">npz</span></code>, <code class="docutils literal notranslate"><span class="pre">raw</span></code>, <code class="docutils literal notranslate"><span class="pre">txt</span></code>) built on a shared <code class="docutils literal notranslate"><span class="pre">EventReader</span></code> / <code class="docutils literal notranslate"><span class="pre">EventWriter</span></code>
+interface, plus <code class="docutils literal notranslate"><span class="pre">EventReader_Any</span></code> / <code class="docutils literal notranslate"><span class="pre">EventWriter_Any</span></code> which pick the
+backend from the file extension. Backends that need optional dependencies
+degrade gracefully and only raise on use.</p>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">#</a></h2>
+<div class="toctree-wrapper compound">
+</div>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="buffer/index.html#module-evutils.io.buffer" title="evutils.io.buffer"><code class="xref py py-mod docutils literal notranslate"><span class="pre">buffer</span></code></a></p></td>
+<td><p>Event buffering module.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="common/index.html#module-evutils.io.common" title="evutils.io.common"><code class="xref py py-mod docutils literal notranslate"><span class="pre">common</span></code></a></p></td>
+<td><p>Common interface for event decoders and encoders.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="decoders/index.html#module-evutils.io.decoders" title="evutils.io.decoders"><code class="xref py py-mod docutils literal notranslate"><span class="pre">decoders</span></code></a></p></td>
+<td><p>Decoders module.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="encoders/index.html#module-evutils.io.encoders" title="evutils.io.encoders"><code class="xref py py-mod docutils literal notranslate"><span class="pre">encoders</span></code></a></p></td>
+<td><p>Encoders module.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="stream/index.html#module-evutils.io.stream" title="evutils.io.stream"><code class="xref py py-mod docutils literal notranslate"><span class="pre">stream</span></code></a></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#evutils.io.EventReader" title="evutils.io.EventReader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EventReader</span></code></a></p></td>
+<td><p>Class for reading and automatically decoding and slicing events from a file or stream.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#evutils.io.EventWriter" title="evutils.io.EventWriter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EventWriter</span></code></a></p></td>
+<td><p>Base class for writing events to different file formats.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#evutils.io.EventStreamer" title="evutils.io.EventStreamer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EventStreamer</span></code></a></p></td>
+<td><p>A low-level streamer that yields raw event blocks exactly as the parser outputs them.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="package-contents">
+<h2>Package Contents<a class="headerlink" href="#package-contents" title="Link to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="evutils.io.EventReader">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.io.</span></span><span class="sig-name descname"><span class="pre">EventReader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">io.BufferedReader</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">evutils.io._source.ByteSource</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_t</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_events</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_ts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize_ts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000000000000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_events</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10000000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext_trigger</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">async_read</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">real_time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">playback_speed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_gap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_decoder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="decoders/index.html#evutils.io.decoders.EventDecoder" title="evutils.io.decoders.EventDecoder"><span class="pre">evutils.io.decoders.EventDecoder</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="decoders/index.html#evutils.io.decoders.EventDecoder" title="evutils.io.decoders.EventDecoder"><span class="pre">evutils.io.decoders.EventDecoder</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/evutils/io/_event_reader.html#EventReader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.EventReader" title="Link to this definition">#</a></dt>
+<dd><p>Class for reading and automatically decoding and slicing events from a file or stream.</p>
+<p>The reader supports different modes of operation, including reading a fixed number of events, reading events within a time window, or a combination of both.
+The file_decoder is chosen automatically based on the file format or can be supplied explicitly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file</strong> (<em>Path</em><em> or </em><em>str</em><em> or </em><em>io.BufferedReader</em><em> or </em><em>bytes</em><em> or </em><em>ByteSource</em>) – Path to the data file or a readable stream or bytes or a ByteSource</p></li>
+<li><p><strong>delta_t</strong> (<em>int</em><em> or </em><em>optional</em>) – Time window in microseconds, by default None</p></li>
+<li><p><strong>n_events</strong> (<em>int</em><em> or </em><em>None</em>) – Number of events to read in a chunk, by default None</p></li>
+<li><p><strong>max_events</strong> (<em>int</em><em>, </em><em>default=10_000_000</em>) – Maximum number of events to read at once</p></li>
+<li><p><strong>mode</strong> (<em>{'delta_t'</em><em>, </em><em>'n_events'</em><em>, </em><em>'mixed'</em><em>, </em><em>'all'</em><em>, </em><em>'auto'}</em><em>, </em><em>default 'auto'</em>) – Mode of operation <code class="docutils literal notranslate"><span class="pre">`[&quot;delta_t&quot;,</span> <span class="pre">&quot;n_events&quot;,</span> <span class="pre">&quot;mixed&quot;,</span> <span class="pre">&quot;all&quot;,</span> <span class="pre">&quot;auto&quot;]`</span></code></p></li>
+<li><p><strong>start_ts</strong> (<em>int</em><em>, </em><em>default=0</em>) – Start timestamp offset for the events, by default 0 (start of the file)</p></li>
+<li><p><strong>normalize_ts</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Normalize timestamps to start from zero</p></li>
+<li><p><strong>max_time</strong> (<em>int</em><em>, </em><em>default=1_000_000_000_000</em>) – Maximum timestamp to read</p></li>
+<li><p><strong>width</strong> (<em>int</em><em> or </em><em>None</em>) – Width of the frame, by default infered from the file</p></li>
+<li><p><strong>height</strong> (<em>int</em><em> or </em><em>None</em>) – Height of the frame, by default infered from the file</p></li>
+<li><p><strong>ext_trigger</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Whether to read external trigger events, by default False</p></li>
+<li><p><strong>async_read</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Decode ahead in a background thread while iterating: the next window
+is parsed while the caller processes the current one (the native
+parsers release the GIL). Helps whenever per-chunk processing takes
+meaningful time (numpy pipelines, GPU inference – the read becomes
+essentially free); can slightly hurt when the processing already
+saturates memory bandwidth. Affects iteration only; <code class="docutils literal notranslate"><span class="pre">read()</span></code> /
+<code class="docutils literal notranslate"><span class="pre">read_all()</span></code> stay synchronous and raise while an asynchronous
+iterator is active.</p></li>
+<li><p><strong>real_time</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Pace <a class="reference internal" href="#evutils.io.EventReader.read" title="evutils.io.EventReader.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a> and iteration to the recording’s own timeline: each
+chunk is released only once the wall-clock time since the first chunk
+matches the event time it covers, so the stream plays back as if live.
+Pacing is anchored to an absolute start time, so time spent processing
+a chunk is absorbed automatically (no drift); if decoding or
+processing falls behind, chunks are released immediately with no added
+delay. <code class="docutils literal notranslate"><span class="pre">read_all()</span></code> is never paced. Combine with <code class="docutils literal notranslate"><span class="pre">async_read=True</span></code>
+to decode ahead while waiting out the pacing delay.</p></li>
+<li><p><strong>playback_speed</strong> (<em>float</em><em>, </em><em>default=1.0</em>) – Playback rate multiplier for <code class="docutils literal notranslate"><span class="pre">real_time</span></code> mode: <code class="docutils literal notranslate"><span class="pre">2.0</span></code> plays twice
+as fast as the recording, <code class="docutils literal notranslate"><span class="pre">0.5</span></code> at half speed. Ignored when
+<code class="docutils literal notranslate"><span class="pre">real_time=False</span></code>.</p></li>
+<li><p><strong>max_gap</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>default=1.0</em>) – Longest idle stretch, in real seconds, that <code class="docutils literal notranslate"><span class="pre">real_time</span></code> pacing will
+sleep through. If a recording goes silent for longer (e.g. a
+late-starting stream, or a pause mid-recording), the pacer skips the
+dead air and resumes immediately instead of blocking on one long
+sleep. <code class="docutils literal notranslate"><span class="pre">None</span></code> disables the skip (strict real time). Ignored when
+<code class="docutils literal notranslate"><span class="pre">real_time=False</span></code>.</p></li>
+<li><p><strong>file_decoder</strong> (<em>ev_decoders.EventDecoder</em><em> or </em><em>type</em><em>[</em><em>ev_decoders.EventDecoder</em><em>] or </em><em>None</em><em>, </em><em>default=None</em>) – File decoder to use, by default None - automatic</p></li>
+<li><p><strong>**kwargs</strong> – Additional arguments to pass to the file decoder</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the mode is not supported or if the delta_t or n_events are not specified when needed</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">evutils.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventReader</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Read events in chunks of 10ms (10,000 microseconds)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">reader</span> <span class="o">=</span> <span class="n">EventReader</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;</span><span class="si">% f</span><span class="s2">ormat EVT3;height=720;width=1280</span><span class="se">\n</span><span class="si">% e</span><span class="s2">nd</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">delta_t</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">events</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="c1"># Access fields directly</span>
+<span class="gp">... </span>    <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">t</span> <span class="o">=</span> <span class="n">events</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">events</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">events</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="n">events</span><span class="o">.</span><span class="n">t</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processed </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">events</span><span class="p">)</span><span class="si">}</span><span class="s2"> events&quot;</span><span class="p">)</span>
+<span class="go">Processed 0 events</span>
+</pre></div>
+</div>
+<p>TODO:
+Architectural Refactor Roadmap:
+Decouple <cite>EventReader</cite>’s monolithic design by extracting the core byte-to-array decoding into
+a native <cite>EventStreamer</cite>. The slicing logic (<cite>mode=”delta_t”</cite>, <cite>mode=”n_events”</cite>, etc.) should
+be moved to composable pipeline generators in <cite>evutils.chunking</cite>. <cite>EventReader</cite> will then
+become a simple Façade that dynamically assembles these pipeline generators to maintain
+this exact backward-compatible API, while allowing power-users to compose custom pipelines
+(e.g., slicing by external trigger boundaries).</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.io.EventReader.READING_MODES">
+<span class="sig-name descname"><span class="pre">READING_MODES</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['delta_t',</span> <span class="pre">'n_events',</span> <span class="pre">'mixed',</span> <span class="pre">'all',</span> <span class="pre">'auto']</span></span><a class="headerlink" href="#evutils.io.EventReader.READING_MODES" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.io.EventReader.DEFAULT_N_EVENTS">
+<span class="sig-name descname"><span class="pre">DEFAULT_N_EVENTS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1000000</span></span><a class="headerlink" href="#evutils.io.EventReader.DEFAULT_N_EVENTS" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.io.EventReader.DEFAULT_DELTA_T">
+<span class="sig-name descname"><span class="pre">DEFAULT_DELTA_T</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10000</span></span><a class="headerlink" href="#evutils.io.EventReader.DEFAULT_DELTA_T" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.io.EventReader.init">
+<span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/evutils/io/_event_reader.html#EventReader.init"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.EventReader.init" title="Link to this definition">#</a></dt>
+<dd><p>Initialize the reader, can be used explicitly or implicitly by the read method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.io.EventReader.read">
+<span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">delta_t</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_events</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../types/index.html#evutils.types.EventArray" title="evutils.types.EventArray"><span class="pre">EventArray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../types/index.html#evutils.types.EventArray" title="evutils.types.EventArray"><span class="pre">EventArray</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="../types/index.html#evutils.types.TriggerArray" title="evutils.types.TriggerArray"><span class="pre">TriggerArray</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../_modules/evutils/io/_event_reader.html#EventReader.read"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.EventReader.read" title="Link to this definition">#</a></dt>
+<dd><p>Read events on the files based on the mode and the parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>delta_t</strong> (<em>int</em><em> | </em><em>None</em>) – Override the delta_t parameter, otherwise the default value is used from the constructor</p></li>
+<li><p><strong>n_events</strong> (<em>int</em><em> | </em><em>None</em>) – Override the n_events parameter, otherwise the default value is used from the constructor</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An array with the events</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="../types/index.html#evutils.types.EventArray" title="evutils.types.EventArray">EventArray</a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">reader</span> <span class="o">=</span> <span class="n">EventReader</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;</span><span class="si">% f</span><span class="s2">ormat EVT3;height=720;width=1280</span><span class="se">\n</span><span class="si">% e</span><span class="s2">nd</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">delta_t</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">events</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">events</span><span class="p">))</span>
+<span class="go">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Override the time window for a single read</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">more_events</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">delta_t</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.io.EventReader.read_all">
+<span class="sig-name descname"><span class="pre">read_all</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../types/index.html#evutils.types.EventArray" title="evutils.types.EventArray"><span class="pre">EventArray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../types/index.html#evutils.types.EventArray" title="evutils.types.EventArray"><span class="pre">EventArray</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="../types/index.html#evutils.types.TriggerArray" title="evutils.types.TriggerArray"><span class="pre">TriggerArray</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../_modules/evutils/io/_event_reader.html#EventReader.read_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.EventReader.read_all" title="Link to this definition">#</a></dt>
+<dd><p>Decode and return every remaining event at once.</p>
+<p>Delegates to the decoder’s <a class="reference internal" href="common/index.html#evutils.io.common.EventDecoder.read_all" title="evutils.io.common.EventDecoder.read_all"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read_all()</span></code></a>,
+which (for the native EVT/DAT/AER decoders) decodes the whole payload
+straight into a single output buffer – no per-chunk copy, no final
+<code class="docutils literal notranslate"><span class="pre">concatenate</span></code> – and hands the columns back as a zero-copy
+<code class="xref py py-class docutils literal notranslate"><span class="pre">EventArray</span></code>. This bypasses the slicing ring buffer that
+<a class="reference internal" href="#evutils.io.EventReader.read" title="evutils.io.EventReader.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a> uses for <code class="docutils literal notranslate"><span class="pre">delta_t</span></code>/<code class="docutils literal notranslate"><span class="pre">n_events</span></code> windowing.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This materialises every event in memory at once. For recordings too
+large to fit, iterate the reader (windowed <a class="reference internal" href="#evutils.io.EventReader.read" title="evutils.io.EventReader.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a>) instead.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>All remaining events.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="../types/index.html#evutils.types.EventArray" title="evutils.types.EventArray">EventArray</a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">reader</span> <span class="o">=</span> <span class="n">EventReader</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;</span><span class="si">% f</span><span class="s2">ormat EVT3;height=720;width=1280</span><span class="se">\n</span><span class="si">% e</span><span class="s2">nd</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">all_events</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read_all</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total events: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">all_events</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="go">Total events: 0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.io.EventReader.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/evutils/io/_event_reader.html#EventReader.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.EventReader.reset" title="Link to this definition">#</a></dt>
+<dd><p>Reset file reader back to the beginning of the file.</p>
+<p>An active asynchronous iterator is cancelled first (its remaining
+buffered chunks are discarded).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.io.EventReader.__enter__">
+<span class="sig-name descname"><span class="pre">__enter__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#evutils.io.EventReader" title="evutils.io.EventReader"><span class="pre">EventReader</span></a></span></span><a class="reference internal" href="../../../_modules/evutils/io/_event_reader.html#EventReader.__enter__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.EventReader.__enter__" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#evutils.io.EventReader" title="evutils.io.EventReader">EventReader</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.io.EventReader.is_eof">
+<span class="sig-name descname"><span class="pre">is_eof</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../../_modules/evutils/io/_event_reader.html#EventReader.is_eof"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.EventReader.is_eof" title="Link to this definition">#</a></dt>
+<dd><p>Check if the end of the file is reached.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if the end of the file is reached, False otherwise</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.io.EventReader.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/evutils/io/_event_reader.html#EventReader.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.EventReader.close" title="Link to this definition">#</a></dt>
+<dd><p>Close the reader and release resources (decoder buffer views, then the
+underlying byte source). Cancels any active asynchronous iterator first.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.io.EventReader.__exit__">
+<span class="sig-name descname"><span class="pre">__exit__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exc_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exc_value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">traceback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/evutils/io/_event_reader.html#EventReader.__exit__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.EventReader.__exit__" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>exc_type</strong> (<em>Any</em>)</p></li>
+<li><p><strong>exc_value</strong> (<em>Any</em>)</p></li>
+<li><p><strong>traceback</strong> (<em>Any</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.io.EventReader.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../../../_modules/evutils/io/_event_reader.html#EventReader.__repr__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.EventReader.__repr__" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.io.EventReader.__len__">
+<span class="sig-name descname"><span class="pre">__len__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="../../../_modules/evutils/io/_event_reader.html#EventReader.__len__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.EventReader.__len__" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.io.EventReader.__iter__">
+<span class="sig-name descname"><span class="pre">__iter__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="reference internal" href="../../../_modules/evutils/io/_event_reader.html#EventReader.__iter__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.EventReader.__iter__" title="Link to this definition">#</a></dt>
+<dd><p>Iterate over the events in the file.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">async_read=True</span></code> the windows are decoded ahead in a background
+thread (bounded to a couple of windows), overlapping decode with the
+caller’s per-chunk processing. Only one asynchronous iterator can be
+active per reader; direct <a class="reference internal" href="#evutils.io.EventReader.read" title="evutils.io.EventReader.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a> / <a class="reference internal" href="#evutils.io.EventReader.read_all" title="evutils.io.EventReader.read_all"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read_all()</span></code></a> calls raise
+until it is exhausted or closed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Yields<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>EventArray</em> – An array with the events</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Any</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">reader</span> <span class="o">=</span> <span class="n">EventReader</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;</span><span class="si">% f</span><span class="s2">ormat EVT3;height=720;width=1280</span><span class="se">\n</span><span class="si">% e</span><span class="s2">nd</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">n_events</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">events</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Received chunk of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">events</span><span class="p">)</span><span class="si">}</span><span class="s2"> events&quot;</span><span class="p">)</span>
+<span class="go">Received chunk of 0 events</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.io.EventReader.shape">
+<span class="sig-name descname"><span class="pre">shape</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../_modules/evutils/io/_event_reader.html#EventReader.shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.EventReader.shape" title="Link to this definition">#</a></dt>
+<dd><p>Get the shape of the frame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The shape of the frame (width, height)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple[int, int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.io.EventReader.tell">
+<span class="sig-name descname"><span class="pre">tell</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="../../../_modules/evutils/io/_event_reader.html#EventReader.tell"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.EventReader.tell" title="Link to this definition">#</a></dt>
+<dd><p>Get the current position in the file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The current position in the file</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="evutils.io.EventWriter">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.io.</span></span><span class="sig-name descname"><span class="pre">EventWriter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">io.BufferedIOBase</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1280</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">720</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datetime.datetime</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_encoder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="encoders/index.html#evutils.io.encoders.EventEncoder" title="evutils.io.encoders.EventEncoder"><span class="pre">evutils.io.encoders.EventEncoder</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/evutils/io/_event_writer.html#EventWriter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.EventWriter" title="Link to this definition">#</a></dt>
+<dd><p>Base class for writing events to different file formats.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file</strong> (<em>pathlib.Path</em><em> | </em><em>str</em><em> | </em><em>io.BufferedIOBase</em>) – Path to the data file</p></li>
+<li><p><strong>width</strong> (<em>int</em>) – Width of the frame, by default 1280 (not relevant for some formats)</p></li>
+<li><p><strong>height</strong> (<em>int</em>) – Height of the frame, by default 720 (not relevant for some formats)</p></li>
+<li><p><strong>dt</strong> (<em>datetime.datetime</em><em> | </em><em>None</em>) – Timestamp of the recording (default is the current time, but information is not saved in all formats)</p></li>
+<li><p><strong>file_encoder</strong> (<a class="reference internal" href="encoders/index.html#evutils.io.encoders.EventEncoder" title="evutils.io.encoders.EventEncoder"><em>evutils.io.encoders.EventEncoder</em></a><em> | </em><em>None</em>) – File encoder to use, by default None (chosen from the file extension)</p></li>
+<li><p><strong>**kwargs</strong> (<em>Any</em>) – Additional arguments for the file encoder</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">evutils.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventArray</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create an EventArray</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">events</span> <span class="o">=</span> <span class="n">EventArray</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">t</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1000</span><span class="p">]),</span>
+<span class="gp">... </span>    <span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">]),</span>
+<span class="gp">... </span>    <span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">]),</span>
+<span class="gp">... </span>    <span class="n">p</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Write the events to a raw file</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">EventWriter</span><span class="p">(</span><span class="s2">&quot;events.raw&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">events</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.io.EventWriter.init">
+<span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/evutils/io/_event_writer.html#EventWriter.init"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.EventWriter.init" title="Link to this definition">#</a></dt>
+<dd><p>Initialize the writer (e.g. open the file, write the header).</p>
+<p>This method can be called explicitly, but it is also called automatically when the first event is written</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.io.EventWriter.write">
+<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">events</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">triggers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="../../../_modules/evutils/io/_event_writer.html#EventWriter.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.EventWriter.write" title="Link to this definition">#</a></dt>
+<dd><p>Write a buffer of events to the file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>events</strong> (<em>numpy.ndarray</em>) – Buffer of events to write (structured array or EventArray)</p></li>
+<li><p><strong>triggers</strong> (<em>numpy.ndarray</em><em> | </em><em>None</em>) – Buffer of triggers to write (structured array or TriggerArray). Optional.</p></li>
+<li><p><strong>TODO</strong> (<em>Add support for writing triggers to the file</em><em> (</em><em>currently only events are written</em><em>)</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Number of events written</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">evutils.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventArray</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">events</span> <span class="o">=</span> <span class="n">EventArray</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">],</span> <span class="n">x</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">],</span> <span class="n">y</span><span class="o">=</span><span class="p">[</span><span class="mi">20</span><span class="p">,</span> <span class="mi">21</span><span class="p">],</span> <span class="n">p</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">writer</span> <span class="o">=</span> <span class="n">EventWriter</span><span class="p">(</span><span class="s2">&quot;events.raw&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">num_written</span> <span class="o">=</span> <span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">events</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Wrote </span><span class="si">{</span><span class="n">num_written</span><span class="si">}</span><span class="s2"> events&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">writer</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.io.EventWriter.write_external_triggers">
+<span class="sig-name descname"><span class="pre">write_external_triggers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">triggers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="../../../_modules/evutils/io/_event_writer.html#EventWriter.write_external_triggers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.EventWriter.write_external_triggers" title="Link to this definition">#</a></dt>
+<dd><p>Write external triggers to the file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>triggers</strong> (<em>np.ndarray</em>) – Buffer of triggers to write (structured array or TriggerArray).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Number of triggers written.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">evutils.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">TriggerArray</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">triggers</span> <span class="o">=</span> <span class="n">TriggerArray</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="p">[</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">2000</span><span class="p">],</span> <span class="n">p</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="nb">id</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">writer</span> <span class="o">=</span> <span class="n">EventWriter</span><span class="p">(</span><span class="s2">&quot;events.raw&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">writer</span><span class="o">.</span><span class="n">write_external_triggers</span><span class="p">(</span><span class="n">triggers</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">writer</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.io.EventWriter.flush">
+<span class="sig-name descname"><span class="pre">flush</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/evutils/io/_event_writer.html#EventWriter.flush"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.EventWriter.flush" title="Link to this definition">#</a></dt>
+<dd><p>Flush the buffer to the file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.io.EventWriter.__enter__">
+<span class="sig-name descname"><span class="pre">__enter__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#evutils.io.EventWriter" title="evutils.io.EventWriter"><span class="pre">EventWriter</span></a></span></span><a class="reference internal" href="../../../_modules/evutils/io/_event_writer.html#EventWriter.__enter__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.EventWriter.__enter__" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#evutils.io.EventWriter" title="evutils.io.EventWriter">EventWriter</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.io.EventWriter.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../../../_modules/evutils/io/_event_writer.html#EventWriter.__repr__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.EventWriter.__repr__" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.io.EventWriter.__len__">
+<span class="sig-name descname"><span class="pre">__len__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="../../../_modules/evutils/io/_event_writer.html#EventWriter.__len__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.EventWriter.__len__" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.io.EventWriter.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/evutils/io/_event_writer.html#EventWriter.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.EventWriter.close" title="Link to this definition">#</a></dt>
+<dd><p>Close the writer and release the resources.</p>
+<p>Finalizes the encoder first (container formats write their archive /
+index here), then closes the underlying file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.io.EventWriter.__exit__">
+<span class="sig-name descname"><span class="pre">__exit__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exc_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exc_value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">traceback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/evutils/io/_event_writer.html#EventWriter.__exit__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.EventWriter.__exit__" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>exc_type</strong> (<em>Any</em>)</p></li>
+<li><p><strong>exc_value</strong> (<em>Any</em>)</p></li>
+<li><p><strong>traceback</strong> (<em>Any</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="evutils.io.EventStreamer">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.io.</span></span><span class="sig-name descname"><span class="pre">EventStreamer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext_trigger</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decoder_cls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/evutils/io/stream.html#EventStreamer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.EventStreamer" title="Link to this definition">#</a></dt>
+<dd><p>A low-level streamer that yields raw event blocks exactly as the parser outputs them.
+It performs ZERO slicing or logic; it purely drives the decoder.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file</strong> (<em>Any</em>)</p></li>
+<li><p><strong>ext_trigger</strong> (<em>bool</em>)</p></li>
+<li><p><strong>decoder_cls</strong> (<em>Any</em>)</p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.io.EventStreamer.source">
+<span class="sig-name descname"><span class="pre">source</span></span><a class="headerlink" href="#evutils.io.EventStreamer.source" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.io.EventStreamer.decoder">
+<span class="sig-name descname"><span class="pre">decoder</span></span><a class="headerlink" href="#evutils.io.EventStreamer.decoder" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.io.EventStreamer.ext_trigger">
+<span class="sig-name descname"><span class="pre">ext_trigger</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#evutils.io.EventStreamer.ext_trigger" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.io.EventStreamer.__iter__">
+<span class="sig-name descname"><span class="pre">__iter__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../_modules/evutils/io/stream.html#EventStreamer.__iter__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.EventStreamer.__iter__" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Iterator[Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../dataset/index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.dataset</span></code></p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="buffer/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.io.buffer</span></code></p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submodules">Submodules</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#classes">Classes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#package-contents">Package Contents</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventReader"><code class="docutils literal notranslate"><span class="pre">EventReader</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventReader.READING_MODES"><code class="docutils literal notranslate"><span class="pre">EventReader.READING_MODES</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventReader.DEFAULT_N_EVENTS"><code class="docutils literal notranslate"><span class="pre">EventReader.DEFAULT_N_EVENTS</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventReader.DEFAULT_DELTA_T"><code class="docutils literal notranslate"><span class="pre">EventReader.DEFAULT_DELTA_T</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventReader.init"><code class="docutils literal notranslate"><span class="pre">EventReader.init()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventReader.read"><code class="docutils literal notranslate"><span class="pre">EventReader.read()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventReader.read_all"><code class="docutils literal notranslate"><span class="pre">EventReader.read_all()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventReader.reset"><code class="docutils literal notranslate"><span class="pre">EventReader.reset()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventReader.__enter__"><code class="docutils literal notranslate"><span class="pre">EventReader.__enter__()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventReader.is_eof"><code class="docutils literal notranslate"><span class="pre">EventReader.is_eof()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventReader.close"><code class="docutils literal notranslate"><span class="pre">EventReader.close()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventReader.__exit__"><code class="docutils literal notranslate"><span class="pre">EventReader.__exit__()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventReader.__repr__"><code class="docutils literal notranslate"><span class="pre">EventReader.__repr__()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventReader.__len__"><code class="docutils literal notranslate"><span class="pre">EventReader.__len__()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventReader.__iter__"><code class="docutils literal notranslate"><span class="pre">EventReader.__iter__()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventReader.shape"><code class="docutils literal notranslate"><span class="pre">EventReader.shape()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventReader.tell"><code class="docutils literal notranslate"><span class="pre">EventReader.tell()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventWriter"><code class="docutils literal notranslate"><span class="pre">EventWriter</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventWriter.init"><code class="docutils literal notranslate"><span class="pre">EventWriter.init()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventWriter.write"><code class="docutils literal notranslate"><span class="pre">EventWriter.write()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventWriter.write_external_triggers"><code class="docutils literal notranslate"><span class="pre">EventWriter.write_external_triggers()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventWriter.flush"><code class="docutils literal notranslate"><span class="pre">EventWriter.flush()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventWriter.__enter__"><code class="docutils literal notranslate"><span class="pre">EventWriter.__enter__()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventWriter.__repr__"><code class="docutils literal notranslate"><span class="pre">EventWriter.__repr__()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventWriter.__len__"><code class="docutils literal notranslate"><span class="pre">EventWriter.__len__()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventWriter.close"><code class="docutils literal notranslate"><span class="pre">EventWriter.close()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventWriter.__exit__"><code class="docutils literal notranslate"><span class="pre">EventWriter.__exit__()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventStreamer"><code class="docutils literal notranslate"><span class="pre">EventStreamer</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventStreamer.source"><code class="docutils literal notranslate"><span class="pre">EventStreamer.source</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventStreamer.decoder"><code class="docutils literal notranslate"><span class="pre">EventStreamer.decoder</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventStreamer.ext_trigger"><code class="docutils literal notranslate"><span class="pre">EventStreamer.ext_trigger</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventStreamer.__iter__"><code class="docutils literal notranslate"><span class="pre">EventStreamer.__iter__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../../../_sources/autoapi/evutils/io/index.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Jakub Mandula.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.20.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

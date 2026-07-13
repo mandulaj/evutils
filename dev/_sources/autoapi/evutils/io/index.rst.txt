@@ -1,0 +1,413 @@
+:py:mod:`evutils.io`
+====================
+
+.. py:module:: evutils.io
+
+.. autoapi-nested-parse::
+
+   Reading and writing events in various file formats.
+
+   Format-specific readers and writers (``bin``, ``csv``, ``dat``, ``hdf5``,
+   ``npz``, ``raw``, ``txt``) built on a shared ``EventReader`` / ``EventWriter``
+   interface, plus ``EventReader_Any`` / ``EventWriter_Any`` which pick the
+   backend from the file extension. Backends that need optional dependencies
+   degrade gracefully and only raise on use.
+
+
+
+Submodules
+----------
+
+.. toctree::
+   :hidden:
+   :maxdepth: 1
+
+   /autoapi/evutils/io/buffer/index
+   /autoapi/evutils/io/common/index
+   /autoapi/evutils/io/decoders/index
+   /autoapi/evutils/io/encoders/index
+   /autoapi/evutils/io/stream/index
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 0
+
+   * - :py:mod:`buffer <evutils.io.buffer>`
+     - Event buffering module.
+   * - :py:mod:`common <evutils.io.common>`
+     - Common interface for event decoders and encoders.
+   * - :py:mod:`decoders <evutils.io.decoders>`
+     - Decoders module.
+   * - :py:mod:`encoders <evutils.io.encoders>`
+     - Encoders module.
+   * - :py:mod:`stream <evutils.io.stream>`
+     - 
+
+Classes
+-------
+
+.. autoapisummary::
+
+   evutils.io.EventReader
+   evutils.io.EventWriter
+   evutils.io.EventStreamer
+
+
+Package Contents
+----------------
+
+.. py:class:: EventReader(file: pathlib.Path | str | io.BufferedReader | bytes | evutils.io._source.ByteSource, delta_t: int | None = None, n_events: int | None = None, mode: str = 'auto', start_ts: int = 0, normalize_ts: bool = False, max_time: int = 1000000000000, max_events: int = 10000000, width: int | None = None, height: int | None = None, ext_trigger: bool = False, async_read: bool = False, real_time: bool = False, playback_speed: float = 1.0, max_gap: float | None = 1.0, file_decoder: evutils.io.decoders.EventDecoder | type[evutils.io.decoders.EventDecoder] | None = None, **kwargs: Any)
+
+   Class for reading and automatically decoding and slicing events from a file or stream.
+
+   The reader supports different modes of operation, including reading a fixed number of events, reading events within a time window, or a combination of both.
+   The file_decoder is chosen automatically based on the file format or can be supplied explicitly.
+
+   :param file: Path to the data file or a readable stream or bytes or a ByteSource
+   :type file: Path or str or io.BufferedReader or bytes or ByteSource
+   :param delta_t: Time window in microseconds, by default None
+   :type delta_t: int or optional
+   :param n_events: Number of events to read in a chunk, by default None
+   :type n_events: int or None
+   :param max_events: Maximum number of events to read at once
+   :type max_events: int, default=10_000_000
+   :param mode: Mode of operation ```["delta_t", "n_events", "mixed", "all", "auto"]```
+   :type mode: {'delta_t', 'n_events', 'mixed', 'all', 'auto'}, default 'auto'
+   :param start_ts: Start timestamp offset for the events, by default 0 (start of the file)
+   :type start_ts: int, default=0
+   :param normalize_ts: Normalize timestamps to start from zero
+   :type normalize_ts: bool, default=False
+   :param max_time: Maximum timestamp to read
+   :type max_time: int, default=1_000_000_000_000
+   :param width: Width of the frame, by default infered from the file
+   :type width: int or None
+   :param height: Height of the frame, by default infered from the file
+   :type height: int or None
+   :param ext_trigger: Whether to read external trigger events, by default False
+   :type ext_trigger: bool, default=False
+   :param async_read: Decode ahead in a background thread while iterating: the next window
+                      is parsed while the caller processes the current one (the native
+                      parsers release the GIL). Helps whenever per-chunk processing takes
+                      meaningful time (numpy pipelines, GPU inference -- the read becomes
+                      essentially free); can slightly hurt when the processing already
+                      saturates memory bandwidth. Affects iteration only; ``read()`` /
+                      ``read_all()`` stay synchronous and raise while an asynchronous
+                      iterator is active.
+   :type async_read: bool, default=False
+   :param real_time: Pace :meth:`read` and iteration to the recording's own timeline: each
+                     chunk is released only once the wall-clock time since the first chunk
+                     matches the event time it covers, so the stream plays back as if live.
+                     Pacing is anchored to an absolute start time, so time spent processing
+                     a chunk is absorbed automatically (no drift); if decoding or
+                     processing falls behind, chunks are released immediately with no added
+                     delay. ``read_all()`` is never paced. Combine with ``async_read=True``
+                     to decode ahead while waiting out the pacing delay.
+   :type real_time: bool, default=False
+   :param playback_speed: Playback rate multiplier for ``real_time`` mode: ``2.0`` plays twice
+                          as fast as the recording, ``0.5`` at half speed. Ignored when
+                          ``real_time=False``.
+   :type playback_speed: float, default=1.0
+   :param max_gap: Longest idle stretch, in real seconds, that ``real_time`` pacing will
+                   sleep through. If a recording goes silent for longer (e.g. a
+                   late-starting stream, or a pause mid-recording), the pacer skips the
+                   dead air and resumes immediately instead of blocking on one long
+                   sleep. ``None`` disables the skip (strict real time). Ignored when
+                   ``real_time=False``.
+   :type max_gap: float or None, default=1.0
+   :param file_decoder: File decoder to use, by default None - automatic
+   :type file_decoder: ev_decoders.EventDecoder or type[ev_decoders.EventDecoder] or None, default=None
+   :param \*\*kwargs: Additional arguments to pass to the file decoder
+
+   :raises ValueError: If the mode is not supported or if the delta_t or n_events are not specified when needed
+
+   .. rubric:: Examples
+
+   >>> from evutils.io import EventReader
+   >>> # Read events in chunks of 10ms (10,000 microseconds)
+   >>> reader = EventReader(b"% format EVT3;height=720;width=1280\n% end\n", delta_t=10000)
+   >>> for events in reader:
+   ...     # Access fields directly
+   ...     x, y, p, t = events.x, events.y, events.p, events.t
+   ...     print(f"Processed {len(events)} events")
+   Processed 0 events
+
+   TODO:
+   Architectural Refactor Roadmap:
+   Decouple `EventReader`'s monolithic design by extracting the core byte-to-array decoding into
+   a native `EventStreamer`. The slicing logic (`mode="delta_t"`, `mode="n_events"`, etc.) should
+   be moved to composable pipeline generators in `evutils.chunking`. `EventReader` will then
+   become a simple Façade that dynamically assembles these pipeline generators to maintain
+   this exact backward-compatible API, while allowing power-users to compose custom pipelines
+   (e.g., slicing by external trigger boundaries).
+
+
+   .. py:attribute:: READING_MODES
+      :value: ['delta_t', 'n_events', 'mixed', 'all', 'auto']
+
+
+
+   .. py:attribute:: DEFAULT_N_EVENTS
+      :value: 1000000
+
+
+
+   .. py:attribute:: DEFAULT_DELTA_T
+      :value: 10000
+
+
+
+   .. py:method:: init() -> None
+
+      Initialize the reader, can be used explicitly or implicitly by the read method.
+
+
+
+   .. py:method:: read(delta_t: int | None = None, n_events: int | None = None) -> EventArray | tuple[EventArray, TriggerArray]
+
+      Read events on the files based on the mode and the parameters.
+
+      :param delta_t: Override the delta_t parameter, otherwise the default value is used from the constructor
+      :param n_events: Override the n_events parameter, otherwise the default value is used from the constructor
+
+      :returns: An array with the events
+      :rtype: EventArray
+
+      .. rubric:: Examples
+
+      >>> reader = EventReader(b"% format EVT3;height=720;width=1280\n% end\n", delta_t=10000)
+      >>> events = reader.read()
+      >>> print(len(events))
+      0
+      >>> # Override the time window for a single read
+      >>> more_events = reader.read(delta_t=5000)
+
+
+
+   .. py:method:: read_all() -> EventArray | tuple[EventArray, TriggerArray]
+
+      Decode and return every remaining event at once.
+
+      Delegates to the decoder's :meth:`~evutils.io.common.EventDecoder.read_all`,
+      which (for the native EVT/DAT/AER decoders) decodes the whole payload
+      straight into a single output buffer -- no per-chunk copy, no final
+      ``concatenate`` -- and hands the columns back as a zero-copy
+      :class:`EventArray`. This bypasses the slicing ring buffer that
+      :meth:`read` uses for ``delta_t``/``n_events`` windowing.
+
+      .. note::
+          This materialises every event in memory at once. For recordings too
+          large to fit, iterate the reader (windowed :meth:`read`) instead.
+
+      :returns: All remaining events.
+      :rtype: EventArray
+
+      .. rubric:: Examples
+
+      >>> reader = EventReader(b"% format EVT3;height=720;width=1280\n% end\n")
+      >>> all_events = reader.read_all()
+      >>> print(f"Total events: {len(all_events)}")
+      Total events: 0
+
+
+
+   .. py:method:: reset() -> None
+
+      Reset file reader back to the beginning of the file.
+
+      An active asynchronous iterator is cancelled first (its remaining
+      buffered chunks are discarded).
+
+
+
+   .. py:method:: __enter__() -> EventReader
+
+
+   .. py:method:: is_eof() -> bool
+
+      Check if the end of the file is reached.
+
+      :returns: True if the end of the file is reached, False otherwise
+      :rtype: bool
+
+
+
+   .. py:method:: close() -> None
+
+      Close the reader and release resources (decoder buffer views, then the
+      underlying byte source). Cancels any active asynchronous iterator first.
+
+
+
+   .. py:method:: __exit__(exc_type: Any, exc_value: Any, traceback: Any) -> None
+
+
+   .. py:method:: __repr__() -> str
+
+
+   .. py:method:: __len__() -> int
+
+
+   .. py:method:: __iter__() -> Any
+
+      Iterate over the events in the file.
+
+      With ``async_read=True`` the windows are decoded ahead in a background
+      thread (bounded to a couple of windows), overlapping decode with the
+      caller's per-chunk processing. Only one asynchronous iterator can be
+      active per reader; direct :meth:`read` / :meth:`read_all` calls raise
+      until it is exhausted or closed.
+
+      :Yields: *EventArray* -- An array with the events
+
+      .. rubric:: Examples
+
+      >>> reader = EventReader(b"% format EVT3;height=720;width=1280\n% end\n", n_events=5000)
+      >>> for events in reader:
+      ...     print(f"Received chunk of {len(events)} events")
+      Received chunk of 0 events
+
+
+
+   .. py:method:: shape() -> tuple[int | None, int | None]
+
+      Get the shape of the frame.
+
+      :returns: The shape of the frame (width, height)
+      :rtype: tuple[int, int]
+
+
+
+   .. py:method:: tell() -> int
+
+      Get the current position in the file.
+
+      :returns: The current position in the file
+      :rtype: int
+
+
+
+.. py:class:: EventWriter(file: pathlib.Path | str | io.BufferedIOBase, width: int = 1280, height: int = 720, dt: datetime.datetime | None = None, file_encoder: evutils.io.encoders.EventEncoder | None = None, **kwargs: Any)
+
+   Base class for writing events to different file formats.
+
+   :param file: Path to the data file
+   :param width: Width of the frame, by default 1280 (not relevant for some formats)
+   :param height: Height of the frame, by default 720 (not relevant for some formats)
+   :param dt: Timestamp of the recording (default is the current time, but information is not saved in all formats)
+   :param file_encoder: File encoder to use, by default None (chosen from the file extension)
+   :param \*\*kwargs: Additional arguments for the file encoder
+
+   .. rubric:: Examples
+
+   >>> import numpy as np
+   >>> from evutils.types import EventArray
+   >>> # Create an EventArray
+   >>> events = EventArray(
+   ...     t=np.array([0, 1000]),
+   ...     x=np.array([0, 10]),
+   ...     y=np.array([0, 10]),
+   ...     p=np.array([1, 0])
+   ... )
+   >>> # Write the events to a raw file
+   >>> with EventWriter("events.raw") as writer: # doctest: +SKIP
+   ...     writer.write(events) # doctest: +SKIP
+
+
+   .. py:method:: init() -> None
+
+      Initialize the writer (e.g. open the file, write the header).
+
+      This method can be called explicitly, but it is also called automatically when the first event is written
+
+
+
+   .. py:method:: write(events: numpy.ndarray, triggers: numpy.ndarray | None = None) -> int
+
+      Write a buffer of events to the file.
+
+      :param events: Buffer of events to write (structured array or EventArray)
+      :param triggers: Buffer of triggers to write (structured array or TriggerArray). Optional.
+      :param TODO:
+      :type TODO: Add support for writing triggers to the file (currently only events are written)
+
+      :returns: Number of events written
+      :rtype: int
+
+      .. rubric:: Examples
+
+      >>> from evutils.types import EventArray
+      >>> events = EventArray(t=[0, 100], x=[10, 11], y=[20, 21], p=[1, 0])
+      >>> writer = EventWriter("events.raw") # doctest: +SKIP
+      >>> num_written = writer.write(events) # doctest: +SKIP
+      >>> print(f"Wrote {num_written} events") # doctest: +SKIP
+      >>> writer.close() # doctest: +SKIP
+
+
+
+   .. py:method:: write_external_triggers(triggers: numpy.ndarray) -> int
+
+      Write external triggers to the file.
+
+      :param triggers: Buffer of triggers to write (structured array or TriggerArray).
+      :type triggers: np.ndarray
+
+      :returns: Number of triggers written.
+      :rtype: int
+
+      .. rubric:: Examples
+
+      >>> from evutils.types import TriggerArray
+      >>> triggers = TriggerArray(t=[1000, 2000], p=[1, 0], id=[0, 0])
+      >>> writer = EventWriter("events.raw") # doctest: +SKIP
+      >>> writer.write_external_triggers(triggers) # doctest: +SKIP
+      >>> writer.close() # doctest: +SKIP
+
+
+
+   .. py:method:: flush() -> None
+
+      Flush the buffer to the file.
+
+
+
+   .. py:method:: __enter__() -> EventWriter
+
+
+   .. py:method:: __repr__() -> str
+
+
+   .. py:method:: __len__() -> int
+
+
+   .. py:method:: close() -> None
+
+      Close the writer and release the resources.
+
+      Finalizes the encoder first (container formats write their archive /
+      index here), then closes the underlying file.
+
+
+
+   .. py:method:: __exit__(exc_type: Any, exc_value: Any, traceback: Any) -> None
+
+
+.. py:class:: EventStreamer(file: Any, ext_trigger: bool = False, decoder_cls: Any = None, **kwargs: Any)
+
+   A low-level streamer that yields raw event blocks exactly as the parser outputs them.
+   It performs ZERO slicing or logic; it purely drives the decoder.
+
+
+   .. py:attribute:: source
+
+
+   .. py:attribute:: decoder
+
+
+   .. py:attribute:: ext_trigger
+      :value: False
+
+
+
+   .. py:method:: __iter__() -> Iterator[Any]
+
+

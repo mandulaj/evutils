@@ -1,0 +1,14 @@
+:py:mod:`evutils.dataset`
+=========================
+
+.. py:module:: evutils.dataset
+
+.. autoapi-nested-parse::
+
+   Dataset loading and management.
+
+   Dataset classes and helpers for downloading, caching and iterating over
+   event-based datasets.
+
+
+

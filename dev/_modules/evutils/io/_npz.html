@@ -1,0 +1,852 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>evutils.io._npz &#8212; evutils v0.3.15 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../../../_static/documentation_options.js?v=6c55b10c"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/evutils/io/_npz';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://mandulaj.github.io/evutils/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'dev';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="icon" href="../../../_static/event_hexagon_broken.webp"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/event_hexagon_broken.webp" class="logo__image only-light" alt=""/>
+    <img src="../../../_static/event_hexagon_broken.webp" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">EV-Utils</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../formats.html">
+    Supported Formats
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../benchmarks/README.html">
+    Benchmarks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/mandulaj/evutils" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/evutils/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-custom fa-lg" data-prefix="fa-custom" data-icon="pypi" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../formats.html">
+    Supported Formats
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../benchmarks/README.html">
+    Benchmarks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/mandulaj/evutils" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/evutils/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-custom fa-lg" data-prefix="fa-custom" data-icon="pypi" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">evutils.io._npz</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for evutils.io._npz</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;NPZ file decoder and encoder.</span>
+
+<span class="sd">Events are stored as four flat arrays under the keys ``t``, ``x``, ``y`` and</span>
+<span class="sd">``p`` (the SoA layout of :class:`~evutils.types.EventArray`), plus optional</span>
+<span class="sd">scalar ``width`` / ``height`` entries. A single structured array under the key</span>
+<span class="sd">``events`` (:data:`~evutils.types.Event_dtype`-like) is also accepted when</span>
+<span class="sd">reading. The layout is fully compatible with plain</span>
+<span class="sd">``np.savez(f, t=..., x=..., y=..., p=...)`` / ``np.load``.</span>
+
+<span class="sd">Both directions stream and never materialise the whole recording:</span>
+
+<span class="sd">* The decoder reads the ``.npy`` members through zip streams chunk by chunk</span>
+<span class="sd">  (works for stored and deflated members alike).</span>
+<span class="sd">* The encoder cannot write four zip members simultaneously (the zip format is</span>
+<span class="sd">  strictly sequential), so :meth:`~EventEncoder_Npz.write` spools each column</span>
+<span class="sd">  to an unlinked temporary file as raw bytes; :meth:`~EventEncoder_Npz.close`</span>
+<span class="sd">  then streams every spool into the archive as a proper ``.npy`` member.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">zipfile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">IO</span><span class="p">,</span> <span class="n">Any</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy.lib</span><span class="w"> </span><span class="kn">import</span> <span class="nb">format</span> <span class="k">as</span> <span class="n">npy_format</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">..types</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventArray</span><span class="p">,</span> <span class="n">TriggerArray</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventDecoder</span><span class="p">,</span> <span class="n">EventEncoder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._source</span><span class="w"> </span><span class="kn">import</span> <span class="n">ByteSource</span>
+
+<span class="n">_EMPTY_EVENTS</span> <span class="o">=</span> <span class="n">EventArray</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+
+<span class="c1">#: Column name -&gt; on-disk dtype (matches EventArray&#39;s column dtypes).</span>
+<span class="n">_COLUMNS</span> <span class="o">=</span> <span class="p">((</span><span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)),</span> <span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint16</span><span class="p">)),</span>
+            <span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint16</span><span class="p">)),</span> <span class="p">(</span><span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_read_npy_header</span><span class="p">(</span><span class="n">fp</span><span class="p">:</span> <span class="n">IO</span><span class="p">[</span><span class="nb">bytes</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Read the ``.npy`` magic + header from a stream, returning (shape, dtype).</span>
+
+<span class="sd">    Leaves ``fp`` positioned at the first data byte. Fortran-ordered arrays are</span>
+<span class="sd">    rejected (event columns are 1-D, written C-ordered).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">version</span> <span class="o">=</span> <span class="n">npy_format</span><span class="o">.</span><span class="n">read_magic</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+    <span class="n">read_header</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span> <span class="n">npy_format</span><span class="o">.</span><span class="n">read_array_header_1_0</span><span class="p">,</span>
+        <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span> <span class="n">npy_format</span><span class="o">.</span><span class="n">read_array_header_2_0</span><span class="p">,</span>
+    <span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">version</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">read_header</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unsupported .npy format version </span><span class="si">{</span><span class="n">version</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">shape</span><span class="p">,</span> <span class="n">fortran</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">read_header</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">fortran</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Fortran-ordered .npy members are not supported&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_read_exact</span><span class="p">(</span><span class="n">fp</span><span class="p">:</span> <span class="n">IO</span><span class="p">[</span><span class="nb">bytes</span><span class="p">],</span> <span class="n">nbytes</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytearray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Read exactly ``nbytes`` from a (possibly decompressing) stream.</span>
+
+<span class="sd">    Returns a writable buffer so the numpy views over it are mutable.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">(</span><span class="n">nbytes</span><span class="p">)</span>
+    <span class="n">view</span> <span class="o">=</span> <span class="nb">memoryview</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+    <span class="n">got</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">got</span> <span class="o">&lt;</span> <span class="n">nbytes</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">fp</span><span class="o">.</span><span class="n">readinto</span><span class="p">(</span><span class="n">view</span><span class="p">[</span><span class="n">got</span><span class="p">:])</span>  <span class="c1"># type: ignore[attr-defined]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">n</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">EOFError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;truncated .npy member: expected </span><span class="si">{</span><span class="n">nbytes</span><span class="si">}</span><span class="s2"> bytes, got </span><span class="si">{</span><span class="n">got</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">got</span> <span class="o">+=</span> <span class="n">n</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<div class="viewcode-block" id="EventDecoder_Npz">
+<a class="viewcode-back" href="../../../autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Npz">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">EventDecoder_Npz</span><span class="p">(</span><span class="n">EventDecoder</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Decode events from an ``.npz`` archive, streaming chunk by chunk.</span>
+
+<span class="sd">    The archive members are read through zip streams: only ``chunk_size``</span>
+<span class="sd">    events are held in memory at a time, so arbitrarily large recordings can</span>
+<span class="sd">    be iterated. Accepts either the four column members ``t/x/y/p`` or a</span>
+<span class="sd">    single structured ``events`` member.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    source</span>
+<span class="sd">        Byte source to read from (must be seekable, as required by the zip</span>
+<span class="sd">        format).</span>
+<span class="sd">    chunk_size</span>
+<span class="sd">        Number of events returned per :meth:`read_chunk` call.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="n">ByteSource</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1_000_000</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_zf</span><span class="p">:</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_streams</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">IO</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_aos_dtype</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># set when reading an &#39;events&#39; member</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_n</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pos</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_open_streams</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;(Re)open the member streams and position them past the npy headers.&quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zf</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">fp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_streams</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">fp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_streams</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="n">names</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_zf</span><span class="o">.</span><span class="n">namelist</span><span class="p">())</span>
+        <span class="k">if</span> <span class="p">{</span><span class="s2">&quot;t.npy&quot;</span><span class="p">,</span> <span class="s2">&quot;x.npy&quot;</span><span class="p">,</span> <span class="s2">&quot;y.npy&quot;</span><span class="p">,</span> <span class="s2">&quot;p.npy&quot;</span><span class="p">}</span> <span class="o">&lt;=</span> <span class="n">names</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">_COLUMNS</span><span class="p">:</span>
+                <span class="n">fp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zf</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.npy&quot;</span><span class="p">)</span>
+                <span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">_read_npy_header</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;member </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.npy is not 1-D: shape </span><span class="si">{</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">n</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">n</span> <span class="o">=</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">n</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;event columns have mismatched lengths&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_streams</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">fp</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_n</span> <span class="o">=</span> <span class="n">n</span> <span class="ow">or</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_aos_dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">elif</span> <span class="s2">&quot;events.npy&quot;</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+            <span class="n">fp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zf</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;events.npy&quot;</span><span class="p">)</span>
+            <span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">_read_npy_header</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">dtype</span><span class="o">.</span><span class="n">names</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="p">{</span><span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;p&quot;</span><span class="p">}</span> <span class="o">&lt;=</span> <span class="nb">set</span><span class="p">(</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;events&#39; member must be a structured array with t/x/y/p fields&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_streams</span><span class="p">[</span><span class="s2">&quot;events&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fp</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_aos_dtype</span> <span class="o">=</span> <span class="n">dtype</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_n</span> <span class="o">=</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;NPZ archive does not contain event data: expected members &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;&#39;t/x/y/p&#39; or &#39;events&#39;, found </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">names</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+<div class="viewcode-block" id="EventDecoder_Npz.init">
+<a class="viewcode-back" href="../../../autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Npz.init">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">init</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Open the archive and locate the event members.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_initialized</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="n">f</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source</span><span class="o">.</span><span class="n">seekable</span><span class="p">()</span> <span class="k">else</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_source</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_zf</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+        <span class="n">names</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_zf</span><span class="o">.</span><span class="n">namelist</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">attr</span><span class="p">,</span> <span class="n">member</span> <span class="ow">in</span> <span class="p">((</span><span class="s2">&quot;_width&quot;</span><span class="p">,</span> <span class="s2">&quot;width.npy&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;_height&quot;</span><span class="p">,</span> <span class="s2">&quot;height.npy&quot;</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">member</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+                <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zf</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">member</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">npy_format</span><span class="o">.</span><span class="n">read_array</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_open_streams</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pos</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_initialized</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_read_n</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EventArray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Stream the next ``n`` events out of the member streams.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aos_dtype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_streams</span><span class="p">[</span><span class="s2">&quot;events&quot;</span><span class="p">]</span>
+            <span class="n">buf</span> <span class="o">=</span> <span class="n">_read_exact</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">n</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aos_dtype</span><span class="o">.</span><span class="n">itemsize</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">EventArray</span><span class="o">.</span><span class="n">from_aos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_aos_dtype</span><span class="p">))</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">dtype</span> <span class="ow">in</span> <span class="n">_COLUMNS</span><span class="p">:</span>
+            <span class="c1"># The member&#39;s own dtype was validated against 1-D at open; event</span>
+            <span class="c1"># columns are cast to the canonical dtypes by EventArray.</span>
+            <span class="n">buf</span> <span class="o">=</span> <span class="n">_read_exact</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_streams</span><span class="p">[</span><span class="n">name</span><span class="p">],</span> <span class="n">n</span> <span class="o">*</span> <span class="n">dtype</span><span class="o">.</span><span class="n">itemsize</span><span class="p">)</span>
+            <span class="n">cols</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">EventArray</span><span class="p">(</span><span class="n">cols</span><span class="p">[</span><span class="s2">&quot;t&quot;</span><span class="p">],</span> <span class="n">cols</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">cols</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">],</span> <span class="n">cols</span><span class="p">[</span><span class="s2">&quot;p&quot;</span><span class="p">])</span>
+
+<div class="viewcode-block" id="EventDecoder_Npz.read_chunk">
+<a class="viewcode-back" href="../../../autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Npz.read_chunk">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">read_chunk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta_t_hint</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                   <span class="n">n_events_hint</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EventArray</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_initialized</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pos</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_eof</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">return</span> <span class="n">_EMPTY_EVENTS</span>
+
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_chunk_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pos</span><span class="p">)</span>
+        <span class="n">chunk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_n</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pos</span> <span class="o">+=</span> <span class="n">n</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pos</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_eof</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="n">chunk</span></div>
+
+
+<div class="viewcode-block" id="EventDecoder_Npz.reset">
+<a class="viewcode-back" href="../../../autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Npz.reset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reset the reader to the beginning of the archive.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_initialized</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_open_streams</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pos</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_eof</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="EventDecoder_Npz.tell">
+<a class="viewcode-back" href="../../../autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Npz.tell">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tell</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Current position, in events (npz has no meaningful byte offset).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pos</span></div>
+
+
+<div class="viewcode-block" id="EventDecoder_Npz.close">
+<a class="viewcode-back" href="../../../autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Npz.close">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Close the member streams and the archive.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">fp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_streams</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">fp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_streams</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zf</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_zf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_zf</span> <span class="o">=</span> <span class="kc">None</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="EventEncoder_Npz">
+<a class="viewcode-back" href="../../../autoapi/evutils/io/encoders/index.html#evutils.io.decoders.EventEncoder_Npz">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">EventEncoder_Npz</span><span class="p">(</span><span class="n">EventEncoder</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Encode events into an ``.npz`` archive with bounded memory.</span>
+
+<span class="sd">    Zip members can only be written one after another, while :meth:`write`</span>
+<span class="sd">    receives all four columns interleaved -- so each column is spooled to an</span>
+<span class="sd">    unlinked temporary file (raw bytes, no size limit from RAM) and the</span>
+<span class="sd">    archive is assembled on :meth:`close` by streaming every spool into its</span>
+<span class="sd">    ``.npy`` member.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    writable</span>
+<span class="sd">        Destination stream to write to.</span>
+<span class="sd">    width, height : int</span>
+<span class="sd">        Frame geometry stored in the archive.</span>
+<span class="sd">    dt : datetime, optional</span>
+<span class="sd">        Unused; npz stores no recording timestamp.</span>
+<span class="sd">    compressed : bool</span>
+<span class="sd">        Deflate the archive members (like ``np.savez_compressed``).</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">writable</span><span class="p">:</span> <span class="n">io</span><span class="o">.</span><span class="n">BufferedIOBase</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1280</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">720</span><span class="p">,</span>
+                 <span class="n">dt</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">compressed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">writable</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_compressed</span> <span class="o">=</span> <span class="n">compressed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_spools</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">IO</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_closed</span> <span class="o">=</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="EventEncoder_Npz.init">
+<a class="viewcode-back" href="../../../autoapi/evutils/io/encoders/index.html#evutils.io.decoders.EventEncoder_Npz.init">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">init</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Open one spool file per column (unlinked, cleaned up automatically).&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_initialized</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_spools</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryFile</span><span class="p">()</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">_COLUMNS</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_initialized</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="EventEncoder_Npz.write">
+<a class="viewcode-back" href="../../../autoapi/evutils/io/encoders/index.html#evutils.io.decoders.EventEncoder_Npz.write">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">events</span><span class="p">:</span> <span class="s1">&#39;np.ndarray | EventArray&#39;</span><span class="p">,</span> <span class="n">triggers</span><span class="p">:</span> <span class="s1">&#39;np.ndarray | TriggerArray | None&#39;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Append a chunk of events to the column spools.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        events : np.ndarray or EventArray</span>
+<span class="sd">            Array of events to write.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            Number of events written.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_initialized</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">events</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">dtype</span> <span class="ow">in</span> <span class="n">_COLUMNS</span><span class="p">:</span>
+            <span class="n">col</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">events</span><span class="p">[</span><span class="n">name</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_spools</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">col</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_n_written_events</span> <span class="o">+=</span> <span class="n">n</span>
+        <span class="k">return</span> <span class="n">n</span></div>
+
+
+<div class="viewcode-block" id="EventEncoder_Npz.flush">
+<a class="viewcode-back" href="../../../autoapi/evutils/io/encoders/index.html#evutils.io.decoders.EventEncoder_Npz.flush">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">flush</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;No-op: the archive can only be assembled once, on :meth:`close`.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="EventEncoder_Npz.close">
+<a class="viewcode-back" href="../../../autoapi/evutils/io/encoders/index.html#evutils.io.decoders.EventEncoder_Npz.close">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Assemble the archive: stream each column spool into a ``.npy`` member.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_closed</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_closed</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_initialized</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+
+        <span class="n">compression</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZIP_DEFLATED</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compressed</span> <span class="k">else</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZIP_STORED</span>
+        <span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fd</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="n">compression</span><span class="p">,</span> <span class="n">allowZip64</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">zf</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">dtype</span> <span class="ow">in</span> <span class="n">_COLUMNS</span><span class="p">:</span>
+                <span class="n">spool</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_spools</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+                <span class="n">spool</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+                <span class="n">spool</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="n">header</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;descr&quot;</span><span class="p">:</span> <span class="n">npy_format</span><span class="o">.</span><span class="n">dtype_to_descr</span><span class="p">(</span><span class="n">dtype</span><span class="p">),</span>
+                    <span class="s2">&quot;fortran_order&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                    <span class="s2">&quot;shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_written_events</span><span class="p">,),</span>
+                <span class="p">}</span>
+                <span class="k">with</span> <span class="n">zf</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.npy&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">force_zip64</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">dest</span><span class="p">:</span>
+                    <span class="n">npy_format</span><span class="o">.</span><span class="n">write_array_header_2_0</span><span class="p">(</span><span class="n">dest</span><span class="p">,</span> <span class="n">header</span><span class="p">)</span>
+                    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                        <span class="n">block</span> <span class="o">=</span> <span class="n">spool</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">22</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">block</span><span class="p">:</span>
+                            <span class="k">break</span>
+                        <span class="n">dest</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">block</span><span class="p">)</span>
+                <span class="n">spool</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_spools</span> <span class="o">=</span> <span class="p">{}</span>
+
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="p">((</span><span class="s2">&quot;width&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">uint16</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_width</span><span class="p">)),</span>
+                                <span class="p">(</span><span class="s2">&quot;height&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">uint16</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_height</span><span class="p">))):</span>
+                <span class="k">with</span> <span class="n">zf</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.npy&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">dest</span><span class="p">:</span>
+                    <span class="n">npy_format</span><span class="o">.</span><span class="n">write_array</span><span class="p">(</span><span class="n">dest</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fd</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
+</div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Jakub Mandula.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.20.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
