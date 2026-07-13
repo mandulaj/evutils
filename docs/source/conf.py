@@ -31,6 +31,15 @@ switcher_url = os.environ.get("DOCS_SWITCHER_URL", "/switcher.json")
 # Its under [project.urls] "Source Code"
 github_url = f"{toml_data['project']['urls']['Source Code']}"
 
+# Link this build back to its exact source on GitHub: the release tag for a
+# versioned build, or the dev branch for the dev build.
+if version_match == "dev":
+    source_ref_url = f"{github_url}/tree/dev"
+    source_ref_label = "dev branch"
+else:
+    source_ref_url = f"{github_url}/releases/tag/{version_match}"
+    source_ref_label = f"Release {version_match}"
+
 print(f"Project: {project}, Author: {author}, Release: {release}, GitHub URL: {github_url}")
 
 # -- General configuration ---------------------------------------------------
@@ -92,6 +101,12 @@ html_favicon = '_static/event_hexagon_broken.webp'
 html_theme_options = {
     "icon_links": [
         {
+            # Links to the release tag (or dev branch) this build came from.
+            "name": source_ref_label,
+            "url": source_ref_url,
+            "icon": "fa-solid fa-tag",
+        },
+        {
             "name": "GitHub",
             "url": github_url,
             "icon": "fa-brands fa-github",
@@ -116,7 +131,10 @@ html_theme_options = {
     # builds, or the first deploy before switcher.json exists).
     "check_switcher": False,
 }
-# html_static_path = ['_static']
+html_static_path = ['_static']
+# Registers the custom "pypi" glyph used by the PyPI icon_link above. Deferred
+# so FontAwesome is loaded first.
+html_js_files = [("pypi-icon.js", {"defer": "defer"})]
 
 html_show_sourcelink = True
 
