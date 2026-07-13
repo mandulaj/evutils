@@ -1,11 +1,18 @@
 name: Test
 
 on:
+  # PRs are gated by the push run on their head SHA (same-repo branches), so we
+  # do NOT also trigger on pull_request -- that would double every run.
   push:
-    branches: [main, feature/*, fix/*]
-  pull_request:
-    branches: [main, feature/*, fix/*]
+    branches: [main, dev, feature/*, fix/*]
   workflow_call:   # allow other workflows (e.g. release) to gate on the tests
+
+# Cancel a superseded run when a newer commit lands on the same ref, so rapid
+# pushes to a branch don't pile up. main always runs to completion; during a
+# release (workflow_call) github.ref is the tag -> unique group, never cancelled.
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   test:
@@ -30,5 +37,27 @@ jobs:
       - name: Install the project
         run: uv sync --extra dev
 
+      # feature/* and fix/* get the fast ~MB "small" tier; dev/main and releases
+      # (workflow_call -> github.ref is the tag) get the full "normal" set.
+      - name: Select dataset size
+        id: ds
+        shell: bash
+        run: |
+          case "${{ github.ref }}" in
+            refs/heads/feature/*|refs/heads/fix/*) echo "size=small"  >> "$GITHUB_OUTPUT" ;;
+            *)                                     echo "size=normal" >> "$GITHUB_OUTPUT" ;;
+          esac
+
       - name: Run tests
-        run: uv run pytest -s -v
+        run: uv run pytest -s -v --dataset "${{ steps.ds.outputs.size }}"
+
+  # Single, matrix-proof required check for branch protection: green only if
+  # every matrix cell passed. Also the success signal dev-docs keys off.
+  tests-passed:
+    name: All Tests Passed
+    needs: test
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify all matrix jobs succeeded
+        run: '[ "${{ needs.test.result }}" = "success" ] || exit 1'
