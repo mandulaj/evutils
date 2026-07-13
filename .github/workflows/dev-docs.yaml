@@ -1,0 +1,63 @@
+name: Dev Docs
+
+# Build and publish the "dev" documentation on every push to the dev branch.
+# This does NOT build wheels or publish to PyPI -- it only runs the test suite
+# and, if green, deploys docs into the /dev/ subdir of the versioned site.
+
+concurrency:
+  # Supersede an in-flight dev-docs run when a newer commit lands on dev.
+  group: dev-docs-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches: [dev]
+
+permissions:
+  contents: read
+
+jobs:
+  # Same gate as a real release: full test matrix must pass before publishing.
+  test:
+    name: Tests
+    uses: ./.github/workflows/test.yaml
+
+  publish_dev_docs:
+    name: Build & Publish Dev Docs
+    needs: test
+    runs-on: ubuntu-latest
+    # The deploy script pushes to the gh-pages branch.
+    permissions:
+      contents: write
+    # Share the release docs' deploy lock so a dev push and a release never
+    # race on the gh-pages branch.
+    concurrency:
+      group: gh-pages-deploy
+      cancel-in-progress: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install package and docs dependencies
+        run: uv pip install --system .[docs]
+
+      - name: Build & deploy dev docs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PAGES_BASE="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}"
+          DOCS_VERSION="dev" DOCS_SWITCHER_URL="$PAGES_BASE/switcher.json" \
+            make -C docs html
+          bash docs/deploy_versioned_docs.sh "dev" "$PAGES_BASE" docs/build/html

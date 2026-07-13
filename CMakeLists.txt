@@ -26,6 +26,20 @@ set_target_properties(evutils_native PROPERTIES
     # (For a curated public ABI later, switch to an explicit export macro.)
     WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
+# --- Version ----------------------------------------------------------------
+# Single-source the C version from the Python build. scikit-build-core sets
+# SKBUILD_PROJECT_VERSION from [project].version in pyproject.toml, so the
+# EVUTILS_VERSION macro (and evutils_version()) always match the wheel and the
+# docs -- no hand-editing csrc on every release. Falls back for standalone
+# `cmake --build` dev builds that don't go through scikit-build-core.
+if(DEFINED SKBUILD_PROJECT_VERSION)
+  set(EVUTILS_VERSION_STR "${SKBUILD_PROJECT_VERSION}")
+else()
+  set(EVUTILS_VERSION_STR "0.0.0+dev")
+endif()
+target_compile_definitions(evutils_native PRIVATE
+    EVUTILS_VERSION="${EVUTILS_VERSION_STR}")
+
 if(MSVC)
   target_compile_options(evutils_native PRIVATE /O2 /W3)
 else()

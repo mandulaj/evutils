@@ -20,9 +20,29 @@ jobs:
     name: Tests
     uses: ./.github/workflows/test.yaml
 
+  # On a real release, fail fast if the tag doesn't match the pyproject version.
+  # pyproject.toml is the single source of truth; this catches a forgotten bump
+  # before the slow wheel matrix runs. Skipped (job still succeeds) on
+  # workflow_dispatch, which has no tag.
+  check_version:
+    name: Check tag matches version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Verify tag == pyproject version
+        if: github.event_name == 'release'
+        run: |
+          PYVER=$(python -c "import tomllib;print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
+          TAG="${GITHUB_REF_NAME#v}"
+          if [ "$PYVER" != "$TAG" ]; then
+            echo "::error::Release tag ${GITHUB_REF_NAME} (=$TAG) != pyproject version $PYVER"
+            exit 1
+          fi
+          echo "OK: tag and pyproject agree on $TAG"
+
   build_wheels:
     name: Wheels (${{ matrix.os }})
-    needs: test
+    needs: [test, check_version]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -62,7 +82,7 @@ jobs:
 
   build_sdist:
     name: Source distribution
-    needs: test
+    needs: [test, check_version]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -102,13 +122,18 @@ jobs:
 
   build_and_publish_docs:
     name: Build & Publish Sphinx Docs
-    needs: test
+    needs: [test, check_version]
     runs-on: ubuntu-latest
     if: github.event_name == 'release'
-    # deploy-pages@v4 requires the deploying job to target the github-pages environment.
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    # The deploy script pushes the built site to the gh-pages branch, so this
+    # job needs write access to repo contents (the top-level grant is read).
+    permissions:
+      contents: write
+    # Serialize all gh-pages writes (release docs + dev docs) so concurrent
+    # deploys never race on the branch.
+    concurrency:
+      group: gh-pages-deploy
+      cancel-in-progress: false
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -129,22 +154,17 @@ jobs:
         # uv compiles the C extension locally and installs dependencies instantly
         run: uv pip install --system .[docs]
 
-      - name: Build Sphinx HTML
+      - name: Build & deploy versioned docs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ github.ref_name }}   # release tag, e.g. v0.3.16
         run: |
-          cd docs
-          make html
-
-      - name: Setup GitHub Pages
-        uses: actions/configure-pages@v6
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v5
-        with:
-          path: 'docs/build/html'
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v5
+          PAGES_BASE="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}"
+          # conf.py reads these to point the version switcher at the shared list
+          # and highlight this version.
+          DOCS_VERSION="$VERSION" DOCS_SWITCHER_URL="$PAGES_BASE/switcher.json" \
+            make -C docs html
+          bash docs/deploy_versioned_docs.sh "$VERSION" "$PAGES_BASE" docs/build/html
 
   test_pypi_wheels:
     name: Test PyPI Wheel (${{ matrix.os }}, Py ${{ matrix.python }})
