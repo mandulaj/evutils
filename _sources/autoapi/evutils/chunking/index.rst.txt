@@ -1,0 +1,72 @@
+:py:mod:`evutils.chunking`
+==========================
+
+.. py:module:: evutils.chunking
+
+.. autoapi-nested-parse::
+
+   Splitting event streams into chunks.
+
+   Slice a continuous event stream into fixed-size windows, either by event
+   count or by time interval.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   evutils.chunking.window_delta_t
+   evutils.chunking.sliding_window
+   evutils.chunking.sort_events
+   evutils.chunking.get_dt_events
+
+
+Module Contents
+---------------
+
+.. py:function:: window_delta_t(events: numpy.ndarray, delta_t: int = 10000) -> Iterator[numpy.ndarray]
+
+   Returns a generator that chunks the events array into windows of size delta_t.
+
+   :param events: Array of events
+   :type events: np.ndarray
+   :param delta_t: Size of the window in microseconds, by default 10_000
+   :type delta_t: int, optional
+
+
+.. py:function:: sliding_window(events: numpy.ndarray, delta_t: int = 10000, window_size: int = 20000, full_window: bool = False) -> Iterator[numpy.ndarray]
+
+   Returns a generator that chunks the events array into windows of size delta_t.
+
+   :param events: Array of events
+   :type events: np.ndarray
+   :param delta_t: Time delta between frames in microseconds, by default 10_000
+   :type delta_t: int, optional
+   :param window_size: Size of the window in microseconds, by default 20_000
+                       can overlap with the next frame
+   :type window_size: int, optional
+   :param full_window: If True, the last window will be full, by default False
+                       If False, the last window will be the remaining events
+   :type full_window: bool, optional
+
+
+.. py:function:: sort_events(events: numpy.ndarray) -> numpy.ndarray
+
+   Sorts the events array by timestamp.
+
+   :param events: Array of events
+   :type events: np.ndarray
+
+
+.. py:function:: get_dt_events(events: numpy.ndarray, dt: int = 10000) -> numpy.ndarray
+
+   Returns the events that are within a time window of dt from the first event's timestamp.
+
+   :param events: Array of events
+   :type events: np.ndarray
+   :param dt: Time window in microseconds, by default 10_000
+   :type dt: int, optional
+
+

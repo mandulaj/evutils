@@ -1,10 +1,807 @@
+
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="refresh" content="0; url=./v0.3.14/">
-  <link rel="canonical" href="./v0.3.14/">
-  <title>Redirecting…</title>
-</head>
-<body>Redirecting to the <a href="./v0.3.14/">latest documentation</a>.</body>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>EV-Utils &#8212; evutils v0.3.14 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+    <script src="_static/documentation_options.js?v=c82d3515"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'index';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.19.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://mandulaj.github.io/evutils/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.3.14';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="icon" href="_static/event_hexagon_broken.webp"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Supported Formats" href="formats.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="_static/searchtools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script src="searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="#">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="_static/event_hexagon_broken.webp" class="logo__image only-light" alt=""/>
+    <img src="_static/event_hexagon_broken.webp" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">EV-Utils</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="formats.html">
+    Supported Formats
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="benchmarks/README.html">
+    Benchmarks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/mandulaj/evutils" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/evutils/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-custom fa-lg" data-prefix="fa-custom" data-icon="pypi" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="formats.html">
+    Supported Formats
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="benchmarks/README.html">
+    Benchmarks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/mandulaj/evutils" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/evutils/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-custom fa-lg" data-prefix="fa-custom" data-icon="pypi" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none"></div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="ev-utils">
+<h1><a href="https://mandulaj.github.io/evutils"><img src="https://mandulaj.github.io/evutils/_static/event_hexagon_broken.webp" alt="evutils_logo" width="50" align="top" style="background-color: #fff0;"></a> EV-Utils<a class="headerlink" href="#ev-utils" title="Link to this heading">#</a></h1>
+<p><a class="reference external" href="https://pypi.org/project/evutils/"><img alt="PyPI Version" src="https://img.shields.io/pypi/v/evutils" /></a>
+<a class="reference external" href="https://github.com/mandulaj/evutils/actions/workflows/test.yaml"><img alt="Test" src="https://github.com/mandulaj/evutils/actions/workflows/test.yaml/badge.svg" /></a></p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
+<p>EV-Utils (<code class="docutils literal notranslate"><span class="pre">evutils</span></code>) is a performant collection of utilities for working with event-based vision data. Built with minimal dependencies, it relies on a compiled C backend for speed while offering a clean, modular Python interface.</p>
+<section id="core-philosophy">
+<h3>Core Philosophy<a class="headerlink" href="#core-philosophy" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>Fast &amp; Lightweight:</strong> Highly optimized C parsers for zero-bottleneck data ingestion.</p></li>
+<li><p><strong>Minimal Footprint:</strong> Core features run entirely on NumPy and Numba.</p></li>
+<li><p><strong>Lazy Loading:</strong> All heavy integrations (PyTorch, Pandas, HDF5, Polars, etc.) are lazy-loaded. If you don’t use them, you don’t need them installed, and they won’t slow down import times.</p></li>
+<li><p><strong>Simple &amp; Extensible:</strong> Clean modular APIs.</p></li>
+</ul>
+</section>
+<section id="inspirations-related-work">
+<h3>Inspirations &amp; Related Work<a class="headerlink" href="#inspirations-related-work" title="Link to this heading">#</a></h3>
+<p>This project draws inspiration from several excellent libraries in the event-based vision ecosystem and attempts to fill in their shortcomings:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/neuromorphs/tonic">Tonic</a></p></li>
+<li><p><a class="reference external" href="https://github.com/TimoStoff/event_utils">event_utils</a></p></li>
+<li><p><a class="reference external" href="https://github.com/tallamjr/evlib">evlib</a></p></li>
+<li><p><a class="reference external" href="https://github.com/open-neuromorphic/expelliarmus">expelliarmus</a></p></li>
+<li><p><a class="reference external" href="https://github.com/shiba24/event-vision-library">event-vision-library</a></p></li>
+<li><p><a class="reference external" href="https://github.com/muthmann/evt3">evt3</a></p></li>
+<li><p><a class="reference external" href="https://github.com/prophesee-ai/openeb">openeb</a></p></li>
+</ul>
+</section>
+</section>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading">#</a></h2>
+<p>We recommend installing <code class="docutils literal notranslate"><span class="pre">evutils</span></code> using <code class="docutils literal notranslate"><span class="pre">uv</span></code>.</p>
+<section id="from-pypi">
+<h3>From PyPi<a class="headerlink" href="#from-pypi" title="Link to this heading">#</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>add<span class="w"> </span>evutils<span class="w"> </span><span class="c1"># Basic library</span>
+uv<span class="w"> </span>add<span class="w"> </span>evutils<span class="o">[</span>all<span class="o">]</span><span class="w"> </span><span class="c1"># All groups (pandas, numba, torch, hdf5, etc..)</span>
+uv<span class="w"> </span>add<span class="w"> </span>evutils<span class="o">[</span>dev<span class="o">]</span><span class="w"> </span><span class="c1"># Dev group</span>
+</pre></div>
+</div>
+</section>
+<section id="from-git">
+<h3>From Git<a class="headerlink" href="#from-git" title="Link to this heading">#</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>--recurse-submodules<span class="w"> </span>https://github.com/mandulaj/evutils.git
+<span class="nb">cd</span><span class="w"> </span>evutils
+
+uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[dev]&quot;</span>
+</pre></div>
+</div>
+<p>Note: You can also install specific optional dependency groups like <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">add</span> <span class="pre">evutils[torch,hdf5]</span></code>.</p>
+</section>
+</section>
+<section id="architecture">
+<h2>Architecture<a class="headerlink" href="#architecture" title="Link to this heading">#</a></h2>
+<p>The library is divided into several discrete modules. Many can be used independently without installing the full suite of dependencies:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>└── augment     - Event augmentations
+└── dataset     - Wrappers for various dataset loaders
+└── events      - Core event handling logic
+└── io          - Event reading and writing interfaces
+    ├── reader 
+    └── writer
+└── random      - Random event generation and noise injection
+└── torch       - PyTorch integration (requires evutils[torch])
+└── types       - Standard types for representing Events in NumPy arrays
+└── vis         - Visualization methods
+    ├── histogram
+    └── reconstructor
+</pre></div>
+</div>
+<section id="quick-api-overview">
+<h3>Quick API overview<a class="headerlink" href="#quick-api-overview" title="Link to this heading">#</a></h3>
+<!-- ### `augment`
+
+Event augmentations
+
+### `dataset`
+
+Wrappers for various dataset loaders -->
+<section id="io-reading-and-writing-events">
+<h4><code class="docutils literal notranslate"><span class="pre">io</span></code>: Reading and Writing Events<a class="headerlink" href="#io-reading-and-writing-events" title="Link to this heading">#</a></h4>
+<p>The <code class="docutils literal notranslate"><span class="pre">io</span></code> module provides methods for reading and writing events into various event formats. It provides a simple <code class="docutils literal notranslate"><span class="pre">.read()</span></code> and <code class="docutils literal notranslate"><span class="pre">.write()</span></code> interface as well as more advanced interfaces using iterators and slicing.</p>
+<p>Supported formats (see the <a class="reference external" href="https://mandulaj.github.io/evutils/formats.html">formats documentation</a> for details):</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Format</p></th>
+<th class="head"><p>Extensions</p></th>
+<th class="head text-center"><p>Read</p></th>
+<th class="head text-center"><p>Write</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>EVT3 / EVT2.1 / EVT2 (Prophesee RAW)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.raw</span></code>, <code class="docutils literal notranslate"><span class="pre">.evt*</span></code></p></td>
+<td class="text-center"><p>✅</p></td>
+<td class="text-center"><p>✅</p></td>
+<td><p>native C decoder, external triggers</p></td>
+</tr>
+<tr class="row-odd"><td><p>DAT (Prophesee)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.dat</span></code></p></td>
+<td class="text-center"><p>✅</p></td>
+<td class="text-center"><p>✅</p></td>
+<td><p>native C decoder</p></td>
+</tr>
+<tr class="row-even"><td><p>AER (Prophesee)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.aer</span></code></p></td>
+<td class="text-center"><p>✅</p></td>
+<td class="text-center"><p>✅</p></td>
+<td><p>timestamp generation selectable</p></td>
+</tr>
+<tr class="row-odd"><td><p>AEDAT 1.0 / 2.0 / 3.1 / 4.0</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.aedat</span></code>, <code class="docutils literal notranslate"><span class="pre">.aedat4</span></code></p></td>
+<td class="text-center"><p>✅</p></td>
+<td class="text-center"><p>🚧</p></td>
+<td><p>AEDAT4 compression: <code class="docutils literal notranslate"><span class="pre">evutils[aedat]</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>HDF5 (DSEC/RVT layout)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.h5</span></code>, <code class="docutils literal notranslate"><span class="pre">.hdf5</span></code></p></td>
+<td class="text-center"><p>✅</p></td>
+<td class="text-center"><p>✅</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">evutils[hdf5]</span></code>, ms-index random access</p></td>
+</tr>
+<tr class="row-odd"><td><p>HDF5 (Prophesee layout)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.h5</span></code>, <code class="docutils literal notranslate"><span class="pre">.hdf5</span></code></p></td>
+<td class="text-center"><p>✅</p></td>
+<td class="text-center"><p>🚧</p></td>
+<td><p>ECF-compressed files need the ECF plugin</p></td>
+</tr>
+<tr class="row-even"><td><p>NPZ</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.npz</span></code></p></td>
+<td class="text-center"><p>✅</p></td>
+<td class="text-center"><p>✅</p></td>
+<td><p>streaming, <code class="docutils literal notranslate"><span class="pre">np.load</span></code>-compatible</p></td>
+</tr>
+<tr class="row-odd"><td><p>CSV / TXT</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.csv</span></code>, <code class="docutils literal notranslate"><span class="pre">.txt</span></code></p></td>
+<td class="text-center"><p>✅</p></td>
+<td class="text-center"><p>✅</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">evutils[pandas]</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>BIN</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.bin</span></code></p></td>
+<td class="text-center"><p>🚧</p></td>
+<td class="text-center"><p>🚧</p></td>
+<td><p>planned</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">evutils.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventReader</span>
+
+
+<span class="n">ev_file</span> <span class="o">=</span> <span class="n">EventReader</span><span class="p">(</span><span class="s2">&quot;raw_file.raw&quot;</span><span class="p">,</span> <span class="n">delta_t</span><span class="o">=</span><span class="mf">10e3</span><span class="p">)</span>
+
+<span class="n">events</span> <span class="o">=</span> <span class="n">ev_file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+</pre></div>
+</div>
+</section>
+<section id="utils">
+<h4><code class="docutils literal notranslate"><span class="pre">utils</span></code><a class="headerlink" href="#utils" title="Link to this heading">#</a></h4>
+<p>Various utility functions</p>
+</section>
+<section id="random">
+<h4><code class="docutils literal notranslate"><span class="pre">random</span></code><a class="headerlink" href="#random" title="Link to this heading">#</a></h4>
+<p>Generating random events and adding noise to event recordings</p>
+</section>
+<section id="types">
+<h4><code class="docutils literal notranslate"><span class="pre">types</span></code><a class="headerlink" href="#types" title="Link to this heading">#</a></h4>
+<p>This provides several standard types for representing Events in numpy arrays</p>
+</section>
+<section id="vis">
+<h4><code class="docutils literal notranslate"><span class="pre">vis</span></code><a class="headerlink" href="#vis" title="Link to this heading">#</a></h4>
+<p>The <code class="docutils literal notranslate"><span class="pre">vis</span></code> moduels provides several methods for visualizing the events (for example as histograms), but also provides a streamlined interface for more complex visualization techneques, such as using the <a class="reference external" href="https://github.com/uzh-rpg/rpg_e2vid">E2Vid</a> reconstructor.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">evutils.vis.reconstructor</span><span class="w"> </span><span class="kn">import</span> <span class="n">RPG_Reconstructor</span>
+
+<span class="n">reconstructor</span> <span class="o">=</span> <span class="n">RPG_Reconstructor</span><span class="p">(</span><span class="mi">1280</span><span class="p">,</span> <span class="mi">720</span><span class="p">)</span>
+
+<span class="n">img</span> <span class="o">=</span> <span class="n">reconstructor</span><span class="o">.</span><span class="n">gen_frame</span><span class="p">(</span><span class="n">events</span><span class="p">)</span>
+
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+<section id="running-tests">
+<h2>Running tests<a class="headerlink" href="#running-tests" title="Link to this heading">#</a></h2>
+<p>Tests are managed via <code class="docutils literal notranslate"><span class="pre">pytest</span></code>. If you installed the package with the <code class="docutils literal notranslate"><span class="pre">[dev]</span></code> or <code class="docutils literal notranslate"><span class="pre">[test]</span></code> flag, you can run them via:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>-s
+</pre></div>
+</div>
+</section>
+<section id="benchmarks">
+<h2><a class="reference internal" href="benchmarks/README.html"><span class="std std-doc">Benchmarks</span></a><a class="headerlink" href="#benchmarks" title="Link to this heading">#</a></h2>
+<p>Read/write throughput benchmarks (using <a class="reference external" href="https://pytest-benchmark.readthedocs.io">pytest-benchmark</a>) live in <code class="docutils literal notranslate"><span class="pre">benchmarks/</span></code> and are kept out of the normal test run. Run them explicitly:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>benchmarks/<span class="w">                                   </span><span class="c1"># evutils only</span>
+uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>benchmarks/<span class="w"> </span>--benchmark-group-by<span class="o">=</span>param:fmt<span class="w">    </span><span class="c1"># compare libraries per format</span>
+</pre></div>
+</div>
+<p>The benchmarks download a real Prophesee recording on first use. Optional cross-library comparisons run automatically once the libraries are installed (<code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">&quot;.[compare]&quot;</span></code>); OpenEB/Metavision is compared via the Docker image in <code class="docutils literal notranslate"><span class="pre">benchmarks/docker/</span></code>. See <a class="reference internal" href="benchmarks/README.html"><span class="std std-doc"><code class="docutils literal notranslate"><span class="pre">benchmarks/README.md</span></code></span></a> for details.</p>
+</section>
+<section id="roadmap">
+<h2>&amp; Roadmap<a class="headerlink" href="#roadmap" title="Link to this heading">#</a></h2>
+<p>We aim for universal event format support, prioritizing blazing fast read/write speeds, completeness, and extensibility.</p>
+<ul class="simple">
+<li><p>[x] Universal format support (<code class="docutils literal notranslate"><span class="pre">.raw</span></code>, <code class="docutils literal notranslate"><span class="pre">.evt2</span></code>, <code class="docutils literal notranslate"><span class="pre">.dat</span></code>, <code class="docutils literal notranslate"><span class="pre">.aedat4</span></code>, <code class="docutils literal notranslate"><span class="pre">.hdf5</span></code>, <code class="docutils literal notranslate"><span class="pre">.npz</span></code>, <code class="docutils literal notranslate"><span class="pre">.csv</span></code>, etc.)</p></li>
+<li><p>[x] Full Read/Write parity where possible</p></li>
+<li><p>[x] Chunked &amp; Streaming access</p></li>
+<li><p>[x] External trigger data parsing</p></li>
+<li><p>[ ] <strong>Random access / Timestamp indexing</strong> (Big TODO for the future)</p></li>
+<li><p>[ ] <strong>Arbitrary input sources:</strong> memory-mapped IO, pure in-memory streams, HTTP streams</p></li>
+<li><p>[ ] <strong>On-the-fly Compression wrappers:</strong> passing file handles through <code class="docutils literal notranslate"><span class="pre">zstd</span></code> or <code class="docutils literal notranslate"><span class="pre">lz4</span></code> compression transparently before decoding</p></li>
+</ul>
+</section>
+<section id="acknowledgements">
+<h2>Acknowledgements<a class="headerlink" href="#acknowledgements" title="Link to this heading">#</a></h2>
+<p>Thanks to all the contributors for supporting this project:</p>
+<ul class="simple">
+<li><p>Elia Franc</p></li>
+<li><p>Jakub Mandula</p></li>
+</ul>
+</section>
+<section id="cite">
+<h2>Cite<a class="headerlink" href="#cite" title="Link to this heading">#</a></h2>
+<div class="highlight-bibtex notranslate"><div class="highlight"><pre><span></span><span class="nc">@PhDThesis</span><span class="p">{</span><span class="nl">2024mandula_evutils</span><span class="p">,</span>
+<span class="w">  </span><span class="na">author</span><span class="w">        </span><span class="p">=</span><span class="w"> </span><span class="s">{Jakub Mandula}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">title</span><span class="w">         </span><span class="p">=</span><span class="w"> </span><span class="s">{EV-Utils: collection of utilities for working with event-based vision data}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">school</span><span class="w">        </span><span class="p">=</span><span class="w"> </span><span class="s">{Dept. of Information Technology and Electrical Engineering, ETH Zurich}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">year</span><span class="w">          </span><span class="p">=</span><span class="w"> </span><span class="m">2024</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<div class="toctree-wrapper compound">
+</div>
+<section id="api-reference">
+<h1>API Reference<a class="headerlink" href="#api-reference" title="Link to this heading">#</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="autoapi/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="autoapi/evutils/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils</span></code></a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="right-next"
+       href="formats.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Supported Formats</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#"><a href="https://mandulaj.github.io/evutils"><img align="top" alt="evutils_logo" src="https://mandulaj.github.io/evutils/_static/event_hexagon_broken.webp" style="background-color: #fff0;" width="50"/></a> EV-Utils</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#core-philosophy">Core Philosophy</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#inspirations-related-work">Inspirations &amp; Related Work</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation">Installation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#from-pypi">From PyPi</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#from-git">From Git</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#architecture">Architecture</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-api-overview">Quick API overview</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#io-reading-and-writing-events"><code class="docutils literal notranslate"><span class="pre">io</span></code>: Reading and Writing Events</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#utils"><code class="docutils literal notranslate"><span class="pre">utils</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#random"><code class="docutils literal notranslate"><span class="pre">random</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#types"><code class="docutils literal notranslate"><span class="pre">types</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vis"><code class="docutils literal notranslate"><span class="pre">vis</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running-tests">Running tests</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#benchmarks"><span class="xref myst">Benchmarks</span></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#roadmap">&amp; Roadmap</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#acknowledgements">Acknowledgements</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cite">Cite</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#api-reference">API Reference</a></li>
+</ul>
+
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="_sources/index.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Jakub Mandula.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
 </html>
