@@ -2,7 +2,12 @@
   {
     "name": "dev (main)",
     "version": "dev",
-    "url": "https://mandulaj.github.io/evutils/dev/",
+    "url": "https://mandulaj.github.io/evutils/dev/"
+  },
+  {
+    "name": "v0.3.14 (stable)",
+    "version": "v0.3.14",
+    "url": "https://mandulaj.github.io/evutils/v0.3.14/",
     "preferred": true
   }
 ]

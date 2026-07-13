@@ -1,0 +1,1382 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Index &#8212; evutils v0.3.14 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+    <script src="_static/documentation_options.js?v=c82d3515"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'genindex';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.19.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://mandulaj.github.io/evutils/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.3.14';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="icon" href="_static/event_hexagon_broken.webp"/>
+    <link rel="index" title="Index" href="#" />
+    <link rel="search" title="Search" href="search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="_static/searchtools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script src="searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="_static/event_hexagon_broken.webp" class="logo__image only-light" alt=""/>
+    <img src="_static/event_hexagon_broken.webp" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">EV-Utils</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="formats.html">
+    Supported Formats
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="benchmarks/README.html">
+    Benchmarks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/mandulaj/evutils" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/evutils/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-custom fa-lg" data-prefix="fa-custom" data-icon="pypi" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="formats.html">
+    Supported Formats
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="benchmarks/README.html">
+    Benchmarks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/mandulaj/evutils" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/evutils/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-custom fa-lg" data-prefix="fa-custom" data-icon="pypi" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none"></div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+
+<h1 id="index">Index</h1>
+
+<div class="genindex-jumpbox">
+ <a href="#_"><strong>_</strong></a>
+ | <a href="#A"><strong>A</strong></a>
+ | <a href="#C"><strong>C</strong></a>
+ | <a href="#D"><strong>D</strong></a>
+ | <a href="#E"><strong>E</strong></a>
+ | <a href="#F"><strong>F</strong></a>
+ | <a href="#G"><strong>G</strong></a>
+ | <a href="#H"><strong>H</strong></a>
+ | <a href="#I"><strong>I</strong></a>
+ | <a href="#L"><strong>L</strong></a>
+ | <a href="#M"><strong>M</strong></a>
+ | <a href="#N"><strong>N</strong></a>
+ | <a href="#O"><strong>O</strong></a>
+ | <a href="#P"><strong>P</strong></a>
+ | <a href="#R"><strong>R</strong></a>
+ | <a href="#S"><strong>S</strong></a>
+ | <a href="#T"><strong>T</strong></a>
+ | <a href="#U"><strong>U</strong></a>
+ | <a href="#V"><strong>V</strong></a>
+ | <a href="#W"><strong>W</strong></a>
+ | <a href="#X"><strong>X</strong></a>
+ | <a href="#Y"><strong>Y</strong></a>
+ 
+</div>
+<h2 id="_">_</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/types/index.html#evutils.types.EventArray.__array__">__array__() (evutils.types.EventArray method)</a>
+
+      <ul>
+        <li><a href="autoapi/evutils/types/index.html#evutils.types.TriggerArray.__array__">(evutils.types.TriggerArray method)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/evutils/io/common/index.html#evutils.io.common.EventEncoder.__enter__">__enter__() (evutils.io.common.EventEncoder method)</a>
+
+      <ul>
+        <li><a href="autoapi/evutils/io/encoders/index.html#evutils.io.encoders.EventEncoder.__enter__">(evutils.io.encoders.EventEncoder method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/index.html#evutils.io.EventReader.__enter__">(evutils.io.EventReader method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/index.html#evutils.io.EventWriter.__enter__">(evutils.io.EventWriter method)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/evutils/io/index.html#evutils.io.EventReader.__exit__">__exit__() (evutils.io.EventReader method)</a>
+
+      <ul>
+        <li><a href="autoapi/evutils/io/index.html#evutils.io.EventWriter.__exit__">(evutils.io.EventWriter method)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/evutils/types/index.html#evutils.types.EventArray.__getitem__">__getitem__() (evutils.types.EventArray method)</a>
+
+      <ul>
+        <li><a href="autoapi/evutils/types/index.html#evutils.types.TriggerArray.__getitem__">(evutils.types.TriggerArray method)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/evutils/io/index.html#evutils.io.EventReader.__iter__">__iter__() (evutils.io.EventReader method)</a>
+</li>
+      <li><a href="autoapi/evutils/io/buffer/index.html#evutils.io.buffer.EventAccumulator.__len__">__len__() (evutils.io.buffer.EventAccumulator method)</a>
+
+      <ul>
+        <li><a href="autoapi/evutils/io/common/index.html#evutils.io.common.EventEncoder.__len__">(evutils.io.common.EventEncoder method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/encoders/index.html#evutils.io.encoders.EventEncoder.__len__">(evutils.io.encoders.EventEncoder method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/index.html#evutils.io.EventReader.__len__">(evutils.io.EventReader method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/index.html#evutils.io.EventWriter.__len__">(evutils.io.EventWriter method)</a>
+</li>
+        <li><a href="autoapi/evutils/types/index.html#evutils.types.EventArray.__len__">(evutils.types.EventArray method)</a>
+</li>
+        <li><a href="autoapi/evutils/types/index.html#evutils.types.TriggerArray.__len__">(evutils.types.TriggerArray method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/io/common/index.html#evutils.io.common.EventDecoder.__repr__">__repr__() (evutils.io.common.EventDecoder method)</a>
+
+      <ul>
+        <li><a href="autoapi/evutils/io/common/index.html#evutils.io.common.EventEncoder.__repr__">(evutils.io.common.EventEncoder method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder.__repr__">(evutils.io.decoders.EventDecoder method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/encoders/index.html#evutils.io.encoders.EventEncoder.__repr__">(evutils.io.encoders.EventEncoder method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/index.html#evutils.io.EventReader.__repr__">(evutils.io.EventReader method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/index.html#evutils.io.EventWriter.__repr__">(evutils.io.EventWriter method)</a>
+</li>
+        <li><a href="autoapi/evutils/types/index.html#evutils.types.EventArray.__repr__">(evutils.types.EventArray method)</a>
+</li>
+        <li><a href="autoapi/evutils/types/index.html#evutils.types.TriggerArray.__repr__">(evutils.types.TriggerArray method)</a>
+</li>
+        <li><a href="autoapi/evutils/utils/index.html#evutils.utils.EventsChecker.__repr__">(evutils.utils.EventsChecker method)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/evutils/types/index.html#evutils.types.EventArray.__slots__">__slots__ (evutils.types.EventArray attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/evutils/types/index.html#evutils.types.TriggerArray.__slots__">(evutils.types.TriggerArray attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/evutils/index.html#evutils.__version__">__version__ (in module evutils)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="A">A</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/io/buffer/index.html#evutils.io.buffer.EventAccumulator.append">append() (evutils.io.buffer.EventAccumulator method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="C">C</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/io/common/index.html#evutils.io.common.EventDecoder.close">close() (evutils.io.common.EventDecoder method)</a>
+
+      <ul>
+        <li><a href="autoapi/evutils/io/common/index.html#evutils.io.common.EventEncoder.close">(evutils.io.common.EventEncoder method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder.close">(evutils.io.decoders.EventDecoder method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Aedat.close">(evutils.io.decoders.EventDecoder_Aedat method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_AER.close">(evutils.io.decoders.EventDecoder_AER method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Dat.close">(evutils.io.decoders.EventDecoder_Dat method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_EVT.close">(evutils.io.decoders.EventDecoder_EVT method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Npz.close">(evutils.io.decoders.EventDecoder_Npz method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/encoders/index.html#evutils.io.encoders.EventEncoder.close">(evutils.io.encoders.EventEncoder method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/encoders/index.html#evutils.io.encoders.EventEncoder_Npz.close">(evutils.io.encoders.EventEncoder_Npz method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/index.html#evutils.io.EventReader.close">(evutils.io.EventReader method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/index.html#evutils.io.EventWriter.close">(evutils.io.EventWriter method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/types/index.html#evutils.types.EventArray.copy">copy() (evutils.types.EventArray method)</a>
+
+      <ul>
+        <li><a href="autoapi/evutils/types/index.html#evutils.types.TriggerArray.copy">(evutils.types.TriggerArray method)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/evutils/vis/reconstructor/rpg/index.html#evutils.vis.reconstructor.rpg.RPG_Reconstructor.crop">crop (evutils.vis.reconstructor.rpg.RPG_Reconstructor attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="D">D</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/vis/reconstructor/rpg/index.html#evutils.vis.reconstructor.rpg.RPG_Reconstructor.DEFAULT_ARGS">DEFAULT_ARGS (evutils.vis.reconstructor.rpg.RPG_Reconstructor attribute)</a>
+</li>
+      <li><a href="autoapi/evutils/io/index.html#evutils.io.EventReader.DEFAULT_DELTA_T">DEFAULT_DELTA_T (evutils.io.EventReader attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/io/index.html#evutils.io.EventReader.DEFAULT_N_EVENTS">DEFAULT_N_EVENTS (evutils.io.EventReader attribute)</a>
+</li>
+      <li><a href="autoapi/evutils/vis/reconstructor/rpg/index.html#evutils.vis.reconstructor.rpg.RPG_Reconstructor.download_model">download_model() (evutils.vis.reconstructor.rpg.RPG_Reconstructor method)</a>
+</li>
+      <li><a href="autoapi/evutils/augment/index.html#evutils.augment.drop_random_events">drop_random_events() (in module evutils.augment)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="E">E</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/types/index.html#evutils.types.EventArray.empty">empty() (evutils.types.EventArray class method)</a>
+
+      <ul>
+        <li><a href="autoapi/evutils/types/index.html#evutils.types.TriggerArray.empty">(evutils.types.TriggerArray class method)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/evutils/types/index.html#evutils.types.Event">Event (class in evutils.types)</a>
+</li>
+      <li><a href="autoapi/evutils/types/index.html#evutils.types.Event_dtype">Event_dtype (in module evutils.types)</a>
+</li>
+      <li><a href="autoapi/evutils/random/index.html#evutils.random.event_jitter">event_jitter() (in module evutils.random)</a>
+</li>
+      <li><a href="autoapi/evutils/random/index.html#evutils.random.event_jitter_n">event_jitter_n() (in module evutils.random)</a>
+</li>
+      <li><a href="autoapi/evutils/vis/reconstructor/rpg/index.html#evutils.vis.reconstructor.rpg.RPG_Reconstructor.event_preprocessor">event_preprocessor (evutils.vis.reconstructor.rpg.RPG_Reconstructor attribute)</a>
+</li>
+      <li><a href="autoapi/evutils/io/buffer/index.html#evutils.io.buffer.EventAccumulator">EventAccumulator (class in evutils.io.buffer)</a>
+</li>
+      <li><a href="autoapi/evutils/types/index.html#evutils.types.EventArray">EventArray (class in evutils.types)</a>
+</li>
+      <li><a href="autoapi/evutils/io/common/index.html#evutils.io.common.EventDecoder">EventDecoder (class in evutils.io.common)</a>
+
+      <ul>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder">(class in evutils.io.decoders)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Aedat">EventDecoder_Aedat (class in evutils.io.decoders)</a>
+</li>
+      <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_AER">EventDecoder_AER (class in evutils.io.decoders)</a>
+</li>
+      <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Bin">EventDecoder_Bin (class in evutils.io.decoders)</a>
+</li>
+      <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Dat">EventDecoder_Dat (class in evutils.io.decoders)</a>
+</li>
+      <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_EVT">EventDecoder_EVT (class in evutils.io.decoders)</a>
+</li>
+      <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Npz">EventDecoder_Npz (class in evutils.io.decoders)</a>
+</li>
+      <li><a href="autoapi/evutils/io/common/index.html#evutils.io.common.EventEncoder">EventEncoder (class in evutils.io.common)</a>
+
+      <ul>
+        <li><a href="autoapi/evutils/io/encoders/index.html#evutils.io.encoders.EventEncoder">(class in evutils.io.encoders)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/evutils/io/encoders/index.html#evutils.io.encoders.EventEncoder_Aedat">EventEncoder_Aedat (class in evutils.io.encoders)</a>
+</li>
+      <li><a href="autoapi/evutils/io/encoders/index.html#evutils.io.encoders.EventEncoder_AER">EventEncoder_AER (class in evutils.io.encoders)</a>
+</li>
+      <li><a href="autoapi/evutils/io/encoders/index.html#evutils.io.encoders.EventEncoder_Bin">EventEncoder_Bin (class in evutils.io.encoders)</a>
+</li>
+      <li><a href="autoapi/evutils/io/encoders/index.html#evutils.io.encoders.EventEncoder_Dat">EventEncoder_Dat (class in evutils.io.encoders)</a>
+</li>
+      <li><a href="autoapi/evutils/io/encoders/index.html#evutils.io.encoders.EventEncoder_EVT">EventEncoder_EVT (class in evutils.io.encoders)</a>
+</li>
+      <li><a href="autoapi/evutils/io/encoders/index.html#evutils.io.encoders.EventEncoder_Npz">EventEncoder_Npz (class in evutils.io.encoders)</a>
+</li>
+      <li><a href="autoapi/evutils/io/index.html#evutils.io.EventReader">EventReader (class in evutils.io)</a>
+</li>
+      <li><a href="autoapi/evutils/utils/index.html#evutils.utils.EventsChecker.events">events (evutils.utils.EventsChecker attribute)</a>
+</li>
+      <li><a href="autoapi/evutils/utils/index.html#evutils.utils.EventsChecker">EventsChecker (class in evutils.utils)</a>
+</li>
+      <li><a href="autoapi/evutils/io/index.html#evutils.io.EventWriter">EventWriter (class in evutils.io)</a>
+</li>
+      <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_EVT.EVT_FORMATS">EVT_FORMATS (evutils.io.decoders.EventDecoder_EVT attribute)</a>
+</li>
+      <li>
+    evutils
+
+      <ul>
+        <li><a href="autoapi/evutils/index.html#module-evutils">module</a>
+</li>
+      </ul></li>
+      <li>
+    evutils.augment
+
+      <ul>
+        <li><a href="autoapi/evutils/augment/index.html#module-evutils.augment">module</a>
+</li>
+      </ul></li>
+      <li>
+    evutils.chunking
+
+      <ul>
+        <li><a href="autoapi/evutils/chunking/index.html#module-evutils.chunking">module</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    evutils.dataset
+
+      <ul>
+        <li><a href="autoapi/evutils/dataset/index.html#module-evutils.dataset">module</a>
+</li>
+      </ul></li>
+      <li>
+    evutils.io
+
+      <ul>
+        <li><a href="autoapi/evutils/io/index.html#module-evutils.io">module</a>
+</li>
+      </ul></li>
+      <li>
+    evutils.io.buffer
+
+      <ul>
+        <li><a href="autoapi/evutils/io/buffer/index.html#module-evutils.io.buffer">module</a>
+</li>
+      </ul></li>
+      <li>
+    evutils.io.common
+
+      <ul>
+        <li><a href="autoapi/evutils/io/common/index.html#module-evutils.io.common">module</a>
+</li>
+      </ul></li>
+      <li>
+    evutils.io.decoders
+
+      <ul>
+        <li><a href="autoapi/evutils/io/decoders/index.html#module-evutils.io.decoders">module</a>
+</li>
+      </ul></li>
+      <li>
+    evutils.io.encoders
+
+      <ul>
+        <li><a href="autoapi/evutils/io/encoders/index.html#module-evutils.io.encoders">module</a>
+</li>
+      </ul></li>
+      <li>
+    evutils.processing
+
+      <ul>
+        <li><a href="autoapi/evutils/processing/index.html#module-evutils.processing">module</a>
+</li>
+      </ul></li>
+      <li>
+    evutils.random
+
+      <ul>
+        <li><a href="autoapi/evutils/random/index.html#module-evutils.random">module</a>
+</li>
+      </ul></li>
+      <li>
+    evutils.repr
+
+      <ul>
+        <li><a href="autoapi/evutils/repr/index.html#module-evutils.repr">module</a>
+</li>
+      </ul></li>
+      <li>
+    evutils.torch
+
+      <ul>
+        <li><a href="autoapi/evutils/torch/index.html#module-evutils.torch">module</a>
+</li>
+      </ul></li>
+      <li>
+    evutils.types
+
+      <ul>
+        <li><a href="autoapi/evutils/types/index.html#module-evutils.types">module</a>
+</li>
+      </ul></li>
+      <li>
+    evutils.utils
+
+      <ul>
+        <li><a href="autoapi/evutils/utils/index.html#module-evutils.utils">module</a>
+</li>
+      </ul></li>
+      <li>
+    evutils.vis
+
+      <ul>
+        <li><a href="autoapi/evutils/vis/index.html#module-evutils.vis">module</a>
+</li>
+      </ul></li>
+      <li>
+    evutils.vis.open3d
+
+      <ul>
+        <li><a href="autoapi/evutils/vis/open3d/index.html#module-evutils.vis.open3d">module</a>
+</li>
+      </ul></li>
+      <li>
+    evutils.vis.plot3d
+
+      <ul>
+        <li><a href="autoapi/evutils/vis/plot3d/index.html#module-evutils.vis.plot3d">module</a>
+</li>
+      </ul></li>
+      <li>
+    evutils.vis.reconstructor
+
+      <ul>
+        <li><a href="autoapi/evutils/vis/reconstructor/index.html#module-evutils.vis.reconstructor">module</a>
+</li>
+      </ul></li>
+      <li>
+    evutils.vis.reconstructor.metavision
+
+      <ul>
+        <li><a href="autoapi/evutils/vis/reconstructor/metavision/index.html#module-evutils.vis.reconstructor.metavision">module</a>
+</li>
+      </ul></li>
+      <li>
+    evutils.vis.reconstructor.rpg
+
+      <ul>
+        <li><a href="autoapi/evutils/vis/reconstructor/rpg/index.html#module-evutils.vis.reconstructor.rpg">module</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="F">F</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/io/common/index.html#evutils.io.common.EventEncoder.flush">flush() (evutils.io.common.EventEncoder method)</a>
+
+      <ul>
+        <li><a href="autoapi/evutils/io/encoders/index.html#evutils.io.encoders.EventEncoder.flush">(evutils.io.encoders.EventEncoder method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/encoders/index.html#evutils.io.encoders.EventEncoder_Npz.flush">(evutils.io.encoders.EventEncoder_Npz method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/index.html#evutils.io.EventWriter.flush">(evutils.io.EventWriter method)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_EVT.FORMATS">FORMATS (evutils.io.decoders.EventDecoder_EVT attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/evutils/io/encoders/index.html#evutils.io.encoders.EventEncoder_EVT.FORMATS">(evutils.io.encoders.EventEncoder_EVT attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/repr/index.html#evutils.repr.frame_diff">frame_diff() (in module evutils.repr)</a>
+</li>
+      <li><a href="autoapi/evutils/repr/index.html#evutils.repr.frame_gray">frame_gray() (in module evutils.repr)</a>
+</li>
+      <li><a href="autoapi/evutils/repr/index.html#evutils.repr.frame_rgb">frame_rgb() (in module evutils.repr)</a>
+</li>
+      <li><a href="autoapi/evutils/types/index.html#evutils.types.EventArray.from_aos">from_aos() (evutils.types.EventArray class method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="G">G</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/vis/reconstructor/metavision/index.html#evutils.vis.reconstructor.metavision.Metavision_Reconstructor.gen_frame">gen_frame() (evutils.vis.reconstructor.metavision.Metavision_Reconstructor method)</a>
+
+      <ul>
+        <li><a href="autoapi/evutils/vis/reconstructor/rpg/index.html#evutils.vis.reconstructor.rpg.RPG_Reconstructor.gen_frame">(evutils.vis.reconstructor.rpg.RPG_Reconstructor method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/chunking/index.html#evutils.chunking.get_dt_events">get_dt_events() (in module evutils.chunking)</a>
+</li>
+      <li><a href="autoapi/evutils/io/encoders/index.html#evutils.io.encoders.get_file_writer">get_file_writer() (in module evutils.io.encoders)</a>
+</li>
+      <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.get_reader_from_filename">get_reader_from_filename() (in module evutils.io.decoders)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="H">H</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/utils/index.html#evutils.utils.EventsChecker.has_valid_polarity">has_valid_polarity() (evutils.utils.EventsChecker method)</a>
+</li>
+      <li><a href="autoapi/evutils/utils/index.html#evutils.utils.EventsChecker.has_valid_x">has_valid_x() (evutils.utils.EventsChecker method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/utils/index.html#evutils.utils.EventsChecker.has_valid_y">has_valid_y() (evutils.utils.EventsChecker method)</a>
+</li>
+      <li><a href="autoapi/evutils/io/encoders/index.html#evutils.io.encoders.EventEncoder_EVT.HEADER_FORMAT">HEADER_FORMAT (evutils.io.encoders.EventEncoder_EVT attribute)</a>
+</li>
+      <li><a href="autoapi/evutils/repr/index.html#evutils.repr.histogram">histogram() (in module evutils.repr)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="I">I</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/types/index.html#evutils.types.TriggerArray.id">id (evutils.types.TriggerArray attribute)</a>
+</li>
+      <li><a href="autoapi/evutils/vis/reconstructor/rpg/index.html#evutils.vis.reconstructor.rpg.RPG_Reconstructor.image_filter">image_filter (evutils.vis.reconstructor.rpg.RPG_Reconstructor attribute)</a>
+</li>
+      <li><a href="autoapi/evutils/io/common/index.html#evutils.io.common.EventDecoder.init">init() (evutils.io.common.EventDecoder method)</a>
+
+      <ul>
+        <li><a href="autoapi/evutils/io/common/index.html#evutils.io.common.EventEncoder.init">(evutils.io.common.EventEncoder method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder.init">(evutils.io.decoders.EventDecoder method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Aedat.init">(evutils.io.decoders.EventDecoder_Aedat method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_AER.init">(evutils.io.decoders.EventDecoder_AER method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Bin.init">(evutils.io.decoders.EventDecoder_Bin method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Dat.init">(evutils.io.decoders.EventDecoder_Dat method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_EVT.init">(evutils.io.decoders.EventDecoder_EVT method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Npz.init">(evutils.io.decoders.EventDecoder_Npz method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/encoders/index.html#evutils.io.encoders.EventEncoder.init">(evutils.io.encoders.EventEncoder method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/encoders/index.html#evutils.io.encoders.EventEncoder_Aedat.init">(evutils.io.encoders.EventEncoder_Aedat method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/encoders/index.html#evutils.io.encoders.EventEncoder_AER.init">(evutils.io.encoders.EventEncoder_AER method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/encoders/index.html#evutils.io.encoders.EventEncoder_Bin.init">(evutils.io.encoders.EventEncoder_Bin method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/encoders/index.html#evutils.io.encoders.EventEncoder_Dat.init">(evutils.io.encoders.EventEncoder_Dat method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/encoders/index.html#evutils.io.encoders.EventEncoder_EVT.init">(evutils.io.encoders.EventEncoder_EVT method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/encoders/index.html#evutils.io.encoders.EventEncoder_Npz.init">(evutils.io.encoders.EventEncoder_Npz method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/index.html#evutils.io.EventReader.init">(evutils.io.EventReader method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/index.html#evutils.io.EventWriter.init">(evutils.io.EventWriter method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/vis/reconstructor/rpg/index.html#evutils.vis.reconstructor.rpg.RPG_Reconstructor.intensity_rescaler">intensity_rescaler (evutils.vis.reconstructor.rpg.RPG_Reconstructor attribute)</a>
+</li>
+      <li><a href="autoapi/evutils/io/common/index.html#evutils.io.common.EventDecoder.is_eof">is_eof() (evutils.io.common.EventDecoder method)</a>
+
+      <ul>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder.is_eof">(evutils.io.decoders.EventDecoder method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/index.html#evutils.io.EventReader.is_eof">(evutils.io.EventReader method)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/evutils/types/index.html#evutils.types.is_monotonically_increasing">is_monotonically_increasing() (in module evutils.types)</a>
+</li>
+      <li><a href="autoapi/evutils/utils/index.html#evutils.utils.EventsChecker.is_sorted">is_sorted() (evutils.utils.EventsChecker method)</a>
+</li>
+      <li><a href="autoapi/evutils/utils/index.html#evutils.utils.EventsChecker.is_valid">is_valid() (evutils.utils.EventsChecker method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="L">L</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/vis/reconstructor/rpg/index.html#evutils.vis.reconstructor.rpg.RPG_Reconstructor.last_states_for_each_channel">last_states_for_each_channel (evutils.vis.reconstructor.rpg.RPG_Reconstructor attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/vis/reconstructor/rpg/index.html#evutils.vis.reconstructor.rpg.RPG_Reconstructor.last_ts">last_ts (evutils.vis.reconstructor.rpg.RPG_Reconstructor attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="M">M</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/processing/index.html#evutils.processing.mask_events">mask_events() (in module evutils.processing)</a>
+</li>
+      <li><a href="autoapi/evutils/vis/reconstructor/metavision/index.html#evutils.vis.reconstructor.metavision.Metavision_Reconstructor">Metavision_Reconstructor (class in evutils.vis.reconstructor.metavision)</a>
+</li>
+      <li><a href="autoapi/evutils/vis/reconstructor/metavision/index.html#evutils.vis.reconstructor.metavision.Metavision_Reconstructor.model">model (evutils.vis.reconstructor.metavision.Metavision_Reconstructor attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/evutils/vis/reconstructor/rpg/index.html#evutils.vis.reconstructor.rpg.RPG_Reconstructor.model">(evutils.vis.reconstructor.rpg.RPG_Reconstructor attribute)</a>
+</li>
+      </ul></li>
+      <li>
+    module
+
+      <ul>
+        <li><a href="autoapi/evutils/index.html#module-evutils">evutils</a>
+</li>
+        <li><a href="autoapi/evutils/augment/index.html#module-evutils.augment">evutils.augment</a>
+</li>
+        <li><a href="autoapi/evutils/chunking/index.html#module-evutils.chunking">evutils.chunking</a>
+</li>
+        <li><a href="autoapi/evutils/dataset/index.html#module-evutils.dataset">evutils.dataset</a>
+</li>
+        <li><a href="autoapi/evutils/io/index.html#module-evutils.io">evutils.io</a>
+</li>
+        <li><a href="autoapi/evutils/io/buffer/index.html#module-evutils.io.buffer">evutils.io.buffer</a>
+</li>
+        <li><a href="autoapi/evutils/io/common/index.html#module-evutils.io.common">evutils.io.common</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#module-evutils.io.decoders">evutils.io.decoders</a>
+</li>
+        <li><a href="autoapi/evutils/io/encoders/index.html#module-evutils.io.encoders">evutils.io.encoders</a>
+</li>
+        <li><a href="autoapi/evutils/processing/index.html#module-evutils.processing">evutils.processing</a>
+</li>
+        <li><a href="autoapi/evutils/random/index.html#module-evutils.random">evutils.random</a>
+</li>
+        <li><a href="autoapi/evutils/repr/index.html#module-evutils.repr">evutils.repr</a>
+</li>
+        <li><a href="autoapi/evutils/torch/index.html#module-evutils.torch">evutils.torch</a>
+</li>
+        <li><a href="autoapi/evutils/types/index.html#module-evutils.types">evutils.types</a>
+</li>
+        <li><a href="autoapi/evutils/utils/index.html#module-evutils.utils">evutils.utils</a>
+</li>
+        <li><a href="autoapi/evutils/vis/index.html#module-evutils.vis">evutils.vis</a>
+</li>
+        <li><a href="autoapi/evutils/vis/open3d/index.html#module-evutils.vis.open3d">evutils.vis.open3d</a>
+</li>
+        <li><a href="autoapi/evutils/vis/plot3d/index.html#module-evutils.vis.plot3d">evutils.vis.plot3d</a>
+</li>
+        <li><a href="autoapi/evutils/vis/reconstructor/index.html#module-evutils.vis.reconstructor">evutils.vis.reconstructor</a>
+</li>
+        <li><a href="autoapi/evutils/vis/reconstructor/metavision/index.html#module-evutils.vis.reconstructor.metavision">evutils.vis.reconstructor.metavision</a>
+</li>
+        <li><a href="autoapi/evutils/vis/reconstructor/rpg/index.html#module-evutils.vis.reconstructor.rpg">evutils.vis.reconstructor.rpg</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="N">N</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/vis/reconstructor/rpg/index.html#evutils.vis.reconstructor.rpg.RPG_Reconstructor.no_recurrent">no_recurrent (evutils.vis.reconstructor.rpg.RPG_Reconstructor attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/processing/index.html#evutils.processing.normalize_ts">normalize_ts() (in module evutils.processing)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="O">O</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/vis/open3d/index.html#evutils.vis.open3d.o3d_draw_events">o3d_draw_events() (in module evutils.vis.open3d)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="P">P</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/types/index.html#evutils.types.EventArray.p">p (evutils.types.EventArray attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/evutils/types/index.html#evutils.types.TriggerArray.p">(evutils.types.TriggerArray attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_AER.parse_step">parse_step() (evutils.io.decoders.EventDecoder_AER method)</a>
+
+      <ul>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Dat.parse_step">(evutils.io.decoders.EventDecoder_Dat method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_EVT.parse_step">(evutils.io.decoders.EventDecoder_EVT method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/vis/plot3d/index.html#evutils.vis.plot3d.plot_3d">plot_3d() (in module evutils.vis.plot3d)</a>
+</li>
+      <li><a href="autoapi/evutils/vis/plot3d/index.html#evutils.vis.plot3d.plot_3d_histogram">plot_3d_histogram() (in module evutils.vis.plot3d)</a>
+</li>
+      <li><a href="autoapi/evutils/vis/plot3d/index.html#evutils.vis.plot3d.plot_3d_timesurface">plot_3d_timesurface() (in module evutils.vis.plot3d)</a>
+</li>
+      <li><a href="autoapi/evutils/io/buffer/index.html#evutils.io.buffer.EventAccumulator.prepare">prepare() (evutils.io.buffer.EventAccumulator method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="R">R</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/random/index.html#evutils.random.random_events">random_events() (in module evutils.random)</a>
+</li>
+      <li><a href="autoapi/evutils/random/index.html#evutils.random.random_events_generator">random_events_generator() (in module evutils.random)</a>
+</li>
+      <li><a href="autoapi/evutils/io/index.html#evutils.io.EventReader.read">read() (evutils.io.EventReader method)</a>
+</li>
+      <li><a href="autoapi/evutils/io/common/index.html#evutils.io.common.EventDecoder.read_all">read_all() (evutils.io.common.EventDecoder method)</a>
+
+      <ul>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder.read_all">(evutils.io.decoders.EventDecoder method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_AER.read_all">(evutils.io.decoders.EventDecoder_AER method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Dat.read_all">(evutils.io.decoders.EventDecoder_Dat method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_EVT.read_all">(evutils.io.decoders.EventDecoder_EVT method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/index.html#evutils.io.EventReader.read_all">(evutils.io.EventReader method)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/evutils/io/common/index.html#evutils.io.common.EventDecoder.read_chunk">read_chunk() (evutils.io.common.EventDecoder method)</a>
+
+      <ul>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder.read_chunk">(evutils.io.decoders.EventDecoder method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Aedat.read_chunk">(evutils.io.decoders.EventDecoder_Aedat method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_AER.read_chunk">(evutils.io.decoders.EventDecoder_AER method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Bin.read_chunk">(evutils.io.decoders.EventDecoder_Bin method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Dat.read_chunk">(evutils.io.decoders.EventDecoder_Dat method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_EVT.read_chunk">(evutils.io.decoders.EventDecoder_EVT method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Npz.read_chunk">(evutils.io.decoders.EventDecoder_Npz method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/io/common/index.html#evutils.io.common.EventDecoder.read_external_triggers">read_external_triggers (evutils.io.common.EventDecoder attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder.read_external_triggers">(evutils.io.decoders.EventDecoder attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/evutils/io/index.html#evutils.io.EventReader.READING_MODES">READING_MODES (evutils.io.EventReader attribute)</a>
+</li>
+      <li><a href="autoapi/evutils/io/buffer/index.html#evutils.io.buffer.EventAccumulator.reset">reset() (evutils.io.buffer.EventAccumulator method)</a>
+
+      <ul>
+        <li><a href="autoapi/evutils/io/common/index.html#evutils.io.common.EventDecoder.reset">(evutils.io.common.EventDecoder method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder.reset">(evutils.io.decoders.EventDecoder method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Aedat.reset">(evutils.io.decoders.EventDecoder_Aedat method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_AER.reset">(evutils.io.decoders.EventDecoder_AER method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Bin.reset">(evutils.io.decoders.EventDecoder_Bin method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Dat.reset">(evutils.io.decoders.EventDecoder_Dat method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_EVT.reset">(evutils.io.decoders.EventDecoder_EVT method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Npz.reset">(evutils.io.decoders.EventDecoder_Npz method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/index.html#evutils.io.EventReader.reset">(evutils.io.EventReader method)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/evutils/vis/reconstructor/rpg/index.html#evutils.vis.reconstructor.rpg.RPG_Reconstructor.reset_states">reset_states (evutils.vis.reconstructor.rpg.RPG_Reconstructor attribute)</a>
+</li>
+      <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.resolve_decoder_cls">resolve_decoder_cls() (in module evutils.io.decoders)</a>
+</li>
+      <li><a href="autoapi/evutils/vis/reconstructor/rpg/index.html#evutils.vis.reconstructor.rpg.RPG_Reconstructor">RPG_Reconstructor (class in evutils.vis.reconstructor.rpg)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="S">S</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/io/common/index.html#evutils.io.common.EventDecoder.set_chunk_size">set_chunk_size() (evutils.io.common.EventDecoder method)</a>
+
+      <ul>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder.set_chunk_size">(evutils.io.decoders.EventDecoder method)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/evutils/vis/reconstructor/rpg/index.html#evutils.vis.reconstructor.rpg.set_inference_options">set_inference_options() (in module evutils.vis.reconstructor.rpg)</a>
+</li>
+      <li><a href="autoapi/evutils/io/common/index.html#evutils.io.common.EventDecoder.shape">shape() (evutils.io.common.EventDecoder method)</a>
+
+      <ul>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder.shape">(evutils.io.decoders.EventDecoder method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/index.html#evutils.io.EventReader.shape">(evutils.io.EventReader method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/io/buffer/index.html#evutils.io.buffer.EventAccumulator.slice_copy">slice_copy() (evutils.io.buffer.EventAccumulator method)</a>
+</li>
+      <li><a href="autoapi/evutils/chunking/index.html#evutils.chunking.sliding_window">sliding_window() (in module evutils.chunking)</a>
+</li>
+      <li><a href="autoapi/evutils/chunking/index.html#evutils.chunking.sort_events">sort_events() (in module evutils.chunking)</a>
+</li>
+      <li><a href="autoapi/evutils/io/common/index.html#evutils.io.common.EventDecoder.SUPPORTS_EXT_TRIGGERS">SUPPORTS_EXT_TRIGGERS (evutils.io.common.EventDecoder attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder.SUPPORTS_EXT_TRIGGERS">(evutils.io.decoders.EventDecoder attribute)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_EVT.SUPPORTS_EXT_TRIGGERS">(evutils.io.decoders.EventDecoder_EVT attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="T">T</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/types/index.html#evutils.types.EventArray.t">t (evutils.types.EventArray attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/evutils/types/index.html#evutils.types.TriggerArray.t">(evutils.types.TriggerArray attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/evutils/io/buffer/index.html#evutils.io.buffer.EventAccumulator.t_window">t_window() (evutils.io.buffer.EventAccumulator method)</a>
+</li>
+      <li><a href="autoapi/evutils/io/buffer/index.html#evutils.io.buffer.EventAccumulator.t_window_tr">t_window_tr() (evutils.io.buffer.EventAccumulator method)</a>
+</li>
+      <li><a href="autoapi/evutils/io/common/index.html#evutils.io.common.EventDecoder.tell">tell() (evutils.io.common.EventDecoder method)</a>
+
+      <ul>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder.tell">(evutils.io.decoders.EventDecoder method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Aedat.tell">(evutils.io.decoders.EventDecoder_Aedat method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_AER.tell">(evutils.io.decoders.EventDecoder_AER method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Dat.tell">(evutils.io.decoders.EventDecoder_Dat method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_EVT.tell">(evutils.io.decoders.EventDecoder_EVT method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Npz.tell">(evutils.io.decoders.EventDecoder_Npz method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/index.html#evutils.io.EventReader.tell">(evutils.io.EventReader method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/repr/index.html#evutils.repr.timesurface">timesurface() (in module evutils.repr)</a>
+</li>
+      <li><a href="autoapi/evutils/types/index.html#evutils.types.EventArray.to_aos">to_aos() (evutils.types.EventArray method)</a>
+
+      <ul>
+        <li><a href="autoapi/evutils/types/index.html#evutils.types.TriggerArray.to_aos">(evutils.types.TriggerArray method)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/evutils/vis/reconstructor/rpg/index.html#evutils.vis.reconstructor.rpg.torch">torch (in module evutils.vis.reconstructor.rpg)</a>
+</li>
+      <li><a href="autoapi/evutils/repr/index.html#evutils.repr.tore">tore() (in module evutils.repr)</a>
+</li>
+      <li><a href="autoapi/evutils/types/index.html#evutils.types.Trigger_dtype">Trigger_dtype (in module evutils.types)</a>
+</li>
+      <li><a href="autoapi/evutils/types/index.html#evutils.types.TriggerArray">TriggerArray (class in evutils.types)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="U">U</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/vis/reconstructor/rpg/index.html#evutils.vis.reconstructor.rpg.RPG_Reconstructor.unsharp_mask_filter">unsharp_mask_filter (evutils.vis.reconstructor.rpg.RPG_Reconstructor attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="V">V</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/repr/index.html#evutils.repr.voxel_histogram">voxel_histogram() (in module evutils.repr)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="W">W</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/repr/index.html#evutils.repr.wedge_histogram">wedge_histogram() (in module evutils.repr)</a>
+</li>
+      <li><a href="autoapi/evutils/chunking/index.html#evutils.chunking.window_delta_t">window_delta_t() (in module evutils.chunking)</a>
+</li>
+      <li><a href="autoapi/evutils/io/common/index.html#evutils.io.common.EventEncoder.write">write() (evutils.io.common.EventEncoder method)</a>
+
+      <ul>
+        <li><a href="autoapi/evutils/io/encoders/index.html#evutils.io.encoders.EventEncoder.write">(evutils.io.encoders.EventEncoder method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/encoders/index.html#evutils.io.encoders.EventEncoder_Aedat.write">(evutils.io.encoders.EventEncoder_Aedat method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/encoders/index.html#evutils.io.encoders.EventEncoder_AER.write">(evutils.io.encoders.EventEncoder_AER method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/encoders/index.html#evutils.io.encoders.EventEncoder_Bin.write">(evutils.io.encoders.EventEncoder_Bin method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/encoders/index.html#evutils.io.encoders.EventEncoder_Dat.write">(evutils.io.encoders.EventEncoder_Dat method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/encoders/index.html#evutils.io.encoders.EventEncoder_EVT.write">(evutils.io.encoders.EventEncoder_EVT method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/encoders/index.html#evutils.io.encoders.EventEncoder_Npz.write">(evutils.io.encoders.EventEncoder_Npz method)</a>
+</li>
+        <li><a href="autoapi/evutils/io/index.html#evutils.io.EventWriter.write">(evutils.io.EventWriter method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="X">X</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/types/index.html#evutils.types.EventArray.x">x (evutils.types.EventArray attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="Y">Y</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/evutils/types/index.html#evutils.types.EventArray.y">y (evutils.types.EventArray attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Jakub Mandula.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

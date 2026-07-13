@@ -1,0 +1,34 @@
+:py:mod:`evutils.vis.reconstructor`
+===================================
+
+.. py:module:: evutils.vis.reconstructor
+
+.. autoapi-nested-parse::
+
+   Visualisation of event data.
+
+   Turn events into viewable images: ``histogram`` renders accumulated
+   polarity frames, and ``reconstructor`` provides image/video reconstruction
+   backends (Metavision, RPG, E2VID).
+
+
+
+Submodules
+----------
+
+.. toctree::
+   :hidden:
+   :maxdepth: 1
+
+   /autoapi/evutils/vis/reconstructor/metavision/index
+   /autoapi/evutils/vis/reconstructor/rpg/index
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 0
+
+   * - :py:mod:`metavision <evutils.vis.reconstructor.metavision>`
+     - Event-to-video reconstruction using the Metavision ML model.
+   * - :py:mod:`rpg <evutils.vis.reconstructor.rpg>`
+     - Event-to-video reconstruction using the RPG E2VID model.
+

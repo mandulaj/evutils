@@ -1,0 +1,14 @@
+:py:mod:`evutils.torch`
+=======================
+
+.. py:module:: evutils.torch
+
+.. autoapi-nested-parse::
+
+   PyTorch integration.
+
+   Bridges between evutils and PyTorch: tensor conversion, ``Dataset`` /
+   ``DataLoader`` wrappers, and transforms for training on event data.
+
+
+
