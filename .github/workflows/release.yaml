@@ -6,7 +6,9 @@ concurrency:
 
 on:
   release:
-    types: [published]
+    # prereleased -> a release published with "pre-release" ticked  -> TestPyPI.
+    # released    -> a full release, or a pre-release edited to full -> real PyPI.
+    types: [prereleased, released]
   workflow_dispatch:   # manual runs to exercise the multi-OS wheel build without releasing
 
 permissions:
@@ -104,11 +106,37 @@ jobs:
           name: dist-sdist
           path: dist/*.tar.gz
 
+  # Pre-release (staging): publish the exact version to TestPyPI so it can be
+  # installed and validated without ever being the default `pip install`. When
+  # confirmed, edit the GitHub release to a full release -> publish_pypi runs.
+  publish_testpypi:
+    name: Publish to TestPyPI (staging)
+    needs: [build_wheels, build_sdist]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' && github.event.release.prerelease == true
+    steps:
+      - name: Download all distributions
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          pattern: dist-*
+          merge-multiple: true
+
+      - name: Publish to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          # A re-fired event (e.g. editing the release) must not hard-fail on an
+          # already-uploaded version.
+          skip-existing: true
+
+  # Full release: publish to real PyPI. Fires on `released` (a full release, or
+  # a pre-release promoted to full).
   publish_pypi:
     name: Publish to PyPI
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
-    if: github.event_name == 'release'
+    if: github.event_name == 'release' && github.event.release.prerelease == false
     steps:
       - name: Download all distributions
         uses: actions/download-artifact@v4
@@ -119,12 +147,17 @@ jobs:
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
 
   build_and_publish_docs:
     name: Build & Publish Sphinx Docs
     needs: [test, check_version]
     runs-on: ubuntu-latest
-    if: github.event_name == 'release'
+    # Versioned docs are published only for confirmed (full) releases -- a
+    # staged pre-release stays on TestPyPI and does not touch the docs site
+    # (the /dev/ docs already cover previewing). Root/stable stays honest.
+    if: github.event_name == 'release' && github.event.release.prerelease == false
     # The deploy script pushes the built site to the gh-pages branch, so this
     # job needs write access to repo contents (the top-level grant is read).
     permissions:
@@ -166,11 +199,58 @@ jobs:
             make -C docs html
           bash docs/deploy_versioned_docs.sh "$VERSION" "$PAGES_BASE" docs/build/html
 
-  test_pypi_wheels:
-    name: Test PyPI Wheel (${{ matrix.os }}, Py ${{ matrix.python }})
+  # Staged validation: install the exact version from TestPyPI (deps come from
+  # real PyPI via the extra index) and run the test suite. Reduced matrix -- the
+  # full matrix runs against real PyPI once promoted. Catches install/packaging
+  # problems before the version is ever on real PyPI.
+  smoke_testpypi:
+    name: Smoke test TestPyPI wheel
+    needs: publish_testpypi
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' && github.event.release.prerelease == true
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          enable-cache: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install evutils from TestPyPI
+        shell: bash
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          for i in {1..12}; do
+            uv pip install --system \
+              --index-url https://test.pypi.org/simple/ \
+              --extra-index-url https://pypi.org/simple/ \
+              "evutils[test,hdf5,aedat]==$VERSION" --no-cache && break
+            echo "Waiting for TestPyPI index..."
+            sleep 10
+          done
+
+      - name: Remove local source tree
+        shell: bash
+        run: rm -rf src/evutils
+
+      - name: Run tests against TestPyPI wheel
+        shell: bash
+        run: python -m pytest -s -v tests/
+
+  # Full validation against real PyPI after a confirmed release.
+  smoke_pypi:
+    name: Smoke test PyPI Wheel (${{ matrix.os }}, Py ${{ matrix.python }})
     needs: publish_pypi
     runs-on: ${{ matrix.os }}
-    if: github.event_name == 'release'
+    if: github.event_name == 'release' && github.event.release.prerelease == false
     strategy:
       fail-fast: false
       matrix:
