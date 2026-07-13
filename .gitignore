@@ -6,6 +6,13 @@ build
 .pytest_cache/
 .coverage
 htmlcov/
+# C coverage (scripts/coverage.sh)
+build-coverage/
+htmlcov-c/
+coverage.xml
+coverage-c.xml
+*.gcda
+*.gcno
 .ruff_cache/
 .mypy_cache/
 

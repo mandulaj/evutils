@@ -10,6 +10,12 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
 endif()
 
+# Opt-in gcov/llvm-cov instrumentation for C coverage. OFF by default so the
+# wheel and normal dev builds are unaffected. Turn on for a standalone build
+# whose tree is kept around (scripts/coverage.sh):
+#   cmake -B build -DEVUTILS_COVERAGE=ON -DCMAKE_BUILD_TYPE=Debug
+option(EVUTILS_COVERAGE "Instrument the C sources for gcov coverage" OFF)
+
 # --- Sources ----------------------------------------------------------------
 # Compile every .c under csrc/. CONFIGURE_DEPENDS re-globs when files are
 file(GLOB EVUTILS_SOURCES CONFIGURE_DEPENDS
@@ -42,6 +48,12 @@ target_compile_definitions(evutils_native PRIVATE
 
 if(MSVC)
   target_compile_options(evutils_native PRIVATE /O2 /W3)
+elseif(EVUTILS_COVERAGE)
+  # --coverage == -fprofile-arcs -ftest-coverage. -O0 keeps line mapping honest.
+  # Emitted .gcno (compile) and .gcda (run) land next to the objects in the
+  # build tree, so this build dir must be preserved for gcov to read them.
+  target_compile_options(evutils_native PRIVATE -O0 -g --coverage -Wall -Wextra)
+  target_link_options(evutils_native PRIVATE --coverage)
 else()
   target_compile_options(evutils_native PRIVATE
       -O3 -Wall -Wextra
