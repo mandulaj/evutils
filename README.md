@@ -1,6 +1,10 @@
 # <a href="https://mandulaj.github.io/evutils"><img src="https://mandulaj.github.io/evutils/_static/event_hexagon_broken.webp" alt="evutils_logo" width="50" align="top" style="background-color: #fff0;"></a> EV-Utils
 [![PyPI Version](https://img.shields.io/pypi/v/evutils)](https://pypi.org/project/evutils/)
+![PyPI Python Version](https://img.shields.io/pypi/pyversions/evutils)
 [![Test](https://github.com/mandulaj/evutils/actions/workflows/test.yaml/badge.svg)](https://github.com/mandulaj/evutils/actions/workflows/test.yaml)
+[![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://mandulaj.github.io/evutils/)
+![GitHub repo size](https://img.shields.io/github/repo-size/mandulaj/evutils)
+
 
 ## Overview
 EV-Utils (`evutils`) is a performant collection of utilities for working with event-based vision data. Built with minimal dependencies, it relies on a compiled C backend for speed while offering a clean, modular Python interface.
@@ -8,7 +12,7 @@ EV-Utils (`evutils`) is a performant collection of utilities for working with ev
 ### Core Philosophy
 * **Fast & Lightweight:** Highly optimized C parsers for zero-bottleneck data ingestion.
 * **Minimal Footprint:** Core features run entirely on NumPy and Numba.
-* **Lazy Loading:** All heavy integrations (PyTorch, Pandas, HDF5, Polars, etc.) are lazy-loaded. If you don't use them, you don't need them installed, and they won't slow down import times.
+* **Lazy Loading:** All heavy integrations (PyTorch, HDF5, Polars, etc.) are lazy-loaded. If you don't use them, you don't need them installed, and they won't slow down import times.
 * **Simple & Extensible:** Clean modular APIs.
 
 
