@@ -21,6 +21,13 @@ copyright = '2026, Jakub Mandula'
 author = f"{toml_data['project']['authors'][0]['name']}"
 release = f"v{toml_data['project']['version']}"
 
+# Version-switcher wiring (set by the CI docs jobs). DOCS_VERSION is the entry
+# the dropdown highlights ("vX.Y.Z" for a release, "dev" for the dev branch);
+# DOCS_SWITCHER_URL is the absolute URL of the shared switcher.json at the site
+# root. Local builds fall back to the pyproject version + a relative URL.
+version_match = os.environ.get("DOCS_VERSION", release)
+switcher_url = os.environ.get("DOCS_SWITCHER_URL", "/switcher.json")
+
 # Its under [project.urls] "Source Code"
 github_url = f"{toml_data['project']['urls']['Source Code']}"
 
@@ -89,11 +96,25 @@ html_theme_options = {
             "url": github_url,
             "icon": "fa-brands fa-github",
         },
+        {
+            "name": "PyPI",
+            "url": "https://pypi.org/project/evutils/",
+            "icon": "fa-custom fa-pypi",
+        },
     ],
     "logo": {
         "text": "EV-Utils",
     },
-
+    # Built-in version-selector dropdown. Reads the shared switcher.json and
+    # highlights the entry whose "version" matches version_match.
+    "switcher": {
+        "json_url": switcher_url,
+        "version_match": version_match,
+    },
+    "navbar_end": ["version-switcher", "theme-switcher", "navbar-icon-links"],
+    # Don't fail the build when the switcher URL isn't reachable (e.g. local
+    # builds, or the first deploy before switcher.json exists).
+    "check_switcher": False,
 }
 # html_static_path = ['_static']
 
