@@ -1,0 +1,37 @@
+:py:mod:`evutils.io.stream`
+===========================
+
+.. py:module:: evutils.io.stream
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   evutils.io.stream.EventStreamer
+
+
+Module Contents
+---------------
+
+.. py:class:: EventStreamer(file: Any, ext_trigger: bool = False, decoder_cls: Any = None, **kwargs: Any)
+
+   A low-level streamer that yields raw event blocks exactly as the parser outputs them.
+   It performs ZERO slicing or logic; it purely drives the decoder.
+
+
+   .. py:attribute:: source
+
+
+   .. py:attribute:: decoder
+
+
+   .. py:attribute:: ext_trigger
+      :value: False
+
+
+
+   .. py:method:: __iter__() -> Iterator[Any]
+
+

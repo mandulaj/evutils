@@ -1,0 +1,36 @@
+:py:mod:`evutils.vis`
+=====================
+
+.. py:module:: evutils.vis
+
+.. autoapi-nested-parse::
+
+   Visualization tools for event camera data.
+
+   This package contains various visualization tools for event streams,
+   including 3D plots, Open3D point clouds, and video reconstruction.
+
+
+
+Submodules
+----------
+
+.. toctree::
+   :hidden:
+   :maxdepth: 1
+
+   /autoapi/evutils/vis/open3d/index
+   /autoapi/evutils/vis/plot3d/index
+   /autoapi/evutils/vis/reconstructor/index
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 0
+
+   * - :py:mod:`open3d <evutils.vis.open3d>`
+     - Open3D visualization utilities for event camera data.
+   * - :py:mod:`plot3d <evutils.vis.plot3d>`
+     - Matplotlib 3D visualization utilities for event data.
+   * - :py:mod:`reconstructor <evutils.vis.reconstructor>`
+     - Visualisation of event data.
+

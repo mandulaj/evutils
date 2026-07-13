@@ -1,5 +1,0 @@
-<map id="inheritance1b914b013c" name="inheritance1b914b013c">
-<area shape="rect" id="node1" title="Helper class that provides a standard way to create an ABC using" alt="" coords="5,5,77,33"/>
-<area shape="rect" id="node2" href="../common/index.html#evutils.io.common.EventDecoder" target="_top" title="ABC for reading chunks of events from a IO source object." alt="" coords="125,5,238,33"/>
-<area shape="rect" id="node3" title="Decode raw AER streams into ``EventArray`` chunks. Since AER is designed" alt="" coords="286,5,431,33"/>
-</map>
