@@ -1,5 +1,0 @@
-<map id="inheritance2aeb4b1c0f" name="inheritance2aeb4b1c0f">
-<area shape="rect" id="node1" title="Helper class that provides a standard way to create an ABC using" alt="" coords="5,5,77,33"/>
-<area shape="rect" id="node2" href="../common/index.html#evutils.io.common.EventEncoder" target="_top" title="ABC for writing chunks of events to a io object." alt="" coords="125,5,236,33"/>
-<area shape="rect" id="node3" title="An encoder for writing events to AEDAT files." alt="" coords="284,5,439,33"/>
-</map>
