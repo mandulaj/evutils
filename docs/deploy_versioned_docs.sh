@@ -3,8 +3,9 @@
 #
 # Uses only first-party pieces: plain git + the auto-provided GITHUB_TOKEN (no
 # third-party GitHub Actions). The gh-pages branch holds every version in its
-# own subdir; this script replaces ONLY the given version's dir, regenerates the
-# root switcher.json + redirect, and pushes -- so all other versions survive.
+# own subdir; this script replaces ONLY the given version's dir, regenerates
+# switcher.json, mirrors the stable version to the site root, and pushes -- so
+# all other versions survive.
 #
 # Usage: deploy_versioned_docs.sh <version> <pages_base_url> <built_html_dir>
 #   version         e.g. v0.3.16  or  dev
@@ -40,7 +41,8 @@ rm -rf "site/${VERSION}"
 mkdir -p "site/${VERSION}"
 cp -a "${HTML_DIR}/." "site/${VERSION}/"
 
-# Regenerate the switcher + root redirect from whatever versions now exist.
+# Regenerate the switcher and mirror the stable version to the site root
+# (owner.github.io/repo -> latest stable; /vX.Y.Z/ -> that version).
 python docs/gen_switcher.py "$PAGES_BASE" site
 
 # Sphinx output has _static/_sources dirs; disable Jekyll so they aren't hidden.

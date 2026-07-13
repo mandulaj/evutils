@@ -1,44 +1,41 @@
 #!/usr/bin/env python3
-"""Generate ``switcher.json`` + a root ``index.html`` for the versioned docs.
+"""Generate ``switcher.json`` and mirror the stable docs to the site root.
 
 The site published to the ``gh-pages`` branch holds one subdirectory per docs
 version -- ``vX.Y.Z`` for each release plus an optional ``dev`` built from the
-``dev`` branch. This script scans that site directory and writes:
+``dev`` branch. This script scans that site directory and:
 
-* ``switcher.json`` -- the version list consumed by pydata-sphinx-theme's
-  built-in version switcher. The newest release is marked ``preferred`` (the
-  "stable" one); ``dev`` is listed first but never preferred.
-* ``index.html`` -- a redirect at the site root that sends visitors to the
-  newest release (or to ``dev`` if no release exists yet).
+* writes ``switcher.json`` -- the version list consumed by pydata-sphinx-theme's
+  built-in version switcher. The newest final release is marked ``preferred``
+  (the "stable" one); ``dev`` is listed first but never preferred.
+* mirrors the stable version's built site into the root, so
+  ``owner.github.io/repo/`` serves the latest stable docs directly (clean URLs)
+  while ``owner.github.io/repo/vX.Y.Z/`` serves a specific version. GitHub Pages
+  does not follow symlinks, so this is a copy. Version subdirs and switcher.json
+  are preserved; other root files are refreshed from the stable build. A side
+  effect is that the root gains its own ``_static/``, so README's absolute
+  ``/_static/logo`` link (used so the logo renders on GitHub/PyPI too) resolves
+  for every version.
 
 Usage:
     gen_switcher.py <base_url> <site_dir>
 
 ``base_url`` is the Pages root, e.g. ``https://owner.github.io/repo``.
-``site_dir`` is scanned for version subdirs AND is where the two files are
-written.
+``site_dir`` is scanned for version subdirs AND is where output is written.
 """
 from __future__ import annotations
 
 import json
 import re
+import shutil
 import sys
 from pathlib import Path
 
 # vMAJOR.MINOR.PATCH with an optional suffix (e.g. v1.2.3rc1, v1.2.3.post1).
 _VER_RE = re.compile(r"^v(\d+)\.(\d+)\.(\d+)(.*)$")
 
-_REDIRECT = """<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="refresh" content="0; url=./{target}">
-  <link rel="canonical" href="./{target}">
-  <title>Redirecting…</title>
-</head>
-<body>Redirecting to the <a href="./{target}">latest documentation</a>.</body>
-</html>
-"""
+# Root entries that are NOT part of a mirrored build and must survive the mirror.
+_ROOT_KEEP = {"switcher.json", ".nojekyll", ".git"}
 
 
 def _release_key(name: str) -> tuple:
@@ -49,17 +46,39 @@ def _release_key(name: str) -> tuple:
     return (major, minor, patch, suffix == "", suffix)
 
 
+def _mirror_to_root(site: Path, version: str, version_dirs: set[str]) -> None:
+    """Copy the built site under ``site/<version>`` into ``site`` (root),
+    replacing prior root files but never touching version dirs or _ROOT_KEEP."""
+    protected = version_dirs | _ROOT_KEEP
+    for p in site.iterdir():
+        if p.name in protected:
+            continue
+        if p.is_dir():
+            shutil.rmtree(p)
+        else:
+            p.unlink()
+
+    src = site / version
+    for p in src.iterdir():
+        dst = site / p.name
+        if p.is_dir():
+            shutil.copytree(p, dst)
+        else:
+            shutil.copy2(p, dst)
+
+
 def main() -> int:
     base_url = sys.argv[1].rstrip("/")
     site = Path(sys.argv[2])
 
-    names = {p.name for p in site.iterdir() if p.is_dir()}
-    releases = sorted((n for n in names if _VER_RE.match(n)),
+    version_dirs = {p.name for p in site.iterdir()
+                    if p.is_dir() and (_VER_RE.match(p.name) or p.name == "dev")}
+    releases = sorted((n for n in version_dirs if _VER_RE.match(n)),
                       key=_release_key, reverse=True)
-    has_dev = "dev" in names
+    has_dev = "dev" in version_dirs
 
     # "stable" is the newest FINAL release (no rc/dev/post suffix); a
-    # pre-release is never the preferred version or the redirect target.
+    # pre-release is never the preferred version.
     finals = [r for r in releases if _VER_RE.match(r).group(4) == ""]
     preferred = finals[0] if finals else None
 
@@ -78,12 +97,14 @@ def main() -> int:
 
     (site / "switcher.json").write_text(json.dumps(entries, indent=2) + "\n")
 
-    # Redirect the site root to stable; fall back to newest pre-release, then dev.
-    target = preferred or (releases[0] if releases else ("dev" if has_dev else None))
-    if target:
-        (site / "index.html").write_text(_REDIRECT.format(target=f"{target}/"))
+    # Mirror the best-available version to the root: stable, else newest
+    # pre-release, else dev.
+    root_version = preferred or (releases[0] if releases else
+                                 ("dev" if has_dev else None))
+    if root_version:
+        _mirror_to_root(site, root_version, version_dirs)
 
-    print(f"switcher.json: {len(entries)} entries; root redirect -> {target}")
+    print(f"switcher.json: {len(entries)} entries; root mirrors {root_version}")
     return 0
 
 
