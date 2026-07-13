@@ -65,22 +65,41 @@ def test_playback_off_is_fast(recording: Any) -> None:
     assert elapsed < 0.05
 
 
-def test_playback_absorbs_slow_consumer(recording: Any) -> None:
-    """Consumer work longer than the chunk period: pacing must add no extra
-    delay on top (absolute anchor, not per-chunk sleep)."""
-    from evutils.io import EventReader
-    p, ev = recording
+def _run_slow_consumer(reader: Any) -> tuple[int, float]:
+    """Iterate a reader spending 40 ms of 'work' per chunk (consumer-bound:
+    slower than the 20 ms chunk period)."""
     start = time.perf_counter()
     total = 0
+    for chunk in reader:
+        total += len(chunk)
+        time.sleep(0.04)
+    return total, time.perf_counter() - start
+
+
+def test_playback_absorbs_slow_consumer(recording: Any) -> None:
+    """Consumer work longer than the chunk period: pacing must add no extra
+    delay on top (absolute anchor, not per-chunk sleep).
+
+    Measured differentially against an unpaced run of the *same* slow consumer.
+    Both runs pay identical sleep/scheduler jitter, so their difference cancels
+    it -- unlike a fixed upper bound, which can't survive macOS CI sleep
+    overshoot (the signal, one recording-length, is smaller than the jitter).
+    Broken per-chunk pacing would still add ~the recording duration on top.
+    """
+    from evutils.io import EventReader
+    p, ev = recording
+
+    with EventReader(p, mode="delta_t", delta_t=20_000) as r:
+        base_total, base = _run_slow_consumer(r)
     with EventReader(p, real_time=True, mode="delta_t", delta_t=20_000) as r:
-        for chunk in r:
-            total += len(chunk)
-            time.sleep(0.04)  # 40 ms work per 20 ms chunk -> consumer-bound
-    elapsed = time.perf_counter() - start
-    assert total == len(ev)
-    # 10 chunks x 40 ms work = 0.4 s consumer time; pacing is already behind
-    # schedule, so total must stay near the work time, not work + recording.
-    assert elapsed < 0.55
+        paced_total, paced = _run_slow_consumer(r)
+
+    assert base_total == len(ev)
+    assert paced_total == len(ev)
+    # Consumer already runs behind schedule, so pacing waits for nothing: the
+    # paced run must not exceed the unpaced one by more than half the 0.2 s
+    # recording. Broken per-chunk sleeping would add the full recording.
+    assert paced <= base + 0.1
 
 
 def test_playback_paces_read_calls(recording: Any) -> None:
