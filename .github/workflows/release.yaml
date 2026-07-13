@@ -227,15 +227,24 @@ jobs:
       - name: Install evutils from TestPyPI
         shell: bash
         run: |
+          # Install into the SAME interpreter that runs pytest below (python -m
+          # pip), pulling evutils from TestPyPI and its deps from real PyPI.
+          # The retry loop waits for the TestPyPI index to catch up, but MUST
+          # fail the step if it never succeeds (else pytest later reports a
+          # confusing "No module named pytest").
           VERSION=${GITHUB_REF_NAME#v}
+          ok=0
           for i in {1..12}; do
-            uv pip install --system \
-              --index-url https://test.pypi.org/simple/ \
-              --extra-index-url https://pypi.org/simple/ \
-              "evutils[test,hdf5,aedat]==$VERSION" --no-cache && break
+            if python -m pip install \
+                 --index-url https://test.pypi.org/simple/ \
+                 --extra-index-url https://pypi.org/simple/ \
+                 "evutils[test,hdf5,aedat]==$VERSION" --no-cache-dir; then
+              ok=1; break
+            fi
             echo "Waiting for TestPyPI index..."
             sleep 10
           done
+          [ "$ok" = 1 ] || { echo "::error::Failed to install evutils==$VERSION from TestPyPI"; exit 1; }
 
       - name: Remove local source tree
         shell: bash
@@ -243,7 +252,9 @@ jobs:
 
       - name: Run tests against TestPyPI wheel
         shell: bash
-        run: python -m pytest -s -v tests/
+        run: |
+          python -m pytest --version   # fail clearly if the extras didn't install
+          python -m pytest -s -v tests/
 
   # Full validation against real PyPI after a confirmed release.
   smoke_pypi:
@@ -275,14 +286,20 @@ jobs:
       - name: Install evutils from PyPI
         shell: bash
         run: |
-          # Retry loop to wait for PyPI index to update with the new release
-          # GITHUB_REF_NAME contains the tag name (e.g. v1.0.0). We strip the 'v' for pip.
+          # Retry loop to wait for the PyPI index to update with the new release.
+          # GITHUB_REF_NAME is the tag (e.g. v1.0.0); strip the 'v' for pip.
+          # Installs into the same interpreter that runs pytest, and fails the
+          # step if the install never succeeds.
           VERSION=${GITHUB_REF_NAME#v}
+          ok=0
           for i in {1..12}; do
-            uv pip install --system "evutils[test,hdf5,aedat]==$VERSION" --no-cache && break
+            if python -m pip install "evutils[test,hdf5,aedat]==$VERSION" --no-cache-dir; then
+              ok=1; break
+            fi
             echo "Waiting for PyPI index..."
             sleep 10
           done
+          [ "$ok" = 1 ] || { echo "::error::Failed to install evutils==$VERSION from PyPI"; exit 1; }
 
       - name: Remove local source tree
         shell: bash
@@ -293,4 +310,5 @@ jobs:
       - name: Run tests against PyPI wheel
         shell: bash
         run: |
+          python -m pytest --version
           python -m pytest -s -v tests/
