@@ -18,7 +18,15 @@ from evutils.types import Event_dtype
 
 # Add tests dir to path to import conftest_utils
 sys.path.append(str(Path(__file__).parent))
-from conftest_utils import fetch_real_event_files, load_event_files # type: ignore
+from conftest_utils import (  # type: ignore
+    fetch_real_event_files_for,
+    load_event_files,
+    register_dataset_option,
+)
+
+
+def pytest_addoption(parser: Any) -> None:
+    register_dataset_option(parser)
 
 #: Cached ``{format: [EventFile, ...]}`` for the whole session (the download /
 #: extraction happens at most once, even across collection and fixtures).
@@ -52,7 +60,8 @@ def _load_real_event_files(config: Any) -> dict[str, list]:
         return _REAL_FILES_CACHE
 
     try:
-        _REAL_FILES_CACHE = fetch_real_event_files(config.cache.mkdir("event_files"))
+        size = config.getoption("--dataset")
+        _REAL_FILES_CACHE = fetch_real_event_files_for(size, config.cache)
     except Exception as exc:
         _REAL_FILES_ERROR = f"could not fetch reference recordings: {exc}"
         _REAL_FILES_CACHE = {}

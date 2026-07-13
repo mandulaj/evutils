@@ -2,17 +2,33 @@ import json
 import subprocess
 from collections import defaultdict, namedtuple
 from pathlib import Path
+from typing import Any
 
 EventFile = namedtuple("EventFile", ["path", "count", "metadata"], defaults=[None])
 
-#: Default reference recordings + JSON sidecars. Shared by the tests *and* the
-#: benchmarks (default dataset) so both exercise the exact same data.
+#: The "normal" reference recordings + JSON sidecars: the default tier, shared
+#: by the tests *and* the benchmarks so both exercise the exact same data.
 RELEASE_URL = "https://github.com/mandulaj/evutils/releases/download/v0.3.14/testfiles.tar.xz"
 RELEASE_TAR = "testfiles.tar.xz"
+NORMAL_RELEASE_URL = RELEASE_URL  # explicit alias for the tier registry below
+NORMAL_RELEASE_TAR = RELEASE_TAR
 
-#: Optional larger benchmark dataset (GitHub release). TODO: fill in the real URL.
+#: The "small" tier: a ~couple-MB subset (smallest recording per format) for
+#: fast branch CI.
+SMALL_RELEASE_URL = "https://github.com/mandulaj/evutils/releases/download/v0.3.14/testfiles_small.tar.xz"
+SMALL_RELEASE_TAR = "testfiles_small.tar.xz"
+
+#: The "large" tier: an on-demand huge set (never used in CI). TODO: fill URL.
 LARGE_RELEASE_URL = "https://github.com/mandulaj/evutils/releases/download/PLACEHOLDER/huge.tar.xz"
 LARGE_RELEASE_TAR = "huge.tar.xz"
+
+#: Size tier -> (download URL, tar name, pytest-cache subdir). "normal" keeps
+#: the historical "event_files" cache dir so existing caches stay valid.
+DATASETS = {
+    "small":  (SMALL_RELEASE_URL,  SMALL_RELEASE_TAR,  "event_files_small"),
+    "normal": (NORMAL_RELEASE_URL, NORMAL_RELEASE_TAR, "event_files"),
+    "large":  (LARGE_RELEASE_URL,  LARGE_RELEASE_TAR,  "event_files_huge"),
+}
 
 
 def download_and_extract_github(url: str, temp_dir: Path, tar_name: str) -> None:
@@ -69,6 +85,41 @@ def fetch_real_event_files(temp_dir: Path, url: str = RELEASE_URL, tar_name: str
     """
     download_and_extract_github(url, temp_dir, tar_name)
     return load_event_files(temp_dir)
+
+def register_dataset_option(parser: Any) -> None:
+    """Register ``--dataset`` on ``parser``, idempotently.
+
+    The tests and the benchmarks are sibling roots, so their conftests are the
+    only place a shared CLI option could live -- but both may be loaded in one
+    session (``pytest tests benchmarks``), and pytest would then reject the
+    duplicate registration. Both conftests call this; whichever loads first wins
+    and the second is a harmless no-op. This keeps the option out of a
+    repo-root conftest.
+    """
+    try:
+        parser.addoption(
+            "--dataset",
+            action="store",
+            default="normal",
+            choices=["small", "normal", "large"],
+            help="Reference-data tier to download (small/normal/large).",
+        )
+    except ValueError:
+        pass  # already registered by the sibling suite's conftest
+
+
+def fetch_real_event_files_for(size: str, cache: Any) -> dict:
+    """Fetch+parse the reference tarball for the given size tier.
+
+    ``size`` is one of ``DATASETS`` ("small"/"normal"/"large"); ``cache`` is the
+    pytest ``config.cache`` object. Each tier extracts into its own subdir so the
+    tiers never clobber one another. The single entry point both
+    ``tests/conftest.py`` and ``benchmarks/conftest.py`` use to honour
+    ``--dataset``.
+    """
+    url, tar_name, subdir = DATASETS[size]
+    return fetch_real_event_files(cache.mkdir(subdir), url=url, tar_name=tar_name)
+
 
 def load_event_files(data_dir: Path) -> dict[str, list[EventFile]]:
     """Parse the JSON descriptions in ``data_dir`` and return

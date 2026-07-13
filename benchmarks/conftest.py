@@ -6,8 +6,9 @@ downward, and ``benchmarks/`` is a sibling of ``tests/``, so the fixtures
 themselves are re-declared here -- but they call the same underlying helpers,
 so the two cannot drift on data source, caching, or metadata).
 
-The default dataset is the same GitHub-release tarball the tests use; the
-optional ``--dataset large`` pulls a bigger recording set from Google Drive.
+The ``--dataset {small,normal,large}`` option is registered in the repo-root
+``conftest.py`` and shared with the test suite; the default is ``normal`` (the
+same GitHub-release tarball the tests use).
 """
 import os
 import sys
@@ -21,10 +22,9 @@ from evutils.io import EventReader
 
 sys.path.append(str(Path(__file__).parent.parent / "tests"))
 from conftest_utils import (  # type: ignore
-    LARGE_RELEASE_TAR,
-    LARGE_RELEASE_URL,
-    fetch_real_event_files,
+    fetch_real_event_files_for,
     load_event_files,
+    register_dataset_option,
 )
 
 #: Cap on how many events are held in memory for the write benchmarks. Large
@@ -33,13 +33,13 @@ N_REFERENCE = 5_000_000
 
 
 @pytest.fixture(scope='session')
-def real_event_files(request: Any, benchmark_dataset: str) -> dict[str, list[Any]]:
+def real_event_files(request: Any, dataset_size: str) -> dict[str, list[Any]]:
     """Real Prophesee recordings (downloaded + cached on first use).
 
-    Returns ``{format: [EventFile(path, count, metadata), ...]}``. The default
-    dataset is the same GitHub-release tarball the tests use (shared cache dir
-    + sentinel, so it is downloaded at most once for both); ``--dataset large``
-    pulls a bigger GitHub-release tarball into its own cache dir.
+    Returns ``{format: [EventFile(path, count, metadata), ...]}`` for the tier
+    selected by ``--dataset`` (default ``normal`` -- identical to the test
+    suite, sharing the same cache dir + sentinel so it downloads at most once
+    for both). Each tier extracts into its own cache subdir.
 
     Set ``EVUTILS_BENCH_DATA`` to a directory that already contains the
     extracted recordings (+ JSON metadata) to skip the download entirely --
@@ -53,15 +53,8 @@ def real_event_files(request: Any, benchmark_dataset: str) -> dict[str, list[Any
             pytest.skip(f"EVUTILS_BENCH_DATA={override} is not a directory")
         return cast(dict[str, list[Any]], load_event_files(data_dir))
 
-    if benchmark_dataset == "large":
-        temp_dir = request.config.cache.mkdir("event_files_huge")
-        return cast(dict[str, list[Any]], fetch_real_event_files(
-            temp_dir, url=LARGE_RELEASE_URL, tar_name=LARGE_RELEASE_TAR,
-        ))
-
-    # Default dataset: identical to the test suite (shared cache dir "event_files").
-    temp_dir = request.config.cache.mkdir("event_files")
-    return cast(dict[str, list[Any]], fetch_real_event_files(temp_dir))
+    return cast(dict[str, list[Any]],
+                fetch_real_event_files_for(dataset_size, request.config.cache))
 
 
 @pytest.fixture(scope='session')
@@ -87,12 +80,12 @@ def reference_events(real_event_files: dict[str, list[Any]]) -> Any:
 
 
 def pytest_addoption(parser: Any) -> None:
+    # --dataset is shared with the test suite (registered idempotently so it
+    # works whether tests/ or benchmarks/ is collected first). --rounds is
+    # benchmark-only.
+    register_dataset_option(parser)
     parser.addoption(
         "--rounds", action="store", default=4, type=int, help="Number of benchmark rounds"
-    )
-    parser.addoption(
-        "--dataset", action="store", default="small", choices=["small", "large"], 
-        help="Dataset size to use for benchmarks ('small' or 'large')"
     )
 
 @pytest.fixture(scope="session")
@@ -100,7 +93,7 @@ def benchmark_rounds(request: Any) -> int:
     return int(request.config.getoption("--rounds"))
 
 @pytest.fixture(scope="session")
-def benchmark_dataset(request: Any) -> str:
+def dataset_size(request: Any) -> str:
     return str(request.config.getoption("--dataset"))
 
 
