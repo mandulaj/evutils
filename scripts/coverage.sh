@@ -64,8 +64,15 @@ find "$BUILD_DIR" -name '*.gcda' -delete
 # The dev-mode loader (src/evutils/io/_native_core.py) would otherwise prefer an
 # installed .so; EVUTILS_NATIVE_LIB pins the instrumented one unambiguously.
 # --cov* -> Python coverage; the same run also drives the C instrumentation.
+#
+# NUMBA_DISABLE_JIT=1: coverage.py cannot trace inside numba-JIT-compiled
+# functions, so the numba kernels (evutils.repr histogram/frame/tore/..., the
+# EVT encoders, etc.) would read as ~0% covered even when fully exercised.
+# Disabling the JIT runs them as plain Python so their lines are counted -- it
+# only affects this measurement run, not the shipped library.
 echo ">> Running tests"
 EVUTILS_NATIVE_LIB="$LIB_PATH" \
+NUMBA_DISABLE_JIT=1 \
   uv run pytest "$@" \
     --cov --cov-report=term-missing --cov-report=xml --cov-report=html
 
