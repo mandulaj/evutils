@@ -512,77 +512,84 @@ its support status, and format-specific options.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>EVT3 (Prophesee RAW)</p></td>
+<tr class="row-even"><td><p>EVT4 (Prophesee RAW)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.raw</span></code>, <code class="docutils literal notranslate"><span class="pre">.evt</span></code>, <code class="docutils literal notranslate"><span class="pre">.evt4</span></code></p></td>
+<td class="text-center"><p>🚧</p></td>
+<td class="text-center"><p>🚧</p></td>
+<td><p>C</p></td>
+<td><p>external triggers; vectorized events</p></td>
+</tr>
+<tr class="row-odd"><td><p>EVT3 (Prophesee RAW)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.raw</span></code>, <code class="docutils literal notranslate"><span class="pre">.evt</span></code>, <code class="docutils literal notranslate"><span class="pre">.evt3</span></code></p></td>
 <td class="text-center"><p>✅</p></td>
 <td class="text-center"><p>✅</p></td>
 <td><p>C</p></td>
 <td><p>external triggers; vectorized events</p></td>
 </tr>
-<tr class="row-odd"><td><p>EVT2.1 (Prophesee RAW)</p></td>
+<tr class="row-even"><td><p>EVT2.1 (Prophesee RAW)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.raw</span></code>, <code class="docutils literal notranslate"><span class="pre">.evt21</span></code></p></td>
 <td class="text-center"><p>✅</p></td>
 <td class="text-center"><p>✅</p></td>
 <td><p>C</p></td>
 <td><p>write is one event per word (valid, not vectorized)</p></td>
 </tr>
-<tr class="row-even"><td><p>EVT2 (Prophesee RAW)</p></td>
+<tr class="row-odd"><td><p>EVT2 (Prophesee RAW)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.raw</span></code>, <code class="docutils literal notranslate"><span class="pre">.evt2</span></code></p></td>
 <td class="text-center"><p>✅</p></td>
 <td class="text-center"><p>✅</p></td>
 <td><p>C</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p>DAT (Prophesee)</p></td>
+<tr class="row-even"><td><p>DAT (Prophesee)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.dat</span></code></p></td>
 <td class="text-center"><p>✅</p></td>
 <td class="text-center"><p>✅</p></td>
 <td><p>C / numpy</p></td>
 <td><p>32-bit timestamp overflow tracked</p></td>
 </tr>
-<tr class="row-even"><td><p>AER (Prophesee)</p></td>
+<tr class="row-odd"><td><p>AER (Prophesee)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.aer</span></code></p></td>
 <td class="text-center"><p>✅</p></td>
 <td class="text-center"><p>✅</p></td>
 <td><p>C / numpy</p></td>
 <td><p>no timestamps – see <a class="reference internal" href="#aer-timestamps">AER timestamps</a></p></td>
 </tr>
-<tr class="row-odd"><td><p>AEDAT 1.0 / 2.0 / 3.1 / 4.0</p></td>
+<tr class="row-even"><td><p>AEDAT 1.0 / 2.0 / 3.1 / 4.0</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.aedat</span></code>, <code class="docutils literal notranslate"><span class="pre">.aedat4</span></code></p></td>
 <td class="text-center"><p>✅</p></td>
 <td class="text-center"><p>🚧 planned</p></td>
 <td><p>numpy</p></td>
 <td><p>AEDAT4 compression needs <code class="docutils literal notranslate"><span class="pre">evutils[aedat]</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p>HDF5 (DSEC/RVT layout)</p></td>
+<tr class="row-odd"><td><p>HDF5 (DSEC/RVT layout)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.h5</span></code>, <code class="docutils literal notranslate"><span class="pre">.hdf5</span></code></p></td>
 <td class="text-center"><p>✅</p></td>
 <td class="text-center"><p>✅</p></td>
 <td><p>h5py</p></td>
 <td><p>needs <code class="docutils literal notranslate"><span class="pre">evutils[hdf5]</span></code>; <code class="docutils literal notranslate"><span class="pre">ms_to_idx</span></code> random access</p></td>
 </tr>
-<tr class="row-odd"><td><p>HDF5 (Prophesee layout)</p></td>
+<tr class="row-even"><td><p>HDF5 (Prophesee layout)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.h5</span></code>, <code class="docutils literal notranslate"><span class="pre">.hdf5</span></code></p></td>
 <td class="text-center"><p>✅</p></td>
 <td class="text-center"><p>🚧 planned</p></td>
 <td><p>h5py</p></td>
 <td><p>ECF-compressed files need the ECF codec plugin</p></td>
 </tr>
-<tr class="row-even"><td><p>NPZ</p></td>
+<tr class="row-odd"><td><p>NPZ</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.npz</span></code></p></td>
 <td class="text-center"><p>✅</p></td>
 <td class="text-center"><p>✅</p></td>
 <td><p>numpy</p></td>
 <td><p>streaming both ways; <code class="docutils literal notranslate"><span class="pre">np.load</span></code>/<code class="docutils literal notranslate"><span class="pre">np.savez</span></code> compatible</p></td>
 </tr>
-<tr class="row-odd"><td><p>CSV / TXT</p></td>
+<tr class="row-even"><td><p>CSV / TXT</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.csv</span></code>, <code class="docutils literal notranslate"><span class="pre">.txt</span></code></p></td>
 <td class="text-center"><p>✅</p></td>
 <td class="text-center"><p>✅</p></td>
 <td><p>C</p></td>
 <td><p>native C parser (no extra deps); column order configurable</p></td>
 </tr>
-<tr class="row-even"><td><p>BIN</p></td>
+<tr class="row-odd"><td><p>BIN</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.bin</span></code></p></td>
 <td class="text-center"><p>🚧 planned</p></td>
 <td class="text-center"><p>🚧 planned</p></td>
