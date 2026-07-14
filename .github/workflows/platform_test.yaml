@@ -1,0 +1,83 @@
+name: Platform Test
+
+# On-demand cross-platform test run for a chosen branch, WITHOUT releasing.
+# test.yaml gates every push but runs Linux only; the full os x python smoke
+# otherwise happens only on release (installing from PyPI). This lets you
+# exercise Windows/macOS on a feature branch from the Actions tab: pick the
+# branch in the "Run workflow" dropdown and optionally narrow the matrix.
+#
+# Builds from source per OS (uv compiles the C extension locally) -- same
+# semantics as test.yaml, just across more platforms. It does NOT validate wheel
+# packaging; that stays in release.yaml's smoke jobs.
+on:
+  workflow_dispatch:
+    inputs:
+      os:
+        description: "Which OSes to run on"
+        type: choice
+        default: all
+        options: [all, linux, windows, macos, windows+macos]
+      python:
+        description: "Python version"
+        type: choice
+        default: all
+        options: [all, "3.10", "3.11", "3.12", "3.13", "3.14"]
+
+concurrency:
+  group: platform-test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Turn the OS/Python dispatch inputs into JSON matrix axes. Kept in one cheap
+  # Linux job so the heavy matrix below is a plain fan-out over fromJSON.
+  setup:
+    name: Resolve matrix
+    runs-on: ubuntu-latest
+    outputs:
+      os: ${{ steps.m.outputs.os }}
+      python: ${{ steps.m.outputs.python }}
+    steps:
+      - id: m
+        shell: bash
+        run: |
+          # OS values match release.yaml's wheel/smoke matrix.
+          case "${{ inputs.os }}" in
+            all)           os='["ubuntu-latest","ubuntu-24.04-arm","windows-latest","macos-14"]' ;;
+            linux)         os='["ubuntu-latest","ubuntu-24.04-arm"]' ;;
+            windows)       os='["windows-latest"]' ;;
+            macos)         os='["macos-14"]' ;;
+            windows+macos) os='["windows-latest","macos-14"]' ;;
+          esac
+          case "${{ inputs.python }}" in
+            all) py='["3.10","3.11","3.12","3.13","3.14"]' ;;
+            *)   py='["${{ inputs.python }}"]' ;;
+          esac
+          echo "os=$os"     >> "$GITHUB_OUTPUT"
+          echo "python=$py" >> "$GITHUB_OUTPUT"
+
+  platform_test:
+    name: Test (${{ matrix.os }}, Py ${{ matrix.python }})
+    needs: setup
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJSON(needs.setup.outputs.os) }}
+        python: ${{ fromJSON(needs.setup.outputs.python) }}
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          enable-cache: true
+          python-version: ${{ matrix.python }}
+
+      - name: Install the project
+        run: uv sync --extra dev
+
+      - name: Run tests
+        run: uv run pytest -s -v --dataset normal
