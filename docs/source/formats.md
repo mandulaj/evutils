@@ -20,6 +20,7 @@ We are aiming for universal event format support with the highest possible perfo
 
 | Format                      | Extensions              |   Read    |   Write   | Backend   | Notes                                                      |
 | --------------------------- | ----------------------- | :-------: | :-------: | --------- | ---------------------------------------------------------- |
+| EVT4 (Prophesee RAW)        | `.raw`, `.evt`, `.evt4` |     🚧     |     🚧     | C         | external triggers; vectorized events                       |
 | EVT3 (Prophesee RAW)        | `.raw`, `.evt`, `.evt3` |     ✅     |     ✅     | C         | external triggers; vectorized events                       |
 | EVT2.1 (Prophesee RAW)      | `.raw`, `.evt21`        |     ✅     |     ✅     | C         | write is one event per word (valid, not vectorized)        |
 | EVT2 (Prophesee RAW)        | `.raw`, `.evt2`         |     ✅     |     ✅     | C         |                                                            |
