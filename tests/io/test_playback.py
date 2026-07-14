@@ -65,41 +65,60 @@ def test_playback_off_is_fast(recording: Any) -> None:
     assert elapsed < 0.05
 
 
-def _run_slow_consumer(reader: Any) -> tuple[int, float]:
-    """Iterate a reader spending 40 ms of 'work' per chunk (consumer-bound:
-    slower than the 20 ms chunk period)."""
+def _run_slow_consumer(reader: Any, work: float) -> tuple[int, float]:
+    """Iterate a reader spending ``work`` seconds of 'work' per chunk."""
     start = time.perf_counter()
     total = 0
     for chunk in reader:
         total += len(chunk)
-        time.sleep(0.04)
+        time.sleep(work)
     return total, time.perf_counter() - start
 
 
-def test_playback_absorbs_slow_consumer(recording: Any) -> None:
+def test_playback_absorbs_slow_consumer(tmp_path: Any) -> None:
     """Consumer work longer than the chunk period: pacing must add no extra
     delay on top (absolute anchor, not per-chunk sleep).
 
-    Measured differentially against an unpaced run of the *same* slow consumer.
-    Both runs pay identical sleep/scheduler jitter, so their difference cancels
-    it -- unlike a fixed upper bound, which can't survive macOS CI sleep
-    overshoot (the signal, one recording-length, is smaller than the jitter).
-    Broken per-chunk pacing would still add ~the recording duration on top.
-    """
-    from evutils.io import EventReader
-    p, ev = recording
+    Measured differentially against an unpaced run of the *same* slow consumer,
+    so the shared consumer-sleep cost cancels and only the paced wrapper's own
+    overhead remains in the difference.
 
-    with EventReader(p, mode="delta_t", delta_t=20_000) as r:
-        base_total, base = _run_slow_consumer(r)
-    with EventReader(p, real_time=True, mode="delta_t", delta_t=20_000) as r:
-        paced_total, paced = _run_slow_consumer(r)
+    Deliberately uses a longer recording read in FEW, LARGE chunks. The paced
+    wrapper's residual overhead is *per chunk* (tens of ms each on a loaded
+    macOS CI runner); the signal we're testing for -- broken per-chunk pacing
+    would add roughly one whole recording length -- is *per recording*. Few big
+    chunks + coarse sleeps (which overshoot proportionally less) therefore make
+    the signal dwarf the overhead, where the old 0.2 s / 20 ms-chunk version
+    had the overhead exceed the whole signal and flaked.
+    """
+    from evutils.io import EventReader, EventWriter
+
+    # 0.8 s recording, 1 event/ms.
+    span_us, n = 800_000, 800
+    ev = np.zeros(n, dtype=np.dtype([('t', np.int64), ('x', np.uint16), ('y', np.uint16), ('p', np.uint8)]))
+    ev['t'] = np.arange(n, dtype=np.int64) * (span_us // n)
+    ev['x'] = np.arange(n) % 1280
+    ev['y'] = np.arange(n) % 720
+    ev['p'] = np.arange(n) % 2
+    p = tmp_path / "playback_long.raw"
+    with EventWriter(p, format="evt2") as w:
+        w.write(ev)
+
+    # delta_t=200 ms -> 4 chunks; consumer sleeps 250 ms/chunk (> the 200 ms
+    # chunk period), so it is the bottleneck and correct pacing waits for nothing.
+    with EventReader(p, mode="delta_t", delta_t=200_000) as r:
+        base_total, base = _run_slow_consumer(r, work=0.25)
+    with EventReader(p, real_time=True, mode="delta_t", delta_t=200_000) as r:
+        paced_total, paced = _run_slow_consumer(r, work=0.25)
 
     assert base_total == len(ev)
     assert paced_total == len(ev)
-    # Consumer already runs behind schedule, so pacing waits for nothing: the
-    # paced run must not exceed the unpaced one by more than half the 0.2 s
-    # recording. Broken per-chunk sleeping would add the full recording.
-    assert paced <= base + 0.1
+    # Separation is structural: correct absolute-anchor pacing adds exactly ONE
+    # delta_t (0.2 s -- the first chunk waits out its own window; the consumer is
+    # behind for the rest), while broken per-chunk pacing adds FOUR delta_t
+    # (0.8 s, one per chunk). Threshold at ~2.5 delta_t sits cleanly between,
+    # with headroom for the paced wrapper's per-chunk overhead on loaded macOS CI.
+    assert paced <= base + 0.5
 
 
 def test_playback_paces_read_calls(recording: Any) -> None:
