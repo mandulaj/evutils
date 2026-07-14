@@ -43,7 +43,7 @@ touch site/.nojekyll
 git -C site add -A
 if git -C site \
      -c user.name="github-actions[bot]" \
-     -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+     -c user.email="jakub.aludnam+bot@gmail.com" \
      commit -q -m "coverage: update reports + badge"; then
   git -C site push -q origin gh-pages
   echo "Coverage published to /coverage/."
