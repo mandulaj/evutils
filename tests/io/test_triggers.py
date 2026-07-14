@@ -1,4 +1,4 @@
-"""External-trigger decoding tests for the EVT2 / EVT2.1 / EVT3 parsers.
+"""External-trigger decoding tests for the EVT2 / EVT2.1 / EVT3 / EVT4 parsers.
 
 The encoders do not write trigger packets, so these tests hand-craft
 EXT_TRIGGER words from the Prophesee format specs and splice them into
@@ -10,6 +10,8 @@ encoder-generated files:
   id in bits 44..40, value in bit 32.
 * EVT3   (uint16): type=0xA in bits 15..12, id in bits 11..8, value in bit 0;
   timestamp comes from the running TIME_HIGH/TIME_LOW state.
+* EVT4   (uint32): type=0x9 in bits 31..28, ts low 6 bits in 27..22,
+  id in bits 12..8 (5-bit), value in bit 0; TIME_HIGH is type=0xE.
 """
 import warnings
 
@@ -38,6 +40,15 @@ def _evt21_trigger_words(t: int, tid: int, value: int) -> Any:
     th = (0x8 << 28) | ((t >> 6) & 0x0FFFFFFF)
     tr = (0xA << 28) | ((t & 0x3F) << 22) | ((tid & 0x1F) << 40) | ((value & 1) << 32)
     return np.array([th, tr], dtype=np.uint64)
+
+
+def _evt4_time_high(t: int) -> int:
+    return (0xE << 28) | ((t >> 6) & 0x0FFFFFFF)
+
+
+def _evt4_trigger(t: int, tid: int, value: int) -> int:
+    # EVT4 EXT_TRIGGER=0x9: value bit 0, id bits 12..8 (5-bit), ts low bits 27..22.
+    return (0x9 << 28) | ((t & 0x3F) << 22) | ((tid & 0x1F) << 8) | (value & 1)
 
 
 def _evt3_trigger_words(t: int, tid: int, value: int) -> Any:
@@ -135,6 +146,37 @@ def test_evt2_trigger_id_and_value(tmp_path: Any) -> None:
         _, tr = r.read_all()
     assert np.array_equal(tr.id, [i for _, i, _ in TRIGGERS])
     assert np.array_equal(tr.p, [v for _, _, v in TRIGGERS])
+
+
+def test_evt4_trigger_decode(tmp_path: Any) -> None:
+    from evutils.io import EventReader
+    words = np.array(
+        [w for t, i, v in TRIGGERS for w in (_evt4_time_high(t), _evt4_trigger(t, i, v))],
+        dtype=np.uint32,
+    )
+    p = _write_events_with_triggers(tmp_path, "evt4", words)
+
+    with EventReader(p, ext_trigger=True) as r:
+        ev, tr = r.read_all()
+    assert np.array_equal(ev.t, _events()['t'])
+    assert np.array_equal(tr.t, [t for t, _, _ in TRIGGERS])
+    assert np.array_equal(tr.id, [i for _, i, _ in TRIGGERS])
+    assert np.array_equal(tr.p, [v for _, _, v in TRIGGERS])
+
+
+def test_evt4_trigger_5bit_id(tmp_path: Any) -> None:
+    """EVT4 trigger id is 5 bits (0..31), wider than EVT2's 4-bit field."""
+    from evutils.io import EventReader
+    trigs = [(10_000, 17, 1), (10_064, 31, 0)]  # ids > 15 need the 5th bit
+    words = np.array(
+        [w for t, i, v in trigs for w in (_evt4_time_high(t), _evt4_trigger(t, i, v))],
+        dtype=np.uint32,
+    )
+    p = _write_events_with_triggers(tmp_path, "evt4", words)
+    with EventReader(p, ext_trigger=True) as r:
+        _, tr = r.read_all()
+    assert np.array_equal(tr.id, [i for _, i, _ in trigs])
+    assert np.array_equal(tr.p, [v for _, _, v in trigs])
 
 
 ####################################
