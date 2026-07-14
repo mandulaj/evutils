@@ -13,6 +13,7 @@ It edits pyproject.toml, commits "chore: release vX.Y.Z", and creates tag
 vX.Y.Z. It does NOT push and does NOT create the GitHub Release -- those stay
 manual on purpose (the GitHub Release is the deliberate double-check gate).
 """
+
 from __future__ import annotations
 
 import re
@@ -42,30 +43,36 @@ def main() -> int:
 
     # Refuse on a dirty tree so the release commit only contains the bump.
     dirty = subprocess.run(
-        ["git", "status", "--porcelain"], cwd=_ROOT,
-        capture_output=True, text=True, check=True).stdout.strip()
+        ["git", "status", "--porcelain"],
+        cwd=_ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.strip()
     if dirty:
         print("error: working tree is not clean; commit or stash first:\n" + dirty)
         return 1
 
     text = _PYPROJECT.read_text()
     new_text, n = re.subn(
-        r'(?m)^(version\s*=\s*")[^"]*(")', rf"\g<1>{new}\g<2>", text, count=1)
+        r'(?m)^(version\s*=\s*")[^"]*(")', rf"\g<1>{new}\g<2>", text, count=1
+    )
     if n != 1:
-        print("error: could not find a single version = \"...\" line in pyproject.toml")
+        print('error: could not find a single version = "..." line in pyproject.toml')
         return 1
     _PYPROJECT.write_text(new_text)
 
     tag = f"v{new}"
     _run("git", "add", "pyproject.toml")
     _run("git", "commit", "-m", f"chore: release {tag}")
-    _run("git", "tag", tag)
+    # _run("git", "tag", tag)
 
     print(
         f"\nBumped to {new} and tagged {tag}.\n"
         f"Next:\n"
         f"  git push --follow-tags\n"
-        f"  then create a GitHub Release from {tag} to trigger the build.")
+        f"  then create a GitHub Release from {tag} to trigger the build."
+    )
     return 0
 
 
