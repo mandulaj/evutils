@@ -298,9 +298,9 @@ Module Contents
    :type dt: datetime, optional
    :param serial: Camera serial number written into the header.
    :type serial: str
-   :param format: Output format. All three are supported; EVT2.1 is written one event per
-                  word (valid but not vectorised).
-   :type format: {"evt3", "evt21", "evt2"}
+   :param format: Output format. All are supported; EVT2.1 and EVT4 are written one event
+                  per word (valid but not vectorised).
+   :type format: {"evt3", "evt21", "evt2", "evt4"}
 
    .. rubric:: References
 

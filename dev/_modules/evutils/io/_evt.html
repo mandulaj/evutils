@@ -500,9 +500,12 @@
 <span class="sd">  same way. (Truly incremental streaming for live devices is future work; the</span>
 <span class="sd">  parser ABI already supports it via ``result.current``.)</span>
 
-<span class="sd">All three Prophesee formats are wired to native parsers, dispatched by the</span>
-<span class="sd">header ``format`` field: EVT3 (16-bit words), EVT2 (32-bit words) and EVT2.1</span>
-<span class="sd">(64-bit words). Only EVT3 has an encoder.</span>
+<span class="sd">The Prophesee formats are wired to native parsers, dispatched by the header</span>
+<span class="sd">``format`` field: EVT3 (16-bit words), EVT2 / EVT4 (32-bit words) and EVT2.1</span>
+<span class="sd">(64-bit words). EVT4 is not a standard Prophesee RAW variant -- it reuses EVT2&#39;s</span>
+<span class="sd">CD/TIME_HIGH layout with distinct type codes plus vectorised CD; evutils defines</span>
+<span class="sd">its own ``% evt 4.0`` header token for a self-consistent round-trip. All formats</span>
+<span class="sd">have encoders.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
@@ -534,6 +537,8 @@
     <span class="n">Evt3Parser</span><span class="p">,</span>
     <span class="n">Evt21Input</span><span class="p">,</span>
     <span class="n">Evt21Parser</span><span class="p">,</span>
+    <span class="n">Evt4Input</span><span class="p">,</span>
+    <span class="n">Evt4Parser</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._source</span><span class="w"> </span><span class="kn">import</span> <span class="n">ByteSource</span>
 
@@ -587,6 +592,7 @@
     <span class="s2">&quot;evt3&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">Evt3Parser</span><span class="p">,</span> <span class="n">Evt3Input</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">uint16</span><span class="p">),</span>
     <span class="s2">&quot;evt2&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">Evt2Parser</span><span class="p">,</span> <span class="n">Evt2Input</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">),</span>
     <span class="s2">&quot;evt21&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">Evt21Parser</span><span class="p">,</span> <span class="n">Evt21Input</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">uint64</span><span class="p">),</span>
+    <span class="s2">&quot;evt4&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">Evt4Parser</span><span class="p">,</span> <span class="n">Evt4Input</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">),</span>
 <span class="p">}</span>
 
 <span class="c1"># Canonical format name -&gt; (`% evt` token, `% format` token). Drives both header</span>
@@ -597,6 +603,10 @@
     <span class="s2">&quot;evt3&quot;</span><span class="p">:</span>  <span class="p">(</span><span class="s2">&quot;3.0&quot;</span><span class="p">,</span> <span class="s2">&quot;EVT3&quot;</span><span class="p">),</span>
     <span class="s2">&quot;evt21&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;2.1&quot;</span><span class="p">,</span> <span class="s2">&quot;EVT21&quot;</span><span class="p">),</span>
     <span class="s2">&quot;evt2&quot;</span><span class="p">:</span>  <span class="p">(</span><span class="s2">&quot;2.0&quot;</span><span class="p">,</span> <span class="s2">&quot;EVT2&quot;</span><span class="p">),</span>
+    <span class="c1"># EVT4 is not a standard Prophesee RAW header variant; there is no public</span>
+    <span class="c1"># `% evt 4.0` recording. These tokens are evutils&#39; own convention so the</span>
+    <span class="c1"># encoder/decoder round-trip is self-consistent.</span>
+    <span class="s2">&quot;evt4&quot;</span><span class="p">:</span>  <span class="p">(</span><span class="s2">&quot;4.0&quot;</span><span class="p">,</span> <span class="s2">&quot;EVT4&quot;</span><span class="p">),</span>
 <span class="p">}</span>
 
 <span class="c1"># `% evt &lt;token&gt;` value -&gt; canonical name, e.g. &quot;3.0&quot; -&gt; &quot;evt3&quot;.</span>
@@ -909,7 +919,7 @@
     <span class="c1"># single-buffer read_all() path. EVT2 is an exact upper bound (&lt;=1 event per</span>
     <span class="c1"># 32-bit word); EVT3/EVT2.1 vary with vector density, so decode_all_soa grows</span>
     <span class="c1"># the buffer if the estimate is too small.</span>
-    <span class="n">_READ_ALL_EST</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;evt3&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s2">&quot;evt2&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s2">&quot;evt21&quot;</span><span class="p">:</span> <span class="mf">1.5</span><span class="p">}</span>
+    <span class="n">_READ_ALL_EST</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;evt3&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s2">&quot;evt2&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s2">&quot;evt21&quot;</span><span class="p">:</span> <span class="mf">1.5</span><span class="p">,</span> <span class="s2">&quot;evt4&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">}</span>
 
 <div class="viewcode-block" id="EventDecoder_EVT.read_all">
 <a class="viewcode-back" href="../../../autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_EVT.read_all">[docs]</a>
@@ -1180,6 +1190,52 @@
     <span class="k">return</span> <span class="n">buffer</span><span class="p">[:</span><span class="n">i</span><span class="p">],</span> <span class="n">last_ts_high</span>
 
 
+<span class="nd">@lazy_njit</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_raw_evt4_buffer</span><span class="p">(</span><span class="n">events</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">last_ts_high</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Encode events as EVT4 (32-bit words).</span>
+
+<span class="sd">    Same CD / TIME_HIGH bit layout as EVT2 (type[28:31], ts_low[22:27],</span>
+<span class="sd">    x[11:21], y[0:10]) but with EVT4&#39;s type codes: CD_OFF=0xA / CD_ON=0xB and</span>
+<span class="sd">    TIME_HIGH=0xE. One CD word per event (EVT4&#39;s vectorised CD_VEC form is a</span>
+<span class="sd">    decode-side optimisation and is not emitted here).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    events : np.ndarray</span>
+<span class="sd">        Array of events to encode.</span>
+<span class="sd">    last_ts_high : int</span>
+<span class="sd">        Last high timestamp part.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        A tuple containing the raw buffer and last high timestamp part.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">events</span><span class="p">)</span>
+    <span class="n">buffer</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">n</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">)</span>  <span class="c1"># &lt;= 1 TIME_HIGH + 1 CD per event</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="n">ts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">(</span><span class="n">events</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="s1">&#39;t&#39;</span><span class="p">])</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">(</span><span class="n">events</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="s1">&#39;x&#39;</span><span class="p">])</span> <span class="o">&amp;</span> <span class="mh">0x7FF</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">(</span><span class="n">events</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="s1">&#39;y&#39;</span><span class="p">])</span> <span class="o">&amp;</span> <span class="mh">0x7FF</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">(</span><span class="n">events</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="s1">&#39;p&#39;</span><span class="p">])</span> <span class="o">&amp;</span> <span class="mh">0x1</span>
+
+        <span class="n">ts_high</span> <span class="o">=</span> <span class="p">(</span><span class="n">ts</span> <span class="o">&gt;&gt;</span> <span class="mi">6</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0x0FFFFFFF</span>
+        <span class="n">ts_low</span> <span class="o">=</span> <span class="n">ts</span> <span class="o">&amp;</span> <span class="mh">0x3F</span>
+
+        <span class="k">if</span> <span class="n">ts_high</span> <span class="o">!=</span> <span class="n">last_ts_high</span><span class="p">:</span>
+            <span class="n">buffer</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">((</span><span class="mh">0xE</span> <span class="o">&lt;&lt;</span> <span class="mi">28</span><span class="p">)</span> <span class="o">|</span> <span class="n">ts_high</span><span class="p">)</span>  <span class="c1"># EVT4_EVT_TIME_HIGH</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">last_ts_high</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ts_high</span><span class="p">)</span>
+
+        <span class="c1"># type = CD_OFF (0xA) for p=0, CD_ON (0xB) for p=1.</span>
+        <span class="n">buffer</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">(((</span><span class="mh">0xA</span> <span class="o">|</span> <span class="n">p</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="mi">28</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">ts_low</span> <span class="o">&lt;&lt;</span> <span class="mi">22</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">x</span> <span class="o">&lt;&lt;</span> <span class="mi">11</span><span class="p">)</span> <span class="o">|</span> <span class="n">y</span><span class="p">)</span>
+        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">buffer</span><span class="p">[:</span><span class="n">i</span><span class="p">],</span> <span class="n">last_ts_high</span>
+
+
 <div class="viewcode-block" id="EventEncoder_EVT">
 <a class="viewcode-back" href="../../../autoapi/evutils/io/encoders/index.html#evutils.io.decoders.EventEncoder_EVT">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">EventEncoder_EVT</span><span class="p">(</span><span class="n">EventEncoder</span><span class="p">):</span>
@@ -1195,9 +1251,9 @@
 <span class="sd">        Recording timestamp (defaults to now).</span>
 <span class="sd">    serial : str</span>
 <span class="sd">        Camera serial number written into the header.</span>
-<span class="sd">    format : {&quot;evt3&quot;, &quot;evt21&quot;, &quot;evt2&quot;}</span>
-<span class="sd">        Output format. All three are supported; EVT2.1 is written one event per</span>
-<span class="sd">        word (valid but not vectorised).</span>
+<span class="sd">    format : {&quot;evt3&quot;, &quot;evt21&quot;, &quot;evt2&quot;, &quot;evt4&quot;}</span>
+<span class="sd">        Output format. All are supported; EVT2.1 and EVT4 are written one event</span>
+<span class="sd">        per word (valid but not vectorised).</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
@@ -1294,6 +1350,8 @@
             <span class="n">buffer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_ts_high</span> <span class="o">=</span> <span class="n">get_raw_evt2_buffer</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_ts_high</span><span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format</span> <span class="o">==</span> <span class="s2">&quot;evt21&quot;</span><span class="p">:</span>
             <span class="n">buffer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_ts_high</span> <span class="o">=</span> <span class="n">get_raw_evt21_buffer</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_ts_high</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format</span> <span class="o">==</span> <span class="s2">&quot;evt4&quot;</span><span class="p">:</span>
+            <span class="n">buffer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_ts_high</span> <span class="o">=</span> <span class="n">get_raw_evt4_buffer</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_ts_high</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;format </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_format</span><span class="si">!r}</span><span class="s2"> not implemented&quot;</span>
