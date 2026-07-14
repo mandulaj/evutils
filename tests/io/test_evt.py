@@ -38,7 +38,7 @@ def test_RAW_reader_import(dummy_file_factory: Any) -> None:
 
 ### Test RAW writer
 
-@pytest.mark.parametrize("fmt", [None, 'evt2', 'evt21', 'evt3'])
+@pytest.mark.parametrize("fmt", [None, 'evt2', 'evt21', 'evt3', 'evt4'])
 def test_RAW_writer(tmp_path: Any, test_events: Any, fmt: Any) -> None:
     """Test that writing and reading RAW events yields identical results for supported formats."""
     from evutils.io import EventWriter, EventReader
@@ -292,9 +292,9 @@ def test_EVT3_time_high_wrap(tmp_path: Any) -> None:
     assert np.array_equal(out["x"], ev['x']), "evt3 TIME_HIGH wrap: x not round-tripped"
 
 
-@pytest.mark.parametrize("fmt", ["evt2", "evt21"])
+@pytest.mark.parametrize("fmt", ["evt2", "evt21", "evt4"])
 def test_EVT2_time_high_wrap(tmp_path: Any, fmt: Any) -> None:
-    """EVT2/EVT2.1 time bases are 34-bit (~4.8 h); crossing that boundary
+    """EVT2/EVT2.1/EVT4 time bases are 34-bit (~4.8 h); crossing that boundary
     must be tracked by the wrap accumulator."""
     base = (1 << 34) - 50
     t = base + np.arange(0, 100, 10)  # crosses 2^34
@@ -303,7 +303,7 @@ def test_EVT2_time_high_wrap(tmp_path: Any, fmt: Any) -> None:
     assert np.array_equal(out["t"], ev['t']), f"{fmt} 34-bit time wrap: timestamps not round-tripped"
 
 
-@pytest.mark.parametrize("fmt", ["evt3", "evt2", "evt21"])
+@pytest.mark.parametrize("fmt", ["evt3", "evt2", "evt21", "evt4"])
 def test_EVT_long_recording_hours(tmp_path: Any, fmt: Any) -> None:
     """Sparse multi-hour timestamps survive as long as gaps stay below the
     format's wrap period (2^24 us for EVT3, 2^34 us for EVT2/2.1)."""
@@ -316,7 +316,7 @@ def test_EVT_long_recording_hours(tmp_path: Any, fmt: Any) -> None:
     assert np.array_equal(out["t"], ev['t']), f"{fmt} multi-hour recording: timestamps not round-tripped"
 
 
-@pytest.mark.parametrize("fmt", ["evt3", "evt2", "evt21"])
+@pytest.mark.parametrize("fmt", ["evt3", "evt2", "evt21", "evt4"])
 def test_EVT_truncated_payload(tmp_path: Any, fmt: Any) -> None:
     """A file cut mid-word must not crash: all complete events decode."""
     from evutils.io import EventReader, EventWriter

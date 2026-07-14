@@ -56,6 +56,7 @@ _READER_MAPPING[".evt"] = EventDecoder_EVT
 _READER_MAPPING[".evt3"] = EventDecoder_EVT
 _READER_MAPPING[".evt2"] = EventDecoder_EVT
 _READER_MAPPING[".evt21"] = EventDecoder_EVT
+_READER_MAPPING[".evt4"] = EventDecoder_EVT
 
 from ._aer import EventDecoder_AER
 _READER_MAPPING[".aer"] = EventDecoder_AER

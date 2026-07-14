@@ -13,9 +13,12 @@ Input strategy:
   same way. (Truly incremental streaming for live devices is future work; the
   parser ABI already supports it via ``result.current``.)
 
-All three Prophesee formats are wired to native parsers, dispatched by the
-header ``format`` field: EVT3 (16-bit words), EVT2 (32-bit words) and EVT2.1
-(64-bit words). Only EVT3 has an encoder.
+The Prophesee formats are wired to native parsers, dispatched by the header
+``format`` field: EVT3 (16-bit words), EVT2 / EVT4 (32-bit words) and EVT2.1
+(64-bit words). EVT4 is not a standard Prophesee RAW variant -- it reuses EVT2's
+CD/TIME_HIGH layout with distinct type codes plus vectorised CD; evutils defines
+its own ``% evt 4.0`` header token for a self-consistent round-trip. All formats
+have encoders.
 """
 from __future__ import annotations
 
@@ -47,6 +50,8 @@ from ._native_evt import (
     Evt3Parser,
     Evt21Input,
     Evt21Parser,
+    Evt4Input,
+    Evt4Parser,
 )
 from ._source import ByteSource
 
@@ -100,6 +105,7 @@ _BACKENDS = {
     "evt3": (Evt3Parser, Evt3Input, np.uint16),
     "evt2": (Evt2Parser, Evt2Input, np.uint32),
     "evt21": (Evt21Parser, Evt21Input, np.uint64),
+    "evt4": (Evt4Parser, Evt4Input, np.uint32),
 }
 
 # Canonical format name -> (`% evt` token, `% format` token). Drives both header
@@ -110,6 +116,10 @@ _EVT_FORMATS: dict[str, tuple[str, str]] = {
     "evt3":  ("3.0", "EVT3"),
     "evt21": ("2.1", "EVT21"),
     "evt2":  ("2.0", "EVT2"),
+    # EVT4 is not a standard Prophesee RAW header variant; there is no public
+    # `% evt 4.0` recording. These tokens are evutils' own convention so the
+    # encoder/decoder round-trip is self-consistent.
+    "evt4":  ("4.0", "EVT4"),
 }
 
 # `% evt <token>` value -> canonical name, e.g. "3.0" -> "evt3".
@@ -411,7 +421,7 @@ class EventDecoder_EVT(EventDecoder):
     # single-buffer read_all() path. EVT2 is an exact upper bound (<=1 event per
     # 32-bit word); EVT3/EVT2.1 vary with vector density, so decode_all_soa grows
     # the buffer if the estimate is too small.
-    _READ_ALL_EST = {"evt3": 1.0, "evt2": 1.0, "evt21": 1.5}
+    _READ_ALL_EST = {"evt3": 1.0, "evt2": 1.0, "evt21": 1.5, "evt4": 1.0}
 
     def read_all(self) -> 'EventArray | tuple[EventArray, TriggerArray]':
         """Decode the whole remaining payload into one buffer (no per-chunk copy).
@@ -669,6 +679,52 @@ def get_raw_evt21_buffer(events: np.ndarray, last_ts_high: int) -> tuple[np.ndar
     return buffer[:i], last_ts_high
 
 
+@lazy_njit
+def get_raw_evt4_buffer(events: np.ndarray, last_ts_high: int) -> tuple[np.ndarray, int]:
+    """Encode events as EVT4 (32-bit words).
+
+    Same CD / TIME_HIGH bit layout as EVT2 (type[28:31], ts_low[22:27],
+    x[11:21], y[0:10]) but with EVT4's type codes: CD_OFF=0xA / CD_ON=0xB and
+    TIME_HIGH=0xE. One CD word per event (EVT4's vectorised CD_VEC form is a
+    decode-side optimisation and is not emitted here).
+
+    Parameters
+    ----------
+    events : np.ndarray
+        Array of events to encode.
+    last_ts_high : int
+        Last high timestamp part.
+
+    Returns
+    -------
+    tuple
+        A tuple containing the raw buffer and last high timestamp part.
+
+    """
+    n = len(events)
+    buffer = np.empty(2 * n, dtype=np.uint32)  # <= 1 TIME_HIGH + 1 CD per event
+    i = 0
+    for k in range(n):
+        ts = np.int64(events[k]['t'])
+        x = np.int64(events[k]['x']) & 0x7FF
+        y = np.int64(events[k]['y']) & 0x7FF
+        p = np.int64(events[k]['p']) & 0x1
+
+        ts_high = (ts >> 6) & 0x0FFFFFFF
+        ts_low = ts & 0x3F
+
+        if ts_high != last_ts_high:
+            buffer[i] = np.uint32((0xE << 28) | ts_high)  # EVT4_EVT_TIME_HIGH
+            i += 1
+            last_ts_high = int(ts_high)
+
+        # type = CD_OFF (0xA) for p=0, CD_ON (0xB) for p=1.
+        buffer[i] = np.uint32(((0xA | p) << 28) | (ts_low << 22) | (x << 11) | y)
+        i += 1
+
+    return buffer[:i], last_ts_high
+
+
 class EventEncoder_EVT(EventEncoder):
     """Encoder for Prophesee RAW/EVT files.
 
@@ -682,9 +738,9 @@ class EventEncoder_EVT(EventEncoder):
         Recording timestamp (defaults to now).
     serial : str
         Camera serial number written into the header.
-    format : {"evt3", "evt21", "evt2"}
-        Output format. All three are supported; EVT2.1 is written one event per
-        word (valid but not vectorised).
+    format : {"evt3", "evt21", "evt2", "evt4"}
+        Output format. All are supported; EVT2.1 and EVT4 are written one event
+        per word (valid but not vectorised).
 
     References
     ----------
@@ -776,6 +832,8 @@ f"""% camera_integrator_name Prophesee
             buffer, self._last_ts_high = get_raw_evt2_buffer(events, self._last_ts_high)
         elif self._format == "evt21":
             buffer, self._last_ts_high = get_raw_evt21_buffer(events, self._last_ts_high)
+        elif self._format == "evt4":
+            buffer, self._last_ts_high = get_raw_evt4_buffer(events, self._last_ts_high)
         else:
             raise NotImplementedError(
                 f"format {self._format!r} not implemented"
