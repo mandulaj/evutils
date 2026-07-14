@@ -60,6 +60,10 @@ jobs:
           cp scripts/coverage_index.html pages-coverage/index.html
           cp -a htmlcov   pages-coverage/htmlcov
           cp -a htmlcov-c pages-coverage/htmlcov-c
+          # coverage.py drops a ".gitignore" ('*') inside htmlcov/ so local
+          # reports aren't committed; left in place it makes `git add -A` in the
+          # gh-pages clone skip the whole Python report. Drop it before deploy.
+          rm -f pages-coverage/htmlcov/.gitignore
 
       - name: Publish to gh-pages
         env:
