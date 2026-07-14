@@ -45,15 +45,7 @@ typedef struct evt3_input_buffer_s {
 } evt3_input_buffer_t;
 
 
-uint16_t * EVT3_find_first_high_time(uint16_t *begin, uint16_t *end);
-
 size_t EVT3_state_size(void);
-
-parser_result_t EVT3_parse_chunk(
-    evt3_state_t            *state,
-    const evt3_input_buffer_t *input_buffer,
-    event_buffer_t          *event_buffer,
-    trigger_buffer_t        *trigger_buffer);
 
 parser_result_t EVT3_parse_chunk_soa(
     evt3_state_t            *state,

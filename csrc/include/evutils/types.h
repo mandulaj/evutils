@@ -20,37 +20,6 @@ typedef uint64_t timestamp64_t;
 typedef uint32_t timestamp32_t;
 typedef timestamp64_t timestamp_t;
 
-
-typedef struct event32_s {
-    uint32_t t;
-    uint16_t x;
-    uint16_t y;
-    uint8_t  p;
-} event32_t;
-
-typedef struct event64_s {
-    timestamp64_t t;
-    uint16_t x;
-    uint16_t y;
-    uint8_t  p;
-} event64_t;
-
-typedef event32_t event_t;
-
-typedef struct trigger64_s {
-    timestamp64_t t;
-    uint8_t  id;
-    uint8_t  p;
-} trigger64_t;
-
-typedef struct trigger32_s {
-    timestamp32_t t;
-    uint8_t  id;
-    uint8_t  p;
-} trigger32_t;
-
-typedef trigger32_t trigger_t;
-
 /* Struct-of-arrays event buffer (preferred for the numpy path: one dtype per
  * column, no struct padding to reconcile). */
 typedef struct event_buffer_soa_s {
@@ -69,19 +38,6 @@ typedef struct trigger_buffer_soa_s {
     size_t capacity;
     size_t size;
 } trigger_buffer_soa_t;
-
-/* Array-of-structs event buffer. */
-typedef struct event_buffer_s {
-    event_t *events;
-    size_t capacity;
-    size_t size;
-} event_buffer_t;
-
-typedef struct trigger_buffer_s {
-    trigger_t *triggers;
-    size_t capacity;
-    size_t size;
-} trigger_buffer_t;
 
 #ifdef __cplusplus
 }

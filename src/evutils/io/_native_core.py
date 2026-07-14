@@ -7,7 +7,7 @@ import os
 import sys
 from ctypes import (
     POINTER, Structure, byref, cast as c_cast, c_char_p, c_char,
-    c_int, c_size_t, c_uint8, c_uint16, c_uint32, c_uint64, c_void_p,
+    c_int, c_size_t, c_uint8, c_uint16, c_uint64, c_void_p,
 )
 from pathlib import Path
 from typing import cast, Any, Callable
@@ -17,8 +17,7 @@ from ..types import EventArray, TriggerArray
 
 __all__ = [
     "NativeError", "lib", "register_bindings",
-    "Event32", "Trigger32",
-    "EventBufferSOA", "TriggerBufferSOA", "EventBuffer", "TriggerBuffer",
+    "EventBufferSOA", "TriggerBufferSOA",
     "ParserResult", "EventSoABuffers", "TriggerSoABuffers",
     "EVENT_DTYPE", "TRIGGER_DTYPE",
     "events_view", "triggers_view",
@@ -39,18 +38,6 @@ _X_DTYPE = np.uint16
 _Y_DTYPE = np.uint16
 _P_DTYPE = np.uint8
 _ID_DTYPE = np.uint8
-
-class Event32(Structure):
-    _fields_ = [("t", c_uint32), ("x", c_uint16), ("y", c_uint16), ("p", c_uint8)]
-
-class Trigger32(Structure):
-    _fields_ = [("t", c_uint32), ("id", c_uint8), ("p", c_uint8)]
-
-class EventBuffer(Structure):
-    _fields_ = [("events", POINTER(Event32)), ("capacity", c_size_t), ("size", c_size_t)]
-
-class TriggerBuffer(Structure):
-    _fields_ = [("triggers", POINTER(Trigger32)), ("capacity", c_size_t), ("size", c_size_t)]
 
 class EventBufferSOA(Structure):
     _fields_ = [
