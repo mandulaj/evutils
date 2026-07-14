@@ -31,6 +31,11 @@ switcher_url = os.environ.get("DOCS_SWITCHER_URL", "/switcher.json")
 # Its under [project.urls] "Source Code"
 github_url = f"{toml_data['project']['urls']['Source Code']}"
 
+# Coverage report is published at the site root (not versioned), so link its
+# landing page absolutely off the Documentation base URL -- correct from any
+# version subdir (a root-relative "/coverage/" would miss the /evutils/ prefix).
+coverage_url = f"{toml_data['project']['urls']['Documentation'].rstrip('/')}/coverage/"
+
 # Link this build back to its exact source on GitHub: the release tag for a
 # versioned build, or the dev branch for the dev build.
 if version_match == "dev":
@@ -115,6 +120,11 @@ html_theme_options = {
             "name": "PyPI",
             "url": "https://pypi.org/project/evutils/",
             "icon": "fa-custom fa-pypi",
+        },
+        {
+            "name": "Coverage",
+            "url": coverage_url,
+            "icon": "fa-solid fa-shield-halved",
         },
     ],
     "logo": {

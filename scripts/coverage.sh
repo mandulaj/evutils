@@ -15,7 +15,8 @@
 #   coverage-c.xml          C Cobertura XML
 #
 # Requires: cmake, a C compiler with coverage support (gcc or clang), and the
-# `pytest-cov` + `gcovr` dev dependencies (in the `test` extra).
+# `coverage` extra (pytest-cov + gcovr + genbadge, plus `test`):
+#   uv sync --extra coverage
 set -euo pipefail
 
 # Repo root = parent of this script's dir, regardless of CWD.

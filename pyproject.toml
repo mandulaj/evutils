@@ -65,14 +65,20 @@ vis = [
 test = [
     "pytest>=9.0.2",
     "pytest-benchmark>=5.2.3",
-    "pytest-cov>=7.1.0",
-    # C coverage report from the gcov-instrumented build (scripts/coverage.sh).
-    "gcovr>=8.2",
-    # Self-contained coverage badge SVG (no third-party render) for the README.
-    "genbadge[coverage]>=1.1",
     # Extracting the .tar.zst test recordings without relying on system tar
     # having zstd support (Python 3.14+ reads zstd via the stdlib).
     "zstandard>=0.22; python_version < '3.14'",
+]
+# Coverage tooling -- kept out of `test` so ordinary test runs stay lean; pulled
+# in only by the Coverage workflow and scripts/coverage.sh. Requires `test` too.
+#   pytest-cov  Python line coverage (--cov)
+#   gcovr       C coverage from the gcov-instrumented build
+#   genbadge    self-contained badge SVG (no third-party render) for the README
+coverage = [
+    "evutils[test]",
+    "pytest-cov>=7.1.0",
+    "gcovr>=8.2",
+    "genbadge[coverage]>=1.1",
 ]
 # Optional third-party readers used only by the comparison benchmarks. OpenEB's
 # `metavision_*` packages are not on PyPI (install from Prophesee, e.g. via the

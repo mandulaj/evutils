@@ -3,7 +3,7 @@
 [![PyPI Python Version](https://img.shields.io/pypi/pyversions/evutils)](https://pypi.org/project/evutils/)
 [![Release & Publish Docs](https://github.com/mandulaj/evutils/actions/workflows/release.yaml/badge.svg)](https://github.com/mandulaj/evutils/actions/workflows/release.yaml)
 [![Test](https://github.com/mandulaj/evutils/actions/workflows/test.yaml/badge.svg)](https://github.com/mandulaj/evutils/actions/workflows/test.yaml)
-[![Coverage](https://mandulaj.github.io/evutils/coverage/badge.svg)](https://mandulaj.github.io/evutils/coverage/htmlcov/index.html)
+[![Coverage](https://mandulaj.github.io/evutils/coverage/badge.svg)](https://mandulaj.github.io/evutils/coverage/)
 [![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://mandulaj.github.io/evutils/)
 [![GitHub repo size](https://img.shields.io/github/repo-size/mandulaj/evutils)](https://github.com/mandulaj/evutils)
 [![GitHub License](https://img.shields.io/github/license/mandulaj/evutils)](https://github.com/mandulaj/evutils?tab=MIT-1-ov-file)

@@ -41,8 +41,10 @@ jobs:
           enable-cache: true
           python-version: "3.12"
 
+      # Only the coverage extra (test + pytest-cov/gcovr/genbadge) plus the
+      # optional readers the suite touches -- not the full `dev` stack.
       - name: Install the project
-        run: uv sync --extra dev
+        run: uv sync --extra coverage --extra hdf5 --extra aedat
 
       # Builds build-coverage/ (instrumented), runs pytest against it, and writes
       # coverage.xml + htmlcov/ (Python) and coverage-c.xml + htmlcov-c/ (C).
@@ -54,6 +56,8 @@ jobs:
           mkdir -p pages-coverage
           # Self-contained badge from the Python Cobertura XML (no third party).
           uv run genbadge coverage -i coverage.xml -o pages-coverage/badge.svg
+          # Landing page the README badge links to (indexes both reports).
+          cp scripts/coverage_index.html pages-coverage/index.html
           cp -a htmlcov   pages-coverage/htmlcov
           cp -a htmlcov-c pages-coverage/htmlcov-c
 

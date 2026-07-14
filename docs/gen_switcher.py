@@ -35,7 +35,10 @@ from pathlib import Path
 _VER_RE = re.compile(r"^v(\d+)\.(\d+)\.(\d+)(.*)$")
 
 # Root entries that are NOT part of a mirrored build and must survive the mirror.
-_ROOT_KEEP = {"switcher.json", ".nojekyll", ".git"}
+# `coverage/` is published independently by the Coverage workflow
+# (docs/deploy_coverage.sh) and must not be wiped when the docs mirror refreshes
+# the root -- otherwise the README's coverage badge/link 404s after any deploy.
+_ROOT_KEEP = {"switcher.json", ".nojekyll", ".git", "coverage"}
 
 
 def _release_key(name: str) -> tuple:
