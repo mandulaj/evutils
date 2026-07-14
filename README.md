@@ -15,7 +15,7 @@ EV-Utils (`evutils`) is a performant collection of utilities for working with ev
 ### Core Philosophy
 * **Fast & Lightweight:** Highly optimized C parsers for zero-bottleneck data ingestion.
 * **Minimal Footprint:** Core features run entirely on NumPy and Numba.
-* **Lazy Loading:** All heavy integrations (PyTorch, HDF5, Polars, etc.) are lazy-loaded. If you don't use them, you don't need them installed, and they won't slow down import times.
+* **Lazy Loading:** All heavy integrations (PyTorch, HDF5, etc.) are lazy-loaded. If you don't use them, you don't need them installed, and they won't slow down import times.
 * **Simple & Extensible:** Clean modular APIs.
 
 
