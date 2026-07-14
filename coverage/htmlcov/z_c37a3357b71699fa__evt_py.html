@@ -55,8 +55,8 @@
         </aside>
         <h2>
             <span class="text">355 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">318<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">37<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">320<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">35<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">2<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_c37a3357b71699fa__hdf5_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.15.1">coverage.py v7.15.1</a>,
-            created at 2026-07-14 17:03 +0000
+            created at 2026-07-14 17:24 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -478,7 +478,7 @@
     <p class="run"><span class="n"><a id="t396" href="#t396">396</a></span><span class="t">            <span class="key">if</span> <span class="nam">self</span><span class="op">.</span><span class="nam">read_external_triggers</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t397" href="#t397">397</a></span><span class="t">                <span class="key">from</span> <span class="op">.</span><span class="op">.</span><span class="nam">types</span> <span class="key">import</span> <span class="nam">TriggerArray</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t398" href="#t398">398</a></span><span class="t">                <span class="key">return</span> <span class="nam">_EMPTY_EVENTS</span><span class="op">,</span> <span class="nam">TriggerArray</span><span class="op">.</span><span class="nam">empty</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t399" href="#t399">399</a></span><span class="t">            <span class="key">return</span> <span class="nam">_EMPTY_EVENTS</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t399" href="#t399">399</a></span><span class="t">            <span class="key">return</span> <span class="nam">_EMPTY_EVENTS</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t400" href="#t400">400</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t401" href="#t401">401</a></span><span class="t">        <span class="nam">ev</span><span class="op">,</span> <span class="nam">tr</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_events</span><span class="op">,</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_triggers</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t402" href="#t402">402</a></span><span class="t">        <span class="nam">ev</span><span class="op">.</span><span class="nam">reset</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
@@ -497,7 +497,7 @@
     <p class="run"><span class="n"><a id="t415" href="#t415">415</a></span><span class="t">            <span class="key">from</span> <span class="op">.</span><span class="op">.</span><span class="nam">types</span> <span class="key">import</span> <span class="nam">TriggerArray</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t416" href="#t416">416</a></span><span class="t">            <span class="nam">tr_view</span> <span class="op">=</span> <span class="nam">triggers_view</span><span class="op">(</span><span class="nam">tr</span><span class="op">)</span> <span class="key">if</span> <span class="nam">tr</span><span class="op">.</span><span class="nam">size</span> <span class="op">></span> <span class="num">0</span> <span class="key">else</span> <span class="nam">TriggerArray</span><span class="op">.</span><span class="nam">empty</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t417" href="#t417">417</a></span><span class="t">            <span class="key">return</span> <span class="nam">ev_view</span><span class="op">,</span> <span class="nam">tr_view</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t418" href="#t418">418</a></span><span class="t">        <span class="key">return</span> <span class="nam">ev_view</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t418" href="#t418">418</a></span><span class="t">        <span class="key">return</span> <span class="nam">ev_view</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t419" href="#t419">419</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t420" href="#t420">420</a></span><span class="t">    <span class="com"># Initial output-capacity estimate (events per input word) for the</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t421" href="#t421">421</a></span><span class="t">    <span class="com"># single-buffer read_all() path. EVT2 is an exact upper bound (&lt;=1 event per</span>&nbsp;</span><span class="r"></span></p>
@@ -935,7 +935,7 @@
             <a class="nav" href="z_c37a3357b71699fa__hdf5_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.15.1">coverage.py v7.15.1</a>,
-            created at 2026-07-14 17:03 +0000
+            created at 2026-07-14 17:24 +0000
         </p>
     </div>
 </footer>
