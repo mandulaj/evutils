@@ -122,3 +122,48 @@ def test_tore_empty():
     t = tore(events, width=100, height=50, n_events=4)
     assert t.shape == (50, 100, 4, 2)
     assert np.all(t == 0)
+
+
+# --- saturation / overflow edge cases (branch coverage) --------------------
+
+def test_histogram_saturation():
+    """A uint8 histogram bin clips at 255 instead of overflowing."""
+    events = create_events([(i, 10, 20, 1) for i in range(300)])  # 300 hits, one pixel
+    h = histogram(events, width=100, height=50, fill=False)
+    assert h[20, 10, 0] == 255  # capped, not wrapped to 300 % 256
+
+
+def test_wedge_histogram_saturation():
+    """A wedge bin saturates: a second selected hit on the same pixel is not
+    added once the bin is already at 255."""
+    events = create_events([(100, 10, 20, 1), (200, 10, 20, 1)])
+    wh = wedge_histogram(events, width=100, height=50, tl=300)
+    assert wh[20, 10, 0] == 255  # single 255, second hit skipped
+
+
+def test_tore_fifo_overflow():
+    """With more events than n_events on one pixel/polarity, the oldest fall out
+    of the FIFO; only the most recent n_events survive."""
+    events = create_events([(100, 10, 20, 1), (150, 10, 20, 1), (200, 10, 20, 1)])
+    t = tore(events, width=100, height=50, n_events=2, tau=100)
+    assert t.shape == (50, 100, 2, 2)
+    # newest (t=200) at slot 1, second-newest (t=150) at slot 0; t=100 dropped.
+    assert t[20, 10, 1, 1] == pytest.approx(1.0)
+    assert t[20, 10, 0, 1] == pytest.approx(np.exp(-0.5))
+
+
+def test_voxel_histogram_more_windows_than_bins():
+    """Extra time windows beyond n_bins are dropped (the loop breaks). Span
+    0..100 at bin_dt=50 yields 3 windows, one more than n_bins=2."""
+    events = create_events([(0, 10, 20, 1), (50, 11, 21, 0), (100, 12, 22, 1)])
+    vh = voxel_histogram(events, width=100, height=50, n_bins=2, dt=100)
+    assert vh.shape == (2, 50, 100, 3)
+
+
+def test_voxel_histogram_fewer_windows_than_bins():
+    """Fewer time windows than n_bins: the loop exhausts normally (no break),
+    leaving the trailing bins zero. Span 20 at bin_dt=1000 is a single window."""
+    events = create_events([(0, 10, 20, 1), (10, 11, 21, 0), (20, 12, 22, 1)])
+    vh = voxel_histogram(events, width=100, height=50, n_bins=10, dt=10000)
+    assert vh.shape == (10, 50, 100, 3)
+    assert np.all(vh[1:] == 0)  # only the first window populated
