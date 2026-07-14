@@ -44,7 +44,7 @@ jobs:
         shell: bash
         run: |
           case "${{ github.ref }}" in
-            refs/heads/feature/*|refs/heads/fix/*) echo "size=small"  >> "$GITHUB_OUTPUT" ;;
+            refs/heads/feature/*|refs/heads/fix/*|refs/heads/dev) echo "size=small"  >> "$GITHUB_OUTPUT" ;;
             *)                                     echo "size=normal" >> "$GITHUB_OUTPUT" ;;
           esac
 
