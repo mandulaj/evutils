@@ -12,11 +12,11 @@ on:
 permissions:
   contents: read
 
-# Share the docs deploy lock: this and dev-docs both write the gh-pages branch,
-# so they must serialize (never cancel -- both deploys must complete).
+# Workflow-level: cancel a superseded coverage run when a newer commit lands on
+# the same branch, so rapid dev pushes don't pile up (matches test.yaml).
 concurrency:
-  group: gh-pages-deploy
-  cancel-in-progress: false
+  group: coverage-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   coverage:
@@ -24,6 +24,12 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write   # deploy_coverage.sh pushes to gh-pages
+    # Job-level: this and dev-docs/release both write the gh-pages branch, so the
+    # publish must serialize against them (never cancel -- deploys must finish).
+    # Separate from the workflow-level group above, which handles superseding.
+    concurrency:
+      group: gh-pages-deploy
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v7
         with:
