@@ -140,7 +140,6 @@ parser_result_t EVT3_parse_chunk_soa(
         n_events_read < events_capacity_offset &&
         n_triggers_read < triggers_capacity) {
 
-        __builtin_prefetch(current + 64, 0, 0);
         uint32_t packet_type = EVT3_get_packet_type(*current);
         uint32_t packet_data = EVT3_get_packet_data(*current);
 
