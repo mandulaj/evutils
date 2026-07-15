@@ -1,145 +1,160 @@
 # Benchmarks
 
-Read/write throughput benchmarks for the native EVT2 / EVT2.1 / EVT3 codecs, plus optional comparisons against other event libraries.
+Read/write **throughput** benchmarks (M events/s) for the native codecs
+(evt3 / evt2 / evt21 / evt4 / dat / csv), plus optional comparisons against other
+event libraries.
 
-These benchmarks are **not** part of the normal test run (which uses `testpaths = ["tests"]`). They must be executed explicitly from the repository root.
+Everything is driven by a single script, **`benchmarks/throughput.py`**. It is
+not part of the normal test run and must be executed explicitly from the repo
+root.
 
-## Quick Start
-
-Run the default suite (evutils only, plus any installed comparison libraries):
-```bash
-pytest benchmarks/
-```
-
-Run specific benchmarks:
-```bash
-pytest benchmarks/test_read.py           # just reads
-pytest benchmarks/test_write.py          # just writes
-```
-
-## Benchmark Options
-
-### Datasets
-You can benchmark against two datasets using the `--dataset` flag. The necessary files are automatically downloaded and cached on first use.
-- `--dataset small` (default): A ~1GB memory footprint dataset (hand recordings).
-- `--dataset large`: A massive multi-GB dataset designed to test the streaming and chunking capabilities of the decoders.
+## Quick start
 
 ```bash
-pytest benchmarks/ --dataset large
+# evutils only + any installed comparison lib; downloads the 'normal' dataset once
+python benchmarks/throughput.py
+
+# fast smoke run
+python benchmarks/throughput.py --dataset small --events 2_000_000 --repeats 2
+
+# benchmark the payload decoded from a specific local recording
+python benchmarks/throughput.py --file data/hand.raw
 ```
 
-### Filtering Readers
-The benchmark tests are fully parametrized by the reader name. You can effortlessly exclude specific third-party libraries using pytest's standard `-k` flag (for example, if they are slow or misbehaving on large datasets):
+## What it measures
+
+The script produces **two matrices** — rows are formats, columns are
+library/variant, cells are **M events/s** (higher is better):
+
+- **Read matrix.** The evutils read path is split into the variants whose cost we
+  want visible separately:
+  - `evutils n_events` — `EventReader` slicing by a fixed event count (the common
+    chunked-read path);
+  - `evutils delta_t` — `EventReader` slicing by a fixed time window. The gap to
+    `n_events` on the same row **is** the delta_t slicing penalty (an extra
+    `searchsorted` per window);
+  - `evutils async` — `EventReader(async_read=True)`, background-thread prefetch;
+  - `evutils stream` — `EventStreamer`, raw chunked decode with no slicing: the
+    throughput **ceiling** and the true peer of `expelliarmus`'s `read_chunk`.
+
+  plus a column per installed comparison library (see below).
+
+- **Write matrix.** `evutils` vs any installed comparison writer.
+
+## Methodology
+
+- **In RAM.** Every file lives on a **tmpfs / RAM disk** (default `/dev/shm`), so
+  disk I/O never enters the measurement — after warmup the file is served from
+  the page cache at RAM speed. This applies to *every* library, so the
+  comparison is fair.
+- **Chunked only, never `read_all`.** Real recordings don't fit in memory;
+  production code always streams. So does the benchmark.
+- **One real event set for every format.** Real recordings ship only as
+  evt2/evt3/evt21, so the script decodes the first `--events N` events of one
+  recording into a single in-RAM array (the decoded array is what can't fit
+  whole, hence the cap), then — one format at a time to bound RAM/disk — writes
+  that identical set to the RAM disk and benchmarks reads + writes on it. Same
+  events, same count across all formats ⇒ the numbers are directly comparable.
+- **Timing.** Hand-rolled: `--warmup` runs, then `--repeats` timed runs;
+  `gc.collect()` between; report **peak** (fastest run) and **mean**. No
+  pytest-benchmark, no extra deps.
+- **Validation.** Each read cell checks the decoded count against the payload
+  size and flags a mismatch with `!!` in the cell.
+
+## Comparison libraries
+
+Enabled via `--libs` (prefix match; `evutils` selects all four evutils variants):
+
+| column | package | formats | notes |
+|--------|---------|---------|-------|
+| `expelliarmus` | `expelliarmus` | evt2, evt3, dat | `read_chunk` (read) + `save` (write) |
+| `evlib`        | `evlib` (Rust) | evt2, evt3 | streaming `collect`, read only |
+| `evt3`         | `evt3` (Rust)  | evt3 | `decode_file`, one-shot read only |
+| `openeb`       | Metavision SDK | evt2, evt21, evt3 | `RawReader`; Docker only (see below) |
 
 ```bash
-pytest benchmarks/ -k "not evlib" --dataset large
-pytest benchmarks/ -k "not evlib and not openeb"
+pip install evutils[compare]                        # expelliarmus, evlib
+python benchmarks/throughput.py --libs evutils,expelliarmus,evlib,evt3
 ```
 
-## File Structure
+Each adapter lazy-imports its library, so a missing/broken install just makes
+that **column disappear** (never an error). Unsupported (format, library) cells
+render `-`. To add a library, append one entry to `READ_ADAPTERS` /
+`WRITE_ADAPTERS` in `throughput.py`.
 
-| File | What it benchmarks |
-|------|--------------------|
-| `test_read.py`          | `evutils` decode throughput on the full real recordings (evt2/evt21/evt3), asserts count vs reference |
-| `test_write.py`         | `evutils` encode throughput (payload = first 5M events of the real evt3 file) |
-| `test_formats.py`       | **uniform per-format read/write**: the same 5M real events transcoded into every format (EVT3/EVT2.1/EVT2, DAT, AER, NPZ, HDF5, CSV, AEDAT4), so numbers are comparable across formats; expelliarmus (DAT) and evlib (HDF5, AEDAT4) compared on the identical files |
-| `test_compare.py`       | third-party readers from `readers.py` on the full real recordings (auto-skip if not installed) |
-| `readers.py`            | adapter registry — one entry per external library |
+> `tonic` is intentionally excluded: it has no standalone EVT reader and reads
+> Prophesee data through `expelliarmus` internally, so it would just re-measure
+> `expelliarmus`.
 
-*Note: in `test_formats.py` AER is the one lossy transcode — the format has no timestamps and 9-bit coordinates, so the same events are written with coordinates masked to 0–511 (identical event count).*
+## Options
 
-## Comparing Against Other Libraries
+| flag | default | meaning |
+|------|---------|---------|
+| `--dataset {small,normal,large}` | `normal` | tier to download (cached, shared with the test suite) |
+| `--file PATH` | — | decode the payload from this local recording instead |
+| `--events N` | 20M | events decoded into the in-RAM payload |
+| `--formats` | `evt3,evt2,evt21,evt4,dat,csv` | formats to benchmark |
+| `--containers` | off | also benchmark `npz,hdf5,aer` |
+| `--libs` | `evutils,expelliarmus,evlib` | libraries to enable (add `evt3,openeb`) |
+| `--repeats` / `--warmup` | 5 / 1 | timed runs / warmup runs per cell |
+| `--chunk` | 1M | read chunk size (n_events / async / openeb) |
+| `--delta-t` | 10000 | time window (µs) for the delta_t variant |
+| `--tmpfs` | `/dev/shm` | RAM-disk directory |
+| `--metric {peak,mean}` | `peak` | metric shown in the matrices |
+| `--markdown PATH` / `--json PATH` | — | also write the matrices as markdown / full stats as JSON |
+| `--no-read` / `--no-write` | — | skip a phase |
 
-Install the optional readers and run with grouping so every library lines up per format:
+Set `EVUTILS_BENCH_DATA` to a directory of already-extracted recordings (+ JSON
+sidecars) to skip the download entirely (offline / Docker).
+
+## Regenerating the docs table
 
 ```bash
-pip install evutils[compare]      # expelliarmus, evlib
-pytest benchmarks/ --benchmark-group-by=param:fmt --benchmark-columns=mean,ops
+python benchmarks/throughput.py --markdown docs/source/benchmarks/results.md
 ```
-
-Each library reads inside a lazy import. If a library is uninstalled or broken, its benchmarks simply **skip**. To add another library, append a `Reader(...)` entry to `readers.py`.
-
-## Benchmark Comparison (Mean Time in Seconds)
-
-### Reading
-
-| Library | EVT2 | EVT21 | EVT3 |
-|---|---|---|---|
-| **evutils** | 0.138 s | 0.070 s | 0.292 s |
-| **evlib** | 4.410 s | N/A | 4.327 s |
-| **expelliarmus** | 0.128 s | N/A | 0.341 s |
-
-### Writing
-
-| Library | EVT2 | EVT21 | EVT3 |
-|---|---|---|---|
-| **evutils** | 0.013 s | 0.028 s | 0.041 s |
-| **expelliarmus** | 0.077 s | N/A | 0.097 s |
-
-**Hardware:** 12th Gen Intel(R) Core(TM) i7-1280P | **OS:** Linux 7.1.1-3-MANJARO | **Python:** 3.12.13
-
-*Lower is better. Generated dynamically by `scripts/generate_benchmark_table.py`.*
-
-> **Note**: `tonic` is intentionally not included. It has no standalone EVT reader and reads Prophesee data through `expelliarmus` internally, so benchmarking it would just re-measure `expelliarmus`.
 
 ## OpenEB / Metavision (via Docker)
 
-OpenEB isn't on PyPI and is painful to build locally, so there's an image that builds it once. Both commands must be run **from the repo root** (the build context must be the whole project so `evutils` is copied in):
+OpenEB isn't on PyPI and is fiddly to build, so there's an image that builds it
+once. Run **from the repo root** (the build context must be the whole project):
 
 ```bash
-# Build the image (compiles OpenEB from source + installs evutils; slow, one-time)
 docker build -t evutils-openeb -f benchmarks/docker/Dockerfile.openeb .
-
-# Run the full suite (evutils + OpenEB), grouped per format
-docker run --rm evutils-openeb
+docker run --rm evutils-openeb            # evutils + expelliarmus + evlib + openeb
 ```
 
-The container's default command is `pytest benchmarks/ --benchmark-group-by=param:fmt`, so you get `evutils` and OpenEB side by side per format.
+The container's default command runs `throughput.py` with `--libs
+...,openeb`, so the `openeb` column is populated for evt2/evt21/evt3.
 
-### Useful Variations
-
-The recordings are **not** baked into the image (`.dockerignore` excludes the
-data and cache directories), so the fixture tries to download them on first
-use. If the container has no network access, mount the host's already-cached
-recordings and point `EVUTILS_BENCH_DATA` at them:
+The recordings are not baked into the image; on first run the script downloads
+them. For an offline container, mount the host cache and point
+`EVUTILS_BENCH_DATA` at it:
 
 ```bash
-# after benchmarks have run at least once on the host:
 docker run --rm \
   -v "$(pwd)/.pytest_cache/d/event_files:/data:ro" \
   -e EVUTILS_BENCH_DATA=/data \
   evutils-openeb
 ```
 
-Alternatively, persist the container's own download across runs with a named
-volume (note the workdir is `/home/user/work`):
-
-```bash
-docker run --rm -v evutils-cache:/home/user/work/.pytest_cache evutils-openeb
-```
-
-Run only the OpenEB comparison (skip the `evutils` rows):
-
-```bash
-docker run --rm evutils-openeb \
-  pytest benchmarks/test_compare.py --benchmark-group-by=param:fmt -q
-```
-
-Drop into a shell to debug the build/run:
+Drop into a shell to debug:
 
 ```bash
 docker run --rm -it evutils-openeb bash
 ```
 
-Build a different OpenEB release if the default fails to build:
-
-```bash
-docker build -t evutils-openeb --build-arg OPENEB_VERSION=5.0.0 \
-  -f benchmarks/docker/Dockerfile.openeb .
-```
-
 ### Caveats
 
-- The image targets **OpenEB 5.x on Ubuntu 22.04**; OpenEB's apt dependencies and install layout drift between releases, so the `apt-get`/`PYTHONPATH` lines may need tweaking. The Dockerfile imports `metavision_core` at build time, so a broken OpenEB install fails during `docker build` rather than silently skipping at run time.
-- The first pass is slow: it compiles OpenEB (`-j$(nproc)`) and downloads the reference recording on first run.
-- A repo-root `.dockerignore` keeps the build context small (excludes `.venv`, `build/`, `.git`, `data/`, `*.raw`, etc.).
+- The image targets **OpenEB 5.x on Ubuntu 22.04**; OpenEB's apt deps and layout
+  drift between releases, so the `apt-get`/`PYTHONPATH` lines may need tweaking.
+  The Dockerfile imports `metavision_core` at build time, so a broken install
+  fails the build rather than silently skipping.
+- The first pass is slow: it compiles OpenEB (`-j$(nproc)`) and downloads the
+  reference recording.
+
+## Other benchmark tools
+
+- `benchmarks/decode_micro.py` — isolates the raw **C decoder** inner loop (warm
+  reused buffer) from streaming/Python overhead; complementary to this script.
+- `benchmarks/legacy/` — the retired pytest-benchmark suite, kept for reference
+  (see its README). Not maintained.
