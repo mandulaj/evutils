@@ -94,14 +94,28 @@ class EventAccumulator():
             t.c.size = n_tr
             self._tr_start = 0
 
+    def _ensure_events(self, headroom: int) -> None:
+        """Guarantee ``headroom`` free event slots past the current size:
+        reclaim consumed front first, then grow the backing arrays if that is
+        still not enough (an oversized window, or drain-to-EOF mode). Growing is
+        geometric so a stream of large windows costs at most a few reallocs."""
+        b = self._buf
+        if self._capacity - b.size < headroom:
+            self._rotate()
+        if self._capacity - b.size < headroom:
+            new_cap = max(b.size + headroom, int(self._capacity * 1.5) + 1)
+            b.grow(new_cap)
+            self._capacity = new_cap
+
     def prepare(self, step: int) -> tuple[EventSoABuffers, TriggerSoABuffers]:
         """Ready the buffer for the decoder to append up to ``step`` events, and
         return ``(events_soa, triggers_soa)`` for ``decoder.parse_step``.
 
-        Rotates out consumed events if there is not enough tail room, then caps
-        the SoA capacity the parser sees to ``size + step`` so a single step does
-        not overshoot the requested window by more than one step's worth.
-        
+        Reclaims consumed events (and grows the buffer if a window outgrows the
+        modest initial capacity), then caps the SoA capacity the parser sees to
+        ``size + step`` so a single step does not overshoot the requested window
+        by more than one step's worth.
+
         Parameters
         ----------
         step : int
@@ -115,8 +129,11 @@ class EventAccumulator():
         """
         b = self._buf
         t = self._tr
-        if self._capacity - b.size < step or t.capacity - t.size < step // 16:
+        self._ensure_events(step)
+        if t.capacity - t.size < step // 16:
             self._rotate()
+            if t.capacity - t.size < step // 16:
+                t.grow(t.size + max(step // 16, 1))
         b.c.capacity = min(self._capacity, b.size + step)
         t.c.capacity = t.capacity
         return b, t
@@ -135,12 +152,7 @@ class EventAccumulator():
         n = len(data)
         if n > 0:
             b = self._buf
-            if self._capacity - b.size < n:
-                self._rotate()
-            if self._capacity - b.size < n:
-                raise ValueError(
-                    f"EventAccumulator full: can't append {n} ({self._capacity - b.size} free)"
-                )
+            self._ensure_events(n)  # rotate + grow so a large chunk always fits
             e = b.size
             b.t[e:e + n] = data.t
             b.x[e:e + n] = data.x

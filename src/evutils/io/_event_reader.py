@@ -14,6 +14,7 @@ import numpy as np
 from ..types import EventArray, TriggerArray
 
 from . import decoders as ev_decoders
+from ._native_core import EventSoABuffers, TriggerSoABuffers, events_view
 from ._prefetch import PrefetchIterator
 from ._source import ByteSource, make_source
 from .buffer import EventAccumulator
@@ -245,10 +246,14 @@ class EventReader():
         # Granularity of a single decode step, and a native fast path flag.
         self._buffer: EventAccumulator | None = None
         self._step = 1 << 20
-        # Hold the largest window we might be asked for, plus room for one decode
-        # step of overshoot before the front is rotated out. (np.empty is lazy, so
-        # a large capacity only costs pages actually written.)
-        self._acc_capacity = max(self._n_events, max_events) + 2 * self._step
+        # Staging capacity: one window plus a decode step of overshoot. Kept
+        # deliberately small (and capped at a few steps) so the parser writes
+        # into a cache/TLB-warm working set -- sizing it to the full max_events
+        # up front inflated the buffer ~4x for the common 1M-event window and
+        # roughly halved decode throughput. It grows on demand (EventAccumulator)
+        # if an actual window -- or drain-to-EOF mode -- needs more, so this only
+        # sets the starting point.
+        self._acc_capacity = min(self._n_events, 4 * self._step) + 2 * self._step
         self._native_fill = hasattr(self._file_decoder, "parse_step")
 
         # Asynchronous iteration: when enabled, __iter__ decodes ahead in a
@@ -395,11 +400,100 @@ class EventReader():
         if delay > 0:
             time.sleep(delay)
 
+    def _read_n_events_fast(self, n_events: int) -> Any:
+        """Decode ~``n_events`` straight into a fresh output buffer and hand it
+        out with no staging copy.
+
+        Valid only in pure ``n_events`` mode: the count cutoff is enforced by the
+        output buffer's capacity (the parser stops when it is full), so there is
+        no time boundary to ``searchsorted`` and no overshoot to carry in a
+        staging accumulator. This turns the windowed read from two passes over
+        the data (decode into the reused accumulator, then copy the window out)
+        into one, roughly matching :class:`EventStreamer` while still returning
+        an independent array (the buffer is fresh per call, never reused).
+        """
+        dec = self._file_decoder
+        # Fresh per-call output; handed to the caller as zero-copy views, so it
+        # must not be reused. This path is only taken for "exact-capacity"
+        # decoders (one event per record: EVT2/EVT4/DAT), so the parser fills
+        # to *exactly* n_events and stops -- a single parse_step completes the
+        # window with no overshoot and no remainder to carry. (Vector formats
+        # would stop a few short and a second parse_step on the full buffer is
+        # misread as EOF, so they stay on the accumulator path.)
+        out = EventSoABuffers(n_events)
+        out.c.capacity = n_events
+        # Throwaway trigger sink (this path is only taken when the caller did not
+        # request triggers); reset each step so it never fills and stalls the
+        # parser on a trigger-dense region.
+        tr = TriggerSoABuffers(max(n_events // 16, 1024))
+        while out.size < n_events and not dec.is_eof():
+            tr.reset()
+            before = out.size
+            dec.parse_step(out, tr)
+            if out.size == before and dec.is_eof():
+                break
+        self._eof = dec.is_eof()
+
+        if out.size == 0:
+            return EventArray.empty()
+        if self._n_read_events == 0:
+            self._first_ts = int(out.t[0])
+            self._current_ts = self._first_ts
+        self._n_read_events += out.size
+
+        output = events_view(out)
+        if self._normalize_ts:
+            output.t -= self._first_ts - self._start_ts
+        return output
+
+    def _read_n_events_readchunk(self, n_events: int) -> Any:
+        """Hand out one ``read_chunk(n_events)`` result directly, no accumulator.
+
+        For decoders whose ``read_chunk`` already returns an *independent* array
+        of at most ``n_events`` events (``_independent_windows``): NPZ slices its
+        loaded columns into fresh arrays, CSV parses into fresh arrays. Skipping
+        the staging accumulator drops the append + slice_copy double copy.
+        """
+        dec = self._file_decoder
+        chunk = dec.read_chunk(n_events_hint=n_events)
+        if isinstance(chunk, tuple):
+            chunk = chunk[0]
+        # A full window is exactly n_events; anything short means the stream is
+        # drained. (Do not use dec.is_eof(): for buffered decoders like CSV it
+        # signals "input exhausted" while read_chunk still has buffered events.)
+        self._eof = len(chunk) < n_events
+        if len(chunk) == 0:
+            return EventArray.empty()
+        if self._n_read_events == 0:
+            self._first_ts = int(chunk.t[0])
+            self._current_ts = self._first_ts
+        self._n_read_events += len(chunk)
+        if self._normalize_ts:
+            chunk.t -= self._first_ts - self._start_ts  # chunk is independent
+        return chunk
+
     def _read(self, delta_t:int|None=None, n_events:int|None=None) -> Any:
         """Unguarded body of :meth:`read` (also driven by the prefetch worker)."""
         # If not initialized, initialize
         if not self._is_initialized:
             self.init()
+
+        # Fast path: pure n_events streaming with no time window, no triggers,
+        # and nothing left buffered from an earlier windowed read. Skips the
+        # staging accumulator (and its per-window copy).
+        if (self._mode == "n_events" and delta_t is None
+                and not self._read_external_triggers
+                and (self._buffer is None or len(self._buffer) == 0)):
+            dec = self._file_decoder
+            n = n_events if n_events is not None else self._n_events
+            # Exact-capacity native decoders (EVT2/DAT/AER) decode straight into
+            # a fresh output buffer via parse_step.
+            if self._native_fill and getattr(dec, "_exact_window", False):
+                return self._read_n_events_fast(n)
+            # Decoders whose read_chunk already returns independent, bounded
+            # chunks (NPZ/CSV) can hand that out directly.
+            if getattr(dec, "_independent_windows", False):
+                return self._read_n_events_readchunk(n)
 
         # Allocate the staging accumulator on first use.
         if self._buffer is None:

@@ -56,6 +56,11 @@ class EventDecoder_Dat(EventDecoder):
 
     """
 
+    #: DAT is a fixed 2-word-per-event format, so the parser fills an output
+    #: buffer to exactly its capacity -> eligible for EventReader's zero-copy
+    #: n_events fast path.
+    _exact_window = True
+
     def __init__(self, source: ByteSource, chunk_size: int = 1_000_000):
         super().__init__(source, chunk_size)
         self._header: dict[str, Any] = {}

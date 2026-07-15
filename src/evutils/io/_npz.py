@@ -91,6 +91,10 @@ class EventDecoder_Npz(EventDecoder):
 
     """
 
+    #: read_chunk returns fresh, independent arrays bounded by n_events_hint, so
+    #: EventReader can hand them out directly (skipping the staging accumulator).
+    _independent_windows = True
+
     def __init__(self, source: ByteSource, chunk_size: int = 1_000_000):
         super().__init__(source, chunk_size)
         self._zf: zipfile.ZipFile | None = None
@@ -176,7 +180,7 @@ class EventDecoder_Npz(EventDecoder):
             self._eof = True
             return _EMPTY_EVENTS
 
-        n = min(self._chunk_size, self._n - self._pos)
+        n = min(n_events_hint or self._chunk_size, self._n - self._pos)
         chunk = self._read_n(n)
         self._pos += n
         if self._pos >= self._n:

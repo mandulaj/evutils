@@ -35,6 +35,11 @@ class EventDecoder_Csv(EventDecoder):
 
     """
 
+    #: read_chunk parses into fresh, independent arrays bounded by n_events_hint,
+    #: so EventReader can hand them out directly (skipping the staging
+    #: accumulator). CSV decode is text-parse-bound, so the gain is small.
+    _independent_windows = True
+
     def __init__(self, readable:io.BufferedReader,  order:list[str]|None=None, chunk_size:int=1_000_000, delimiter:str=",", engine:str='c'):
         super().__init__(readable, chunk_size)
 
