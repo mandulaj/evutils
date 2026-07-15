@@ -2,6 +2,23 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* Parse whitespace-delimited integer rows (CSV/TXT event files) into the
+ * caller's per-column output arrays.
+ *
+ *   out_arrays[i]   destination array for output column i (t/x/y/p)
+ *   array_types[i]  element width of output column i: 1, 2 or 8 bytes
+ *   col_mapping[j]  output column that CSV column j feeds, or -1 to skip it
+ *   max_csv_cols    length of col_mapping
+ *   max_events      stop after this many rows
+ *   bytes_consumed  (out) bytes fully consumed (whole rows only)
+ *   events_parsed   (out) rows parsed
+ *
+ * Strategy: locate each line end with memchr (SIMD-accelerated in glibc), then
+ * parse the *complete* line with no per-byte bounds checks -- the newline is a
+ * hard terminator, so the digit loops stop at the delimiter/newline naturally.
+ * A line with no '\n' before the buffer end is a chunk-boundary fragment: stop
+ * without consuming it so the Python driver re-feeds it in the next block.
+ */
 int evutils_read_csv(
     const char *buffer, size_t buffer_len,
     char delimiter,
@@ -14,97 +31,100 @@ int evutils_read_csv(
     size_t *events_parsed
 ) {
     const char *cursor = buffer;
-    const char *end = buffer + buffer_len;
-    size_t count = 0;
+    const char *buffer_end = buffer + buffer_len;
+    size_t n_parsed = 0;
 
-    /* Single pass: parse each field in place and detect the newline inline,
-     * so every byte is read once (the old code pre-scanned the whole line to
-     * find its end, then re-scanned each field). A line without a terminating
-     * newline before `end` is a chunk-boundary fragment: stop without consuming
-     * it, so the Python driver re-feeds it with the next block. */
-    while (cursor < end && count < max_events) {
+    while (cursor < buffer_end && n_parsed < max_events) {
         /* Skip blank lines (bare CR/LF). */
         if (*cursor == '\n' || *cursor == '\r') {
             cursor++;
             continue;
         }
 
-        const char *p = cursor;
-        int col_idx = 0;
-        int saw_newline = 0;
+        const char *line_end =
+            (const char *)memchr(cursor, '\n', (size_t)(buffer_end - cursor));
+        if (line_end == NULL) {
+            break;  /* fragment: no complete line in this block */
+        }
 
-        while (p < end) {
-            int target_idx = (col_idx < max_csv_cols) ? col_mapping[col_idx] : -1;
+        const char *scan = cursor;
+        int csv_col = 0;
+        while (scan < line_end) {
+            int dest_col = (csv_col < max_csv_cols) ? col_mapping[csv_col] : -1;
 
-            if (target_idx != -1) {
-                /* Parse a (possibly signed) integer starting at p. */
-                int64_t val = 0;
-                int neg = 0;
-                while (p < end && (*p == ' ' || *p == '\t')) p++;
-                if (p < end && *p == '-') { neg = 1; p++; }
-                else if (p < end && *p == '+') { p++; }
-                while (p < end && *p >= '0' && *p <= '9') {
-                    val = val * 10 + (*p - '0');
-                    p++;
+            if (dest_col != -1) {
+                while (*scan == ' ' || *scan == '\t') scan++;  /* bounded by line_end */
+
+                int negative = 0;
+                if (*scan == '-') { negative = 1; scan++; }
+                else if (*scan == '+') { scan++; }
+
+                /* One comparison per digit: (unsigned char)(c - '0') <= 9 is
+                 * false for every non-digit -- including the delimiter and
+                 * CR/LF -- so the loop terminates without a separate bounds
+                 * test. */
+                int64_t value = 0;
+                unsigned digit;
+                while ((digit = (unsigned char)*scan - '0') <= 9u) {
+                    value = value * 10 + (int64_t)digit;
+                    scan++;
                 }
-                if (neg) val = -val;
+                if (negative) value = -value;
 
-                int type = array_types[target_idx];
-                void *col = out_arrays[target_idx];
-                if (type == 2) {
-                    ((uint16_t*)col)[count] = (uint16_t)val;
-                } else if (type == 8) {
-                    ((int64_t*)col)[count] = val;
-                } else if (type == 1) {
-                    ((uint8_t*)col)[count] = (uint8_t)val;
+                void *dest = out_arrays[dest_col];
+                switch (array_types[dest_col]) {
+                    case 2: ((uint16_t *)dest)[n_parsed] = (uint16_t)value; break;
+                    case 8: ((int64_t  *)dest)[n_parsed] = value;           break;
+                    case 1: ((uint8_t  *)dest)[n_parsed] = (uint8_t)value;  break;
+                    default: break;
                 }
             }
 
-            /* Advance to the next delimiter or line end. */
-            while (p < end && *p != delimiter && *p != '\n' && *p != '\r') p++;
-            col_idx++;
-
-            if (p < end && *p == delimiter) { p++; continue; }
-            if (p < end && (*p == '\n' || *p == '\r')) saw_newline = 1;
+            /* Advance to the next delimiter within the line (usually already
+             * there for clean integer fields, so this rarely steps). */
+            while (scan < line_end && *scan != delimiter) scan++;
+            csv_col++;
+            if (scan < line_end && *scan == delimiter) { scan++; continue; }
             break;
         }
 
-        if (!saw_newline) break;  /* fragment at the chunk boundary: re-feed */
-
-        while (p < end && (*p == '\n' || *p == '\r')) p++;  /* consume EOL (\r\n) */
-        cursor = p;
-        count++;
+        cursor = line_end + 1;  /* past the '\n'; a trailing '\r' sits before it */
+        n_parsed++;
     }
 
-    *bytes_consumed = cursor - buffer;
-    *events_parsed = count;
+    *bytes_consumed = (size_t)(cursor - buffer);
+    *events_parsed = n_parsed;
     return 0;
 }
 
 
-static inline char* itoa_positive(uint64_t val, char *buf) {
-    char *p = buf + 20;
-    *p = '\0';
-    if (val == 0) {
-        *--p = '0';
-        return p;
+/* Write `value` as decimal into the tail of `buf` (>= 21 bytes) and return a
+ * pointer to the first digit. Writing right-to-left avoids a reversal step. */
+static inline char *format_uint(uint64_t value, char *buf) {
+    char *digits = buf + 20;
+    *digits = '\0';
+    if (value == 0) {
+        *--digits = '0';
+        return digits;
     }
-    while (val > 0) {
-        *--p = '0' + (val % 10);
-        val /= 10;
+    while (value > 0) {
+        *--digits = (char)('0' + (value % 10));
+        value /= 10;
     }
-    return p;
+    return digits;
 }
 
-static inline char* itoa_signed(int64_t val, char *buf) {
-    if (val < 0) {
-        char *p = itoa_positive((uint64_t)(-val), buf);
-        *--p = '-';
-        return p;
+static inline char *format_int(int64_t value, char *buf) {
+    if (value < 0) {
+        char *digits = format_uint((uint64_t)(-value), buf);
+        *--digits = '-';
+        return digits;
     }
-    return itoa_positive((uint64_t)val, buf);
+    return format_uint((uint64_t)value, buf);
 }
 
+/* Serialise the per-column integer arrays into delimited text rows. Mirrors the
+ * reader's column layout (array_types[c] is the element width of column c). */
 int evutils_write_csv(
     void **in_arrays,
     int *array_types,
@@ -116,42 +136,36 @@ int evutils_write_csv(
     size_t *bytes_written,
     size_t *events_written
 ) {
-    size_t buf_pos = 0;
-    char num_buf[24];
-    size_t i = 0;
-    
-    for (; i < num_events; i++) {
-        size_t max_req_len = (size_t)(num_columns * 22);
-        if (buf_pos + max_req_len > out_buffer_len) {
+    size_t out_pos = 0;
+    char digit_buf[24];
+    size_t event_index = 0;
+
+    for (; event_index < num_events; event_index++) {
+        /* Bail before the row if it might not fit (each column <= 21 chars + a
+         * separator). */
+        size_t max_row_len = (size_t)(num_columns * 22);
+        if (out_pos + max_row_len > out_buffer_len) {
             break;
         }
-        
-        for (int c = 0; c < num_columns; c++) {
-            int type = array_types[c];
-            char *s;
-            if (type == 1) {
-                s = itoa_positive(((uint8_t*)in_arrays[c])[i], num_buf);
-            } else if (type == 2) {
-                s = itoa_positive(((uint16_t*)in_arrays[c])[i], num_buf);
-            } else if (type == 8) {
-                s = itoa_signed(((int64_t*)in_arrays[c])[i], num_buf);
-            } else {
-                s = "0";
+
+        for (int col = 0; col < num_columns; col++) {
+            char *digits;
+            switch (array_types[col]) {
+                case 1: digits = format_uint(((uint8_t  *)in_arrays[col])[event_index], digit_buf); break;
+                case 2: digits = format_uint(((uint16_t *)in_arrays[col])[event_index], digit_buf); break;
+                case 8: digits = format_int(((int64_t   *)in_arrays[col])[event_index], digit_buf); break;
+                default: digits = (char *)"0"; break;
             }
-            
-            size_t len = num_buf + 20 - s;
-            memcpy(out_buffer + buf_pos, s, len);
-            buf_pos += len;
-            
-            if (c == num_columns - 1) {
-                out_buffer[buf_pos++] = '\n';
-            } else {
-                out_buffer[buf_pos++] = delimiter;
-            }
+
+            size_t digit_len = (size_t)(digit_buf + 20 - digits);
+            memcpy(out_buffer + out_pos, digits, digit_len);
+            out_pos += digit_len;
+
+            out_buffer[out_pos++] = (col == num_columns - 1) ? '\n' : delimiter;
         }
     }
-    
-    *bytes_written = buf_pos;
-    *events_written = i;
+
+    *bytes_written = out_pos;
+    *events_written = event_index;
     return 0;
 }
