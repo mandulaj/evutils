@@ -20,7 +20,7 @@ from typing import Any, cast
 
 from evutils.io import EventReader
 
-sys.path.append(str(Path(__file__).parent.parent / "tests"))
+sys.path.append(str(Path(__file__).parent.parent.parent / "tests"))
 from conftest_utils import (  # type: ignore
     fetch_real_event_files_for,
     load_event_files,
@@ -97,6 +97,57 @@ def dataset_size(request: Any) -> str:
     return str(request.config.getoption("--dataset"))
 
 
+@pytest.hookimpl(trylast=True)
+def pytest_terminal_summary(terminalreporter: Any, exitstatus: int, config: Any) -> None:
+    """Append a throughput table (M events/s) to the benchmark output.
+
+    pytest-benchmark reports wall-clock time, which is only comparable across
+    benchmarks that process the *same* number of events. Every benchmark here
+    instead records the event count it handled (``extra_info["n_events"]``), so
+    the scale-invariant metric is throughput = events / time: it stays directly
+    comparable across recordings of wildly different sizes (33 M vs 2.3 B
+    events) and across formats/libraries. Both reads and writes count events,
+    so both get a rate. ``peak`` uses the fastest round (min time, matching
+    pytest-benchmark's headline); ``mean`` uses the mean round.
+    """
+    session = getattr(config, "_benchmarksession", None)
+    if session is None or not getattr(session, "benchmarks", None):
+        return
+
+    rows = []
+    for bench in session.benchmarks:
+        # A benchmark that was skipped (or registered but never run) has no
+        # timing samples; as_dict() would raise on min([]). Skip those.
+        stats_obj = getattr(bench, "stats", None)
+        if stats_obj is None or not getattr(stats_obj, "data", None):
+            continue
+        d = bench.as_dict()
+        extra = d.get("extra_info") or {}
+        stats = d.get("stats") or {}
+        n = extra.get("n_events")
+        mean = stats.get("mean")
+        best = stats.get("min")
+        if not n or not mean or not best:
+            continue
+        rows.append((
+            d.get("group") or "",
+            extra.get("library") or d.get("name", ""),
+            int(n),
+            n / best / 1e6,   # peak throughput (fastest round)
+            n / mean / 1e6,   # mean throughput
+        ))
+    if not rows:
+        return
+
+    rows.sort(key=lambda r: (r[0], -r[3]))  # group, then peak desc
+    tw = terminalreporter
+    tw.write_line("")
+    tw.write_line("----------- Throughput: M events/s (higher is better) -----------")
+    tw.write_line(f"{'group':17s} {'library':24s} {'events':>13s} {'peak':>8s} {'mean':>8s}")
+    for group, lib, n, peak, mean_tp in rows:
+        tw.write_line(f"{group:17s} {lib:24s} {n:>13,d} {peak:>8.1f} {mean_tp:>8.1f}")
+
+
 @pytest.hookimpl(hookwrapper=True)
 def pytest_benchmark_group_stats(config: Any, benchmarks: list[dict[str, Any]], group_by: str) -> Any:
     """Guard against a pytest-benchmark crash with ``--benchmark-group-by=param:<name>``.
@@ -128,7 +179,7 @@ def uniform_files(reference_events: Any, tmp_path_factory: Any) -> dict[str, Any
     """
     from evutils.io import EventWriter
 
-    sys.path.append(str(Path(__file__).parent.parent / "tests"))
+    sys.path.append(str(Path(__file__).parent.parent.parent / "tests"))
     from aedat_synth import make_aedat4  # type: ignore
 
     d = tmp_path_factory.mktemp("uniform")

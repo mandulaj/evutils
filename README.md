@@ -153,14 +153,14 @@ uv run pytest --doctest-modules src/evutils --ignore=src/evutils/vis/reconstruct
 
 ## [Benchmarks](benchmarks/README.md)
 
-Read/write throughput benchmarks (using [pytest-benchmark](https://pytest-benchmark.readthedocs.io)) live in `benchmarks/` and are kept out of the normal test run. Run them explicitly:
+In-RAM read/write **throughput** benchmarks live in `benchmarks/throughput.py` and are kept out of the normal test run. They report M events/s as two matrices (format × library). Run explicitly:
 
 ```bash
-uv run pytest benchmarks/                                   # evutils only
-uv run pytest benchmarks/ --benchmark-group-by=param:fmt    # compare libraries per format
+uv run python benchmarks/throughput.py                        # evutils + installed peers
+uv run python benchmarks/throughput.py --dataset small --events 2_000_000   # quick smoke
 ```
 
-The benchmarks download a real Prophesee recording on first use. Optional cross-library comparisons run automatically once the libraries are installed (`uv pip install -e ".[compare]"`); OpenEB/Metavision is compared via the Docker image in `benchmarks/docker/`. See [`benchmarks/README.md`](benchmarks/README.md) for details.
+The benchmark downloads a real Prophesee recording on first use, decodes a capped in-RAM payload, and measures every format on a RAM disk (`/dev/shm`). Optional cross-library comparisons (expelliarmus, evlib, evt3) light up automatically once installed (`uv pip install -e ".[compare]"`); OpenEB/Metavision is compared via the Docker image in `benchmarks/docker/`. See [`benchmarks/README.md`](benchmarks/README.md) for details.
 
 
 

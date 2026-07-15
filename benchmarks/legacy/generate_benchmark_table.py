@@ -31,29 +31,44 @@ def main():
     read_formats = set()
     write_formats = set()
 
+    def throughput(bench):
+        """M events/s = events processed / mean time. Scale-invariant, so it is
+        comparable across recordings of very different sizes (unlike raw time)."""
+        n = (bench.get("extra_info") or {}).get("n_events")
+        mean = bench["stats"]["mean"]
+        if not n or not mean:
+            return None
+        return n / mean / 1e6
+
     for bench in data.get("benchmarks", []):
         name = bench["name"]
-        
-        # Parse read benchmarks
+        tp = throughput(bench)
+        if tp is None:
+            continue
+
+        # Parse read benchmarks. The param is "<mode-or-lib>-<fmt>"; the format
+        # is always the last "-"-segment (reader names themselves contain
+        # hyphens, e.g. "expelliarmus-chunked"), so split from the right.
         if name.startswith("test_read_evutils["):
-            fmt = name.split("[")[1].split("]")[0]
-            read_results["evutils"][fmt] = bench["stats"]["mean"]
+            param = name.split("[")[1].split("]")[0]
+            mode, fmt = param.rsplit("-", 1)   # e.g. "read_all-evt3"
+            read_results[f"evutils-{mode}"][fmt] = tp
             read_formats.add(fmt)
         elif name.startswith("test_read_compare["):
             param = name.split("[")[1].split("]")[0]
             if "-" in param:
-                lib, fmt = param.split("-")
-                read_results[lib][fmt] = bench["stats"]["mean"]
+                lib, fmt = param.rsplit("-", 1)
+                read_results[lib][fmt] = tp
                 read_formats.add(fmt)
-                
+
         # Parse write benchmarks
         elif name.startswith("test_write_evutils["):
             fmt = name.split("[")[1].split("]")[0]
-            write_results["evutils"][fmt] = bench["stats"]["mean"]
+            write_results["evutils"][fmt] = tp
             write_formats.add(fmt)
         elif name.startswith("test_write_expelliarmus["):
             fmt = name.split("[")[1].split("]")[0]
-            write_results["expelliarmus"][fmt] = bench["stats"]["mean"]
+            write_results["expelliarmus"][fmt] = tp
             write_formats.add(fmt)
             
     def generate_table(results, formats, title):
@@ -65,8 +80,8 @@ def main():
         out += "| Library | " + " | ".join([f"{fmt.upper()}" for fmt in formats]) + " |\n"
         out += "|---|" + "|".join(["---" for _ in formats]) + "|\n"
         
-        # Ensure evutils is always the first row
-        libs = sorted(results.keys(), key=lambda x: (x != "evutils", x))
+        # Ensure evutils rows come first
+        libs = sorted(results.keys(), key=lambda x: (not x.startswith("evutils"), x))
         
         for lib in libs:
             row = f"| **{lib}** | "
@@ -74,15 +89,15 @@ def main():
             for fmt in formats:
                 val = results[lib].get(fmt)
                 if val is not None:
-                    cols.append(f"{val:.3f} s")
+                    cols.append(f"{val:.1f}")
                 else:
                     cols.append("N/A")
             row += " | ".join(cols) + " |\n"
             out += row
-        
+
         return out
-        
-    markdown_output = "## Benchmark Comparison (Mean Time in Seconds)\n\n"
+
+    markdown_output = "## Benchmark Comparison (throughput, M events/s)\n\n"
     markdown_output += generate_table(read_results, read_formats, "Reading") + "\n"
     markdown_output += generate_table(write_results, write_formats, "Writing") + "\n"
     
@@ -95,7 +110,7 @@ def main():
         py_ver = machine_info.get("python_version", "")
         markdown_output += f"**Hardware:** {cpu} | **OS:** {system} {release} | **Python:** {py_ver}\n\n"
         
-    markdown_output += "*Lower is better. Generated dynamically by `scripts/generate_benchmark_table.py`.*\n"
+    markdown_output += "*Throughput in M events/s; higher is better. Generated dynamically by `scripts/generate_benchmark_table.py`.*\n"
 
     print(markdown_output)
     

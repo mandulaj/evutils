@@ -52,5 +52,6 @@ RUN . /openeb/build/utils/scripts/setup_env.sh && \
 # 4. Use an ENTRYPOINT script to ensure OpenEB vars are loaded for ANY command you run
 ENTRYPOINT ["/bin/bash", "-c", "source /openeb/build/utils/scripts/setup_env.sh && exec \"$@\"", "--"]
 
-CMD ["pytest", "benchmarks/", "--benchmark-group-by=param:fmt", \
-     "--benchmark-columns=mean,ops", "-q"]
+CMD ["python", "benchmarks/throughput.py", "--dataset", "normal", \
+     "--libs", "evutils,expelliarmus,evlib,openeb", \
+     "--markdown", "benchmark_matrix.md"]
