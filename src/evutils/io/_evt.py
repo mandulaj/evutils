@@ -354,6 +354,17 @@ class EventDecoder_EVT(EventDecoder):
     def _tail_pad(self) -> int:
         return self._TAIL_PAD if self._format == "evt3" else 0
 
+    @property
+    def _exact_window(self) -> bool:
+        """True when the parser emits exactly one event per record, so it fills
+        an output buffer to precisely its capacity. Only EVT2 qualifies: EVT3,
+        EVT2.1 *and EVT4* all expand vector groups (a single word can emit up to
+        32 events and the parser stops a few short of capacity), so they cannot
+        use EventReader's zero-copy n_events fast path. Note EVT4's encoder only
+        writes scalar CD, but the decoder must stay correct for vectorised EVT4
+        input too."""
+        return self._format == "evt2"
+
     def parse_step(self, events: EventSoABuffers, triggers: TriggerSoABuffers) -> int:
         """Run the parser once, appending decoded events into ``events``.
 

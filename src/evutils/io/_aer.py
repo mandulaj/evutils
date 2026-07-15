@@ -69,6 +69,11 @@ class EventDecoder_AER(EventDecoder):
 
     """
 
+    #: AER is exactly one event per uint32 word, so the parser fills an output
+    #: buffer to precisely its capacity -> eligible for EventReader's zero-copy
+    #: n_events fast path (via parse_step).
+    _exact_window = True
+
     def __init__(self, source: ByteSource, chunk_size: int = 1_000_000,
                  timestamps: 'str | np.ndarray' = "zero",
                  t_start: int = 0, t_step: int = 1):

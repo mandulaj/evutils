@@ -69,12 +69,14 @@ def test_accumulator_rotate_after_full_consume():
     assert acc.t_window().tolist() == list(range(100, 108))
 
 
-def test_accumulator_overflow_raises():
-    """Appending more than the total capacity (even after a rotate) errors."""
+def test_accumulator_grows_past_capacity():
+    """Appending more than the current capacity grows the buffer (rather than
+    erroring) so oversized windows and drain-to-EOF reads always fit."""
     acc = EventAccumulator(capacity=5)
     acc.append(ev(range(4)))
-    with pytest.raises(ValueError, match="full"):
-        acc.append(ev(range(4)))
+    acc.append(ev(range(4)))          # 8 > capacity 5 -> grow, no error
+    assert len(acc) == 8
+    assert acc.t_window().tolist() == [0, 1, 2, 3, 0, 1, 2, 3]
 
 
 def test_accumulator_trigger_buffer_grows():
