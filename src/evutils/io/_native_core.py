@@ -221,7 +221,19 @@ def decode_all_soa(words: Any, start_offset: int, make_input: Any, parser: Any, 
     tr = TriggerSoABuffers(max(trigger_cap, 1))
     offset = start_offset
     while offset < n_words:
-        if ev.capacity - ev.size < 128: ev.grow(int(ev.capacity * 1.5) + (1 << 16))
+        if ev.capacity - ev.size < 128:
+            # Extrapolate the true event count from the fraction of input
+            # consumed so far and grow straight to it (+15% slack). A too-low
+            # est_events_per_word therefore self-corrects in a *single* realloc
+            # instead of repeatedly growing by a constant factor -- dense EVT2.1
+            # vector streams emit up to 32 events per 64-bit word, which the old
+            # 1.5x-per-grow schedule reached only after ~7 full-buffer copies.
+            consumed_frac = (offset - start_offset) / remaining
+            if consumed_frac > 0.02:
+                projected = int(ev.size / consumed_frac * 1.15) + (1 << 16)
+            else:
+                projected = ev.capacity * 2 + (1 << 16)
+            ev.grow(max(projected, ev.capacity + (1 << 16)))
         if tr.capacity - tr.size < 64: tr.grow(tr.capacity * 2 + 64)
         inp = make_input(words[offset:])
         res = parser.parse_chunk_soa(inp, ev, tr)
