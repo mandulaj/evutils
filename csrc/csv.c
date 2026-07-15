@@ -2,36 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-static inline int64_t parse_int(const char **cursor, char delimiter) {
-    int64_t val = 0;
-    int sign = 1;
-    const char *c = *cursor;
-    
-    while (*c == ' ' || *c == '\t') c++;
-    
-    if (*c == '-') {
-        sign = -1;
-        c++;
-    } else if (*c == '+') {
-        c++;
-    }
-    
-    while (*c >= '0' && *c <= '9') {
-        val = val * 10 + (*c - '0');
-        c++;
-    }
-    
-    while (*c != delimiter && *c != '\n' && *c != '\r' && *c != '\0') c++;
-    if (*c == delimiter) c++;
-    
-    *cursor = c;
-    return val * sign;
-}
-
 int evutils_read_csv(
-    const char *buffer, size_t buffer_len, 
+    const char *buffer, size_t buffer_len,
     char delimiter,
-    void **out_arrays, 
+    void **out_arrays,
     int *array_types,
     int *col_mapping,
     int max_csv_cols,
@@ -42,47 +16,66 @@ int evutils_read_csv(
     const char *cursor = buffer;
     const char *end = buffer + buffer_len;
     size_t count = 0;
-    
+
+    /* Single pass: parse each field in place and detect the newline inline,
+     * so every byte is read once (the old code pre-scanned the whole line to
+     * find its end, then re-scanned each field). A line without a terminating
+     * newline before `end` is a chunk-boundary fragment: stop without consuming
+     * it, so the Python driver re-feeds it with the next block. */
     while (cursor < end && count < max_events) {
-        const char *line_end = cursor;
-        while (line_end < end && *line_end != '\n') line_end++;
-        
-        if (line_end == end) { 
-            break; 
-        }
-        
+        /* Skip blank lines (bare CR/LF). */
         if (*cursor == '\n' || *cursor == '\r') {
             cursor++;
-            if (cursor < end && *cursor == '\n') cursor++;
             continue;
         }
-        
-        const char *line_cursor = cursor;
+
+        const char *p = cursor;
         int col_idx = 0;
-        
-        while (line_cursor < line_end && col_idx < max_csv_cols) {
-            int target_idx = col_mapping[col_idx];
-            if (target_idx == -1) {
-                while (line_cursor < line_end && *line_cursor != delimiter) line_cursor++;
-                if (line_cursor < line_end && *line_cursor == delimiter) line_cursor++;
-            } else {
-                int64_t val = parse_int(&line_cursor, delimiter);
+        int saw_newline = 0;
+
+        while (p < end) {
+            int target_idx = (col_idx < max_csv_cols) ? col_mapping[col_idx] : -1;
+
+            if (target_idx != -1) {
+                /* Parse a (possibly signed) integer starting at p. */
+                int64_t val = 0;
+                int neg = 0;
+                while (p < end && (*p == ' ' || *p == '\t')) p++;
+                if (p < end && *p == '-') { neg = 1; p++; }
+                else if (p < end && *p == '+') { p++; }
+                while (p < end && *p >= '0' && *p <= '9') {
+                    val = val * 10 + (*p - '0');
+                    p++;
+                }
+                if (neg) val = -val;
+
                 int type = array_types[target_idx];
-                if (type == 1) {
-                    ((uint8_t*)out_arrays[target_idx])[count] = (uint8_t)val;
-                } else if (type == 2) {
-                    ((uint16_t*)out_arrays[target_idx])[count] = (uint16_t)val;
+                void *col = out_arrays[target_idx];
+                if (type == 2) {
+                    ((uint16_t*)col)[count] = (uint16_t)val;
                 } else if (type == 8) {
-                    ((int64_t*)out_arrays[target_idx])[count] = val;
+                    ((int64_t*)col)[count] = val;
+                } else if (type == 1) {
+                    ((uint8_t*)col)[count] = (uint8_t)val;
                 }
             }
+
+            /* Advance to the next delimiter or line end. */
+            while (p < end && *p != delimiter && *p != '\n' && *p != '\r') p++;
             col_idx++;
+
+            if (p < end && *p == delimiter) { p++; continue; }
+            if (p < end && (*p == '\n' || *p == '\r')) saw_newline = 1;
+            break;
         }
-        
-        cursor = line_end + 1;
+
+        if (!saw_newline) break;  /* fragment at the chunk boundary: re-feed */
+
+        while (p < end && (*p == '\n' || *p == '\r')) p++;  /* consume EOL (\r\n) */
+        cursor = p;
         count++;
     }
-    
+
     *bytes_consumed = cursor - buffer;
     *events_parsed = count;
     return 0;
