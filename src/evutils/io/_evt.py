@@ -418,9 +418,12 @@ class EventDecoder_EVT(EventDecoder):
         return ev_view
 
     # Initial output-capacity estimate (events per input word) for the
-    # single-buffer read_all() path. EVT2 is an exact upper bound (<=1 event per
-    # 32-bit word); EVT3/EVT2.1 vary with vector density, so decode_all_soa grows
-    # the buffer if the estimate is too small.
+    # single-buffer read_all() path. EVT2/EVT4 are exact upper bounds (<=1 event
+    # per 32-bit word); EVT3/EVT2.1 vary with vector density. The estimate only
+    # needs to be a rough ballpark: if it is too small decode_all_soa grows the
+    # buffer once, extrapolating the true count from the fraction of input
+    # consumed so far (no repeated reallocation even for dense EVT2.1 vector
+    # streams, which reach ~14+ events per word).
     _READ_ALL_EST = {"evt3": 1.0, "evt2": 1.0, "evt21": 1.5, "evt4": 1.0}
 
     def read_all(self) -> 'EventArray | tuple[EventArray, TriggerArray]':

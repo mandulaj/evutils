@@ -13,7 +13,11 @@ class EventStreamer:
         if decoder_cls is None:
             decoder_cls = resolve_decoder_cls(self.source)
         
-        self.decoder = decoder_cls(self.source, read_external_triggers=ext_trigger, **kwargs)
+        # Set the flag as an attribute after construction (as EventReader does)
+        # rather than forcing it through every decoder's __init__: several
+        # decoders (DAT/NPZ/HDF5/CSV) don't accept it as a constructor kwarg.
+        self.decoder = decoder_cls(self.source, **kwargs)
+        self.decoder.read_external_triggers = ext_trigger
         self.ext_trigger = ext_trigger
 
     def __iter__(self) -> Iterator[Any]:
