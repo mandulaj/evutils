@@ -147,6 +147,18 @@ class EventDecoder_EVT(EventDecoder):
     _TAIL_PAD = 8  # >= parser look-ahead padding (EVT3_INPUT_PADDING)
     SUPPORTS_EXT_TRIGGERS = True
 
+    # Per-format TIME_HIGH record descriptor: (type-field right-shift, type code).
+    # Used to skip leading records until the first TIME_HIGH establishes a valid
+    # time base -- events before it carry an undefined timestamp (a stream sliced
+    # after capture start begins mid-group). Matches OpenEB / the reference
+    # decoders, which drop those events.
+    _TIME_HIGH_TYPE = {
+        "evt3":  (12, 0x8),   # 16-bit words, type in bits 12..15
+        "evt2":  (28, 0x8),   # 32-bit words, type in bits 28..31
+        "evt21": (28, 0x8),
+        "evt4":  (28, 0xE),   # EVT4 TIME_HIGH code differs (0xE)
+    }
+
     def __init__(self, source: ByteSource, chunk_size: int = 1_000_000, read_external_triggers: bool = False):
         super().__init__(source, chunk_size, read_external_triggers=read_external_triggers)
 
@@ -172,6 +184,7 @@ class EventDecoder_EVT(EventDecoder):
         self._payload_off: int = 0       # byte offset where the binary payload starts
         self._words: Any = None          # uint16 view of the whole payload
         self._offset: int = 0            # current word offset into _words
+        self._start_offset: int = 0      # word offset of the first TIME_HIGH
         self._parser: Any = None
 
 
@@ -343,12 +356,46 @@ class EventDecoder_EVT(EventDecoder):
         else:
             self._words = np.empty(0, dtype=word_dtype)
 
-        self._offset = 0
+        self._start_offset = self._find_first_time_high()
+        self._offset = self._start_offset
         self._parser = parser_cls()
         cap = int(self._chunk_size)
         self._events = EventSoABuffers(cap)
         self._triggers = TriggerSoABuffers(max(cap // 16, 1))
         self._is_initialized = True
+
+    def _find_first_time_high(self) -> int:
+        """Word offset of the first TIME_HIGH record in the payload.
+
+        Records before the first TIME_HIGH have no established time base (their
+        timestamp would decode to 0), which happens when a stream is sliced
+        after capture start and begins mid-group. The reference decoders drop
+        those records; starting decode at the first TIME_HIGH does the same
+        while keeping the raw, absolute timestamps that follow.
+
+        Scans in exponentially growing blocks -- the first TIME_HIGH is almost
+        always within the first few thousand words, so the whole payload is
+        rarely touched. Returns 0 if the format has no TIME_HIGH descriptor or
+        none is found (leave the stream untouched).
+        """
+        desc = self._TIME_HIGH_TYPE.get(self._format or "")
+        if desc is None or self._words is None:
+            return 0
+        shift, code = desc
+        words = self._words
+        n = len(words)
+        start = 0
+        block = 1 << 16
+        while start < n:
+            stop = min(start + block, n)
+            seg = words[start:stop]
+            hits = ((seg >> shift) & 0xF) == code
+            idx = int(np.argmax(hits))
+            if hits[idx]:
+                return start + idx
+            start = stop
+            block = min(block * 4, 1 << 24)
+        return 0
 
     @property
     def _tail_pad(self) -> int:
@@ -474,7 +521,7 @@ class EventDecoder_EVT(EventDecoder):
         None
 
         """
-        self._offset = 0
+        self._offset = self._start_offset
         self._eof = False
         if self._parser is not None:
             self._parser.reset()
