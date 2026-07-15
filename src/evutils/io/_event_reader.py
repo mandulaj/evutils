@@ -59,6 +59,12 @@ class EventReader():
         saturates memory bandwidth. Affects iteration only; ``read()`` /
         ``read_all()`` stay synchronous and raise while an asynchronous
         iterator is active.
+    prefetch_depth: int or None, default=None
+        How many decoded windows the ``async_read`` worker may buffer ahead of
+        the consumer (default 2 when ``None``). Deeper queues cost memory
+        (depth x window size) but ride out I/O stalls: for real-time playback
+        from a cold file, a depth of ~6 absorbs multi-window disk page-fault
+        hitches that a depth of 2 cannot. Ignored without ``async_read``.
     real_time: bool, default=False
         Pace :meth:`read` and iteration to the recording's own timeline: each
         chunk is released only once the wall-clock time since the first chunk
@@ -124,6 +130,7 @@ class EventReader():
                  width:int | None=None, height:int | None=None,
                  ext_trigger: bool=False,
                  async_read: bool=False,
+                 prefetch_depth: int | None=None,
                  real_time: bool=False,
                  playback_speed: float=1.0,
                  max_gap: float | None=1.0,
@@ -260,6 +267,9 @@ class EventReader():
         # worker thread (see io/_prefetch.py). The active iterator owns the
         # decoder until it is exhausted or closed.
         self._async_read = async_read
+        if prefetch_depth is not None and prefetch_depth < 1:
+            raise ValueError("prefetch_depth must be >= 1")
+        self._prefetch_depth = prefetch_depth
         self._active_prefetch: PrefetchIterator | None = None
 
         # Real-time playback: chunks are released against an absolute
@@ -737,9 +747,13 @@ class EventReader():
         it: Any
         if self._async_read:
             self._check_no_active_prefetch()
+            kwargs: dict[str, Any] = {}
+            if self._prefetch_depth is not None:
+                kwargs["depth"] = self._prefetch_depth
             it = PrefetchIterator(
                 self._iter_sync(),
                 on_finish=lambda: setattr(self, "_active_prefetch", None),
+                **kwargs,
             )
             self._active_prefetch = it
         else:
