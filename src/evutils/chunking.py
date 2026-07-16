@@ -166,7 +166,9 @@ def stream_delta_t(raw_stream: Iterator[Any], delta_t: int) -> Iterator[Any]:
     """
     if delta_t <= 0:
         raise ValueError("delta_t must be positive")
-    acc = EventAccumulator(capacity=100_000_000)
+    # Start small: the accumulator grows geometrically on demand, so a large
+    # up-front capacity only page-faults ~GBs of memory for nothing.
+    acc = EventAccumulator(capacity=1_000_000)
     current_ts = None
     has_triggers = False  # set from the stream's items: tuple => (events, triggers)
 

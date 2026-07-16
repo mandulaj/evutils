@@ -274,6 +274,17 @@ class EventDecoder_EVT(EventDecoder):
         if self._format is None:
             self._format = "evt3"  # sensible default for Prophesee RAW
 
+        # EVT2.1 exists in two word layouts: "legacy" (two swapped 32-bit
+        # halves, what the parser implements) and native little-endian 64-bit.
+        # A non-legacy file would decode silently into garbage -- refuse it.
+        if self._format == "evt21":
+            endianness = str(self._header.get("endianness", "legacy")).lower()
+            if endianness != "legacy":
+                raise NotImplementedError(
+                    f"EVT2.1 with '% endianness {endianness}' is not supported "
+                    f"(only the 'legacy' swapped-halves layout is implemented)"
+                )
+
         # Geometry not stated explicitly (older EVT2 RAWs): infer it from the
         # sensor identity, the way the Metavision SDK does.
         if self._width is None or self._height is None:

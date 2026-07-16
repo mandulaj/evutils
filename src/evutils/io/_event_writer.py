@@ -80,6 +80,7 @@ class EventWriter():
         self._height = height
         self._n_written_events = 0
         self._is_initialized = False
+        self._warned_triggers = False  # warn once about unsupported triggers
         self._dt = dt if dt is not None else datetime.now()
 
     def _open_file(self, file_name: Path) -> io.BufferedIOBase:
@@ -109,7 +110,7 @@ class EventWriter():
         self._is_initialized = True
 
     def write(self, events: np.ndarray, triggers: np.ndarray | None = None) -> int:
-        """Write a buffer of events to the file.
+        """Write a buffer of events (and optionally external triggers) to the file.
 
         Parameters
         ----------
@@ -117,9 +118,11 @@ class EventWriter():
             Buffer of events to write (structured array or EventArray)
         triggers
             Buffer of triggers to write (structured array or TriggerArray). Optional.
+            Interleaved with the events by timestamp for formats that carry
+            triggers in-stream (EVT); ignored (with a warning from the encoder)
+            by formats that cannot represent them. To write a trigger-only
+            batch, pass ``EventArray.empty()`` as ``events``.
 
-        TODO: Add support for writing triggers to the file (currently only events are written)
-            
         Returns
         -------
         int
@@ -135,35 +138,19 @@ class EventWriter():
         >>> writer.close() # doctest: +SKIP
 
         """
-        n_written = self._file_encoder.write(events)
+        if (triggers is not None and len(triggers) > 0
+                and not getattr(self._file_encoder, "SUPPORTS_WRITE_TRIGGERS", False)
+                and not self._warned_triggers):
+            import warnings
+            warnings.warn(
+                f"{self._file_encoder.__class__.__name__} does not support "
+                f"writing external triggers; they will NOT be stored.",
+                stacklevel=2,
+            )
+            self._warned_triggers = True
+        n_written = self._file_encoder.write(events, triggers=triggers)
         self._n_written_events += n_written
         return n_written
-
-    def write_external_triggers(self, triggers: np.ndarray) -> int:
-        """Write external triggers to the file.
-
-        Parameters
-        ----------
-        triggers : np.ndarray
-            Buffer of triggers to write (structured array or TriggerArray).
-
-        Returns
-        -------
-        int
-            Number of triggers written.
-
-        Examples
-        --------
-        >>> from evutils.types import TriggerArray
-        >>> triggers = TriggerArray(t=[1000, 2000], p=[1, 0], id=[0, 0])
-        >>> writer = EventWriter("events.raw") # doctest: +SKIP
-        >>> writer.write_external_triggers(triggers) # doctest: +SKIP
-        >>> writer.close() # doctest: +SKIP
-
-        """
-        from ..types import EventArray
-        self._file_encoder.write(EventArray.empty(), triggers=triggers)
-        return len(triggers)
 
     def flush(self) -> None:
         """Flush the buffer to the file."""

@@ -255,6 +255,11 @@ class EventEncoder(ABC):
 
     """
 
+    #: Whether this encoder can write external triggers. No encoder implements
+    #: trigger encoding yet; EventWriter warns (once) when triggers are passed
+    #: to an encoder without support, instead of dropping them silently.
+    SUPPORTS_WRITE_TRIGGERS = False
+
     def __init__(self, writable: io.BufferedIOBase, width:int = 1280, height:int = 720, dt:Optional[datetime]=None ):
         """Initialize the encoder.
 
