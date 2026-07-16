@@ -80,7 +80,7 @@ Module Contents
    :rtype: bool
 
 
-.. py:class:: EventArray(t: Any, x: Any, y: Any, p: Any)
+.. py:class:: EventArray(t: Any, x: Any, y: Any, p: Any, metadata: dict | None = None)
 
    Bases: :py:obj:`SoaArray`
 
@@ -136,7 +136,20 @@ Module Contents
    .. py:attribute:: p
 
 
-.. py:class:: TriggerArray(t: Any, p: Any, id: Any)
+   .. py:attribute:: metadata
+      :value: None
+
+
+      Optional lightweight, per-array metadata (e.g. ``sensor_size``).
+
+      Defaults to ``None`` and is never part of the AoS/NumPy view. It is
+      carried through slicing and :meth:`copy` (shallow), so a sensor size
+      stamped on read survives most event processing. Transforms that change
+      the meaning of a field (e.g. spatial cropping) are responsible for
+      updating it.
+
+
+.. py:class:: TriggerArray(t: Any, p: Any, id: Any, metadata: dict | None = None)
 
    Bases: :py:obj:`SoaArray`
 
@@ -170,5 +183,18 @@ Module Contents
 
 
    .. py:attribute:: id
+
+
+   .. py:attribute:: metadata
+      :value: None
+
+
+      Optional lightweight, per-array metadata (e.g. ``sensor_size``).
+
+      Defaults to ``None`` and is never part of the AoS/NumPy view. It is
+      carried through slicing and :meth:`copy` (shallow), so a sensor size
+      stamped on read survives most event processing. Transforms that change
+      the meaning of a field (e.g. spatial cropping) are responsible for
+      updating it.
 
 

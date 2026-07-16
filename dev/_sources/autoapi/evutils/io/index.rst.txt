@@ -302,13 +302,17 @@ Package Contents
 
 
 
-.. py:class:: EventWriter(file: pathlib.Path | str | io.BufferedIOBase, width: int = 1280, height: int = 720, dt: datetime.datetime | None = None, file_encoder: evutils.io.encoders.EventEncoder | None = None, **kwargs: Any)
+.. py:class:: EventWriter(file: pathlib.Path | str | io.BufferedIOBase, width: int | None = None, height: int | None = None, dt: datetime.datetime | None = None, file_encoder: evutils.io.encoders.EventEncoder | None = None, **kwargs: Any)
 
    Base class for writing events to different file formats.
 
    :param file: Path to the data file
-   :param width: Width of the frame, by default 1280 (not relevant for some formats)
-   :param height: Height of the frame, by default 720 (not relevant for some formats)
+   :param width: Width of the frame. If None (default), taken from the first written
+                 events' ``sensor_size`` metadata, falling back to 1280 (not relevant
+                 for some formats).
+   :param height: Height of the frame. If None (default), taken from the first written
+                  events' ``sensor_size`` metadata, falling back to 720 (not relevant
+                  for some formats).
    :param dt: Timestamp of the recording (default is the current time, but information is not saved in all formats)
    :param file_encoder: File encoder to use, by default None (chosen from the file extension)
    :param \*\*kwargs: Additional arguments for the file encoder

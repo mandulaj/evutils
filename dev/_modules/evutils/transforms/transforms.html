@@ -487,17 +487,53 @@
   <h1>Source code for evutils.transforms.transforms</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Union</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
 <span class="kn">from</span><span class="w"> </span><span class="nn">evutils.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">SoaArray</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.functional._common</span><span class="w"> </span><span class="kn">import</span> <span class="n">sample_range</span>
+
 
 <div class="viewcode-block" id="Transform">
 <a class="viewcode-back" href="../../../autoapi/evutils/transforms/transforms/index.html#evutils.transforms.Transform">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Transform</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for all evutils transforms.</span>
-<span class="sd">    </span>
-<span class="sd">    Transforms should implement the `_forward_jit` method to allow zero-overhead </span>
+
+<span class="sd">    Transforms should implement the `_forward_jit` method to allow zero-overhead</span>
 <span class="sd">    composition inside a `Compose` pipeline.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#: Sensor size resolved from the input container for the current call, used</span>
+    <span class="c1">#: as a fallback when a transform was constructed without an explicit one.</span>
+    <span class="c1">#: See :meth:`bind_context`.</span>
+    <span class="n">_ctx_sensor_size</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="Transform.bind_context">
+<a class="viewcode-back" href="../../../autoapi/evutils/transforms/transforms/index.html#evutils.transforms.Transform.bind_context">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">bind_context</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">events</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Capture per-call context (currently ``sensor_size``) from ``events``.</span>
+
+<span class="sd">        Called by :meth:`__call__` and by :class:`Compose` before ``_forward_jit``</span>
+<span class="sd">        so a transform can fall back to the container&#39;s ``sensor_size`` metadata</span>
+<span class="sd">        when it was not given one explicitly. Stored transiently, not persisted.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ctx_sensor_size</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="s2">&quot;sensor_size&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_sensor_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the explicit ``sensor_size`` or the one bound from the events.</span>
+
+<span class="sd">        Raises if neither is available.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sensor_size</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sensor_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ctx_sensor_size</span>
+        <span class="k">if</span> <span class="n">ss</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> needs a sensor_size: pass it to the &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;constructor, or attach it to the events &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;(events.sensor_size = (W, H)).&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">ss</span>
+
 <div class="viewcode-block" id="Transform.__call__">
 <a class="viewcode-back" href="../../../autoapi/evutils/transforms/transforms/index.html#evutils.transforms.Transform.__call__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">events</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">SoaArray</span><span class="p">],</span> <span class="n">target</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -507,17 +543,18 @@
             <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">events</span><span class="p">,</span> <span class="n">target</span>
             <span class="k">return</span> <span class="n">events</span>
-            
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bind_context</span><span class="p">(</span><span class="n">events</span><span class="p">)</span>
         <span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="n">unwrap_events</span><span class="p">(</span><span class="n">events</span><span class="p">)</span>
         <span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_forward_jit</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
         <span class="n">events</span> <span class="o">=</span> <span class="n">repack_events</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
-        
+
         <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transform_target</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">events</span><span class="p">,</span> <span class="n">target</span>
         <span class="k">return</span> <span class="n">events</span></div>
 
-        
+
     <span class="k">def</span><span class="w"> </span><span class="nf">_forward_jit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;The pure array-math forward pass, ideally JIT-compiled.&quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Transforms must implement _forward_jit&quot;</span><span class="p">)</span>
@@ -529,29 +566,247 @@
         <span class="k">return</span> <span class="n">target</span></div>
 
 
-<div class="viewcode-block" id="DropRandomEvents">
-<a class="viewcode-back" href="../../../autoapi/evutils/transforms/transforms/index.html#evutils.transforms.DropRandomEvents">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">DropRandomEvents</span><span class="p">(</span><span class="n">Transform</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Drops a percentage of events randomly.</span>
-<span class="sd">    </span>
+
+<div class="viewcode-block" id="DropEvent">
+<a class="viewcode-back" href="../../../autoapi/evutils/transforms/transforms/index.html#evutils.transforms.DropEvent">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DropEvent</span><span class="p">(</span><span class="n">Transform</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Randomly drops each event with probability ``p``.</span>
+
+<span class="sd">    Tonic-compatible replacement for ``DropRandomEvents`` (kept as an alias).</span>
+<span class="sd">    Uses an independent Bernoulli mask per event, so the number dropped is</span>
+<span class="sd">    binomially distributed around ``p * n`` rather than exactly ``p * n``.</span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    drop_rate : float, optional</span>
-<span class="sd">        Percentage of events to drop, by default 0.1 (10%).</span>
+<span class="sd">    p : float or tuple of float, optional</span>
+<span class="sd">        Drop probability in ``[0, 1)``. A ``(lo, hi)`` tuple is sampled uniformly</span>
+<span class="sd">        per call. Defaults to ``0.1``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">drop_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">math</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">drop_rate</span><span class="p">)</span> <span class="ow">or</span> <span class="n">drop_rate</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">drop_rate</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;drop_rate must be between 0 and 1&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">drop_rate</span> <span class="o">=</span> <span class="n">drop_rate</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">math</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="ow">or</span> <span class="n">p</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">p</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;p must be in [0, 1)&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">=</span> <span class="n">p</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_forward_jit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">pol</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">evutils.transforms.functional</span><span class="w"> </span><span class="kn">import</span> <span class="n">_drop_random_events_jit</span>
+        <span class="n">prob</span> <span class="o">=</span> <span class="n">sample_range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">prob</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">pol</span>
+        <span class="k">return</span> <span class="n">_drop_random_events_jit</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">pol</span><span class="p">,</span> <span class="n">prob</span><span class="p">)</span>
+
+<div class="viewcode-block" id="DropEvent.__repr__">
+<a class="viewcode-back" href="../../../autoapi/evutils/transforms/transforms/index.html#evutils.transforms.DropEvent.__repr__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(p=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="si">}</span><span class="s2">)&quot;</span></div>
+</div>
+
+
+
+<span class="c1"># Backwards-compatible alias for the pre-rename class name.</span>
+<span class="n">DropRandomEvents</span> <span class="o">=</span> <span class="n">DropEvent</span>
+
+
+<div class="viewcode-block" id="DropEventByTime">
+<a class="viewcode-back" href="../../../autoapi/evutils/transforms/transforms/index.html#evutils.transforms.DropEventByTime">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DropEventByTime</span><span class="p">(</span><span class="n">Transform</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Drops every event inside one randomly-placed time window.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    duration_ratio : float or tuple of float, optional</span>
+<span class="sd">        Window length as a fraction of the recording span, in ``[0, 1)``. A</span>
+<span class="sd">        ``(lo, hi)`` tuple is sampled uniformly per call. Defaults to ``0.2``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">duration_ratio</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">duration_ratio</span> <span class="o">=</span> <span class="n">duration_ratio</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_forward_jit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">evutils.transforms.functional</span><span class="w"> </span><span class="kn">import</span> <span class="n">_drop_random_events_jit</span>
-        <span class="k">return</span> <span class="n">_drop_random_events_jit</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">drop_rate</span><span class="p">)</span>
-        
-<div class="viewcode-block" id="DropRandomEvents.__repr__">
-<a class="viewcode-back" href="../../../autoapi/evutils/transforms/transforms/index.html#evutils.transforms.DropRandomEvents.__repr__">[docs]</a>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">evutils.transforms.functional</span><span class="w"> </span><span class="kn">import</span> <span class="n">_drop_by_time_jit</span>
+        <span class="n">ratio</span> <span class="o">=</span> <span class="n">sample_range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">duration_ratio</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ratio</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span>
+        <span class="k">return</span> <span class="n">_drop_by_time_jit</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">ratio</span><span class="p">)</span>
+
+<div class="viewcode-block" id="DropEventByTime.__repr__">
+<a class="viewcode-back" href="../../../autoapi/evutils/transforms/transforms/index.html#evutils.transforms.DropEventByTime.__repr__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(drop_rate=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">drop_rate</span><span class="si">}</span><span class="s2">)&quot;</span></div>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(duration_ratio=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">duration_ratio</span><span class="si">}</span><span class="s2">)&quot;</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="RandomFlipLR">
+<a class="viewcode-back" href="../../../autoapi/evutils/transforms/transforms/index.html#evutils.transforms.RandomFlipLR">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RandomFlipLR</span><span class="p">(</span><span class="n">Transform</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Flips events horizontally (``x&#39; = width - 1 - x``) with probability ``p``.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    sensor_size : tuple, optional</span>
+<span class="sd">        ``(W, H)`` (or ``(W, H, P)``) sensor size; only the width ``W`` is used.</span>
+<span class="sd">        If omitted, it is taken from the events&#39; ``sensor_size`` metadata.</span>
+<span class="sd">    p : float, optional</span>
+<span class="sd">        Probability of performing the flip. Defaults to ``0.5``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sensor_size</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">p</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;p must be in [0, 1]&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sensor_size</span> <span class="o">=</span> <span class="n">sensor_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">=</span> <span class="n">p</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_forward_jit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">pol</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">evutils.transforms.functional</span><span class="w"> </span><span class="kn">import</span> <span class="n">_flip_lr_jit</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">:</span>
+            <span class="n">width</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_resolve_sensor_size</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">_flip_lr_jit</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">pol</span><span class="p">,</span> <span class="n">width</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">pol</span>
+
+<div class="viewcode-block" id="RandomFlipLR.__repr__">
+<a class="viewcode-back" href="../../../autoapi/evutils/transforms/transforms/index.html#evutils.transforms.RandomFlipLR.__repr__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(sensor_size=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">sensor_size</span><span class="si">}</span><span class="s2">, p=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="si">}</span><span class="s2">)&quot;</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="SpatialJitter">
+<a class="viewcode-back" href="../../../autoapi/evutils/transforms/transforms/index.html#evutils.transforms.SpatialJitter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SpatialJitter</span><span class="p">(</span><span class="n">Transform</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Adds correlated Gaussian noise to event coordinates.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    sensor_size : tuple, optional</span>
+<span class="sd">        ``(W, H)`` (or ``(W, H, P)``) sensor size, used for clipping. Only needed</span>
+<span class="sd">        when ``clip_outliers`` is True; if omitted, taken from the events&#39;</span>
+<span class="sd">        ``sensor_size`` metadata.</span>
+<span class="sd">    var_x, var_y : float, optional</span>
+<span class="sd">        Variances of the jitter in x and y. Default ``1.0``.</span>
+<span class="sd">    sigma_xy : float, optional</span>
+<span class="sd">        Off-diagonal covariance. Default ``0.0``.</span>
+<span class="sd">    clip_outliers : bool, optional</span>
+<span class="sd">        Drop events jittered outside the sensor. Default ``False``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sensor_size</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">var_x</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">var_y</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+                 <span class="n">sigma_xy</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">clip_outliers</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sensor_size</span> <span class="o">=</span> <span class="n">sensor_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var_x</span> <span class="o">=</span> <span class="n">var_x</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var_y</span> <span class="o">=</span> <span class="n">var_y</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigma_xy</span> <span class="o">=</span> <span class="n">sigma_xy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clip_outliers</span> <span class="o">=</span> <span class="n">clip_outliers</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_forward_jit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">evutils.transforms.functional</span><span class="w"> </span><span class="kn">import</span> <span class="n">_spatial_jitter_jit</span>
+        <span class="c1"># Sensor size is only consulted when clipping; avoid requiring it otherwise.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">clip_outliers</span><span class="p">:</span>
+            <span class="n">ss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_sensor_size</span><span class="p">()</span>
+            <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ss</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">ss</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="n">_spatial_jitter_jit</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var_x</span><span class="p">),</span>
+                                   <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var_y</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sigma_xy</span><span class="p">),</span>
+                                   <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clip_outliers</span><span class="p">))</span>
+
+<div class="viewcode-block" id="SpatialJitter.__repr__">
+<a class="viewcode-back" href="../../../autoapi/evutils/transforms/transforms/index.html#evutils.transforms.SpatialJitter.__repr__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(sensor_size=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">sensor_size</span><span class="si">}</span><span class="s2">, &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;var_x=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">var_x</span><span class="si">}</span><span class="s2">, var_y=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">var_y</span><span class="si">}</span><span class="s2">, sigma_xy=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">sigma_xy</span><span class="si">}</span><span class="s2">, &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;clip_outliers=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">clip_outliers</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="TimeSkew">
+<a class="viewcode-back" href="../../../autoapi/evutils/transforms/transforms/index.html#evutils.transforms.TimeSkew">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TimeSkew</span><span class="p">(</span><span class="n">Transform</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Rescales timestamps by an affine map ``t&#39; = t * coefficient + offset``.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    coefficient : float or tuple of float</span>
+<span class="sd">        Multiplier applied to every timestamp. A ``(lo, hi)`` tuple is sampled</span>
+<span class="sd">        uniformly per call.</span>
+<span class="sd">    offset : float or tuple of float, optional</span>
+<span class="sd">        Added after multiplication. Default ``0``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coefficient</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">],</span>
+                 <span class="n">offset</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coefficient</span> <span class="o">=</span> <span class="n">coefficient</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">offset</span> <span class="o">=</span> <span class="n">offset</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_forward_jit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">evutils.transforms.functional</span><span class="w"> </span><span class="kn">import</span> <span class="n">_time_skew_jit</span>
+        <span class="n">coef</span> <span class="o">=</span> <span class="n">sample_range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coefficient</span><span class="p">)</span>
+        <span class="n">off</span> <span class="o">=</span> <span class="n">sample_range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">offset</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_time_skew_jit</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">coef</span><span class="p">,</span> <span class="n">off</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TimeSkew.__repr__">
+<a class="viewcode-back" href="../../../autoapi/evutils/transforms/transforms/index.html#evutils.transforms.TimeSkew.__repr__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(coefficient=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">coefficient</span><span class="si">}</span><span class="s2">, offset=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">offset</span><span class="si">}</span><span class="s2">)&quot;</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="TimeJitter">
+<a class="viewcode-back" href="../../../autoapi/evutils/transforms/transforms/index.html#evutils.transforms.TimeJitter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TimeJitter</span><span class="p">(</span><span class="n">Transform</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Adds Gaussian noise to each timestamp.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    std : float</span>
+<span class="sd">        Standard deviation of the timestamp noise.</span>
+<span class="sd">    clip_negative : bool, optional</span>
+<span class="sd">        Drop events with negative jittered timestamps. Default ``True``.</span>
+<span class="sd">    sort_timestamps : bool, optional</span>
+<span class="sd">        Re-sort by timestamp after jittering. Default ``False``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">std</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">clip_negative</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                 <span class="n">sort_timestamps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">std</span> <span class="o">=</span> <span class="n">std</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clip_negative</span> <span class="o">=</span> <span class="n">clip_negative</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sort_timestamps</span> <span class="o">=</span> <span class="n">sort_timestamps</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_forward_jit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">evutils.transforms.functional</span><span class="w"> </span><span class="kn">import</span> <span class="n">_time_jitter_jit</span>
+        <span class="k">return</span> <span class="n">_time_jitter_jit</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">std</span><span class="p">),</span>
+                                <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clip_negative</span><span class="p">),</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sort_timestamps</span><span class="p">))</span>
+
+<div class="viewcode-block" id="TimeJitter.__repr__">
+<a class="viewcode-back" href="../../../autoapi/evutils/transforms/transforms/index.html#evutils.transforms.TimeJitter.__repr__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(std=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">std</span><span class="si">}</span><span class="s2">, &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;clip_negative=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">clip_negative</span><span class="si">}</span><span class="s2">, sort_timestamps=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">sort_timestamps</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="RefractoryPeriod">
+<a class="viewcode-back" href="../../../autoapi/evutils/transforms/transforms/index.html#evutils.transforms.RefractoryPeriod">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RefractoryPeriod</span><span class="p">(</span><span class="n">Transform</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Enforces a per-pixel refractory period.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    delta : int or tuple of int</span>
+<span class="sd">        Refractory period in timestamp units. A ``(lo, hi)`` tuple is sampled</span>
+<span class="sd">        uniformly per call. Events must be sorted by timestamp.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">]):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="n">delta</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_forward_jit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">evutils.transforms.functional</span><span class="w"> </span><span class="kn">import</span> <span class="n">_refractory_period_jit</span>
+        <span class="n">delta</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">sample_range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">delta</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">_refractory_period_jit</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">delta</span><span class="p">)</span>
+
+<div class="viewcode-block" id="RefractoryPeriod.__repr__">
+<a class="viewcode-back" href="../../../autoapi/evutils/transforms/transforms/index.html#evutils.transforms.RefractoryPeriod.__repr__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(delta=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">delta</span><span class="si">}</span><span class="s2">)&quot;</span></div>
 </div>
 
 </pre></div>

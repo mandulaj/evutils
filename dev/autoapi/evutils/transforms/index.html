@@ -550,9 +550,13 @@
   <section id="module-evutils.transforms">
 <span id="evutils-transforms"></span><h1><a class="reference internal" href="#module-evutils.transforms" title="evutils.transforms"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.transforms</span></code></a><a class="headerlink" href="#module-evutils.transforms" title="Link to this heading">#</a></h1>
 <p>Data augmentation transforms for events.</p>
-<p>Random and deterministic transformations for augmenting event streams
-during training, such as spatial flips, time reversal, event dropout and
-added noise.</p>
+<p>torchvision/tonic-style transformations for event streams: random and
+deterministic operations for augmenting data during training (drops, spatial
+flips, jitter, time skew, refractory filtering, …).</p>
+<p>Each transform pairs a Numba-JIT <code class="docutils literal notranslate"><span class="pre">functional</span></code> kernel (dispatched over both
+plain structured arrays and <a class="reference internal" href="../types/index.html#evutils.types.EventArray" title="evutils.types.EventArray"><code class="xref py py-class docutils literal notranslate"><span class="pre">EventArray</span></code></a>) with a
+composable <a class="reference internal" href="#evutils.transforms.Transform" title="evutils.transforms.Transform"><code class="xref py py-class docutils literal notranslate"><span class="pre">Transform</span></code></a> class. <a class="reference internal" href="#evutils.transforms.Compose" title="evutils.transforms.Compose"><code class="xref py py-class docutils literal notranslate"><span class="pre">Compose</span></code></a> unwraps/rewraps events
+only once around each contiguous block of JIT transforms.</p>
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">#</a></h2>
 <div class="toctree-wrapper compound">
@@ -580,7 +584,13 @@ added noise.</p>
 <h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#evutils.transforms.drop_random_events" title="evutils.transforms.drop_random_events"><code class="xref py py-obj docutils literal notranslate"><span class="pre">drop_random_events</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#evutils.transforms.DropRandomEvents" title="evutils.transforms.DropRandomEvents"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DropRandomEvents</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#evutils.transforms.drop_random_events" title="evutils.transforms.drop_random_events"><code class="xref py py-obj docutils literal notranslate"><span class="pre">drop_random_events</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#evutils.transforms.drop_event" title="evutils.transforms.drop_event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">drop_event</span></code></a></p></td>
 <td><p></p></td>
 </tr>
 </tbody>
@@ -597,8 +607,26 @@ added noise.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#evutils.transforms.Transform" title="evutils.transforms.Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transform</span></code></a></p></td>
 <td><p>Base class for all evutils transforms.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#evutils.transforms.DropRandomEvents" title="evutils.transforms.DropRandomEvents"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DropRandomEvents</span></code></a></p></td>
-<td><p>Drops a percentage of events randomly.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#evutils.transforms.DropEvent" title="evutils.transforms.DropEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DropEvent</span></code></a></p></td>
+<td><p>Randomly drops each event with probability <code class="docutils literal notranslate"><span class="pre">p</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#evutils.transforms.DropEventByTime" title="evutils.transforms.DropEventByTime"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DropEventByTime</span></code></a></p></td>
+<td><p>Drops every event inside one randomly-placed time window.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#evutils.transforms.RandomFlipLR" title="evutils.transforms.RandomFlipLR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RandomFlipLR</span></code></a></p></td>
+<td><p>Flips events horizontally (<code class="docutils literal notranslate"><span class="pre">x'</span> <span class="pre">=</span> <span class="pre">width</span> <span class="pre">-</span> <span class="pre">1</span> <span class="pre">-</span> <span class="pre">x</span></code>) with probability <code class="docutils literal notranslate"><span class="pre">p</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#evutils.transforms.SpatialJitter" title="evutils.transforms.SpatialJitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SpatialJitter</span></code></a></p></td>
+<td><p>Adds correlated Gaussian noise to event coordinates.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#evutils.transforms.TimeSkew" title="evutils.transforms.TimeSkew"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TimeSkew</span></code></a></p></td>
+<td><p>Rescales timestamps by an affine map <code class="docutils literal notranslate"><span class="pre">t'</span> <span class="pre">=</span> <span class="pre">t</span> <span class="pre">*</span> <span class="pre">coefficient</span> <span class="pre">+</span> <span class="pre">offset</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#evutils.transforms.TimeJitter" title="evutils.transforms.TimeJitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TimeJitter</span></code></a></p></td>
+<td><p>Adds Gaussian noise to each timestamp.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#evutils.transforms.RefractoryPeriod" title="evutils.transforms.RefractoryPeriod"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RefractoryPeriod</span></code></a></p></td>
+<td><p>Enforces a per-pixel refractory period.</p></td>
 </tr>
 </tbody>
 </table>
@@ -642,6 +670,15 @@ Freely accepts standard Callables (e.g. PyTorch/Tonic transforms).</p>
 <p>Transforms should implement the <cite>_forward_jit</cite> method to allow zero-overhead
 composition inside a <cite>Compose</cite> pipeline.</p>
 <dl class="py method">
+<dt class="sig sig-object py" id="evutils.transforms.Transform.bind_context">
+<span class="sig-name descname"><span class="pre">bind_context</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">events</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/evutils/transforms/transforms.html#Transform.bind_context"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.transforms.Transform.bind_context" title="Link to this definition">#</a></dt>
+<dd><p>Capture per-call context (currently <code class="docutils literal notranslate"><span class="pre">sensor_size</span></code>) from <code class="docutils literal notranslate"><span class="pre">events</span></code>.</p>
+<p>Called by <a class="reference internal" href="#evutils.transforms.Transform.__call__" title="evutils.transforms.Transform.__call__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__call__()</span></code></a> and by <a class="reference internal" href="#evutils.transforms.Compose" title="evutils.transforms.Compose"><code class="xref py py-class docutils literal notranslate"><span class="pre">Compose</span></code></a> before <code class="docutils literal notranslate"><span class="pre">_forward_jit</span></code>
+so a transform can fall back to the container’s <code class="docutils literal notranslate"><span class="pre">sensor_size</span></code> metadata
+when it was not given one explicitly. Stored transiently, not persisted.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="evutils.transforms.Transform.__call__">
 <span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">events</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">evutils.types.SoaArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/evutils/transforms/transforms.html#Transform.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.transforms.Transform.__call__" title="Link to this definition">#</a></dt>
 <dd><p>Applies the transform in a standalone manner.</p>
@@ -655,31 +692,282 @@ composition inside a <cite>Compose</cite> pipeline.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="evutils.transforms.DropRandomEvents">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.transforms.</span></span><span class="sig-name descname"><span class="pre">DropRandomEvents</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">drop_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/evutils/transforms/transforms.html#DropRandomEvents"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.transforms.DropRandomEvents" title="Link to this definition">#</a></dt>
+<dt class="sig sig-object py" id="evutils.transforms.DropEvent">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.transforms.</span></span><span class="sig-name descname"><span class="pre">DropEvent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/evutils/transforms/transforms.html#DropEvent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.transforms.DropEvent" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#evutils.transforms.Transform" title="evutils.transforms.Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transform</span></code></a></p>
-digraph inheritance7a6a55c2a1 {
+digraph inheritance70bc6f79ba {
 bgcolor=transparent;
 rankdir=LR;
 size=&quot;8.0, 12.0&quot;;
-  &quot;DropRandomEvents&quot; [URL=&quot;transforms/index.html#evutils.transforms.transforms.DropRandomEvents&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Drops a percentage of events randomly.&quot;];
-  &quot;Transform&quot; -&gt; &quot;DropRandomEvents&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
+  &quot;DropEvent&quot; [URL=&quot;transforms/index.html#evutils.transforms.transforms.DropEvent&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Randomly drops each event with probability ``p``.&quot;];
+  &quot;Transform&quot; -&gt; &quot;DropEvent&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
   &quot;Transform&quot; [URL=&quot;transforms/index.html#evutils.transforms.transforms.Transform&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Base class for all evutils transforms.&quot;];
 }
-<p>Drops a percentage of events randomly.</p>
+<p>Randomly drops each event with probability <code class="docutils literal notranslate"><span class="pre">p</span></code>.</p>
+<p>Tonic-compatible replacement for <code class="docutils literal notranslate"><span class="pre">DropRandomEvents</span></code> (kept as an alias).
+Uses an independent Bernoulli mask per event, so the number dropped is
+binomially distributed around <code class="docutils literal notranslate"><span class="pre">p</span> <span class="pre">*</span> <span class="pre">n</span></code> rather than exactly <code class="docutils literal notranslate"><span class="pre">p</span> <span class="pre">*</span> <span class="pre">n</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>drop_rate</strong> (<em>float</em><em>, </em><em>optional</em>) – Percentage of events to drop, by default 0.1 (10%).</p>
+<dd class="field-odd"><p><strong>p</strong> (<em>float</em><em> or </em><em>tuple</em><em> of </em><em>float</em><em>, </em><em>optional</em>) – Drop probability in <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">1)</span></code>. A <code class="docutils literal notranslate"><span class="pre">(lo,</span> <span class="pre">hi)</span></code> tuple is sampled uniformly
+per call. Defaults to <code class="docutils literal notranslate"><span class="pre">0.1</span></code>.</p>
 </dd>
 </dl>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="evutils.transforms.DropRandomEvents.drop_rate">
-<span class="sig-name descname"><span class="pre">drop_rate</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.1</span></span><a class="headerlink" href="#evutils.transforms.DropRandomEvents.drop_rate" title="Link to this definition">#</a></dt>
+<dt class="sig sig-object py" id="evutils.transforms.DropEvent.p">
+<span class="sig-name descname"><span class="pre">p</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.1</span></span><a class="headerlink" href="#evutils.transforms.DropEvent.p" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="evutils.transforms.DropRandomEvents.__repr__">
-<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/evutils/transforms/transforms.html#DropRandomEvents.__repr__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.transforms.DropRandomEvents.__repr__" title="Link to this definition">#</a></dt>
+<dt class="sig sig-object py" id="evutils.transforms.DropEvent.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/evutils/transforms/transforms.html#DropEvent.__repr__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.transforms.DropEvent.__repr__" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="evutils.transforms.DropRandomEvents">
+<span class="sig-prename descclassname"><span class="pre">evutils.transforms.</span></span><span class="sig-name descname"><span class="pre">DropRandomEvents</span></span><a class="headerlink" href="#evutils.transforms.DropRandomEvents" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="evutils.transforms.DropEventByTime">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.transforms.</span></span><span class="sig-name descname"><span class="pre">DropEventByTime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">duration_ratio</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/evutils/transforms/transforms.html#DropEventByTime"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.transforms.DropEventByTime" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#evutils.transforms.Transform" title="evutils.transforms.Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transform</span></code></a></p>
+digraph inheritanced4a51d12c3 {
+bgcolor=transparent;
+rankdir=LR;
+size=&quot;8.0, 12.0&quot;;
+  &quot;DropEventByTime&quot; [URL=&quot;transforms/index.html#evutils.transforms.transforms.DropEventByTime&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Drops every event inside one randomly-placed time window.&quot;];
+  &quot;Transform&quot; -&gt; &quot;DropEventByTime&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
+  &quot;Transform&quot; [URL=&quot;transforms/index.html#evutils.transforms.transforms.Transform&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Base class for all evutils transforms.&quot;];
+}
+<p>Drops every event inside one randomly-placed time window.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>duration_ratio</strong> (<em>float</em><em> or </em><em>tuple</em><em> of </em><em>float</em><em>, </em><em>optional</em>) – Window length as a fraction of the recording span, in <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">1)</span></code>. A
+<code class="docutils literal notranslate"><span class="pre">(lo,</span> <span class="pre">hi)</span></code> tuple is sampled uniformly per call. Defaults to <code class="docutils literal notranslate"><span class="pre">0.2</span></code>.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.transforms.DropEventByTime.duration_ratio">
+<span class="sig-name descname"><span class="pre">duration_ratio</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.2</span></span><a class="headerlink" href="#evutils.transforms.DropEventByTime.duration_ratio" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.transforms.DropEventByTime.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/evutils/transforms/transforms.html#DropEventByTime.__repr__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.transforms.DropEventByTime.__repr__" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="evutils.transforms.RandomFlipLR">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.transforms.</span></span><span class="sig-name descname"><span class="pre">RandomFlipLR</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sensor_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/evutils/transforms/transforms.html#RandomFlipLR"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.transforms.RandomFlipLR" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#evutils.transforms.Transform" title="evutils.transforms.Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transform</span></code></a></p>
+digraph inheritancea7dc90cd15 {
+bgcolor=transparent;
+rankdir=LR;
+size=&quot;8.0, 12.0&quot;;
+  &quot;RandomFlipLR&quot; [URL=&quot;transforms/index.html#evutils.transforms.transforms.RandomFlipLR&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Flips events horizontally (``x' = width - 1 - x``) with probability ``p``.&quot;];
+  &quot;Transform&quot; -&gt; &quot;RandomFlipLR&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
+  &quot;Transform&quot; [URL=&quot;transforms/index.html#evutils.transforms.transforms.Transform&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Base class for all evutils transforms.&quot;];
+}
+<p>Flips events horizontally (<code class="docutils literal notranslate"><span class="pre">x'</span> <span class="pre">=</span> <span class="pre">width</span> <span class="pre">-</span> <span class="pre">1</span> <span class="pre">-</span> <span class="pre">x</span></code>) with probability <code class="docutils literal notranslate"><span class="pre">p</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sensor_size</strong> (<em>tuple</em><em>, </em><em>optional</em>) – <code class="docutils literal notranslate"><span class="pre">(W,</span> <span class="pre">H)</span></code> (or <code class="docutils literal notranslate"><span class="pre">(W,</span> <span class="pre">H,</span> <span class="pre">P)</span></code>) sensor size; only the width <code class="docutils literal notranslate"><span class="pre">W</span></code> is used.
+If omitted, it is taken from the events’ <code class="docutils literal notranslate"><span class="pre">sensor_size</span></code> metadata.</p></li>
+<li><p><strong>p</strong> (<em>float</em><em>, </em><em>optional</em>) – Probability of performing the flip. Defaults to <code class="docutils literal notranslate"><span class="pre">0.5</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.transforms.RandomFlipLR.sensor_size">
+<span class="sig-name descname"><span class="pre">sensor_size</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#evutils.transforms.RandomFlipLR.sensor_size" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.transforms.RandomFlipLR.p">
+<span class="sig-name descname"><span class="pre">p</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.5</span></span><a class="headerlink" href="#evutils.transforms.RandomFlipLR.p" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.transforms.RandomFlipLR.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/evutils/transforms/transforms.html#RandomFlipLR.__repr__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.transforms.RandomFlipLR.__repr__" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="evutils.transforms.SpatialJitter">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.transforms.</span></span><span class="sig-name descname"><span class="pre">SpatialJitter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sensor_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_xy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clip_outliers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/evutils/transforms/transforms.html#SpatialJitter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.transforms.SpatialJitter" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#evutils.transforms.Transform" title="evutils.transforms.Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transform</span></code></a></p>
+digraph inheritanceb35b57b30e {
+bgcolor=transparent;
+rankdir=LR;
+size=&quot;8.0, 12.0&quot;;
+  &quot;SpatialJitter&quot; [URL=&quot;transforms/index.html#evutils.transforms.transforms.SpatialJitter&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Adds correlated Gaussian noise to event coordinates.&quot;];
+  &quot;Transform&quot; -&gt; &quot;SpatialJitter&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
+  &quot;Transform&quot; [URL=&quot;transforms/index.html#evutils.transforms.transforms.Transform&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Base class for all evutils transforms.&quot;];
+}
+<p>Adds correlated Gaussian noise to event coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sensor_size</strong> (<em>tuple</em><em>, </em><em>optional</em>) – <code class="docutils literal notranslate"><span class="pre">(W,</span> <span class="pre">H)</span></code> (or <code class="docutils literal notranslate"><span class="pre">(W,</span> <span class="pre">H,</span> <span class="pre">P)</span></code>) sensor size, used for clipping. Only needed
+when <code class="docutils literal notranslate"><span class="pre">clip_outliers</span></code> is True; if omitted, taken from the events’
+<code class="docutils literal notranslate"><span class="pre">sensor_size</span></code> metadata.</p></li>
+<li><p><strong>var_x</strong> (<em>float</em><em>, </em><em>optional</em>) – Variances of the jitter in x and y. Default <code class="docutils literal notranslate"><span class="pre">1.0</span></code>.</p></li>
+<li><p><strong>var_y</strong> (<em>float</em><em>, </em><em>optional</em>) – Variances of the jitter in x and y. Default <code class="docutils literal notranslate"><span class="pre">1.0</span></code>.</p></li>
+<li><p><strong>sigma_xy</strong> (<em>float</em><em>, </em><em>optional</em>) – Off-diagonal covariance. Default <code class="docutils literal notranslate"><span class="pre">0.0</span></code>.</p></li>
+<li><p><strong>clip_outliers</strong> (<em>bool</em><em>, </em><em>optional</em>) – Drop events jittered outside the sensor. Default <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.transforms.SpatialJitter.sensor_size">
+<span class="sig-name descname"><span class="pre">sensor_size</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#evutils.transforms.SpatialJitter.sensor_size" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.transforms.SpatialJitter.var_x">
+<span class="sig-name descname"><span class="pre">var_x</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></span><a class="headerlink" href="#evutils.transforms.SpatialJitter.var_x" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.transforms.SpatialJitter.var_y">
+<span class="sig-name descname"><span class="pre">var_y</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></span><a class="headerlink" href="#evutils.transforms.SpatialJitter.var_y" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.transforms.SpatialJitter.sigma_xy">
+<span class="sig-name descname"><span class="pre">sigma_xy</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0</span></span><a class="headerlink" href="#evutils.transforms.SpatialJitter.sigma_xy" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.transforms.SpatialJitter.clip_outliers">
+<span class="sig-name descname"><span class="pre">clip_outliers</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#evutils.transforms.SpatialJitter.clip_outliers" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.transforms.SpatialJitter.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/evutils/transforms/transforms.html#SpatialJitter.__repr__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.transforms.SpatialJitter.__repr__" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="evutils.transforms.TimeSkew">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.transforms.</span></span><span class="sig-name descname"><span class="pre">TimeSkew</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coefficient</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/evutils/transforms/transforms.html#TimeSkew"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.transforms.TimeSkew" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#evutils.transforms.Transform" title="evutils.transforms.Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transform</span></code></a></p>
+digraph inheritance55e1803013 {
+bgcolor=transparent;
+rankdir=LR;
+size=&quot;8.0, 12.0&quot;;
+  &quot;TimeSkew&quot; [URL=&quot;transforms/index.html#evutils.transforms.transforms.TimeSkew&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Rescales timestamps by an affine map ``t' = t * coefficient + offset``.&quot;];
+  &quot;Transform&quot; -&gt; &quot;TimeSkew&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
+  &quot;Transform&quot; [URL=&quot;transforms/index.html#evutils.transforms.transforms.Transform&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Base class for all evutils transforms.&quot;];
+}
+<p>Rescales timestamps by an affine map <code class="docutils literal notranslate"><span class="pre">t'</span> <span class="pre">=</span> <span class="pre">t</span> <span class="pre">*</span> <span class="pre">coefficient</span> <span class="pre">+</span> <span class="pre">offset</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coefficient</strong> (<em>float</em><em> or </em><em>tuple</em><em> of </em><em>float</em>) – Multiplier applied to every timestamp. A <code class="docutils literal notranslate"><span class="pre">(lo,</span> <span class="pre">hi)</span></code> tuple is sampled
+uniformly per call.</p></li>
+<li><p><strong>offset</strong> (<em>float</em><em> or </em><em>tuple</em><em> of </em><em>float</em><em>, </em><em>optional</em>) – Added after multiplication. Default <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.transforms.TimeSkew.coefficient">
+<span class="sig-name descname"><span class="pre">coefficient</span></span><a class="headerlink" href="#evutils.transforms.TimeSkew.coefficient" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.transforms.TimeSkew.offset">
+<span class="sig-name descname"><span class="pre">offset</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></span><a class="headerlink" href="#evutils.transforms.TimeSkew.offset" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.transforms.TimeSkew.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/evutils/transforms/transforms.html#TimeSkew.__repr__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.transforms.TimeSkew.__repr__" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="evutils.transforms.TimeJitter">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.transforms.</span></span><span class="sig-name descname"><span class="pre">TimeJitter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clip_negative</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort_timestamps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/evutils/transforms/transforms.html#TimeJitter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.transforms.TimeJitter" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#evutils.transforms.Transform" title="evutils.transforms.Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transform</span></code></a></p>
+digraph inheritance128a6dcf7f {
+bgcolor=transparent;
+rankdir=LR;
+size=&quot;8.0, 12.0&quot;;
+  &quot;TimeJitter&quot; [URL=&quot;transforms/index.html#evutils.transforms.transforms.TimeJitter&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Adds Gaussian noise to each timestamp.&quot;];
+  &quot;Transform&quot; -&gt; &quot;TimeJitter&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
+  &quot;Transform&quot; [URL=&quot;transforms/index.html#evutils.transforms.transforms.Transform&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Base class for all evutils transforms.&quot;];
+}
+<p>Adds Gaussian noise to each timestamp.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>std</strong> (<em>float</em>) – Standard deviation of the timestamp noise.</p></li>
+<li><p><strong>clip_negative</strong> (<em>bool</em><em>, </em><em>optional</em>) – Drop events with negative jittered timestamps. Default <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p></li>
+<li><p><strong>sort_timestamps</strong> (<em>bool</em><em>, </em><em>optional</em>) – Re-sort by timestamp after jittering. Default <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.transforms.TimeJitter.std">
+<span class="sig-name descname"><span class="pre">std</span></span><a class="headerlink" href="#evutils.transforms.TimeJitter.std" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.transforms.TimeJitter.clip_negative">
+<span class="sig-name descname"><span class="pre">clip_negative</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#evutils.transforms.TimeJitter.clip_negative" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.transforms.TimeJitter.sort_timestamps">
+<span class="sig-name descname"><span class="pre">sort_timestamps</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#evutils.transforms.TimeJitter.sort_timestamps" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.transforms.TimeJitter.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/evutils/transforms/transforms.html#TimeJitter.__repr__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.transforms.TimeJitter.__repr__" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="evutils.transforms.RefractoryPeriod">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.transforms.</span></span><span class="sig-name descname"><span class="pre">RefractoryPeriod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/evutils/transforms/transforms.html#RefractoryPeriod"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.transforms.RefractoryPeriod" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#evutils.transforms.Transform" title="evutils.transforms.Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transform</span></code></a></p>
+digraph inheritance2802c43353 {
+bgcolor=transparent;
+rankdir=LR;
+size=&quot;8.0, 12.0&quot;;
+  &quot;RefractoryPeriod&quot; [URL=&quot;transforms/index.html#evutils.transforms.transforms.RefractoryPeriod&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Enforces a per-pixel refractory period.&quot;];
+  &quot;Transform&quot; -&gt; &quot;RefractoryPeriod&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
+  &quot;Transform&quot; [URL=&quot;transforms/index.html#evutils.transforms.transforms.Transform&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Base class for all evutils transforms.&quot;];
+}
+<p>Enforces a per-pixel refractory period.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>delta</strong> (<em>int</em><em> or </em><em>tuple</em><em> of </em><em>int</em>) – Refractory period in timestamp units. A <code class="docutils literal notranslate"><span class="pre">(lo,</span> <span class="pre">hi)</span></code> tuple is sampled
+uniformly per call. Events must be sorted by timestamp.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.transforms.RefractoryPeriod.delta">
+<span class="sig-name descname"><span class="pre">delta</span></span><a class="headerlink" href="#evutils.transforms.RefractoryPeriod.delta" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.transforms.RefractoryPeriod.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/evutils/transforms/transforms.html#RefractoryPeriod.__repr__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.transforms.RefractoryPeriod.__repr__" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -687,6 +975,11 @@ size=&quot;8.0, 12.0&quot;;
 <dl class="py data">
 <dt class="sig sig-object py" id="evutils.transforms.drop_random_events">
 <span class="sig-prename descclassname"><span class="pre">evutils.transforms.</span></span><span class="sig-name descname"><span class="pre">drop_random_events</span></span><a class="reference internal" href="../../../_modules/evutils/transforms/functional/_drop.html#drop_random_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.transforms.drop_random_events" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="evutils.transforms.drop_event">
+<span class="sig-prename descclassname"><span class="pre">evutils.transforms.</span></span><span class="sig-name descname"><span class="pre">drop_event</span></span><a class="reference internal" href="../../../_modules/evutils/transforms/functional/_drop.html#drop_event"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.transforms.drop_event" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 </section>
@@ -750,15 +1043,56 @@ size=&quot;8.0, 12.0&quot;;
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.Transform"><code class="docutils literal notranslate"><span class="pre">Transform</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.Transform.bind_context"><code class="docutils literal notranslate"><span class="pre">Transform.bind_context()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.Transform.__call__"><code class="docutils literal notranslate"><span class="pre">Transform.__call__()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.DropRandomEvents"><code class="docutils literal notranslate"><span class="pre">DropRandomEvents</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.DropRandomEvents.drop_rate"><code class="docutils literal notranslate"><span class="pre">DropRandomEvents.drop_rate</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.DropRandomEvents.__repr__"><code class="docutils literal notranslate"><span class="pre">DropRandomEvents.__repr__()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.DropEvent"><code class="docutils literal notranslate"><span class="pre">DropEvent</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.DropEvent.p"><code class="docutils literal notranslate"><span class="pre">DropEvent.p</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.DropEvent.__repr__"><code class="docutils literal notranslate"><span class="pre">DropEvent.__repr__()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.DropRandomEvents"><code class="docutils literal notranslate"><span class="pre">DropRandomEvents</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.DropEventByTime"><code class="docutils literal notranslate"><span class="pre">DropEventByTime</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.DropEventByTime.duration_ratio"><code class="docutils literal notranslate"><span class="pre">DropEventByTime.duration_ratio</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.DropEventByTime.__repr__"><code class="docutils literal notranslate"><span class="pre">DropEventByTime.__repr__()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.RandomFlipLR"><code class="docutils literal notranslate"><span class="pre">RandomFlipLR</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.RandomFlipLR.sensor_size"><code class="docutils literal notranslate"><span class="pre">RandomFlipLR.sensor_size</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.RandomFlipLR.p"><code class="docutils literal notranslate"><span class="pre">RandomFlipLR.p</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.RandomFlipLR.__repr__"><code class="docutils literal notranslate"><span class="pre">RandomFlipLR.__repr__()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.SpatialJitter"><code class="docutils literal notranslate"><span class="pre">SpatialJitter</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.SpatialJitter.sensor_size"><code class="docutils literal notranslate"><span class="pre">SpatialJitter.sensor_size</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.SpatialJitter.var_x"><code class="docutils literal notranslate"><span class="pre">SpatialJitter.var_x</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.SpatialJitter.var_y"><code class="docutils literal notranslate"><span class="pre">SpatialJitter.var_y</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.SpatialJitter.sigma_xy"><code class="docutils literal notranslate"><span class="pre">SpatialJitter.sigma_xy</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.SpatialJitter.clip_outliers"><code class="docutils literal notranslate"><span class="pre">SpatialJitter.clip_outliers</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.SpatialJitter.__repr__"><code class="docutils literal notranslate"><span class="pre">SpatialJitter.__repr__()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.TimeSkew"><code class="docutils literal notranslate"><span class="pre">TimeSkew</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.TimeSkew.coefficient"><code class="docutils literal notranslate"><span class="pre">TimeSkew.coefficient</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.TimeSkew.offset"><code class="docutils literal notranslate"><span class="pre">TimeSkew.offset</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.TimeSkew.__repr__"><code class="docutils literal notranslate"><span class="pre">TimeSkew.__repr__()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.TimeJitter"><code class="docutils literal notranslate"><span class="pre">TimeJitter</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.TimeJitter.std"><code class="docutils literal notranslate"><span class="pre">TimeJitter.std</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.TimeJitter.clip_negative"><code class="docutils literal notranslate"><span class="pre">TimeJitter.clip_negative</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.TimeJitter.sort_timestamps"><code class="docutils literal notranslate"><span class="pre">TimeJitter.sort_timestamps</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.TimeJitter.__repr__"><code class="docutils literal notranslate"><span class="pre">TimeJitter.__repr__()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.RefractoryPeriod"><code class="docutils literal notranslate"><span class="pre">RefractoryPeriod</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.RefractoryPeriod.delta"><code class="docutils literal notranslate"><span class="pre">RefractoryPeriod.delta</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.RefractoryPeriod.__repr__"><code class="docutils literal notranslate"><span class="pre">RefractoryPeriod.__repr__()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.drop_random_events"><code class="docutils literal notranslate"><span class="pre">drop_random_events</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.drop_event"><code class="docutils literal notranslate"><span class="pre">drop_event</span></code></a></li>
 </ul>
 </li>
 </ul>

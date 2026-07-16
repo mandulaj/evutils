@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>evutils.transforms.functional._drop &#8212; evutils v0.3.17 documentation</title>
+    <title>evutils.transforms.functional._spatial &#8212; evutils v0.3.17 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
     <script src="../../../../_static/documentation_options.js?v=ffd5bf7f"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/evutils/transforms/functional/_drop';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/evutils/transforms/functional/_spatial';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://mandulaj.github.io/evutils/switcher.json';
@@ -467,7 +467,7 @@
     
     <li class="breadcrumb-item"><a href="../../../index.html" class="nav-link">Module code</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">evutils.transforms.functional._drop</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">evutils.transforms.functional._spatial</span></li>
   </ul>
 </nav>
 </div>
@@ -484,139 +484,102 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <h1>Source code for evutils.transforms.functional._drop</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+  <h1>Source code for evutils.transforms.functional._spatial</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Spatial functional transforms (flips, jitter).&quot;&quot;&quot;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">evutils.jit</span><span class="w"> </span><span class="kn">import</span> <span class="n">lazy_njit</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">._common</span><span class="w"> </span><span class="kn">import</span> <span class="n">apply_kernel</span><span class="p">,</span> <span class="n">sample_range</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._common</span><span class="w"> </span><span class="kn">import</span> <span class="n">apply_kernel</span>
+
 
 <span class="nd">@lazy_njit</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">_drop_random_events_jit</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">drop_rate</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Drops a percentage of events randomly using slicing, compiled via Numba.</span>
-<span class="sd">    </span>
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    t, x, y, p : np.ndarray</span>
-<span class="sd">        Constituent event arrays.</span>
-<span class="sd">    drop_rate : float</span>
-<span class="sd">        Percentage of events to drop (0 to 1).</span>
-<span class="sd">        </span>
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    tuple</span>
-<span class="sd">        (new_t, new_x, new_y, new_p)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Using random.rand to generate a boolean mask is fully supported and highly optimized in Numba</span>
-    <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">))</span> <span class="o">&gt;=</span> <span class="n">drop_rate</span>
-    <span class="k">return</span> <span class="n">t</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_flip_lr_jit</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mirror x about the sensor width: ``x&#39; = width - 1 - x``.&quot;&quot;&quot;</span>
+    <span class="c1"># Promote through int64 so the uint16 subtraction can&#39;t wrap around.</span>
+    <span class="n">new_x</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">(</span><span class="n">width</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">x</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint16</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">t</span><span class="p">,</span> <span class="n">new_x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span>
 
 
-<div class="viewcode-block" id="drop_random_events">
-<a class="viewcode-back" href="../../../../autoapi/evutils/transforms/index.html#evutils.transforms.functional.drop_random_events">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">drop_random_events</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">drop_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Drops a percentage of events randomly.</span>
-<span class="sd">    </span>
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    events : np.ndarray or EventArray</span>
-<span class="sd">        Array of events to drop from.</span>
-<span class="sd">    drop_rate : float, optional</span>
-<span class="sd">        Percentage of events to drop, by default 0.1 (10%).</span>
-<span class="sd">        </span>
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    np.ndarray or EventArray</span>
-<span class="sd">        Array of events with the specified percentage dropped.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
-    <span class="k">if</span> <span class="n">math</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">drop_rate</span><span class="p">)</span> <span class="ow">or</span> <span class="n">drop_rate</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">drop_rate</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;drop_rate must be between 0 and 1&quot;</span><span class="p">)</span>
-        
-    <span class="kn">from</span><span class="w"> </span><span class="nn">evutils.transforms.compose</span><span class="w"> </span><span class="kn">import</span> <span class="n">unwrap_events</span><span class="p">,</span> <span class="n">repack_events</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">events</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">events</span>
-        
-    <span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="n">unwrap_events</span><span class="p">(</span><span class="n">events</span><span class="p">)</span>
-    <span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="n">_drop_random_events_jit</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">drop_rate</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">repack_events</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span></div>
-
-
-
-<div class="viewcode-block" id="drop_event">
-<a class="viewcode-back" href="../../../../autoapi/evutils/transforms/index.html#evutils.transforms.functional.drop_event">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">drop_event</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Randomly drop each event independently with probability ``p``.</span>
-
-<span class="sd">    The tonic-compatible name for :func:`drop_random_events`. Unlike tonic&#39;s</span>
-<span class="sd">    ``drop_event_numpy`` (which drops exactly ``round(p * n)`` events via</span>
-<span class="sd">    sampling without replacement) this uses an independent Bernoulli mask per</span>
-<span class="sd">    event, which is what keeps the kernel JIT-friendly. The expected number of</span>
-<span class="sd">    dropped events is the same; the exact count is binomially distributed.</span>
+<div class="viewcode-block" id="flip_lr">
+<a class="viewcode-back" href="../../../../autoapi/evutils/transforms/functional/index.html#evutils.transforms.functional.flip_lr">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">flip_lr</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">sensor_size</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Flip events horizontally: ``x&#39; = width - 1 - x``.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    events : np.ndarray or EventArray</span>
-<span class="sd">        Events to drop from.</span>
-<span class="sd">    p : float or tuple of float, optional</span>
-<span class="sd">        Drop probability in ``[0, 1)``. A ``(lo, hi)`` tuple is sampled uniformly</span>
-<span class="sd">        per call. Defaults to ``0.1``.</span>
+<span class="sd">        Events to flip.</span>
+<span class="sd">    sensor_size : tuple</span>
+<span class="sd">        ``(W, H, P)`` sensor size; only the width ``W`` is used.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    np.ndarray or EventArray</span>
-<span class="sd">        Events that survived the drop, in their original container type.</span>
+<span class="sd">        Horizontally flipped events, in their original container type.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">p</span> <span class="o">=</span> <span class="n">sample_range</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">math</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="ow">or</span> <span class="n">p</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">p</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;p must be in [0, 1)&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">p</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">events</span>
-    <span class="k">return</span> <span class="n">apply_kernel</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">_drop_random_events_jit</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">apply_kernel</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">_flip_lr_jit</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">sensor_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span></div>
 
 
 
 <span class="nd">@lazy_njit</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">_drop_by_time_jit</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">duration_ratio</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Drop a single contiguous time window covering ``duration_ratio`` of the span.&quot;&quot;&quot;</span>
-    <span class="n">t_end</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
-    <span class="n">drop_duration</span> <span class="o">=</span> <span class="n">t_end</span> <span class="o">*</span> <span class="n">duration_ratio</span>
-    <span class="n">hi</span> <span class="o">=</span> <span class="n">t_end</span> <span class="o">-</span> <span class="n">drop_duration</span>
-    <span class="c1"># np.random.uniform requires low &lt; high; clamp the degenerate case.</span>
-    <span class="n">drop_start</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">hi</span><span class="p">)</span> <span class="k">if</span> <span class="n">hi</span> <span class="o">&gt;</span> <span class="mf">0.0</span> <span class="k">else</span> <span class="mf">0.0</span>
-    <span class="n">keep</span> <span class="o">=</span> <span class="p">(</span><span class="n">t</span> <span class="o">&lt;</span> <span class="n">drop_start</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">t</span> <span class="o">&gt;</span> <span class="n">drop_start</span> <span class="o">+</span> <span class="n">drop_duration</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">t</span><span class="p">[</span><span class="n">keep</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="n">keep</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">keep</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_spatial_jitter_jit</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                        <span class="n">var_x</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">var_y</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">sigma_xy</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                        <span class="n">clip_outliers</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add correlated Gaussian noise to ``x``/``y``.</span>
+
+<span class="sd">    Numba has no ``multivariate_normal``, so we sample two independent standard</span>
+<span class="sd">    normals and correlate them with the Cholesky factor of</span>
+<span class="sd">    ``[[var_x, sigma_xy], [sigma_xy, var_y]]``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">l11</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">var_x</span><span class="p">)</span>
+    <span class="n">l21</span> <span class="o">=</span> <span class="n">sigma_xy</span> <span class="o">/</span> <span class="n">l11</span> <span class="k">if</span> <span class="n">l11</span> <span class="o">&gt;</span> <span class="mf">0.0</span> <span class="k">else</span> <span class="mf">0.0</span>
+    <span class="n">under</span> <span class="o">=</span> <span class="n">var_y</span> <span class="o">-</span> <span class="n">l21</span> <span class="o">*</span> <span class="n">l21</span>
+    <span class="n">l22</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">under</span><span class="p">)</span> <span class="k">if</span> <span class="n">under</span> <span class="o">&gt;</span> <span class="mf">0.0</span> <span class="k">else</span> <span class="mf">0.0</span>
+
+    <span class="n">z1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+    <span class="n">z2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+    <span class="n">new_x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="o">+</span> <span class="n">l11</span> <span class="o">*</span> <span class="n">z1</span>
+    <span class="n">new_y</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">l21</span> <span class="o">*</span> <span class="n">z1</span> <span class="o">+</span> <span class="n">l22</span> <span class="o">*</span> <span class="n">z2</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">clip_outliers</span><span class="p">:</span>
+        <span class="n">keep</span> <span class="o">=</span> <span class="p">(</span><span class="n">new_x</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">new_x</span> <span class="o">&lt;</span> <span class="n">width</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">new_y</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">new_y</span> <span class="o">&lt;</span> <span class="n">height</span><span class="p">)</span>
+        <span class="n">t</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="n">t</span><span class="p">[</span><span class="n">keep</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span>
+        <span class="n">new_x</span><span class="p">,</span> <span class="n">new_y</span> <span class="o">=</span> <span class="n">new_x</span><span class="p">[</span><span class="n">keep</span><span class="p">],</span> <span class="n">new_y</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">t</span><span class="p">,</span> <span class="n">new_x</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint16</span><span class="p">),</span> <span class="n">new_y</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint16</span><span class="p">),</span> <span class="n">p</span>
 
 
-<div class="viewcode-block" id="drop_by_time">
-<a class="viewcode-back" href="../../../../autoapi/evutils/transforms/functional/index.html#evutils.transforms.functional.drop_by_time">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">drop_by_time</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">duration_ratio</span><span class="o">=</span><span class="mf">0.2</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Drop every event inside one randomly-placed time window.</span>
-
-<span class="sd">    The window length is ``duration_ratio`` of the recording span (``[0, t.max()]``,</span>
-<span class="sd">    following tonic), positioned uniformly at random within it.</span>
+<div class="viewcode-block" id="spatial_jitter">
+<a class="viewcode-back" href="../../../../autoapi/evutils/transforms/functional/index.html#evutils.transforms.functional.spatial_jitter">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">spatial_jitter</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">sensor_size</span><span class="p">,</span> <span class="n">var_x</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">var_y</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">sigma_xy</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                   <span class="n">clip_outliers</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Jitter event coordinates with a 2D Gaussian.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    events : np.ndarray or EventArray</span>
-<span class="sd">        Events to drop from.</span>
-<span class="sd">    duration_ratio : float or tuple of float, optional</span>
-<span class="sd">        Window length as a fraction of the span, in ``[0, 1)``. A ``(lo, hi)``</span>
-<span class="sd">        tuple is sampled uniformly per call. Defaults to ``0.2``.</span>
+<span class="sd">        Events to jitter.</span>
+<span class="sd">    sensor_size : tuple</span>
+<span class="sd">        ``(W, H, P)`` sensor size, used for clipping.</span>
+<span class="sd">    var_x, var_y : float, optional</span>
+<span class="sd">        Variances of the jitter in x and y. Default ``1.0``.</span>
+<span class="sd">    sigma_xy : float, optional</span>
+<span class="sd">        Off-diagonal covariance (diagonal skew). Default ``0.0``.</span>
+<span class="sd">    clip_outliers : bool, optional</span>
+<span class="sd">        Drop events jittered outside the sensor instead of casting them back</span>
+<span class="sd">        (which would wrap the unsigned coordinate). Default ``False``.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    np.ndarray or EventArray</span>
-<span class="sd">        Events outside the dropped window, in their original container type.</span>
+<span class="sd">        Jittered events, in their original container type.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">ratio</span> <span class="o">=</span> <span class="n">sample_range</span><span class="p">(</span><span class="n">duration_ratio</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">math</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">ratio</span><span class="p">)</span> <span class="ow">or</span> <span class="n">ratio</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">ratio</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;duration_ratio must be in [0, 1)&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">ratio</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">events</span>
-    <span class="k">return</span> <span class="n">apply_kernel</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">_drop_by_time_jit</span><span class="p">,</span> <span class="n">ratio</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">apply_kernel</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">_spatial_jitter_jit</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">sensor_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                        <span class="nb">int</span><span class="p">(</span><span class="n">sensor_size</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">var_x</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">var_y</span><span class="p">),</span>
+                        <span class="nb">float</span><span class="p">(</span><span class="n">sigma_xy</span><span class="p">),</span> <span class="nb">bool</span><span class="p">(</span><span class="n">clip_outliers</span><span class="p">))</span></div>
 
 </pre></div>
 

@@ -510,9 +510,13 @@
 <span class="sd">    file</span>
 <span class="sd">        Path to the data file</span>
 <span class="sd">    width</span>
-<span class="sd">        Width of the frame, by default 1280 (not relevant for some formats)</span>
+<span class="sd">        Width of the frame. If None (default), taken from the first written</span>
+<span class="sd">        events&#39; ``sensor_size`` metadata, falling back to 1280 (not relevant</span>
+<span class="sd">        for some formats).</span>
 <span class="sd">    height</span>
-<span class="sd">        Height of the frame, by default 720 (not relevant for some formats)</span>
+<span class="sd">        Height of the frame. If None (default), taken from the first written</span>
+<span class="sd">        events&#39; ``sensor_size`` metadata, falling back to 720 (not relevant</span>
+<span class="sd">        for some formats).</span>
 <span class="sd">    dt</span>
 <span class="sd">        Timestamp of the recording (default is the current time, but information is not saved in all formats)</span>
 <span class="sd">    file_encoder</span>
@@ -538,7 +542,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">io</span><span class="o">.</span><span class="n">BufferedIOBase</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span><span class="nb">int</span><span class="o">=</span><span class="mi">1280</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span><span class="nb">int</span><span class="o">=</span><span class="mi">720</span><span class="p">,</span> <span class="n">dt</span><span class="p">:</span> <span class="n">datetime</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="n">file_encoder</span><span class="p">:</span> <span class="n">ev_encoders</span><span class="o">.</span><span class="n">EventEncoder</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">io</span><span class="o">.</span><span class="n">BufferedIOBase</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span><span class="nb">int</span><span class="o">|</span><span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span><span class="nb">int</span><span class="o">|</span><span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dt</span><span class="p">:</span> <span class="n">datetime</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="n">file_encoder</span><span class="p">:</span> <span class="n">ev_encoders</span><span class="o">.</span><span class="n">EventEncoder</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_file_name</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -557,13 +561,15 @@
             <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;File is not writable&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="p">:</span> <span class="n">io</span><span class="o">.</span><span class="n">BufferedIOBase</span> <span class="o">=</span> <span class="n">file</span>
 
-        <span class="c1"># Resolve the encoder: explicit instance &gt; heuristic from extension.</span>
-        <span class="k">if</span> <span class="n">file_encoder</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-            <span class="n">encoder_cls</span> <span class="o">=</span> <span class="n">ev_encoders</span><span class="o">.</span><span class="n">get_file_writer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_name</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_file_encoder</span> <span class="o">=</span> <span class="n">encoder_cls</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_file_encoder</span> <span class="o">=</span> <span class="n">file_encoder</span>
+        <span class="c1"># Encoder resolution is deferred: when width/height are not given</span>
+        <span class="c1"># explicitly we try to pick them up from the first written events&#39;</span>
+        <span class="c1"># ``sensor_size`` metadata (falling back to 1280x720). An explicitly</span>
+        <span class="c1"># supplied encoder instance is used as-is.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_explicit_width</span> <span class="o">=</span> <span class="n">width</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_explicit_height</span> <span class="o">=</span> <span class="n">height</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_raw_dt</span> <span class="o">=</span> <span class="n">dt</span>                       <span class="c1"># passed verbatim to the encoder</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_encoder_kwargs</span> <span class="o">=</span> <span class="n">kwargs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_encoder</span> <span class="o">=</span> <span class="n">file_encoder</span>       <span class="c1"># None =&gt; built lazily</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_width</span> <span class="o">=</span> <span class="n">width</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_height</span> <span class="o">=</span> <span class="n">height</span>
@@ -571,6 +577,33 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_is_initialized</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_warned_triggers</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># warn once about unsupported triggers</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_dt</span> <span class="o">=</span> <span class="n">dt</span> <span class="k">if</span> <span class="n">dt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_ensure_encoder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">events</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build the file encoder if it hasn&#39;t been resolved yet.</span>
+
+<span class="sd">        Dimensions are resolved in priority order: explicit ``width``/``height``</span>
+<span class="sd">        from the constructor, then the events&#39; ``sensor_size`` metadata, then a</span>
+<span class="sd">        ``1280x720`` fallback. Formats that ignore geometry are unaffected.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_encoder</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_explicit_width</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_explicit_height</span>
+        <span class="k">if</span> <span class="n">w</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">h</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ss</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="s2">&quot;sensor_size&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ss</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">w</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">w</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ss</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">h</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">h</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ss</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">w</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="mi">1280</span>
+        <span class="k">if</span> <span class="n">h</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">h</span> <span class="o">=</span> <span class="mi">720</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_width</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_height</span> <span class="o">=</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span>
+        <span class="n">encoder_cls</span> <span class="o">=</span> <span class="n">ev_encoders</span><span class="o">.</span><span class="n">get_file_writer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_encoder</span> <span class="o">=</span> <span class="n">encoder_cls</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">w</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">h</span><span class="p">,</span>
+                                         <span class="n">dt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_raw_dt</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_encoder_kwargs</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_open_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">io</span><span class="o">.</span><span class="n">BufferedIOBase</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Open the file for writing.</span>
@@ -597,6 +630,7 @@
 
 <span class="sd">        This method can be called explicitly, but it is also called automatically when the first event is written</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_encoder</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_file_encoder</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_is_initialized</span> <span class="o">=</span> <span class="kc">True</span></div>
 
@@ -632,6 +666,10 @@
 <span class="sd">        &gt;&gt;&gt; writer.close() # doctest: +SKIP</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Resolve the encoder lazily so the first batch can supply sensor_size.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_encoder</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_encoder</span><span class="p">(</span><span class="n">events</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="p">(</span><span class="n">triggers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">triggers</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
                 <span class="ow">and</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_encoder</span><span class="p">,</span> <span class="s2">&quot;SUPPORTS_WRITE_TRIGGERS&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
                 <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_warned_triggers</span><span class="p">):</span>
@@ -651,7 +689,8 @@
 <a class="viewcode-back" href="../../../autoapi/evutils/io/index.html#evutils.io.EventWriter.flush">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">flush</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Flush the buffer to the file.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_file_encoder</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_encoder</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_file_encoder</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="EventWriter.__enter__">
@@ -684,6 +723,9 @@
 <span class="sd">        Finalizes the encoder first (container formats write their archive /</span>
 <span class="sd">        index here), then closes the underlying file.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># A writer that was opened but never written to still gets a valid</span>
+        <span class="c1"># (header-only) file, matching the pre-lazy-init behaviour.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_encoder</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_file_encoder</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
