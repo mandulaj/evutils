@@ -224,6 +224,31 @@ class TimeSkew(Transform):
         return f"{self.__class__.__name__}(coefficient={self.coefficient}, offset={self.offset})"
 
 
+class TimeNormalize(Transform):
+    """Shifts timestamps so the earliest event lands at ``start_ts``.
+
+    Stateless: each call normalizes the batch it is given on its own. For a
+    chunk-by-chunk stream use ``EventReader(normalize_ts=True)``, which latches
+    the offset from the first chunk across the whole stream; dropping this
+    transform into a ``Compose`` over sequential chunks would instead reset each
+    chunk to ``start_ts`` independently.
+
+    Parameters
+    ----------
+    start_ts : int, optional
+        Timestamp assigned to the earliest event. Default ``0``.
+    """
+    def __init__(self, start_ts: int = 0):
+        self.start_ts = start_ts
+
+    def _forward_jit(self, t, x, y, p):
+        from evutils.transforms.functional import _normalize_ts_jit
+        return _normalize_ts_jit(t, x, y, p, int(self.start_ts))
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(start_ts={self.start_ts})"
+
+
 class TimeJitter(Transform):
     """Adds Gaussian noise to each timestamp.
 

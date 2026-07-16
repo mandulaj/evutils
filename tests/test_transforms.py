@@ -9,10 +9,45 @@ from evutils.transforms import (
     RandomFlipLR,
     SpatialJitter,
     TimeSkew,
+    TimeNormalize,
     TimeJitter,
     RefractoryPeriod,
 )
+from evutils.transforms.functional import normalize_ts
 from evutils.types import Event_dtype, EventArray
+
+
+def test_normalize_ts_functional():
+    events = np.array(
+        [(100, 0, 0, 1), (200, 1, 1, 1), (300, 2, 2, 0)],
+        dtype=Event_dtype
+    )
+
+    # Normal case -- earliest event shifts to 0; input untouched (non-mutating).
+    norm = normalize_ts(events)
+    assert norm['t'].tolist() == [0, 100, 200]
+    assert events['t'].tolist() == [100, 200, 300]
+
+    # start_ts != 0
+    assert normalize_ts(events, start_ts=50)['t'].tolist() == [50, 150, 250]
+
+    # Empty array
+    assert len(normalize_ts(np.array([], dtype=Event_dtype))) == 0
+
+    # EventArray in -> EventArray out
+    ea = EventArray(t=[100, 200], x=[1, 2], y=[1, 2], p=[0, 1])
+    out = normalize_ts(ea)
+    assert isinstance(out, EventArray)
+    assert out.t.tolist() == [0, 100]
+
+
+def test_time_normalize_transform():
+    ea = EventArray(t=[100, 200, 300], x=[0, 1, 2], y=[0, 1, 2], p=[1, 1, 0])
+    assert TimeNormalize()(ea).t.tolist() == [0, 100, 200]
+    assert TimeNormalize(start_ts=10)(ea).t.tolist() == [10, 110, 210]
+    # Composable alongside other time transforms.
+    out = Compose([TimeNormalize(), TimeSkew(coefficient=1.0, offset=0)])(ea)
+    assert out.t.tolist() == [0, 100, 200]
 
 def test_drop_random_events():
     events = np.array(

@@ -3,7 +3,8 @@ import numpy as np
 from evutils.types import EventArray, TriggerArray
 from evutils.types import EventsChecker
 from evutils.chunking import window_delta_t, sliding_window, stream_n_events, stream_delta_t
-from evutils.filtering import mask_events, normalize_ts
+from evutils.filtering import mask_events
+from evutils.transforms.functional import normalize_ts
 from evutils.transforms import drop_random_events
 from evutils.vis.plot3d import plot_3d, plot_3d_timesurface
 
@@ -115,5 +116,5 @@ def test_normalize_ts_readonly():
 
 def test_normalize_ts_unstructured():
     events = np.array([[100, 1, 1, 1]])
-    with pytest.raises(ValueError, match="structured array or object with a 't' field"):
+    with pytest.raises(TypeError, match="Unsupported event format"):
         normalize_ts(events)

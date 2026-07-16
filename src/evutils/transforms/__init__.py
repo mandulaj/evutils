@@ -20,6 +20,7 @@ from .transforms import (
     RandomFlipLR,
     SpatialJitter,
     TimeSkew,
+    TimeNormalize,
     TimeJitter,
     RefractoryPeriod,
 )
@@ -38,6 +39,7 @@ __all__ = [
     "RandomFlipLR",
     "SpatialJitter",
     "TimeSkew",
+    "TimeNormalize",
     "TimeJitter",
     "RefractoryPeriod",
     "functional",
