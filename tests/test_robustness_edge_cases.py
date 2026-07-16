@@ -6,7 +6,6 @@ from evutils.chunking import window_delta_t, sliding_window, stream_n_events, st
 from evutils.processing import mask_events, normalize_ts
 from evutils.augment import drop_random_events
 from evutils.vis.plot3d import plot_3d, plot_3d_timesurface
-from evutils.vis.open3d import o3d_draw_events
 
 # --- 1. Chunking Edge Cases ---
 
@@ -56,6 +55,8 @@ def test_vis_empty_arrays():
     plt.close(fig)
     
     # Open3D
+    pytest.importorskip("open3d")
+    from evutils.vis.open3d import o3d_draw_events
     o3d_draw_events(empty_events)
 
 
