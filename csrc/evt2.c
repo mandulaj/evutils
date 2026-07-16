@@ -118,6 +118,11 @@ parser_result_t EVT2_parse_chunk_soa(
     state->last_ts_high = last_ts_high;
     state->ts_high_high = ts_high_high;
 
+    /* Report why parsing stopped: output space exhausted vs input drained. */
+    if (n_events_read >= events_capacity || n_triggers_read >= triggers_capacity) {
+        status = EVUTILS_PARSE_OUTPUT_FULL;
+    }
+
     return (parser_result_t){
         .current = (const void *)current,
         .status = status

@@ -60,6 +60,11 @@ parser_result_t DAT_parse_chunk_soa(
     state->last_ts = last_ts;
     state->have_last = have_last;
 
+    /* Report why parsing stopped: output space exhausted vs input drained. */
+    if (n >= capacity) {
+        status = EVUTILS_PARSE_OUTPUT_FULL;
+    }
+
     return (parser_result_t){
         .current = (const void *)current,
         .status = status

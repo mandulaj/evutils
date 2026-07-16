@@ -65,6 +65,7 @@ parser_result_t AER_parse_chunk_soa(
 
     return (parser_result_t){
         .current = (const void *)current,
-        .status = EVUTILS_PARSE_OK
+        /* Report why parsing stopped: output space exhausted vs input drained. */
+        .status = n >= capacity ? EVUTILS_PARSE_OUTPUT_FULL : EVUTILS_PARSE_OK
     };
 }

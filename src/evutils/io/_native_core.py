@@ -204,6 +204,12 @@ def parse_step(words: Any, offset: int, make_input: Any, parser: Any, events: An
     if res.status == EVUTILS_PARSE_ERROR: raise RuntimeError(f"parse error near word {offset}")
     consumed = inp.consumed(res)
     if consumed == 0:
+        # Distinguish WHY nothing was consumed. A full output buffer means the
+        # input is intact and the caller must drain/grow and retry -- flushing
+        # the tail here would silently skip unread input.
+        if res.status == EVUTILS_PARSE_OUTPUT_FULL:
+            return events.size - before, offset
+        # Input truly drained mid-group: only the sub-padding tail remains.
         if tail_pad and word_dtype is not None:
             tail = words[offset:]
             if len(tail):

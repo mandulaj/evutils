@@ -715,20 +715,31 @@ class EventReader():
 
         out = self._acquire_window_buffer(
             max(self._dt_est * 5 // 4 + self._dt_step, self._dt_step))
+        # The n_events safety cap (max_events in delta_t mode) is enforced by
+        # clamping the capacity the C parser sees, so a single C call can never
+        # decode past it. The parser stops within its reserved vector headroom
+        # below the cap; the decoder offset stays exact, so the next call
+        # continues the same window with no loss.
+        out.c.capacity = min(out.capacity, n_cap)
         count_cut = False
         while True:
             tr.reset()
             _, status = dec.parse_step_delta_t(out, tr, end_ts)
             if status == EVUTILS_PARSE_WINDOW_DONE:
                 break
-            if out.size >= n_cap:  # safety cap: split an over-long window by count
-                count_cut = True
-                break
             if dec.is_eof():
                 break
             if status == EVUTILS_PARSE_OUTPUT_FULL:
+                if out.c.capacity >= n_cap:
+                    # Hit the max_events cap: emit what we have and continue
+                    # this same time window on the next call.
+                    count_cut = True
+                    break
                 # Window not finished but the buffer filled: grow and continue.
-                out.grow(max(out.size + self._dt_step, int(out.capacity * 1.5) + 1))
+                new_cap = min(max(out.size + self._dt_step,
+                                  int(out.c.capacity * 1.5) + 1), n_cap)
+                out.grow(new_cap)          # realloc only if backing too small
+                out.c.capacity = new_cap   # parser-visible cap (recycled slots)
             # else EVUTILS_PARSE_OK: input drained this call; loop (tail -> EOF).
 
         size = out.size
@@ -745,6 +756,26 @@ class EventReader():
         if self._normalize_ts:
             output.t -= self._first_ts - self._start_ts
         return output
+
+    def _flush_dt_carry(self) -> None:
+        """Fold a pending delta_t fast-path overshoot into the accumulator.
+
+        The fast paths keep up to one decode step of overshoot in
+        ``_dt_carry``; any code path that reads via the accumulator (mixed-mode
+        overrides, ``read_all``) must fold it in first or those events are
+        silently lost. Allocates the accumulator if needed.
+        """
+        carry = self._dt_carry
+        if carry is None or carry.size == 0:
+            self._dt_carry = None
+            return
+        if self._buffer is None:
+            self._buffer = EventAccumulator(self._acc_capacity)
+        self._buffer.append(events_view(carry))
+        self._dt_carry = None
+        # Carried events exist => stream is not exhausted for the reader even
+        # if the decoder itself hit EOF.
+        self._eof = False
 
     def _read(self, delta_t:int|None=None, n_events:int|None=None) -> Any:
         """Unguarded body of :meth:`read` (also driven by the prefetch worker)."""
@@ -787,6 +818,12 @@ class EventReader():
         if self._buffer is None:
             self._buffer = EventAccumulator(self._acc_capacity)
         acc = self._buffer
+
+        # If a delta_t fast path ran earlier and left an overshoot carry, fold
+        # it in first: those events precede anything the decoder emits next.
+        # (Mixed-path reads -- per-call overrides after windowed fast-path
+        # iteration -- would otherwise silently lose them.)
+        self._flush_dt_carry()
 
         # "all" mode (without per-call overrides) means the whole remaining
         # stream: skip the window cutoffs entirely and drain to EOF, so files
@@ -893,6 +930,10 @@ class EventReader():
         self._check_no_active_prefetch()
         if not self._is_initialized:
             self.init()
+
+        # Fold in any delta_t fast-path overshoot so it is prepended below
+        # along with the rest of the staging buffer.
+        self._flush_dt_carry()
 
         _out = self._file_decoder.read_all()
         if self._read_external_triggers:

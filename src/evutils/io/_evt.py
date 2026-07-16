@@ -164,6 +164,11 @@ class EventDecoder_EVT(EventDecoder):
     }
 
     def __init__(self, source: ByteSource, chunk_size: int = 1_000_000, read_external_triggers: bool = False):
+        # The C parsers reserve headroom for one full vector expansion (up to 64
+        # events) below the buffer capacity; a smaller chunk would make the
+        # reserved offset 0 and the parser could never emit anything.
+        if chunk_size < 128:
+            raise ValueError(f"chunk_size must be >= 128 (got {chunk_size})")
         super().__init__(source, chunk_size, read_external_triggers=read_external_triggers)
 
         self._format: str | None = None
@@ -519,7 +524,16 @@ class EventDecoder_EVT(EventDecoder):
         # we must not treat an empty result as EOF unless the input is drained.
         appended = 0
         while appended == 0 and self._offset < len(self._words):
+            if not self.read_external_triggers:
+                # Unrequested triggers are discarded anyway; reset the sink so a
+                # trigger-dense region can never fill it and stall the parser.
+                tr.reset()
+            elif tr.size > 0:
+                break  # trigger-only progress: hand the triggers out
+            before_off = self._offset
             appended = self.parse_step(ev, tr)
+            if appended == 0 and self._offset == before_off:
+                break  # zero progress (full buffers); never spin
 
         n = ev.size
         ev_view = events_view(ev) if n > 0 else _EMPTY_EVENTS

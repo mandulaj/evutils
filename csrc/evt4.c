@@ -46,7 +46,8 @@ parser_result_t EVT4_parse_chunk_soa(
     // room for a full expansion without a per-bit capacity check.
     size_t n_events_read = event_buffer->size;
     const size_t events_capacity = event_buffer->capacity;
-    const size_t events_capacity_offset = events_capacity - 32;
+    // Guard the size_t subtraction: capacity <= 32 would wrap to a huge offset.
+    const size_t events_capacity_offset = events_capacity > 32 ? events_capacity - 32 : 0;
 
     timestamp_t* restrict out_ts = event_buffer->t;
     uint16_t* restrict out_x = event_buffer->x;
@@ -146,6 +147,11 @@ done:
     trigger_buffer->size = n_triggers_read;
     state->last_ts_high = last_ts_high;
     state->ts_high_high = ts_high_high;
+
+    /* Report why parsing stopped: output space exhausted vs input drained. */
+    if (n_events_read >= events_capacity_offset || n_triggers_read >= triggers_capacity) {
+        status = EVUTILS_PARSE_OUTPUT_FULL;
+    }
 
     return (parser_result_t){
         .current = (const void *)current,

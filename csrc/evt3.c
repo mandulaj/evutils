@@ -226,6 +226,10 @@ parser_result_t EVT3_parse_chunk_soa(
     event_buffer->size = n_events_read;
     trigger_buffer->size = n_triggers_read;
 
+    /* Report why parsing stopped: output space exhausted vs input drained. */
+    if (n_events_read >= events_capacity_offset || n_triggers_read >= triggers_capacity) {
+        status = EVUTILS_PARSE_OUTPUT_FULL;
+    }
 
     return (parser_result_t){
         .current = (const void *)current,
