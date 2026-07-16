@@ -115,6 +115,20 @@ events = ev_file.read()
 
 ```
 
+It also supports **random access** — jump to an absolute timestamp or event
+index (forward or backward) and keep reading in the configured window mode:
+
+```python
+with EventReader("raw_file.raw", delta_t=10_000) as r:
+    r.seek(t=2_000_000)   # skip to t = 2.0 s
+    window = r.read()     # first delta_t window from there
+    r.seek(n=1_000_000)   # or jump to the 1,000,000th event
+```
+
+Seeking uses an index (a Metavision `.tmp_index` sidecar when present, else one
+built in memory) or exact record math, and falls back to iterate-and-skip on
+non-seekable streams.
+
 #### `dense`
 
 Dense representations — turn a sparse event stream into fixed-size per-pixel
@@ -204,7 +218,7 @@ We aim for universal event format support, prioritizing blazing fast read/write 
 - [x] Full Read/Write parity where possible
 - [x] Chunked & Streaming access
 - [x] External trigger data parsing
-- [ ] **Random access / Timestamp indexing** (Big TODO for the future)
+- [x] **Random access / Timestamp indexing** (`EventReader.seek(t=/n=)` — by time or event index, forward/backward)
 - [x] **Arbitrary input sources:** memory-mapped IO, pure in-memory streams (HTTP streams pending)
 - [ ] **On-the-fly Compression wrappers:** passing file handles through `zstd` or `lz4` compression transparently before decoding
 - [ ] **EventStreamer Pipeline Refactor:** Decouple `EventReader`'s monolithic chunking logic into composable functional generators in `chunking.py`, exposing a native `EventStreamer` for power-users while turning `EventReader` into a clean Façade. *(`EventStreamer` and generators complete; `EventReader` Facade pending).*

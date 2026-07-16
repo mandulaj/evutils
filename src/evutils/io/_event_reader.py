@@ -147,6 +147,7 @@ class EventReader():
                  real_time: bool=False,
                  playback_speed: float=1.0,
                  max_gap: float | None=1.0,
+                 index: "str | bool" = "auto",
                  file_decoder: ev_decoders.EventDecoder | type[ev_decoders.EventDecoder] | None = None,
                  **kwargs) -> None:
 
@@ -178,7 +179,7 @@ class EventReader():
         # If not defined explicitly, the width and height are fetch from the file (not all formats support this)
         self._width = width
         self._height = height
-        self._start_ts = start_ts # Offset to start reading events. 0 is start of file
+        self._start_ts = start_ts # Normalization origin: with normalize_ts=True the earliest event's timestamp becomes start_ts. NOT a seek -- use seek() to skip to a time.
         self._first_ts = 0 # First timestamp in the file, used for normalization
         self._current_ts = self._first_ts
         self._normalize_ts = normalize_ts # Normalize timestamps to start from zero
@@ -320,6 +321,25 @@ class EventReader():
 
         self._n_read_events = 0 # Number of events read (not includeing events stored in buffer)
 
+        # Seeking (see seek()). ``_anchored`` decouples the "first timestamp"
+        # anchoring from ``_n_read_events == 0`` so a post-seek read keeps the
+        # sought ``_current_ts`` instead of re-anchoring to the stream start.
+        # ``_seeked`` forces the accumulator path (the zero-copy fast paths and
+        # the EVT delta_t C parser bypass parse_step's seek correction).
+        self._anchored = False
+        self._seeked = False
+        self._index_opt = index
+        # ``index`` selects the seek index source for formats that use one (EVT):
+        #   "auto"/True/False -> build an exact index in memory, lazily on the
+        #                        first seek() (never on open);
+        #   "metavision"      -> read a Metavision `.tmp_index` sidecar when
+        #                        present (fast, but approximate near large event
+        #                        gaps), else fall back to the built index.
+        if hasattr(self._file_decoder, "_use_sidecar"):
+            self._file_decoder._use_sidecar = (index == "metavision")
+            if self._file_name is not None:
+                self._file_decoder._raw_path = str(self._file_name)
+
     def init(self) -> None:
         """Initialize the reader, can be used explicitly or implicitly by the read method."""
         if self._is_initialized:
@@ -358,6 +378,15 @@ class EventReader():
 
         """
         dec = self._file_decoder
+        # A seek may have staged the boundary-chunk remainder (the events from
+        # the exact target onward, already wrap-corrected); drain it first so
+        # the native parse_step path does not skip past it.
+        take_pending = getattr(dec, "take_pending", None)
+        if take_pending is not None:
+            pend = take_pending()
+            if pend is not None and len(pend) > 0:
+                acc.append(pend, None)
+                return int(len(pend))
         if self._native_fill:
             while True:
                 if dec.is_eof():
@@ -474,9 +503,10 @@ class EventReader():
 
         if out.size == 0:
             return EventArray.empty()
-        if self._n_read_events == 0:
+        if not self._anchored:
             self._first_ts = int(out.t[0])
             self._current_ts = self._first_ts
+            self._anchored = True
         self._n_read_events += out.size
 
         output = events_view(out)
@@ -570,7 +600,7 @@ class EventReader():
 
         # Anchor the stream's first timestamp / window origin on the very first
         # decoded event (only reachable on the first call, when there is no carry).
-        if self._n_read_events == 0 and out.size == 0:
+        if not self._anchored and out.size == 0:
             while out.size == 0 and not dec.is_eof():
                 self._grow_out(out, step)
                 tr.reset()
@@ -580,6 +610,7 @@ class EventReader():
                 return EventArray.empty()
             self._first_ts = int(out.t[0])
             self._current_ts = self._first_ts
+            self._anchored = True
 
         end_ts = self._current_ts + delta_t
 
@@ -693,13 +724,14 @@ class EventReader():
 
         # Anchor the window origin on the first event once, then rewind so the C
         # parser redoes window 0 from the start with the right end_ts.
-        if self._n_read_events == 0:
+        if not self._anchored:
             first = self._peek_first_ts()
             if first is None:
                 self._eof = True
                 return EventArray.empty()
             self._first_ts = first
             self._current_ts = first
+            self._anchored = True
             dec.reset()
             self._eof = False
 
@@ -802,6 +834,7 @@ class EventReader():
         # staging accumulator (and its per-window copy).
         if (self._mode == "n_events" and delta_t is None
                 and not self._read_external_triggers
+                and not self._seeked
                 and (self._buffer is None or len(self._buffer) == 0)):
             dec = self._file_decoder
             n = n_events if n_events is not None else self._n_events
@@ -820,6 +853,7 @@ class EventReader():
         if (self._mode == "delta_t" and n_events is None
                 and self._native_fill
                 and not self._read_external_triggers
+                and not self._seeked
                 and (self._buffer is None or len(self._buffer) == 0)):
             dt = delta_t if delta_t is not None else self._delta_t
             # Prefer the dedicated C delta_t parser (one GIL-free call per window,
@@ -851,7 +885,7 @@ class EventReader():
             n_events = self._n_events
 
         # Establish the first timestamp once, at the very start of the stream.
-        if self._n_read_events == 0 and len(acc) == 0:
+        if not self._anchored and len(acc) == 0:
             if self._pull(acc, delta_t, n_events) == 0:
                 self._eof = True
                 if self._read_external_triggers:
@@ -860,6 +894,7 @@ class EventReader():
                 return EventArray.empty()
             self._first_ts = int(acc.t_window()[0])
             self._current_ts = self._first_ts
+            self._anchored = True
 
         start_ts: int = self._current_ts
         end_ts: int = start_ts + delta_t  # Final end_ts if we reach delta_t
@@ -1011,6 +1046,8 @@ class EventReader():
             self._active_prefetch.close()
         self._n_read_events = 0
         self._eof = False
+        self._anchored = False
+        self._seeked = False
         self._pace_anchor = None
         self._dt_carry = None
         self._dt_est = self._step
@@ -1018,6 +1055,129 @@ class EventReader():
         if self._buffer is not None:
             self._buffer.reset()
         self._file_decoder.reset()
+
+    def seek(self, t: int | None = None, n: int | None = None,
+             relative: bool = False) -> int:
+        """Reposition the read cursor by timestamp or event index.
+
+        Random access in *event coordinates*: give exactly one of ``t``
+        (absolute microseconds) or ``n`` (absolute 0-based event index). With
+        ``relative=True`` the value is added to the current cursor instead
+        (``whence=CUR``). Seeks work both forward and backward. After a seek the
+        next :meth:`read` / iteration continues in the reader's configured
+        ``delta_t`` / ``n_events`` mode, re-anchored at the new point.
+
+        A seekable source uses the decoder's index / binary search (fast); a
+        non-seekable one falls back to iterating and dropping events up to the
+        target (backward requires restarting the stream).
+
+        Parameters
+        ----------
+        t : int, optional
+            Target timestamp in microseconds.
+        n : int, optional
+            Target event index (0-based).
+        relative : bool, optional
+            Interpret ``t`` / ``n`` relative to the current cursor.
+
+        Returns
+        -------
+        int
+            The absolute timestamp of the first event that will be read next.
+
+        Raises
+        ------
+        NotImplementedError
+            If the decoder does not support seeking.
+        ValueError
+            If neither or both of ``t`` / ``n`` are given.
+
+        Examples
+        --------
+        >>> reader = EventReader(b"% format EVT3;height=720;width=1280\\n% end\\n", delta_t=10000)
+        >>> _ = reader.seek(t=0)
+        """
+        if not self._is_initialized:
+            self.init()
+        if (t is None) == (n is None):
+            raise ValueError("seek() requires exactly one of t= or n=.")
+
+        dec = self._file_decoder
+        if not getattr(dec, "SUPPORTS_SEEK", False):
+            raise NotImplementedError(
+                f"{dec.__class__.__name__} does not support seeking."
+            )
+
+        if self._active_prefetch is not None:
+            self._active_prefetch.close()
+
+        if relative:
+            if t is not None:
+                t = self._current_ts + t
+            else:
+                n = self._n_read_events + n
+
+        # Tear down staging state (mirrors reset(), but the decoder position is
+        # set by the seek itself rather than rewound to the start).
+        self._eof = False
+        self._pace_anchor = None
+        self._dt_carry = None
+        self._dt_est = self._step
+        self._dt_slot_i = 0
+        if self._buffer is not None:
+            self._buffer.reset()
+
+        try:
+            landed = dec.seek(t=t, n=n)
+        except (io.UnsupportedOperation, OSError):
+            landed = self._seek_linear(t, n)
+
+        self._seeked = True
+        self._n_read_events = int(n) if n is not None else 0
+        if not self._anchored:
+            self._first_ts = landed
+        self._current_ts = landed
+        self._anchored = True
+        return landed
+
+    def _seek_linear(self, t: int | None, n: int | None) -> int:
+        """Fallback seek for non-seekable sources: iterate and drop to target."""
+        dec = self._file_decoder
+        axis = "t" if t is not None else "n"
+        target = t if t is not None else n
+
+        behind = ((axis == "t" and target < self._current_ts)
+                  or (axis == "n" and target < self._n_read_events))
+        seen = 0
+        if behind:
+            dec.reset()
+        else:
+            seen = self._n_read_events
+
+        landed = target
+        while True:
+            chunk = dec.read_chunk()
+            if isinstance(chunk, tuple):
+                chunk = chunk[0]
+            if len(chunk) == 0:
+                self._eof = True
+                break
+            if axis == "t":
+                k = int(np.searchsorted(chunk.t, target, side="left"))
+                hit = k < len(chunk)
+            else:
+                k = max(0, min(target - seen, len(chunk)))
+                hit = target < seen + len(chunk)
+            if hit:
+                remainder = chunk[k:].copy()
+                if len(remainder):
+                    if self._buffer is None:
+                        self._buffer = EventAccumulator(self._acc_capacity)
+                    self._buffer.append(remainder, None)
+                    landed = int(remainder.t[0])
+                break
+            seen += len(chunk)
+        return landed
 
     def __enter__(self) -> "EventReader":
         return self

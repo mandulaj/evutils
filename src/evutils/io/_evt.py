@@ -148,6 +148,14 @@ class EventDecoder_EVT(EventDecoder):
     _TAIL_PAD = 8  # >= parser look-ahead padding (EVT3_INPUT_PADDING)
     SUPPORTS_EXT_TRIGGERS = True
 
+    #: EVT is variable-length with an incremental time base, so seeking uses a
+    #: SeekIndex: a coarse jump to the nearest bookmark, a TIME_HIGH wrap
+    #: correction, then a short forward decode to the exact target. The default
+    #: index is built in memory (exact, lazily on first seek); a Metavision
+    #: `.tmp_index` sidecar can be opted into (fast, but approximate near large
+    #: event gaps -- the built index is exact there).
+    SUPPORTS_SEEK = True
+
     # Per-format TIME_HIGH record descriptor: (type-field right-shift, type code).
     # Used to skip leading records until the first TIME_HIGH establishes a valid
     # time base -- events before it carry an undefined timestamp (a stream sliced
@@ -158,6 +166,17 @@ class EventDecoder_EVT(EventDecoder):
         "evt2":  (28, 0x8),   # 32-bit words, type in bits 28..31
         "evt21": (28, 0x8),
         "evt4":  (28, 0xE),   # EVT4 TIME_HIGH code differs (0xE)
+    }
+
+    #: Timestamp wrap period per format: the amount the overflow accumulator
+    #: adds on each TIME_HIGH wrap (EVT3: ts_high is bits 12..23 -> 2**24;
+    #: EVT2/2.1/4: the 28-bit field is shifted <<6 -> 2**34). Used to snap the
+    #: post-seek wrap correction to an exact multiple (see seek()).
+    _WRAP_PERIOD = {
+        "evt3": 1 << 24,
+        "evt2": 1 << 34,
+        "evt21": 1 << 34,
+        "evt4": 1 << 34,
     }
 
     def __init__(self, source: ByteSource, chunk_size: int = 1_000_000, read_external_triggers: bool = False):
@@ -192,6 +211,17 @@ class EventDecoder_EVT(EventDecoder):
         self._offset: int = 0            # current word offset into _words
         self._start_offset: int = 0      # word offset of the first TIME_HIGH
         self._parser: "Callable | None" = None
+
+        # Seek support (see seek()).
+        self._index = None                       # SeekIndex, lazily obtained
+        self._index_is_ours: bool = False        # built in-memory (exact counts)
+        self._seek_correction: int = 0           # TIME_HIGH wrap correction, added to decoded ts
+        self._pending: "EventArray | None" = None  # remainder of the boundary chunk after a seek
+        #: Full path to the raw file and whether to try a Metavision sidecar
+        #: index (set by EventReader from its ``index=`` option). Off by default:
+        #: the exact in-memory index is built lazily on the first seek instead.
+        self._raw_path: "str | None" = None
+        self._use_sidecar: bool = False
 
     # ------------------------------------------------------------------ #
     # Header
@@ -451,13 +481,29 @@ class EventDecoder_EVT(EventDecoder):
         if self._words is None or self._offset >= len(self._words):
             self._eof = True
             return 0
+        before = events.size
         appended, self._offset = parse_step(
             self._words, self._offset, self._input_cls, self._parser,
             events, triggers, tail_pad=self._tail_pad, word_dtype=self._word_dtype,
         )
+        if appended and self._seek_correction:
+            # Restore the TIME_HIGH wrap accumulation lost by the post-seek
+            # parser.reset() (see seek()); applied here so every read path
+            # (read_chunk and the reader's accumulator _pull) sees absolute ts.
+            events_view(events).t[before:before + appended] += self._seek_correction
         if self._offset >= len(self._words):
             self._eof = True
         return appended
+
+    def take_pending(self) -> "EventArray | None":
+        """Pop the boundary-chunk remainder staged by :meth:`seek` (or ``None``).
+
+        Lets the EventReader's accumulator path drain the exact-landing
+        remainder that would otherwise only be served by :meth:`read_chunk`.
+        """
+        p = self._pending
+        self._pending = None
+        return p
 
     @property
     def _has_delta_t_parser(self) -> bool:
@@ -514,6 +560,16 @@ class EventDecoder_EVT(EventDecoder):
         if not self._is_initialized:
             self.init()
 
+        # A prior seek() may have left the remainder of the boundary chunk (the
+        # events from the exact target onward) staged here; hand it out first.
+        if self._pending is not None:
+            out = self._pending
+            self._pending = None
+            if self.read_external_triggers:
+                from ..types import TriggerArray
+                return out, TriggerArray.empty()
+            return out
+
         # Nothing left: signal EOF with an empty array (never a stale buffer).
         if self._words is None or self._offset >= len(self._words):
             self._eof = True
@@ -544,6 +600,8 @@ class EventDecoder_EVT(EventDecoder):
 
         n = ev.size
         ev_view = events_view(ev) if n > 0 else _EMPTY_EVENTS
+        # The seek wrap-correction is applied inside parse_step (above), so it is
+        # already reflected in ev_view -- do not add it again here.
         if self.read_external_triggers:
             from ..types import TriggerArray
             tr_view = triggers_view(tr) if tr.size > 0 else TriggerArray.empty()
@@ -570,9 +628,10 @@ class EventDecoder_EVT(EventDecoder):
             self.init()
 
         # decode_all_soa is an events-only fast path; with external triggers
-        # requested, fall back to the chunked base implementation (which
-        # carries the trigger stream through).
-        if self.read_external_triggers:
+        # requested, or with a staged post-seek remainder, fall back to the
+        # chunked base implementation (which carries triggers / the pending
+        # chunk and applies the seek correction via read_chunk).
+        if self.read_external_triggers or self._pending is not None:
             return super().read_all()
 
         if self._words is None or self._offset >= len(self._words):
@@ -585,6 +644,8 @@ class EventDecoder_EVT(EventDecoder):
             est_events_per_word=self._READ_ALL_EST.get(self._format, 1.0),
             tail_pad=self._tail_pad, word_dtype=self._word_dtype,
         )
+        if len(out) and self._seek_correction:
+            out.t += self._seek_correction
         self._eof = True
         return out
 
@@ -598,8 +659,125 @@ class EventDecoder_EVT(EventDecoder):
         """
         self._offset = self._start_offset
         self._eof = False
+        self._pending = None
+        self._seek_correction = 0
         if self._parser is not None:
             self._parser.reset()
+
+    # ------------------------------------------------------------------ #
+    # Seeking
+    # ------------------------------------------------------------------ #
+    def _ensure_index(self, need_counts: bool = False):
+        """Obtain a :class:`SeekIndex` (Metavision sidecar or built in memory).
+
+        ``need_counts`` forces a built (evutils-counted) index, whose cumulative
+        counts match this decoder exactly -- required for event-index seeks.
+        """
+        from ._index import (
+            build_seek_index,
+            metavision_index_path,
+            read_metavision_index,
+        )
+
+        if self._index is not None and not (need_counts and not self._index_is_ours):
+            return self._index
+
+        word_size = np.dtype(self._word_dtype).itemsize
+        idx = None
+        if self._use_sidecar and self._raw_path is not None and not need_counts:
+            idx = read_metavision_index(
+                metavision_index_path(self._raw_path), self._raw_path,
+                self._payload_off, word_size,
+            )
+            self._index_is_ours = False
+        if idx is None:
+            idx = build_seek_index(
+                words=self._words, start_offset=self._start_offset,
+                input_cls=self._input_cls, parser_cls=type(self._parser),
+                tail_pad=self._tail_pad, word_dtype=self._word_dtype,
+            )
+            self._index_is_ours = True
+        self._index = idx
+        return idx
+
+    def _decode_events_step(self) -> "EventArray":
+        """One events-only decode step from the current offset (no correction).
+
+        Returns an empty array at EOF. Triggers are discarded (seek scans over a
+        region that will be skipped).
+        """
+        if self._words is None or self._offset >= len(self._words):
+            self._eof = True
+            return _EMPTY_EVENTS
+        ev, tr = self._events, self._triggers
+        ev.reset()
+        tr.reset()
+        appended = 0
+        while appended == 0 and self._offset < len(self._words):
+            tr.reset()
+            before_off = self._offset
+            appended = self.parse_step(ev, tr)
+            if appended == 0 and self._offset == before_off:
+                break
+        return events_view(ev) if ev.size > 0 else _EMPTY_EVENTS
+
+    def seek(self, t: int | None = None, n: int | None = None) -> int:
+        """Seek to an absolute timestamp (µs) or event index. See base class.
+
+        Jumps to the nearest index bookmark at/before the target, restores the
+        TIME_HIGH wrap accumulation, then decodes forward to land exactly on the
+        target (staging the boundary chunk's remainder for the next read).
+        """
+        if not self._is_initialized:
+            self.init()
+        axis, val = self._seek_axis(t, n)
+
+        index = self._ensure_index(need_counts=(axis == "n"))
+        self._pending = None
+        if index.n_events == 0 or self._words is None:
+            self._offset = len(self._words) if self._words is not None else 0
+            self._eof = True
+            self._seek_correction = 0
+            return val
+
+        i = index.bookmark_for_time(val) if axis == "t" else index.bookmark_for_event(val)
+        self._offset = int(index.word_offset[i])
+        self._parser.reset()
+        self._eof = False
+        base_ts = int(index.ts[i])
+        seen = int(index.cum_count[i])
+
+        correction: int | None = None
+        while True:
+            raw = self._decode_events_step()
+            if len(raw) == 0:
+                # Target is at/after the end of the stream.
+                self._seek_correction = correction or 0
+                self._eof = True
+                return val
+            if correction is None:
+                # Wrap accumulation lost by parser.reset(): the bookmark stores
+                # the absolute ts near its first event; the reset parser decodes
+                # it low. Their difference is a multiple of the wrap period (the
+                # bookmark ts may be a coarse bucket boundary, so snap to the
+                # nearest multiple to absorb the sub-bucket offset).
+                period = self._WRAP_PERIOD.get(self._format or "", 1 << 24)
+                correction = int(round((base_ts - int(raw.t[0])) / period)) * period
+            t_corr = raw.t + correction
+            if axis == "t":
+                k = int(np.searchsorted(t_corr, val, side="left"))
+                hit = k < len(raw)
+            else:
+                k = max(0, min(val - seen, len(raw)))
+                hit = val < seen + len(raw)
+            if hit:
+                self._seek_correction = correction
+                self._pending = EventArray(
+                    t_corr[k:].copy(), raw.x[k:].copy(),
+                    raw.y[k:].copy(), raw.p[k:].copy(),
+                )
+                return int(t_corr[k]) if k < len(raw) else val
+            seen += len(raw)
 
     def tell(self) -> int:
         """Get the current byte offset.

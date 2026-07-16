@@ -38,6 +38,10 @@ class EventDecoder_Csv(EventDecoder):
     #: accumulator). CSV decode is text-parse-bound, so the gain is small.
     _independent_windows = True
 
+    #: Seekable via byte-offset binary search with newline resync (time) or a
+    #: newline count (event index). Requires a seekable source.
+    SUPPORTS_SEEK = True
+
     def __init__(self, readable:io.BufferedReader,  order:list[str]|None=None, chunk_size:int=1_000_000, delimiter:str=",", engine:str='c'):
         super().__init__(readable, chunk_size)
 
@@ -107,6 +111,9 @@ class EventDecoder_Csv(EventDecoder):
         for i, col in enumerate(self._order):
             if col in self._field_map:
                 self._col_mapping[i] = self._field_map[col]
+
+        # Byte offset of the first event line (past any header), for seeking.
+        self._data_start = int(self._fd.tell())
 
         self._buffer = bytearray()
         self._is_initialized = True
@@ -193,6 +200,102 @@ class EventDecoder_Csv(EventDecoder):
             y_arr[:events_parsed_total],
             p_arr[:events_parsed_total]
         )
+
+    # ------------------------------------------------------------------ #
+    # Seeking (byte-offset binary search + newline resync)
+    # ------------------------------------------------------------------ #
+    def _file_size(self) -> int:
+        cur = self._fd.tell()
+        end = self._fd.seek(0, io.SEEK_END)
+        self._fd.seek(cur)
+        return end
+
+    def _line_start_at_or_after(self, pos: int) -> int:
+        """Byte offset of the first line whose start is ``>= pos``."""
+        if pos <= self._data_start:
+            return self._data_start
+        self._fd.seek(pos - 1)  # find the newline at/after pos-1; line starts after it
+        acc = 0
+        while True:
+            chunk = self._fd.read(65536)
+            if not chunk:
+                return pos - 1 + acc  # EOF, no newline
+            i = chunk.find(b"\n")
+            if i >= 0:
+                return pos - 1 + acc + i + 1
+            acc += len(chunk)
+
+    def _parse_line_t(self, pos: int) -> int | None:
+        """Parse the ``t`` column of the line starting at ``pos`` (or ``None``)."""
+        assert self._order is not None
+        self._fd.seek(pos)
+        line = b""
+        while True:
+            chunk = self._fd.read(65536)
+            if not chunk:
+                break
+            nl = chunk.find(b"\n")
+            if nl >= 0:
+                line += chunk[:nl]
+                break
+            line += chunk
+        if not line.strip():
+            return None
+        parts = line.split(self._delimiter.encode("utf-8"))
+        ti = self._order.index("t")
+        try:
+            return int(parts[ti].strip())
+        except (ValueError, IndexError):
+            return None
+
+    def _seek_line_index(self, n: int) -> int:
+        """Byte offset of event line ``n`` (0-based), by counting newlines."""
+        self._fd.seek(self._data_start)
+        pos = self._data_start
+        remaining = n
+        while remaining > 0:
+            chunk = self._fd.read(1 << 20)
+            if not chunk:
+                break
+            cnt = chunk.count(b"\n")
+            if cnt < remaining:
+                remaining -= cnt
+                pos += len(chunk)
+            else:
+                idx = -1
+                for _ in range(remaining):
+                    idx = chunk.find(b"\n", idx + 1)
+                pos += idx + 1
+                remaining = 0
+        return pos
+
+    def seek(self, t: int | None = None, n: int | None = None) -> int:
+        """Seek to an absolute timestamp (µs) or event index. See base class."""
+        if not self._is_initialized:
+            self.init()
+        axis, val = self._seek_axis(t, n)
+        size = self._file_size()
+
+        if axis == "n":
+            pos = self._seek_line_index(val)
+        else:
+            lo, hi = self._data_start, size
+            while lo < hi:
+                mid = (lo + hi) // 2
+                ls = self._line_start_at_or_after(mid)
+                tv = self._parse_line_t(ls) if ls < size else None
+                if tv is not None and tv >= val:
+                    hi = mid
+                else:
+                    lo = mid + 1
+            pos = self._line_start_at_or_after(lo)
+
+        self._fd.seek(pos)
+        self._buffer = bytearray()
+        self._eof = False
+        landed = self._parse_line_t(pos) if pos < size else None
+        self._fd.seek(pos)  # _parse_line_t moved the cursor
+        return landed if landed is not None else val
 
     def reset(self) -> None:
         """Reset the CSV reader to the beginning of the file."""

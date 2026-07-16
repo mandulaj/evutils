@@ -82,6 +82,11 @@ class EventDecoder_HDF5(EventDecoder):
 
     """
 
+    #: Columns are index-addressable datasets, so seeking sets the event
+    #: position directly (index) or via searchsorted on the timestamp column
+    #: (time). The separate :meth:`read` remains for ms-range random access.
+    SUPPORTS_SEEK = True
+
     def __init__(self, source: ByteSource, chunk_size: int = 1_000_000):
         super().__init__(source, chunk_size)
         self._h5: h5py.File | None = None
@@ -91,6 +96,7 @@ class EventDecoder_HDF5(EventDecoder):
         self._t_offset: int = 0
         self._n: int = 0
         self._pos = 0
+        self._t_cache: np.ndarray | None = None  # lazily-loaded t column for time seek
 
     def init(self) -> None:
         """Open the HDF5 file and locate the event datasets."""
@@ -220,6 +226,38 @@ class EventDecoder_HDF5(EventDecoder):
         rel_end = min(rel_end, last_ms)
 
         return self._slice(int(self._ms_to_idx[rel_start]), int(self._ms_to_idx[rel_end]))
+
+    def _all_t(self) -> np.ndarray:
+        """Lazily load the whole timestamp column (user timeline, +t_offset)."""
+        if self._t_cache is None:
+            assert self._h5 is not None
+            if self._aos is not None:
+                t = self._aos["t"][:].astype(np.int64)
+            else:
+                t = self._h5["events"]["t"][:].astype(np.int64)
+            if self._t_offset:
+                t = t + self._t_offset
+            self._t_cache = t
+        return self._t_cache
+
+    def seek(self, t: int | None = None, n: int | None = None) -> int:
+        """Seek to an absolute timestamp (µs) or event index. See base class.
+
+        Index seek sets the event position directly; time seek does a
+        ``searchsorted`` over the (lazily cached) timestamp column, so it is
+        exact regardless of ``t_offset`` / ``ms_to_idx`` anchoring.
+        """
+        if not self._is_initialized:
+            self.init()
+        axis, val = self._seek_axis(t, n)
+        if axis == "n":
+            idx = val
+        else:
+            idx = int(np.searchsorted(self._all_t(), val, side="left"))
+        idx = max(0, min(idx, self._n))
+        self._pos = idx
+        self._eof = idx >= self._n
+        return int(self._all_t()[idx]) if idx < self._n else val
 
     def reset(self) -> None:
         """Reset the reader to the beginning of the file."""

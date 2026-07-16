@@ -32,6 +32,12 @@ class EventDecoder(ABC):
 
     SUPPORTS_EXT_TRIGGERS = False
 
+    #: Whether this decoder implements timestamp / event-index random access via
+    #: :meth:`seek`. Off by default; each seekable format opts in. The
+    #: EventReader additionally requires the underlying ByteSource to be
+    #: seekable before delegating a real (non-linear) seek here.
+    SUPPORTS_SEEK = False
+
     def __init__(self, source: "io.BufferedIOBase | str | bytes", chunk_size: int = 10000, read_external_triggers: bool = False):
         """Initialize the decoder.
 
@@ -182,6 +188,54 @@ class EventDecoder(ABC):
 
         """
         return int(self._fd.tell())
+
+    @staticmethod
+    def _seek_axis(t: int | None, n: int | None) -> "tuple[str, int]":
+        """Validate the (t, n) pair and return the chosen axis and value.
+
+        Returns ``("t", value)`` or ``("n", value)``; raises ``ValueError`` if
+        neither or both were given.
+        """
+        if (t is None) == (n is None):
+            raise ValueError("seek() requires exactly one of t= or n=.")
+        if t is not None:
+            return "t", int(t)
+        return "n", int(n)  # type: ignore[arg-type]
+
+    def seek(self, t: int | None = None, n: int | None = None) -> int:
+        """Reposition the decoder to an absolute timestamp or event index.
+
+        Exactly one of ``t`` (microseconds) or ``n`` (0-based event index) must
+        be given. After a successful seek the next :meth:`read_chunk` /
+        :meth:`read_all` yields events starting at the first event whose
+        timestamp is ``>= t`` (time seek) or at event ``n`` (index seek).
+
+        Parameters
+        ----------
+        t : int, optional
+            Absolute target timestamp in microseconds.
+        n : int, optional
+            Absolute target event index (0-based).
+
+        Returns
+        -------
+        int
+            The absolute timestamp of the first event that will be read next
+            (the landed position). Equals the stream's last timestamp + 1 style
+            EOF sentinel handling is left to the caller; an empty tail simply
+            means the target is at/after the end.
+
+        Raises
+        ------
+        NotImplementedError
+            If this decoder does not support seeking (``SUPPORTS_SEEK`` is
+            False).
+        ValueError
+            If neither or both of ``t``/``n`` are provided.
+        """
+        raise NotImplementedError(
+            f"{self.__class__.__name__} does not support seek()."
+        )
 
     def set_chunk_size(self, chunk_size:int) -> None:
         """Set the chunk size.

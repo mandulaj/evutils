@@ -276,6 +276,29 @@ def stream_skip_to_time(stream: Iterator[np.ndarray | EventArray], start_ts: int
         else:
             yield incoming
 
+def stream_skip_to_event(stream: Iterator[np.ndarray | EventArray], n: int) -> Iterator[np.ndarray | EventArray]:
+    """Pipeline generator: drops the first ``n`` events, then passes through.
+
+    The event-index counterpart of :func:`stream_skip_to_time` -- the linear
+    fallback for seeking by event index on a non-seekable stream.
+    """
+    seen = 0
+    skipping = True
+    for incoming in stream:
+        ev = incoming[0] if isinstance(incoming, tuple) else incoming
+        if skipping:
+            if seen + len(ev) <= n:
+                seen += len(ev)
+                continue  # whole chunk is before the target
+            idx = n - seen
+            skipping = False
+            if isinstance(incoming, tuple):
+                yield incoming[0][idx:], incoming[1]
+            else:
+                yield incoming[idx:]
+        else:
+            yield incoming
+
 def stream_async(stream: Iterator[np.ndarray | EventArray], maxsize: int = 5) -> Iterator[np.ndarray | EventArray]:
     """Pipeline generator: runs upstream decoding in a background thread."""
     q: queue.Queue[np.ndarray | EventArray] = queue.Queue(maxsize=maxsize)

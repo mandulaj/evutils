@@ -92,6 +92,10 @@ class EventDecoder_Npz(EventDecoder):
     #: EventReader can hand them out directly (skipping the staging accumulator).
     _independent_windows = True
 
+    #: NPZ columns are index-addressable, so seeking is a stream reposition (by
+    #: event index) or a searchsorted over the timestamp column (by time).
+    SUPPORTS_SEEK = True
+
     def __init__(self, source: ByteSource, chunk_size: int = 1_000_000):
         super().__init__(source, chunk_size)
         self._zf: zipfile.ZipFile | None = None
@@ -183,6 +187,63 @@ class EventDecoder_Npz(EventDecoder):
         if self._pos >= self._n:
             self._eof = True
         return chunk
+
+    def _itemsize(self, name: str) -> int:
+        if name == "events":
+            assert self._aos_dtype is not None
+            return self._aos_dtype.itemsize
+        return dict(_COLUMNS)[name].itemsize
+
+    def _load_all_t(self) -> np.ndarray:
+        """Read the full timestamp column once (for a time->index search)."""
+        assert self._zf is not None
+        if self._aos_dtype is not None:
+            with self._zf.open("events.npy") as fp:
+                return npy_format.read_array(fp)["t"]
+        with self._zf.open("t.npy") as fp:
+            return npy_format.read_array(fp)
+
+    def _ts_at(self, idx: int) -> int | None:
+        """Timestamp of event ``idx`` (``None`` if at/after the end)."""
+        assert self._zf is not None
+        if idx >= self._n:
+            return None
+        if self._aos_dtype is not None:
+            with self._zf.open("events.npy") as fp:
+                _read_npy_header(fp)
+                base = fp.tell()
+                fp.seek(base + idx * self._aos_dtype.itemsize)
+                rec = np.frombuffer(_read_exact(fp, self._aos_dtype.itemsize),
+                                    dtype=self._aos_dtype)
+            return int(rec["t"][0])
+        with self._zf.open("t.npy") as fp:
+            _read_npy_header(fp)
+            base = fp.tell()
+            fp.seek(base + idx * 8)
+            return int(np.frombuffer(_read_exact(fp, 8), dtype=np.int64)[0])
+
+    def _seek_to_index(self, idx: int) -> None:
+        """Reposition every member stream so the next read starts at ``idx``."""
+        self._open_streams()  # streams sit at their first data byte (headers consumed)
+        for name, fp in self._streams.items():
+            base = fp.tell()
+            fp.seek(base + idx * self._itemsize(name))
+        self._pos = idx
+        self._eof = idx >= self._n
+
+    def seek(self, t: int | None = None, n: int | None = None) -> int:
+        if not self._is_initialized:
+            self.init()
+        axis, val = self._seek_axis(t, n)
+        if axis == "t":
+            ts = self._load_all_t()
+            idx = int(np.searchsorted(ts, val, side="left"))
+        else:
+            idx = val
+        idx = max(0, min(idx, self._n))
+        self._seek_to_index(idx)
+        landed = self._ts_at(idx)
+        return landed if landed is not None else val
 
     def reset(self) -> None:
         """Reset the reader to the beginning of the archive."""

@@ -58,6 +58,12 @@ class EventDecoder_Dat(EventDecoder):
     #: n_events fast path.
     _exact_window = True
 
+    #: Fixed 8-byte records make event-index <-> byte-offset exact, and the raw
+    #: 32-bit timestamps are the even-strided words -> seek is direct index math
+    #: / a searchsorted, no index file needed. Assumes timestamps do not wrap
+    #: the 32-bit field (~71 min); a wrapped recording would seek approximately.
+    SUPPORTS_SEEK = True
+
     def __init__(self, source: ByteSource, chunk_size: int = 1_000_000):
         super().__init__(source, chunk_size)
         self._header: dict[str, str | int | float] = {}
@@ -208,6 +214,33 @@ class EventDecoder_Dat(EventDecoder):
         )
         self._eof = True
         return out
+
+    def seek(self, t: int | None = None, n: int | None = None) -> int:
+        """Seek to an absolute timestamp (µs) or event index. See base class.
+
+        Fixed 8-byte records: event ``k`` lives at word offset ``2k`` and its
+        timestamp is the even-strided word ``_words[2k]``. Time seek is a
+        ``searchsorted`` over those words; index seek is direct. Assumes the
+        raw 32-bit timestamps are non-decreasing (no wrap).
+        """
+        if not self._is_initialized:
+            self.init()
+        axis, val = self._seek_axis(t, n)
+
+        n_events = 0 if self._words is None else len(self._words) // 2
+        ts_view = (self._words[0::2] if n_events
+                   else np.empty(0, dtype=np.uint32))
+        if axis == "t":
+            idx = int(np.searchsorted(ts_view, val, side="left"))
+        else:
+            idx = val
+        idx = max(0, min(idx, n_events))
+
+        self._offset = idx * 2
+        self._eof = idx >= n_events
+        if self._parser is not None:
+            self._parser.reset()
+        return int(ts_view[idx]) if idx < n_events else val
 
     def reset(self) -> None:
         """Reset the DAT reader to the beginning.
