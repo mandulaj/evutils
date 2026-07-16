@@ -1,6 +1,7 @@
 """Module providing utilities to check the validity of event arrays."""
 
 import numpy as np
+from typing import Any
 
 from ..types import Event_dtype
 
@@ -82,15 +83,15 @@ class EventsChecker():
         """
         return bool(np.all((self.events['y'] >= 0) & (self.events['y'] < height)))
     
-    def is_valid(self, width: int = 1280, height: int = 720) -> bool:
+    def is_valid(self, width: int | None = None, height: int | None = None) -> bool:
         """Check if all events are valid (sorted, valid polarity, and valid coordinates).
         
         Parameters
         ----------
         width : int, optional
-            Maximum valid width, by default 1280.
+            Maximum valid width. If None, x coordinates are not checked.
         height : int, optional
-            Maximum valid height, by default 720.
+            Maximum valid height. If None, y coordinates are not checked.
             
         Returns
         -------
@@ -98,7 +99,12 @@ class EventsChecker():
             True if all checks pass.
 
         """
-        return self.is_sorted() and self.has_valid_polarity() and self.has_valid_x(width) and self.has_valid_y(height)
+        valid = self.is_sorted() and self.has_valid_polarity()
+        if width is not None:
+            valid = valid and self.has_valid_x(width)
+        if height is not None:
+            valid = valid and self.has_valid_y(height)
+        return valid
     
     def __repr__(self) -> str:
         """Return string representation of the EventsChecker.

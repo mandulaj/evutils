@@ -1,8 +1,12 @@
 """Event-to-video reconstruction using the Metavision ML model."""
 
 import numpy as np
-import torch
-import torch.nn.functional as F
+from evutils.torch import _try_import_torch
+torch = _try_import_torch()
+if torch:
+    F = torch.nn.functional
+else:
+    F = None
 from typing import Any
 
 from ._base import Reconstructor
