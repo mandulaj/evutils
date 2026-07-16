@@ -75,7 +75,7 @@
   </div>
   <div class="Box-row Box-row--focus-gray py-2 d-flex">
     <div role="gridcell" class="color-fg-muted flex-auto min-width-0 col-md-2"><a href="#l103">EVT3_parse_chunk_soa.avx2 (csrc/evt3.c:103)</a>    </div>
-    <div role="gridcell" class="color-fg-muted flex-auto min-width-0 d-flex flex-justify-end flex-wrap flex-items-baseline" data-sort="730">called 730 times</div>
+    <div role="gridcell" class="color-fg-muted flex-auto min-width-0 d-flex flex-justify-end flex-wrap flex-items-baseline" data-sort="738">called 738 times</div>
     <div role="gridcell" class="color-fg-muted d-flex flex-justify-end flex-wrap col-2">100.0%</div>
     <div role="gridcell" class="color-fg-muted d-flex flex-justify-end flex-wrap col-2">87.5%</div>
     <div role="gridcell" class="color-fg-muted d-flex flex-justify-end flex-wrap col-2">100.0%</div>
@@ -89,7 +89,7 @@
   </div>
   <div class="Box-row Box-row--focus-gray py-2 d-flex">
     <div role="gridcell" class="color-fg-muted flex-auto min-width-0 col-md-2"><a href="#l40">EVT3_state_size (csrc/evt3.c:40)</a>    </div>
-    <div role="gridcell" class="color-fg-muted flex-auto min-width-0 d-flex flex-justify-end flex-wrap flex-items-baseline" data-sort="88">called 88 times</div>
+    <div role="gridcell" class="color-fg-muted flex-auto min-width-0 d-flex flex-justify-end flex-wrap flex-items-baseline" data-sort="96">called 96 times</div>
     <div role="gridcell" class="color-fg-muted d-flex flex-justify-end flex-wrap col-2">92.9%</div>
     <div role="gridcell" class="color-fg-muted d-flex flex-justify-end flex-wrap col-2">35.0%</div>
     <div role="gridcell" class="color-fg-muted d-flex flex-justify-end flex-wrap col-2">100.0%</div>
@@ -399,14 +399,14 @@
         <td class="lineno"><a id="l40" href="#l40">40</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">88</td>
+        <td class="linecount coveredLine show_coveredLine">96</td>
         <td class="src  coveredLine show_coveredLine"><span class="kt">size_t</span><span class="w"> </span><span class="nf">EVT3_state_size</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l41" href="#l41">41</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">88</td>
+        <td class="linecount coveredLine show_coveredLine">96</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">evt3_state_t</span><span class="p">);</span></td>
       </tr>
       <tr class="source-line">
@@ -895,7 +895,7 @@
         <td class="lineno"><a id="l103" href="#l103">103</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">730</td>
+        <td class="linecount coveredLine show_coveredLine">738</td>
         <td class="src  coveredLine show_coveredLine"><span class="n">parser_result_t</span><span class="w"> </span><span class="n">EVT3_parse_chunk_soa</span><span class="p">(</span></td>
       </tr>
       <tr class="source-line">
@@ -944,14 +944,14 @@
         <td class="lineno"><a id="l110" href="#l110">110</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">730</td>
+        <td class="linecount coveredLine show_coveredLine">738</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">uint16_t</span><span class="w"> </span><span class="o">*</span><span class="kr">restrict</span><span class="w"> </span><span class="n">current</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">input_buffer</span><span class="o">-&gt;</span><span class="n">begin</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l111" href="#l111">111</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">730</td>
+        <td class="linecount coveredLine show_coveredLine">738</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">uint16_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">end_offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">input_buffer</span><span class="o">-&gt;</span><span class="n">end</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">EVT3_INPUT_PADDING</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
@@ -972,7 +972,7 @@
         <td class="lineno"><a id="l114" href="#l114">114</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">730</td>
+        <td class="linecount coveredLine show_coveredLine">738</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">events_capacity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">event_buffer</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
@@ -993,14 +993,14 @@
         <td class="lineno"><a id="l117" href="#l117">117</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">730</td>
+        <td class="linecount coveredLine show_coveredLine">738</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">events_capacity_offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">events_capacity</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">64</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="n">events_capacity</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">64</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l118" href="#l118">118</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">730</td>
+        <td class="linecount coveredLine show_coveredLine">738</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">n_events_read</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">event_buffer</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
@@ -1014,28 +1014,28 @@
         <td class="lineno"><a id="l120" href="#l120">120</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">730</td>
+        <td class="linecount coveredLine show_coveredLine">738</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="n">timestamp_t</span><span class="o">*</span><span class="w"> </span><span class="kr">restrict</span><span class="w"> </span><span class="n">out_ts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">event_buffer</span><span class="o">-&gt;</span><span class="n">t</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l121" href="#l121">121</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">730</td>
+        <td class="linecount coveredLine show_coveredLine">738</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="kt">uint16_t</span><span class="o">*</span><span class="w"> </span><span class="kr">restrict</span><span class="w"> </span><span class="n">out_x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">event_buffer</span><span class="o">-&gt;</span><span class="n">x</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l122" href="#l122">122</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">730</td>
+        <td class="linecount coveredLine show_coveredLine">738</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="kt">uint16_t</span><span class="o">*</span><span class="w"> </span><span class="kr">restrict</span><span class="w"> </span><span class="n">out_y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">event_buffer</span><span class="o">-&gt;</span><span class="n">y</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l123" href="#l123">123</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">730</td>
+        <td class="linecount coveredLine show_coveredLine">738</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="kt">uint8_t</span><span class="o">*</span><span class="w"> </span><span class="kr">restrict</span><span class="w"> </span><span class="n">out_p</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">event_buffer</span><span class="o">-&gt;</span><span class="n">p</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
@@ -1056,14 +1056,14 @@
         <td class="lineno"><a id="l126" href="#l126">126</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">730</td>
+        <td class="linecount coveredLine show_coveredLine">738</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">triggers_capacity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">trigger_buffer</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l127" href="#l127">127</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">730</td>
+        <td class="linecount coveredLine show_coveredLine">738</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">n_triggers_read</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">trigger_buffer</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
@@ -1077,21 +1077,21 @@
         <td class="lineno"><a id="l129" href="#l129">129</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">730</td>
+        <td class="linecount coveredLine show_coveredLine">738</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="n">timestamp_t</span><span class="o">*</span><span class="w"> </span><span class="kr">restrict</span><span class="w"> </span><span class="n">trigger_ts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">trigger_buffer</span><span class="o">-&gt;</span><span class="n">t</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l130" href="#l130">130</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">730</td>
+        <td class="linecount coveredLine show_coveredLine">738</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="kt">uint8_t</span><span class="o">*</span><span class="w"> </span><span class="kr">restrict</span><span class="w"> </span><span class="n">trigger_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">trigger_buffer</span><span class="o">-&gt;</span><span class="n">id</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l131" href="#l131">131</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">730</td>
+        <td class="linecount coveredLine show_coveredLine">738</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="kt">uint8_t</span><span class="o">*</span><span class="w"> </span><span class="kr">restrict</span><span class="w"> </span><span class="n">trigger_p</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">trigger_buffer</span><span class="o">-&gt;</span><span class="n">p</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
@@ -1112,7 +1112,7 @@
         <td class="lineno"><a id="l134" href="#l134">134</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">730</td>
+        <td class="linecount coveredLine show_coveredLine">738</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="n">evt3_state_t</span><span class="w"> </span><span class="n">local_state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">*</span><span class="n">state</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
@@ -1126,7 +1126,7 @@
         <td class="lineno"><a id="l136" href="#l136">136</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">730</td>
+        <td class="linecount coveredLine show_coveredLine">738</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="n">parse_status_t</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">EVUTILS_PARSE_OK</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
@@ -1154,14 +1154,14 @@
         <td class="lineno"><a id="l140" href="#l140">140</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">730</td>
+        <td class="linecount coveredLine show_coveredLine">738</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="k">while</span><span class="p">(</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l141" href="#l141">141</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">466719604</td>
+        <td class="linecount coveredLine show_coveredLine">466755604</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">        </span><span class="n">current</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">end_offset</span><span class="w"> </span><span class="o">&amp;&amp;</span></td>
       </tr>
       <tr class="source-line">
@@ -1171,11 +1171,11 @@
             <summary class="linebranchSummary">5/12</summary>
             <div class="linebranchContents">
               <div class="functionName">EVT3_parse_chunk_soa.avx2:</div>
-              <div class="takenBranch">&check; Branch 0 taken 466719604 times.</div>
-              <div class="takenBranch">&check; Branch 1 taken 115 times.</div>
-              <div class="takenBranch">&check; Branch 2 taken 466718989 times.</div>
+              <div class="takenBranch">&check; Branch 0 taken 466755604 times.</div>
+              <div class="takenBranch">&check; Branch 1 taken 123 times.</div>
+              <div class="takenBranch">&check; Branch 2 taken 466754989 times.</div>
               <div class="takenBranch">&check; Branch 3 taken 615 times.</div>
-              <div class="takenBranch">&check; Branch 4 taken 466718989 times.</div>
+              <div class="takenBranch">&check; Branch 4 taken 466754989 times.</div>
               <div class="notTakenBranch">&cross; Branch 5 not taken.</div>
               <div class="functionName">EVT3_parse_chunk_soa.default:</div>
               <div class="notTakenBranch">&cross; Branch 0 not taken.</div>
@@ -1187,7 +1187,7 @@
             </div>
           </details>
         </td>
-        <td class="linecount partialCoveredLine show_partialCoveredLine">466719719</td>
+        <td class="linecount partialCoveredLine show_partialCoveredLine">466755727</td>
         <td class="src  partialCoveredLine show_partialCoveredLine"><span class="w">        </span><span class="n">n_events_read</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">events_capacity_offset</span><span class="w"> </span><span class="o">&amp;&amp;</span></td>
       </tr>
       <tr class="source-line">
@@ -1208,14 +1208,14 @@
         <td class="lineno"><a id="l145" href="#l145">145</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">466718989</td>
+        <td class="linecount coveredLine show_coveredLine">466754989</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">        </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">packet_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">EVT3_get_packet_type</span><span class="p">(</span><span class="o">*</span><span class="n">current</span><span class="p">);</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l146" href="#l146">146</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">466718989</td>
+        <td class="linecount coveredLine show_coveredLine">466754989</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">        </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">packet_data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">EVT3_get_packet_data</span><span class="p">(</span><span class="o">*</span><span class="n">current</span><span class="p">);</span></td>
       </tr>
       <tr class="source-line">
@@ -1239,64 +1239,64 @@
             <summary class="linebranchSummary">2/4</summary>
             <div class="linebranchContents">
               <div class="functionName">EVT3_parse_chunk_soa.avx2:</div>
-              <div class="takenBranch">&check; Branch 0 taken 255480301 times.</div>
-              <div class="takenBranch">&check; Branch 1 taken 211238688 times.</div>
+              <div class="takenBranch">&check; Branch 0 taken 255492297 times.</div>
+              <div class="takenBranch">&check; Branch 1 taken 211262692 times.</div>
               <div class="functionName">EVT3_parse_chunk_soa.default:</div>
               <div class="notTakenBranch">&cross; Branch 0 not taken.</div>
               <div class="notTakenBranch">&cross; Branch 1 not taken.</div>
             </div>
           </details>
         </td>
-        <td class="linecount partialCoveredLine show_partialCoveredLine">466718989</td>
+        <td class="linecount partialCoveredLine show_partialCoveredLine">466754989</td>
         <td class="src  partialCoveredLine show_partialCoveredLine"><span class="w">        </span><span class="k">if</span><span class="p">(</span><span class="n">packet_type</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">EVT3_EVT_ADDR_X</span><span class="p">)</span><span class="w"> </span><span class="p">{</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l150" href="#l150">150</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">255480301</td>
+        <td class="linecount coveredLine show_coveredLine">255492297</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">            </span><span class="n">out_ts</span><span class="p">[</span><span class="n">n_events_read</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">local_state</span><span class="p">.</span><span class="n">ts</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l151" href="#l151">151</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">255480301</td>
+        <td class="linecount coveredLine show_coveredLine">255492297</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">            </span><span class="n">out_y</span><span class="p">[</span><span class="n">n_events_read</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">local_state</span><span class="p">.</span><span class="n">y</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l152" href="#l152">152</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">255480301</td>
+        <td class="linecount coveredLine show_coveredLine">255492297</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">            </span><span class="n">out_x</span><span class="p">[</span><span class="n">n_events_read</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">packet_data</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mh">0x7FF</span><span class="p">);</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l153" href="#l153">153</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">255480301</td>
+        <td class="linecount coveredLine show_coveredLine">255492297</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">            </span><span class="n">out_p</span><span class="p">[</span><span class="n">n_events_read</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">packet_data</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mh">0x800</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="mi">11</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l154" href="#l154">154</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">255480301</td>
+        <td class="linecount coveredLine show_coveredLine">255492297</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">            </span><span class="n">n_events_read</span><span class="o">++</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l155" href="#l155">155</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">255480301</td>
+        <td class="linecount coveredLine show_coveredLine">255492297</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">            </span><span class="n">current</span><span class="o">++</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l156" href="#l156">156</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">255480301</td>
+        <td class="linecount coveredLine show_coveredLine">255492297</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">            </span><span class="k">continue</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
@@ -1314,14 +1314,14 @@
             <div class="linebranchContents">
               <div class="functionName">EVT3_parse_chunk_soa.avx2:</div>
               <div class="takenBranch">&check; Branch 0 taken 30183275 times.</div>
-              <div class="takenBranch">&check; Branch 1 taken 181055413 times.</div>
+              <div class="takenBranch">&check; Branch 1 taken 181079417 times.</div>
               <div class="functionName">EVT3_parse_chunk_soa.default:</div>
               <div class="notTakenBranch">&cross; Branch 0 not taken.</div>
               <div class="notTakenBranch">&cross; Branch 1 not taken.</div>
             </div>
           </details>
         </td>
-        <td class="linecount partialCoveredLine show_partialCoveredLine">211238688</td>
+        <td class="linecount partialCoveredLine show_partialCoveredLine">211262692</td>
         <td class="src  partialCoveredLine show_partialCoveredLine"><span class="w">        </span><span class="k">if</span><span class="p">(</span><span class="n">packet_type</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">EVT3_VECT_BASE_X</span><span class="p">)</span><span class="w"> </span><span class="p">{</span></td>
       </tr>
       <tr class="source-line">
@@ -1448,9 +1448,9 @@
             <summary class="linebranchSummary">6/12</summary>
             <div class="linebranchContents">
               <div class="functionName">EVT3_parse_chunk_soa.avx2:</div>
-              <div class="takenBranch">&check; Branch 0 taken 139542610 times.</div>
-              <div class="takenBranch">&check; Branch 1 taken 6010780 times.</div>
-              <div class="takenBranch">&check; Branch 2 taken 33580410 times.</div>
+              <div class="takenBranch">&check; Branch 0 taken 139554616 times.</div>
+              <div class="takenBranch">&check; Branch 1 taken 6010812 times.</div>
+              <div class="takenBranch">&check; Branch 2 taken 33592376 times.</div>
               <div class="takenBranch">&check; Branch 3 taken 172 times.</div>
               <div class="takenBranch">&check; Branch 4 taken 4864 times.</div>
               <div class="takenBranch">&check; Branch 5 taken 1916577 times.</div>
@@ -1464,35 +1464,35 @@
             </div>
           </details>
         </td>
-        <td class="linecount partialCoveredLine show_partialCoveredLine">181055413</td>
+        <td class="linecount partialCoveredLine show_partialCoveredLine">181079417</td>
         <td class="src  partialCoveredLine show_partialCoveredLine"><span class="w">        </span><span class="k">switch</span><span class="p">(</span><span class="n">packet_type</span><span class="p">)</span><span class="w"> </span><span class="p">{</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l174" href="#l174">174</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">139542610</td>
+        <td class="linecount coveredLine show_coveredLine">139554616</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">            </span><span class="k">case</span><span class="w"> </span><span class="no">EVT3_EVT_ADDR_Y</span><span class="p">:</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l175" href="#l175">175</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">139542610</td>
+        <td class="linecount coveredLine show_coveredLine">139554616</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">                </span><span class="n">local_state</span><span class="p">.</span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">packet_data</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mh">0x7FF</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l176" href="#l176">176</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">139542610</td>
+        <td class="linecount coveredLine show_coveredLine">139554616</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">                </span><span class="k">break</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l177" href="#l177">177</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">6010780</td>
+        <td class="linecount coveredLine show_coveredLine">6010812</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">            </span><span class="k">case</span><span class="w"> </span><span class="no">EVT3_EVT_TIME_HIGH</span><span class="p">:</span></td>
       </tr>
       <tr class="source-line">
@@ -1506,7 +1506,7 @@
         <td class="lineno"><a id="l179" href="#l179">179</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">6010780</td>
+        <td class="linecount coveredLine show_coveredLine">6010812</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">                    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">new_ts_high</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">packet_data</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">12</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
@@ -1524,14 +1524,14 @@
             <div class="linebranchContents">
               <div class="functionName">EVT3_parse_chunk_soa.avx2:</div>
               <div class="takenBranch">&check; Branch 0 taken 222 times.</div>
-              <div class="takenBranch">&check; Branch 1 taken 6010558 times.</div>
+              <div class="takenBranch">&check; Branch 1 taken 6010590 times.</div>
               <div class="functionName">EVT3_parse_chunk_soa.default:</div>
               <div class="notTakenBranch">&cross; Branch 0 not taken.</div>
               <div class="notTakenBranch">&cross; Branch 1 not taken.</div>
             </div>
           </details>
         </td>
-        <td class="linecount partialCoveredLine show_partialCoveredLine">6010780</td>
+        <td class="linecount partialCoveredLine show_partialCoveredLine">6010812</td>
         <td class="src  partialCoveredLine show_partialCoveredLine"><span class="w">                    </span><span class="k">if</span><span class="p">(</span><span class="n">unlikely</span><span class="p">(</span><span class="n">new_ts_high</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">local_state</span><span class="p">.</span><span class="n">ts_high</span><span class="p">))</span><span class="w"> </span><span class="p">{</span></td>
       </tr>
       <tr class="source-line">
@@ -1552,7 +1552,7 @@
         <td class="lineno"><a id="l184" href="#l184">184</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">6010780</td>
+        <td class="linecount coveredLine show_coveredLine">6010812</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">                    </span><span class="n">local_state</span><span class="p">.</span><span class="n">ts_high</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">new_ts_high</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
@@ -1566,14 +1566,14 @@
         <td class="lineno"><a id="l186" href="#l186">186</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">6010780</td>
+        <td class="linecount coveredLine show_coveredLine">6010812</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">                    </span><span class="n">current</span><span class="o">++</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l187" href="#l187">187</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">6010780</td>
+        <td class="linecount coveredLine show_coveredLine">6010812</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">                    </span><span class="n">packet_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">EVT3_get_packet_type</span><span class="p">(</span><span class="o">*</span><span class="n">current</span><span class="p">);</span></td>
       </tr>
       <tr class="source-line">
@@ -1591,14 +1591,14 @@
             <div class="linebranchContents">
               <div class="functionName">EVT3_parse_chunk_soa.avx2:</div>
               <div class="takenBranch">&check; Branch 0 taken 1868505 times.</div>
-              <div class="takenBranch">&check; Branch 1 taken 4142275 times.</div>
+              <div class="takenBranch">&check; Branch 1 taken 4142307 times.</div>
               <div class="functionName">EVT3_parse_chunk_soa.default:</div>
               <div class="notTakenBranch">&cross; Branch 0 not taken.</div>
               <div class="notTakenBranch">&cross; Branch 1 not taken.</div>
             </div>
           </details>
         </td>
-        <td class="linecount partialCoveredLine show_partialCoveredLine">6010780</td>
+        <td class="linecount partialCoveredLine show_partialCoveredLine">6010812</td>
         <td class="src  partialCoveredLine show_partialCoveredLine"><span class="w">                    </span><span class="k">if</span><span class="p">(</span><span class="n">unlikely</span><span class="p">(</span><span class="n">packet_type</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">EVT3_EVT_TIME_LOW</span><span class="p">))</span><span class="w"> </span><span class="p">{</span></td>
       </tr>
       <tr class="source-line">
@@ -1619,7 +1619,7 @@
         <td class="lineno"><a id="l192" href="#l192">192</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">4142275</td>
+        <td class="linecount coveredLine show_coveredLine">4142307</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">                    </span><span class="n">packet_data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">EVT3_get_packet_data</span><span class="p">(</span><span class="o">*</span><span class="n">current</span><span class="p">);</span></td>
       </tr>
       <tr class="source-line">
@@ -1640,28 +1640,28 @@
         <td class="lineno"><a id="l195" href="#l195">195</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">37722685</td>
+        <td class="linecount coveredLine show_coveredLine">37734683</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">            </span><span class="k">case</span><span class="w"> </span><span class="no">EVT3_EVT_TIME_LOW</span><span class="p">:</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l196" href="#l196">196</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">37722685</td>
+        <td class="linecount coveredLine show_coveredLine">37734683</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">                </span><span class="n">local_state</span><span class="p">.</span><span class="n">ts_low</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">packet_data</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l197" href="#l197">197</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">37722685</td>
+        <td class="linecount coveredLine show_coveredLine">37734683</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">                </span><span class="n">local_state</span><span class="p">.</span><span class="n">ts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">local_state</span><span class="p">.</span><span class="n">ts_high_high</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">local_state</span><span class="p">.</span><span class="n">ts_high</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">local_state</span><span class="p">.</span><span class="n">ts_low</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l198" href="#l198">198</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">37722685</td>
+        <td class="linecount coveredLine show_coveredLine">37734683</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">                </span><span class="k">break</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
@@ -1833,7 +1833,7 @@
         <td class="lineno"><a id="l221" href="#l221">221</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">179182044</td>
+        <td class="linecount coveredLine show_coveredLine">179206048</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">        </span><span class="n">current</span><span class="o">++</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
@@ -1854,7 +1854,7 @@
         <td class="lineno"><a id="l224" href="#l224">224</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">730</td>
+        <td class="linecount coveredLine show_coveredLine">738</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="o">*</span><span class="n">state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">local_state</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
@@ -1868,14 +1868,14 @@
         <td class="lineno"><a id="l226" href="#l226">226</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">730</td>
+        <td class="linecount coveredLine show_coveredLine">738</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="n">event_buffer</span><span class="o">-&gt;</span><span class="n">size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">n_events_read</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l227" href="#l227">227</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">730</td>
+        <td class="linecount coveredLine show_coveredLine">738</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="n">trigger_buffer</span><span class="o">-&gt;</span><span class="n">size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">n_triggers_read</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
@@ -1899,10 +1899,10 @@
             <summary class="linebranchSummary">3/8</summary>
             <div class="linebranchContents">
               <div class="functionName">EVT3_parse_chunk_soa.avx2:</div>
-              <div class="takenBranch">&check; Branch 0 taken 115 times.</div>
+              <div class="takenBranch">&check; Branch 0 taken 123 times.</div>
               <div class="takenBranch">&check; Branch 1 taken 615 times.</div>
               <div class="notTakenBranch">&cross; Branch 2 not taken.</div>
-              <div class="takenBranch">&check; Branch 3 taken 115 times.</div>
+              <div class="takenBranch">&check; Branch 3 taken 123 times.</div>
               <div class="functionName">EVT3_parse_chunk_soa.default:</div>
               <div class="notTakenBranch">&cross; Branch 0 not taken.</div>
               <div class="notTakenBranch">&cross; Branch 1 not taken.</div>
@@ -1911,7 +1911,7 @@
             </div>
           </details>
         </td>
-        <td class="linecount partialCoveredLine show_partialCoveredLine">730</td>
+        <td class="linecount partialCoveredLine show_partialCoveredLine">738</td>
         <td class="src  partialCoveredLine show_partialCoveredLine"><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">n_events_read</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="n">events_capacity_offset</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">n_triggers_read</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="n">triggers_capacity</span><span class="p">)</span><span class="w"> </span><span class="p">{</span></td>
       </tr>
       <tr class="source-line">
@@ -1939,7 +1939,7 @@
         <td class="lineno"><a id="l234" href="#l234">234</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">730</td>
+        <td class="linecount coveredLine show_coveredLine">738</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="p">(</span><span class="n">parser_result_t</span><span class="p">){</span></td>
       </tr>
       <tr class="source-line">
@@ -2985,7 +2985,7 @@
         <hr class="block-separator"/>
         <footer class="text-center">
           Created using <a href="http://gcovr.com/en/8.6">GCOVR (Version 8.6)</a>
-          at 2026-07-16 14:59:08
+          at 2026-07-16 16:53:27
         </footer>
       </div>
     </div>
