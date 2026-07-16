@@ -90,6 +90,7 @@ compare = [
     "evlib>=0.12.0; python_version >= '3.11'",
     "evlib>=0.8.0; python_version < '3.11'",
     "evt3>=0.3",
+    "faery>=0.7.0",
     # NOT included: event-vision-library (shiba24) -- it installs as `evlib`
     # too, colliding with the Rust evlib above. Install it in a separate venv
     # to run its comparison benchmark (see benchmarks/README.md).
