@@ -5,7 +5,7 @@
 [![Test](https://github.com/mandulaj/evutils/actions/workflows/test.yaml/badge.svg)](https://github.com/mandulaj/evutils/actions/workflows/test.yaml)
 [![Coverage](https://mandulaj.github.io/evutils/coverage/badge.svg)](https://mandulaj.github.io/evutils/coverage/)
 [![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://mandulaj.github.io/evutils/)
-[![GitHub repo size](https://img.shields.io/github/repo-size/mandulaj/evutils)](https://github.com/mandulaj/evutils)
+[![GitHub code size](https://img.shields.io/github/languages/code-size/mandulaj/evutils)](https://github.com/mandulaj/evutils)
 [![GitHub License](https://img.shields.io/github/license/mandulaj/evutils)](https://github.com/mandulaj/evutils?tab=GPL-3.0-1-ov-file)
 
 
