@@ -28,16 +28,18 @@ except importlib.metadata.PackageNotFoundError:
 from .types import EventArray, TriggerArray, Event_dtype, Trigger_dtype
 
 __all__ = [
-    'augment', 
     'chunking', 
     'dataset', 
     'io', 
-    'utils', 
-    'vis', 
+    'jit',
     'processing', 
     'random', 
+    'repr',
+    'torch',
+    'transforms',
     'types', 
-    'jit',
+    'utils', 
+    'vis', 
     '__version__'
 ]
 
