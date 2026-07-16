@@ -3,7 +3,7 @@
 This module provides functions to plot event streams, 3D histograms,
 and time surfaces using matplotlib's 3D plotting capabilities.
 """
-import numba 
+
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
@@ -19,6 +19,8 @@ def plot_3d(events: np.ndarray,
             width: int =1280, 
             height: int = 720, 
             colormap: Union[str, Colormap] ='Spectral', 
+            time_scale: float = 1000.0,
+            time_unit: str = 'ms',
             fig: Optional[Figure] = None, 
             ax: Optional[Axes3D] = None) -> tuple[Optional[Figure], Optional[Axes3D]]:   
     """Plot a 3D scatter plot of events.
@@ -49,7 +51,7 @@ def plot_3d(events: np.ndarray,
         If the colormap is not found or invalid.
     
     """
-    ts = events['t'] / 1000.0  # Convert timestamps to seconds
+    ts = events['t'] / time_scale
 
     # Create color map: red for polarity=0, blue for polarity=1
      # Resolve colormap
@@ -69,17 +71,17 @@ def plot_3d(events: np.ndarray,
         return fig, ax
 
     # Plot as points
-    ax.scatter(ts, events['x'], events['y'], c=colors, s=1, alpha=0.2)
+    ax.scatter(events['x'], events['y'], ts, c=colors, s=1, alpha=0.2)
 
     # Labels
-    ax.set_xlabel('time (ms)')
-    ax.set_ylabel('x')
-    ax.set_zlabel('y')
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_zlabel(f'time ({time_unit})')
     ax.set_title('Event Stream 3D Plot')
-    ax.set_xlim([ts.min(), ts.max()])
-    ax.set_ylim([0, width])
-    ax.set_zlim([height, 0])
-    ax.set_box_aspect([max(width,height), width, height])  # Aspect ratio
+    ax.set_xlim([0, width])
+    ax.set_ylim([height, 0])
+    ax.set_zlim([ts.min(), ts.max()])
+    ax.set_box_aspect([width, height, max(width, height)])  # Aspect ratio
 
     return fig, ax
 
@@ -140,18 +142,18 @@ def plot_3d_histogram(histogram: np.ndarray,
         z = np.full(x.shape, bin)
 
         # Plot the surface
-        ax.plot_surface(z, x, y, facecolors=image/255, rstride=1, cstride=1, shade=False)
+        ax.plot_surface(x, y, z, facecolors=image/255, rstride=1, cstride=1, shade=False)
 
         # Create a meshgrid for the histogram
 
-    ax.set_xlabel('bins')
-    ax.set_ylabel('x')
-    ax.set_zlabel('y')
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_zlabel('bins')
     ax.set_title('Voxel Histogram')
-    ax.set_xlim([0, n_bins])
-    ax.set_ylim([0, width])
-    ax.set_zlim([height, 0])
-    ax.set_box_aspect([max(width,height), width, height])  # Aspect ratio
+    ax.set_xlim([0, width])
+    ax.set_ylim([height, 0])
+    ax.set_zlim([0, n_bins])
+    ax.set_box_aspect([width, height, max(width, height)])  # Aspect ratio
 
     return fig, ax
 
@@ -204,17 +206,16 @@ def plot_3d_timesurface(events: np.ndarray,
     colors = np.exp(-(ts_ref - ts) / tau) * p_sign  # Normalize polarity
 
     ts = ts / 1_000  # Convert timestamps to milliseconds
-    # Plot as points
-    ax.scatter(ts, events['x'], events['y'], c=colors, s=1, alpha=0.2)
+    ax.scatter(events['x'], events['y'], ts, c=colors, s=1, alpha=0.2)
 
     # Labels
-    ax.set_xlabel('time (ms)')
-    ax.set_ylabel('x')
-    ax.set_zlabel('y')
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_zlabel('time (ms)')
     ax.set_title('Event Stream 3D Plot')
-    ax.set_xlim([ts.min(), ts.max()])
-    ax.set_ylim([0, width])
-    ax.set_zlim([height, 0])
-    ax.set_box_aspect([max(width,height), width, height])  # Aspect ratio
+    ax.set_xlim([0, width])
+    ax.set_ylim([height, 0])
+    ax.set_zlim([ts.min(), ts.max()])
+    ax.set_box_aspect([width, height, max(width, height)])  # Aspect ratio
     
     return fig, ax
