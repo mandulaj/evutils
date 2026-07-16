@@ -667,7 +667,9 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">delta_t</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;delta_t must be positive&quot;</span><span class="p">)</span>
-    <span class="n">acc</span> <span class="o">=</span> <span class="n">EventAccumulator</span><span class="p">(</span><span class="n">capacity</span><span class="o">=</span><span class="mi">100_000_000</span><span class="p">)</span>
+    <span class="c1"># Start small: the accumulator grows geometrically on demand, so a large</span>
+    <span class="c1"># up-front capacity only page-faults ~GBs of memory for nothing.</span>
+    <span class="n">acc</span> <span class="o">=</span> <span class="n">EventAccumulator</span><span class="p">(</span><span class="n">capacity</span><span class="o">=</span><span class="mi">1_000_000</span><span class="p">)</span>
     <span class="n">current_ts</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">has_triggers</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># set from the stream&#39;s items: tuple =&gt; (events, triggers)</span>
 

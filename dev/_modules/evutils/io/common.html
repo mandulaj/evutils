@@ -777,6 +777,11 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
+    <span class="c1">#: Whether this encoder can write external triggers. No encoder implements</span>
+    <span class="c1">#: trigger encoding yet; EventWriter warns (once) when triggers are passed</span>
+    <span class="c1">#: to an encoder without support, instead of dropping them silently.</span>
+    <span class="n">SUPPORTS_WRITE_TRIGGERS</span> <span class="o">=</span> <span class="kc">False</span>
+
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">writable</span><span class="p">:</span> <span class="n">io</span><span class="o">.</span><span class="n">BufferedIOBase</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span><span class="nb">int</span> <span class="o">=</span> <span class="mi">1280</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span><span class="nb">int</span> <span class="o">=</span> <span class="mi">720</span><span class="p">,</span> <span class="n">dt</span><span class="p">:</span><span class="n">Optional</span><span class="p">[</span><span class="n">datetime</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span> <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the encoder.</span>
 

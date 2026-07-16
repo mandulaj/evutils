@@ -339,12 +339,14 @@ Package Contents
 
    .. py:method:: write(events: numpy.ndarray, triggers: numpy.ndarray | None = None) -> int
 
-      Write a buffer of events to the file.
+      Write a buffer of events (and optionally external triggers) to the file.
 
       :param events: Buffer of events to write (structured array or EventArray)
       :param triggers: Buffer of triggers to write (structured array or TriggerArray). Optional.
-      :param TODO:
-      :type TODO: Add support for writing triggers to the file (currently only events are written)
+                       Interleaved with the events by timestamp for formats that carry
+                       triggers in-stream (EVT); ignored (with a warning from the encoder)
+                       by formats that cannot represent them. To write a trigger-only
+                       batch, pass ``EventArray.empty()`` as ``events``.
 
       :returns: Number of events written
       :rtype: int
@@ -356,26 +358,6 @@ Package Contents
       >>> writer = EventWriter("events.raw") # doctest: +SKIP
       >>> num_written = writer.write(events) # doctest: +SKIP
       >>> print(f"Wrote {num_written} events") # doctest: +SKIP
-      >>> writer.close() # doctest: +SKIP
-
-
-
-   .. py:method:: write_external_triggers(triggers: numpy.ndarray) -> int
-
-      Write external triggers to the file.
-
-      :param triggers: Buffer of triggers to write (structured array or TriggerArray).
-      :type triggers: np.ndarray
-
-      :returns: Number of triggers written.
-      :rtype: int
-
-      .. rubric:: Examples
-
-      >>> from evutils.types import TriggerArray
-      >>> triggers = TriggerArray(t=[1000, 2000], p=[1, 0], id=[0, 0])
-      >>> writer = EventWriter("events.raw") # doctest: +SKIP
-      >>> writer.write_external_triggers(triggers) # doctest: +SKIP
       >>> writer.close() # doctest: +SKIP
 
 

@@ -569,6 +569,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_height</span> <span class="o">=</span> <span class="n">height</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_n_written_events</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_is_initialized</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_warned_triggers</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># warn once about unsupported triggers</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_dt</span> <span class="o">=</span> <span class="n">dt</span> <span class="k">if</span> <span class="n">dt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_open_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">io</span><span class="o">.</span><span class="n">BufferedIOBase</span><span class="p">:</span>
@@ -603,7 +604,7 @@
 <div class="viewcode-block" id="EventWriter.write">
 <a class="viewcode-back" href="../../../autoapi/evutils/io/index.html#evutils.io.EventWriter.write">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">events</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">triggers</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Write a buffer of events to the file.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Write a buffer of events (and optionally external triggers) to the file.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -611,9 +612,11 @@
 <span class="sd">            Buffer of events to write (structured array or EventArray)</span>
 <span class="sd">        triggers</span>
 <span class="sd">            Buffer of triggers to write (structured array or TriggerArray). Optional.</span>
+<span class="sd">            Interleaved with the events by timestamp for formats that carry</span>
+<span class="sd">            triggers in-stream (EVT); ignored (with a warning from the encoder)</span>
+<span class="sd">            by formats that cannot represent them. To write a trigger-only</span>
+<span class="sd">            batch, pass ``EventArray.empty()`` as ``events``.</span>
 
-<span class="sd">        TODO: Add support for writing triggers to the file (currently only events are written)</span>
-<span class="sd">            </span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        int</span>
@@ -629,38 +632,19 @@
 <span class="sd">        &gt;&gt;&gt; writer.close() # doctest: +SKIP</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">n_written</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_encoder</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">events</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">triggers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">triggers</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+                <span class="ow">and</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_encoder</span><span class="p">,</span> <span class="s2">&quot;SUPPORTS_WRITE_TRIGGERS&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_warned_triggers</span><span class="p">):</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_encoder</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> does not support &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;writing external triggers; they will NOT be stored.&quot;</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_warned_triggers</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">n_written</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_encoder</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">triggers</span><span class="o">=</span><span class="n">triggers</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_n_written_events</span> <span class="o">+=</span> <span class="n">n_written</span>
         <span class="k">return</span> <span class="n">n_written</span></div>
-
-
-<div class="viewcode-block" id="EventWriter.write_external_triggers">
-<a class="viewcode-back" href="../../../autoapi/evutils/io/index.html#evutils.io.EventWriter.write_external_triggers">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">write_external_triggers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">triggers</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Write external triggers to the file.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        triggers : np.ndarray</span>
-<span class="sd">            Buffer of triggers to write (structured array or TriggerArray).</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        int</span>
-<span class="sd">            Number of triggers written.</span>
-
-<span class="sd">        Examples</span>
-<span class="sd">        --------</span>
-<span class="sd">        &gt;&gt;&gt; from evutils.types import TriggerArray</span>
-<span class="sd">        &gt;&gt;&gt; triggers = TriggerArray(t=[1000, 2000], p=[1, 0], id=[0, 0])</span>
-<span class="sd">        &gt;&gt;&gt; writer = EventWriter(&quot;events.raw&quot;) # doctest: +SKIP</span>
-<span class="sd">        &gt;&gt;&gt; writer.write_external_triggers(triggers) # doctest: +SKIP</span>
-<span class="sd">        &gt;&gt;&gt; writer.close() # doctest: +SKIP</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">..types</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventArray</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_file_encoder</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">EventArray</span><span class="o">.</span><span class="n">empty</span><span class="p">(),</span> <span class="n">triggers</span><span class="o">=</span><span class="n">triggers</span><span class="p">)</span>
-        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">triggers</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="EventWriter.flush">

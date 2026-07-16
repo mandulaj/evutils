@@ -161,6 +161,11 @@ Module Contents
    :raises NotImplementedError: If the method is not implemented in the subclass
 
 
+   .. py:attribute:: SUPPORTS_WRITE_TRIGGERS
+      :value: False
+
+
+
    .. py:method:: init() -> None
       :abstractmethod:
 

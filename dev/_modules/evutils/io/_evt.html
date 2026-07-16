@@ -653,6 +653,11 @@
     <span class="p">}</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="n">ByteSource</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1_000_000</span><span class="p">,</span> <span class="n">read_external_triggers</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="c1"># The C parsers reserve headroom for one full vector expansion (up to 64</span>
+        <span class="c1"># events) below the buffer capacity; a smaller chunk would make the</span>
+        <span class="c1"># reserved offset 0 and the parser could never emit anything.</span>
+        <span class="k">if</span> <span class="n">chunk_size</span> <span class="o">&lt;</span> <span class="mi">128</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;chunk_size must be &gt;= 128 (got </span><span class="si">{</span><span class="n">chunk_size</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">,</span> <span class="n">read_external_triggers</span><span class="o">=</span><span class="n">read_external_triggers</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
@@ -757,6 +762,17 @@
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_format</span> <span class="o">=</span> <span class="s2">&quot;evt3&quot;</span>  <span class="c1"># sensible default for Prophesee RAW</span>
+
+        <span class="c1"># EVT2.1 exists in two word layouts: &quot;legacy&quot; (two swapped 32-bit</span>
+        <span class="c1"># halves, what the parser implements) and native little-endian 64-bit.</span>
+        <span class="c1"># A non-legacy file would decode silently into garbage -- refuse it.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format</span> <span class="o">==</span> <span class="s2">&quot;evt21&quot;</span><span class="p">:</span>
+            <span class="n">endianness</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_header</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;endianness&quot;</span><span class="p">,</span> <span class="s2">&quot;legacy&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">endianness</span> <span class="o">!=</span> <span class="s2">&quot;legacy&quot;</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;EVT2.1 with &#39;% endianness </span><span class="si">{</span><span class="n">endianness</span><span class="si">}</span><span class="s2">&#39; is not supported &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;(only the &#39;legacy&#39; swapped-halves layout is implemented)&quot;</span>
+                <span class="p">)</span>
 
         <span class="c1"># Geometry not stated explicitly (older EVT2 RAWs): infer it from the</span>
         <span class="c1"># sensor identity, the way the Metavision SDK does.</span>
@@ -1019,7 +1035,16 @@
         <span class="c1"># we must not treat an empty result as EOF unless the input is drained.</span>
         <span class="n">appended</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">while</span> <span class="n">appended</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_words</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_external_triggers</span><span class="p">:</span>
+                <span class="c1"># Unrequested triggers are discarded anyway; reset the sink so a</span>
+                <span class="c1"># trigger-dense region can never fill it and stall the parser.</span>
+                <span class="n">tr</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">tr</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">break</span>  <span class="c1"># trigger-only progress: hand the triggers out</span>
+            <span class="n">before_off</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span>
             <span class="n">appended</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_step</span><span class="p">(</span><span class="n">ev</span><span class="p">,</span> <span class="n">tr</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">appended</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span> <span class="o">==</span> <span class="n">before_off</span><span class="p">:</span>
+                <span class="k">break</span>  <span class="c1"># zero progress (full buffers); never spin</span>
 
         <span class="n">n</span> <span class="o">=</span> <span class="n">ev</span><span class="o">.</span><span class="n">size</span>
         <span class="n">ev_view</span> <span class="o">=</span> <span class="n">events_view</span><span class="p">(</span><span class="n">ev</span><span class="p">)</span> <span class="k">if</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">_EMPTY_EVENTS</span>

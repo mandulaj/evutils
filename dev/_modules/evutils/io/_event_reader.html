@@ -1210,20 +1210,31 @@
 
         <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_acquire_window_buffer</span><span class="p">(</span>
             <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dt_est</span> <span class="o">*</span> <span class="mi">5</span> <span class="o">//</span> <span class="mi">4</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dt_step</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dt_step</span><span class="p">))</span>
+        <span class="c1"># The n_events safety cap (max_events in delta_t mode) is enforced by</span>
+        <span class="c1"># clamping the capacity the C parser sees, so a single C call can never</span>
+        <span class="c1"># decode past it. The parser stops within its reserved vector headroom</span>
+        <span class="c1"># below the cap; the decoder offset stays exact, so the next call</span>
+        <span class="c1"># continues the same window with no loss.</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">capacity</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">capacity</span><span class="p">,</span> <span class="n">n_cap</span><span class="p">)</span>
         <span class="n">count_cut</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
             <span class="n">tr</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
             <span class="n">_</span><span class="p">,</span> <span class="n">status</span> <span class="o">=</span> <span class="n">dec</span><span class="o">.</span><span class="n">parse_step_delta_t</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">tr</span><span class="p">,</span> <span class="n">end_ts</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="n">EVUTILS_PARSE_WINDOW_DONE</span><span class="p">:</span>
                 <span class="k">break</span>
-            <span class="k">if</span> <span class="n">out</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;=</span> <span class="n">n_cap</span><span class="p">:</span>  <span class="c1"># safety cap: split an over-long window by count</span>
-                <span class="n">count_cut</span> <span class="o">=</span> <span class="kc">True</span>
-                <span class="k">break</span>
             <span class="k">if</span> <span class="n">dec</span><span class="o">.</span><span class="n">is_eof</span><span class="p">():</span>
                 <span class="k">break</span>
             <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="n">EVUTILS_PARSE_OUTPUT_FULL</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">out</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">capacity</span> <span class="o">&gt;=</span> <span class="n">n_cap</span><span class="p">:</span>
+                    <span class="c1"># Hit the max_events cap: emit what we have and continue</span>
+                    <span class="c1"># this same time window on the next call.</span>
+                    <span class="n">count_cut</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">break</span>
                 <span class="c1"># Window not finished but the buffer filled: grow and continue.</span>
-                <span class="n">out</span><span class="o">.</span><span class="n">grow</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">size</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dt_step</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">capacity</span> <span class="o">*</span> <span class="mf">1.5</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="n">new_cap</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">size</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dt_step</span><span class="p">,</span>
+                                  <span class="nb">int</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">capacity</span> <span class="o">*</span> <span class="mf">1.5</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">n_cap</span><span class="p">)</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">grow</span><span class="p">(</span><span class="n">new_cap</span><span class="p">)</span>          <span class="c1"># realloc only if backing too small</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">capacity</span> <span class="o">=</span> <span class="n">new_cap</span>   <span class="c1"># parser-visible cap (recycled slots)</span>
             <span class="c1"># else EVUTILS_PARSE_OK: input drained this call; loop (tail -&gt; EOF).</span>
 
         <span class="n">size</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">size</span>
@@ -1240,6 +1251,26 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_ts</span><span class="p">:</span>
             <span class="n">output</span><span class="o">.</span><span class="n">t</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_first_ts</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start_ts</span>
         <span class="k">return</span> <span class="n">output</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_flush_dt_carry</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fold a pending delta_t fast-path overshoot into the accumulator.</span>
+
+<span class="sd">        The fast paths keep up to one decode step of overshoot in</span>
+<span class="sd">        ``_dt_carry``; any code path that reads via the accumulator (mixed-mode</span>
+<span class="sd">        overrides, ``read_all``) must fold it in first or those events are</span>
+<span class="sd">        silently lost. Allocates the accumulator if needed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">carry</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dt_carry</span>
+        <span class="k">if</span> <span class="n">carry</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">carry</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dt_carry</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span> <span class="o">=</span> <span class="n">EventAccumulator</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_acc_capacity</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">events_view</span><span class="p">(</span><span class="n">carry</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dt_carry</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># Carried events exist =&gt; stream is not exhausted for the reader even</span>
+        <span class="c1"># if the decoder itself hit EOF.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_eof</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">:</span><span class="nb">int</span><span class="o">|</span><span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_events</span><span class="p">:</span><span class="nb">int</span><span class="o">|</span><span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Unguarded body of :meth:`read` (also driven by the prefetch worker).&quot;&quot;&quot;</span>
@@ -1282,6 +1313,12 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span> <span class="o">=</span> <span class="n">EventAccumulator</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_acc_capacity</span><span class="p">)</span>
         <span class="n">acc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span>
+
+        <span class="c1"># If a delta_t fast path ran earlier and left an overshoot carry, fold</span>
+        <span class="c1"># it in first: those events precede anything the decoder emits next.</span>
+        <span class="c1"># (Mixed-path reads -- per-call overrides after windowed fast-path</span>
+        <span class="c1"># iteration -- would otherwise silently lose them.)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_flush_dt_carry</span><span class="p">()</span>
 
         <span class="c1"># &quot;all&quot; mode (without per-call overrides) means the whole remaining</span>
         <span class="c1"># stream: skip the window cutoffs entirely and drain to EOF, so files</span>
@@ -1390,6 +1427,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_check_no_active_prefetch</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_initialized</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+
+        <span class="c1"># Fold in any delta_t fast-path overshoot so it is prepended below</span>
+        <span class="c1"># along with the rest of the staging buffer.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_flush_dt_carry</span><span class="p">()</span>
 
         <span class="n">_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span><span class="o">.</span><span class="n">read_all</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_external_triggers</span><span class="p">:</span>

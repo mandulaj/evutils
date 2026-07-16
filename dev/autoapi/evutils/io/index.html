@@ -959,13 +959,16 @@ until it is exhausted or closed.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="evutils.io.EventWriter.write">
 <span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">events</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">triggers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="../../../_modules/evutils/io/_event_writer.html#EventWriter.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.EventWriter.write" title="Link to this definition">#</a></dt>
-<dd><p>Write a buffer of events to the file.</p>
+<dd><p>Write a buffer of events (and optionally external triggers) to the file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>events</strong> (<em>numpy.ndarray</em>) – Buffer of events to write (structured array or EventArray)</p></li>
-<li><p><strong>triggers</strong> (<em>numpy.ndarray</em><em> | </em><em>None</em>) – Buffer of triggers to write (structured array or TriggerArray). Optional.</p></li>
-<li><p><strong>TODO</strong> (<em>Add support for writing triggers to the file</em><em> (</em><em>currently only events are written</em><em>)</em>)</p></li>
+<li><p><strong>triggers</strong> (<em>numpy.ndarray</em><em> | </em><em>None</em>) – Buffer of triggers to write (structured array or TriggerArray). Optional.
+Interleaved with the events by timestamp for formats that carry
+triggers in-stream (EVT); ignored (with a warning from the encoder)
+by formats that cannot represent them. To write a trigger-only
+batch, pass <code class="docutils literal notranslate"><span class="pre">EventArray.empty()</span></code> as <code class="docutils literal notranslate"><span class="pre">events</span></code>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -981,31 +984,6 @@ until it is exhausted or closed.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">writer</span> <span class="o">=</span> <span class="n">EventWriter</span><span class="p">(</span><span class="s2">&quot;events.raw&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">num_written</span> <span class="o">=</span> <span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">events</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Wrote </span><span class="si">{</span><span class="n">num_written</span><span class="si">}</span><span class="s2"> events&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">writer</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="evutils.io.EventWriter.write_external_triggers">
-<span class="sig-name descname"><span class="pre">write_external_triggers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">triggers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="../../../_modules/evutils/io/_event_writer.html#EventWriter.write_external_triggers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.EventWriter.write_external_triggers" title="Link to this definition">#</a></dt>
-<dd><p>Write external triggers to the file.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>triggers</strong> (<em>np.ndarray</em>) – Buffer of triggers to write (structured array or TriggerArray).</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Number of triggers written.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>int</p>
-</dd>
-</dl>
-<p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">evutils.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">TriggerArray</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">triggers</span> <span class="o">=</span> <span class="n">TriggerArray</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="p">[</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">2000</span><span class="p">],</span> <span class="n">p</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="nb">id</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">writer</span> <span class="o">=</span> <span class="n">EventWriter</span><span class="p">(</span><span class="s2">&quot;events.raw&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">writer</span><span class="o">.</span><span class="n">write_external_triggers</span><span class="p">(</span><span class="n">triggers</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">writer</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -1201,7 +1179,6 @@ It performs ZERO slicing or logic; it purely drives the decoder.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventWriter"><code class="docutils literal notranslate"><span class="pre">EventWriter</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventWriter.init"><code class="docutils literal notranslate"><span class="pre">EventWriter.init()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventWriter.write"><code class="docutils literal notranslate"><span class="pre">EventWriter.write()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventWriter.write_external_triggers"><code class="docutils literal notranslate"><span class="pre">EventWriter.write_external_triggers()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventWriter.flush"><code class="docutils literal notranslate"><span class="pre">EventWriter.flush()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventWriter.__enter__"><code class="docutils literal notranslate"><span class="pre">EventWriter.__enter__()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventWriter.__repr__"><code class="docutils literal notranslate"><span class="pre">EventWriter.__repr__()</span></code></a></li>
