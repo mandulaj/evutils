@@ -6,7 +6,7 @@
 [![Coverage](https://mandulaj.github.io/evutils/coverage/badge.svg)](https://mandulaj.github.io/evutils/coverage/)
 [![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://mandulaj.github.io/evutils/)
 [![GitHub repo size](https://img.shields.io/github/repo-size/mandulaj/evutils)](https://github.com/mandulaj/evutils)
-[![GitHub License](https://img.shields.io/github/license/mandulaj/evutils)](https://github.com/mandulaj/evutils?tab=MIT-1-ov-file)
+[![GitHub License](https://img.shields.io/github/license/mandulaj/evutils)](https://github.com/mandulaj/evutils?tab=GPL-3.0-1-ov-file)
 
 
 ## Overview

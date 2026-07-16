@@ -8,7 +8,8 @@ name = "evutils"
 version = "0.3.17"
 description = "Utilities for event-based vision"
 readme = "README.md"
-license = {file = "LICENSE"}
+license = "GPL-3.0-only"
+license-files = ["LICENSE"]
 authors = [
     { name = "Jakub Mandula", email = "jakub.mandula@pbl.ee.ethz.ch" }
 ]
@@ -34,7 +35,6 @@ classifiers = [
     "Intended Audience :: Developers",
     # MISC
     "Operating System :: OS Independent",
-    "License :: OSI Approved :: MIT License",
     "Typing :: Typed",
 ]
 dependencies = [
