@@ -25,6 +25,7 @@ except importlib.metadata.PackageNotFoundError:
     # Fallback if the package is run without being installed
     __version__ = "dev"
 
+from .types import EventArray, TriggerArray, Event_dtype, Trigger_dtype
 
 __all__ = [
     'augment', 
@@ -36,6 +37,7 @@ __all__ = [
     'processing', 
     'random', 
     'types', 
+    'jit',
     '__version__'
 ]
 
