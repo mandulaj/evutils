@@ -100,7 +100,18 @@ class SoaArray:
     def __getitem__(self, key: Any) -> Any:
         if isinstance(key, str):
             return getattr(self, key)
-        
+            
+        if isinstance(key, (list, tuple)) and all(isinstance(k, str) for k in key):
+            fields = tuple(key)
+            class DynamicSoaArray(SoaArray):
+                __slots__ = fields
+                _aos_dtype = np.dtype([(f, self._aos_dtype[f]) for f in fields])
+                _fields = fields
+                def __init__(self, **kwargs):
+                    for k, v in kwargs.items():
+                        setattr(self, k, v)
+            return DynamicSoaArray(**{f: getattr(self, f) for f in fields})
+
         # When indexing a single element, return a NumPy void record to match AoS behaviour exactly.
         if isinstance(key, (int, np.integer)):
             record = np.empty((), dtype=self._aos_dtype)
@@ -203,10 +214,10 @@ class EventArray(SoaArray):
     _fields = ('t', 'x', 'y', 'p')
 
     def __init__(self, t: Any, x: Any, y: Any, p: Any) -> None:
-        self.t = np.asarray(t, dtype=np.int64)
-        self.x = np.asarray(x, dtype=np.uint16)
-        self.y = np.asarray(y, dtype=np.uint16)
-        self.p = np.asarray(p, dtype=np.uint8)
+        self.t = np.atleast_1d(np.asarray(t, dtype=np.int64))
+        self.x = np.atleast_1d(np.asarray(x, dtype=np.uint16))
+        self.y = np.atleast_1d(np.asarray(y, dtype=np.uint16))
+        self.p = np.atleast_1d(np.asarray(p, dtype=np.uint8))
 
 
 class TriggerArray(SoaArray):
@@ -229,6 +240,6 @@ class TriggerArray(SoaArray):
     _fields = ('t', 'p', 'id')
 
     def __init__(self, t: Any, p: Any, id: Any) -> None:
-        self.t = np.asarray(t, dtype=np.int64)
-        self.p = np.asarray(p, dtype=np.uint8)
-        self.id = np.asarray(id, dtype=np.uint8)
+        self.t = np.atleast_1d(np.asarray(t, dtype=np.int64))
+        self.p = np.atleast_1d(np.asarray(p, dtype=np.uint8))
+        self.id = np.atleast_1d(np.asarray(id, dtype=np.uint8))
