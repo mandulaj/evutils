@@ -21,7 +21,7 @@ on:
         description: "Python version"
         type: choice
         default: all
-        options: [all, "3.10", "3.11", "3.12", "3.13", "3.14"]
+        options: [all, "3.10", "3.11", "3.12", "3.13", "3.14", "3.15"]
 
 concurrency:
   group: platform-test-${{ github.ref }}
@@ -49,7 +49,7 @@ jobs:
             windows+macos) os='["windows-latest","macos-14"]' ;;
           esac
           case "${{ inputs.python }}" in
-            all) py='["3.10","3.11","3.12","3.13","3.14"]' ;;
+            all) py='["3.10","3.11","3.12","3.13","3.14", "3.15"]' ;;
             *)   py='["${{ inputs.python }}"]' ;;
           esac
           echo "os=$os"     >> "$GITHUB_OUTPUT"
