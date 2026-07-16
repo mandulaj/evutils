@@ -52,7 +52,7 @@ aedat = [
     "zstandard>=0.22; python_version < '3.14'",
 ]
 
-torch = ["torch>=2.0"]
+torch = ["torch>=2.0; python_version <= '3.14'"]
 hdf5 = ["hdf5plugin==6.0.0", "h5py>=3.16.0"]
 vis = [
     "matplotlib>=3.1",
