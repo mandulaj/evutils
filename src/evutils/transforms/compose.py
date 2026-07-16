@@ -60,6 +60,11 @@ class Compose:
             if step_type == "jit":
                 t, x, y, p = unwrap_events(events)
                 for transform in block:
+                    # A transform earlier in the block may have dropped every
+                    # event; stop before a kernel that assumes non-empty input
+                    # (e.g. deriving a sensor extent from x.max()) sees it.
+                    if len(t) == 0:
+                        break
                     t, x, y, p = transform._forward_jit(t, x, y, p)
                     if target is not None:
                         target = transform._transform_target(target)
