@@ -162,36 +162,39 @@ def stream_delta_t(raw_stream: Iterator[Any], delta_t: int) -> Iterator[Any]:
     """
     acc = EventAccumulator(capacity=100_000_000)
     current_ts = None
-    
+    has_triggers = False  # set from the stream's items: tuple => (events, triggers)
+
     for incoming in raw_stream:
         # Handle unpacking depending on if the stream yields triggers or not
         if isinstance(incoming, tuple):
+            has_triggers = True
             ev, tr = incoming
             acc.append(ev, tr)
         else:
             acc.append(incoming, None)
-            
+
         if len(acc) == 0:
             continue
-            
+
         # Initialize our absolute time anchor from the very first event
         if current_ts is None:
             current_ts = int(acc.t_window()[0])
-            
+
         # Yield as many full windows as we have accumulated
         while True:
             end_ts = current_ts + delta_t
             t = acc.t_window()
-            
+
             if len(t) == 0 or t[-1] < end_ts:
                 # Not enough data for a full window yet; fetch more chunks
                 break
-                
+
             # Find boundary
             idx = int(np.searchsorted(t, end_ts, side='left'))
-            
-            # Slice and yield
-            if acc._tr is not None:
+
+            # Slice and yield. Mirror the input shape: only a trigger-carrying
+            # stream ((events, triggers) tuples) yields tuples back.
+            if has_triggers:
                 tr_t = acc.t_window_tr()
                 tr_idx = int(np.searchsorted(tr_t, end_ts, side='left'))
                 chunk_ev, chunk_tr = acc.slice_copy(idx, tr_idx)
@@ -199,12 +202,12 @@ def stream_delta_t(raw_stream: Iterator[Any], delta_t: int) -> Iterator[Any]:
             else:
                 chunk_ev, _ = acc.slice_copy(idx, 0)
                 yield chunk_ev
-                
+
             current_ts += delta_t
 
     # Stream finished! Yield whatever is leftover in the buffer
     if len(acc) > 0:
-        if acc._tr is not None:
+        if has_triggers:
             yield acc.slice_copy(len(acc), acc._tr.size - acc._tr_start)
         else:
             yield acc.slice_copy(len(acc), 0)[0]
@@ -213,14 +216,16 @@ def stream_delta_t(raw_stream: Iterator[Any], delta_t: int) -> Iterator[Any]:
 def stream_n_events(raw_stream: Iterator[Any], n_events: int) -> Iterator[Any]:
     """Pipeline generator: chunks stream by event count."""
     acc = EventAccumulator(capacity=max(1_000_000, n_events * 2))
+    has_triggers = False  # set from the stream's items: tuple => (events, triggers)
     for incoming in raw_stream:
         if isinstance(incoming, tuple):
+            has_triggers = True
             acc.append(incoming[0], incoming[1])
         else:
             acc.append(incoming, None)
-            
+
         while len(acc) >= n_events:
-            if acc._tr is not None:
+            if has_triggers:
                 if len(acc) == n_events:
                     tr_idx = acc._tr.size - acc._tr_start
                 else:
@@ -228,9 +233,9 @@ def stream_n_events(raw_stream: Iterator[Any], n_events: int) -> Iterator[Any]:
                 yield acc.slice_copy(n_events, tr_idx)
             else:
                 yield acc.slice_copy(n_events, 0)[0]
-                
+
     if len(acc) > 0:
-        if acc._tr is not None:
+        if has_triggers:
             yield acc.slice_copy(len(acc), acc._tr.size - acc._tr_start)
         else:
             yield acc.slice_copy(len(acc), 0)[0]

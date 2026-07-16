@@ -14,7 +14,10 @@ import numpy as np
 from ..types import EventArray, TriggerArray
 
 from . import decoders as ev_decoders
-from ._native_core import EventSoABuffers, TriggerSoABuffers, events_view
+from ._native_core import (
+    EventSoABuffers, TriggerSoABuffers, events_view,
+    EVUTILS_PARSE_WINDOW_DONE, EVUTILS_PARSE_OUTPUT_FULL,
+)
 from ._prefetch import PrefetchIterator
 from ._source import ByteSource, make_source
 from .buffer import EventAccumulator
@@ -65,6 +68,16 @@ class EventReader():
         (depth x window size) but ride out I/O stalls: for real-time playback
         from a cold file, a depth of ~6 absorbs multi-window disk page-fault
         hitches that a depth of 2 cannot. Ignored without ``async_read``.
+    reuse_buffers: bool, default=False
+        Recycle the decode buffers of ``delta_t`` windows (openeb-style ring)
+        instead of allocating a fresh buffer per window. Large windows make the
+        per-window allocation the dominant cost (page-faulting hundreds of MB
+        every window); with recycling the buffer pages stay warm and delta_t
+        reads run at ~the raw decoder ceiling. The returned array then
+        **aliases** a recycled buffer: it is valid until ``prefetch_depth``
+        further windows have been read (or one window, without ``async_read``)
+        -- copy it if you keep it longer, exactly like ``EventStreamer``
+        chunks. Off by default: every window is an independent array.
     real_time: bool, default=False
         Pace :meth:`read` and iteration to the recording's own timeline: each
         chunk is released only once the wall-clock time since the first chunk
@@ -131,6 +144,7 @@ class EventReader():
                  ext_trigger: bool=False,
                  async_read: bool=False,
                  prefetch_depth: int | None=None,
+                 reuse_buffers: bool=False,
                  real_time: bool=False,
                  playback_speed: float=1.0,
                  max_gap: float | None=1.0,
@@ -262,6 +276,26 @@ class EventReader():
         # sets the starting point.
         self._acc_capacity = min(self._n_events, 4 * self._step) + 2 * self._step
         self._native_fill = hasattr(self._file_decoder, "parse_step")
+
+        # delta_t fast-path state (see _read_delta_t_fast): the overshoot carried
+        # from the previous window (events past its time boundary), a rolling
+        # window-size estimate to size the next buffer, and a throwaway trigger
+        # sink. Only used in pure delta_t mode with a native-fill decoder.
+        self._dt_carry: EventSoABuffers | None = None
+        self._dt_est = self._step
+        self._dt_tr: TriggerSoABuffers | None = None
+        # The fast path decodes in smaller steps than the accumulator so the
+        # window's trailing overshoot (the only part copied) stays small; too
+        # large and the carry copy rivals the full-window copy it replaces.
+        self._dt_step = 1 << 17
+        # Buffer recycling for delta_t windows (reuse_buffers=True): a small
+        # ring of persistent decode buffers, cycled per window so their pages
+        # stay warm and no per-window allocation/page-fault cost enters the hot
+        # path. Ring size covers every window that can be alive at once: the
+        # consumer's current one plus everything buffered by an async prefetch.
+        self._reuse_buffers = bool(reuse_buffers)
+        self._dt_slots: list[EventSoABuffers] = []
+        self._dt_slot_i = 0
 
         # Asynchronous iteration: when enabled, __iter__ decodes ahead in a
         # worker thread (see io/_prefetch.py). The active iterator owns the
@@ -482,6 +516,234 @@ class EventReader():
             chunk.t -= self._first_ts - self._start_ts  # chunk is independent
         return chunk
 
+    def _dt_trigger_sink(self) -> TriggerSoABuffers:
+        """Lazily-allocated throwaway trigger sink for the delta_t fast path.
+
+        Reset before every ``parse_step`` so it never fills and stalls the parser
+        on a trigger-dense region. Only used when the caller did not request
+        external triggers, so its contents are always discarded.
+        """
+        if self._dt_tr is None:
+            self._dt_tr = TriggerSoABuffers(max(self._step // 16, 1024))
+        return self._dt_tr
+
+    @staticmethod
+    def _grow_out(out: EventSoABuffers, step: int) -> None:
+        """Ensure ``out`` has room for one more ``step`` events, then cap the SoA
+        capacity the parser sees to ``size + step`` so a single ``parse_step``
+        overshoots the time window by at most one step's worth."""
+        if out.capacity - out.size < step:
+            out.grow(max(out.size + step, int(out.capacity * 1.5) + 1))
+        out.c.capacity = out.size + step
+
+    def _read_delta_t_fast(self, delta_t: int) -> Any:
+        """One ``delta_t`` window, fast path: decode into a fresh buffer, hand out
+        a zero-copy view of the window, and carry only the small overshoot
+        (events past the boundary, at most one decode step) to the next call.
+
+        Mirrors :meth:`_read_n_events_fast` for time-windowed reads. The staging
+        accumulator path copies the *entire* window out on every call
+        (:meth:`EventAccumulator.slice_copy`) -- millions of events per window on
+        a dense recording. Here the window is a view into a per-call buffer (never
+        reused, so the view stays valid), and only the overshoot is copied.
+
+        Valid only for native-fill decoders in pure ``delta_t`` mode with no
+        external triggers (the guard in :meth:`_read` enforces this). The
+        ``n_events`` safety cap (``max_events`` in delta_t mode) is honoured: a
+        window larger than the cap is cut at the count boundary, exactly like the
+        accumulator path.
+        """
+        dec = self._file_decoder
+        step = self._dt_step
+        n_cap = self._n_events
+        tr = self._dt_trigger_sink()
+
+        # Decode buffer (pooled or fresh), pre-sized to ~one window plus 25%
+        # headroom so a normal window never triggers a mid-decode grow (a grow
+        # reallocates + copies the whole buffer -- a large per-frame hitch).
+        # Seed it with the previous call's overshoot.
+        carry = self._dt_carry
+        k = carry.size if carry is not None else 0
+        need = max(self._dt_est * 5 // 4 + step, k + step)
+        out = self._acquire_window_buffer(need)
+        if k:
+            out.t[:k] = carry.t[:k]
+            out.x[:k] = carry.x[:k]
+            out.y[:k] = carry.y[:k]
+            out.p[:k] = carry.p[:k]
+            out.c.size = k
+        self._dt_carry = None
+
+        # Anchor the stream's first timestamp / window origin on the very first
+        # decoded event (only reachable on the first call, when there is no carry).
+        if self._n_read_events == 0 and out.size == 0:
+            while out.size == 0 and not dec.is_eof():
+                self._grow_out(out, step)
+                tr.reset()
+                dec.parse_step(out, tr)
+            if out.size == 0:
+                self._eof = True
+                return EventArray.empty()
+            self._first_ts = int(out.t[0])
+            self._current_ts = self._first_ts
+
+        end_ts = self._current_ts + delta_t
+
+        # Decode until the buffer holds an event at/after the time boundary, the
+        # count cap is exceeded, or the stream ends.
+        while not dec.is_eof():
+            n = out.size
+            if n and (int(out.t[n - 1]) >= end_ts or n > n_cap):
+                break
+            self._grow_out(out, step)
+            tr.reset()
+            added = dec.parse_step(out, tr)
+            if added == 0 and dec.is_eof():
+                break
+
+        size = out.size
+        t = out.t[:size].view(np.int64)
+        idx = int(np.searchsorted(t, end_ts)) if size else 0
+        count_cut = idx > n_cap
+        if count_cut:
+            idx = n_cap
+
+        # Everything from idx on is overshoot: copy it (small) for the next call.
+        if idx < size:
+            rem = size - idx
+            c = EventSoABuffers(rem)
+            c.t[:rem] = out.t[idx:size]
+            c.x[:rem] = out.x[idx:size]
+            c.y[:rem] = out.y[idx:size]
+            c.p[:rem] = out.p[idx:size]
+            c.c.size = rem
+            self._dt_carry = c
+
+        out.c.size = idx
+        # Track the largest window seen so the next buffer is pre-sized for it.
+        self._dt_est = max(self._dt_est, idx)
+        if count_cut:
+            self._current_ts = int(t[idx])  # count cutoff: resume mid-window
+        else:
+            self._current_ts += delta_t
+        self._n_read_events += idx
+        # EOF only once the stream is drained *and* no overshoot remains, else the
+        # final carried events would never be emitted (is_eof() stops iteration).
+        self._eof = dec.is_eof() and self._dt_carry is None
+
+        output = events_view(out)
+        if self._normalize_ts:
+            output.t -= self._first_ts - self._start_ts
+        return output
+
+    def _peek_first_ts(self) -> int | None:
+        """Timestamp of the stream's first event, without disturbing later reads.
+
+        Decodes a small scratch batch to learn the first timestamp; the caller
+        then :meth:`~decoder.reset`\\ s the decoder so the real window-0 decode
+        starts cleanly from the beginning. Returns ``None`` if the stream is
+        empty.
+        """
+        dec = self._file_decoder
+        scratch = EventSoABuffers(4096)
+        tr = self._dt_trigger_sink()
+        while scratch.size == 0 and not dec.is_eof():
+            tr.reset()
+            dec.parse_step(scratch, tr)
+        return int(scratch.t[0]) if scratch.size else None
+
+    def _dt_ring_size(self) -> int:
+        """Number of recycled window buffers needed so no live window is
+        overwritten: the consumer's current window plus one being decoded
+        (sync), plus everything an async prefetch may hold queued."""
+        if self._async_read:
+            from ._prefetch import DEFAULT_DEPTH
+            depth = self._prefetch_depth if self._prefetch_depth is not None else DEFAULT_DEPTH
+            return depth + 2
+        return 2
+
+    def _acquire_window_buffer(self, need: int) -> EventSoABuffers:
+        """Decode buffer for one delta_t window, sized for ``need`` events.
+
+        Default: a fresh buffer per window (independent result, safe to keep).
+        With ``reuse_buffers``: cycle the persistent ring -- pages stay warm, no
+        per-window allocation -- and the returned window aliases the slot until
+        the ring wraps back to it.
+        """
+        if not self._reuse_buffers:
+            return EventSoABuffers(need)
+        slots = self._dt_slots
+        i = self._dt_slot_i
+        if i >= len(slots):
+            slots.append(EventSoABuffers(need))
+        self._dt_slot_i = (i + 1) % self._dt_ring_size()
+        buf = slots[i]
+        if buf.capacity < need:
+            buf.grow(need)
+        buf.c.size = 0
+        buf.c.capacity = buf.capacity
+        return buf
+
+    def _read_delta_t_c(self, delta_t: int) -> Any:
+        """One delta_t window via the dedicated C parser.
+
+        The C parser stops exactly when an event's timestamp reaches ``end_ts``,
+        so a whole window is decoded in one (GIL-free) call straight into the
+        output buffer -- no ``searchsorted`` boundary hunt and no overshoot carry
+        (every returned event already has ``ts < end_ts``). This is the openeb
+        approach: the slicing lives in the decoder, not in Python.
+        """
+        dec = self._file_decoder
+        n_cap = self._n_events
+        tr = self._dt_trigger_sink()
+
+        # Anchor the window origin on the first event once, then rewind so the C
+        # parser redoes window 0 from the start with the right end_ts.
+        if self._n_read_events == 0:
+            first = self._peek_first_ts()
+            if first is None:
+                self._eof = True
+                return EventArray.empty()
+            self._first_ts = first
+            self._current_ts = first
+            dec.reset()
+            self._eof = False
+
+        end_ts = self._current_ts + delta_t
+
+        out = self._acquire_window_buffer(
+            max(self._dt_est * 5 // 4 + self._dt_step, self._dt_step))
+        count_cut = False
+        while True:
+            tr.reset()
+            _, status = dec.parse_step_delta_t(out, tr, end_ts)
+            if status == EVUTILS_PARSE_WINDOW_DONE:
+                break
+            if out.size >= n_cap:  # safety cap: split an over-long window by count
+                count_cut = True
+                break
+            if dec.is_eof():
+                break
+            if status == EVUTILS_PARSE_OUTPUT_FULL:
+                # Window not finished but the buffer filled: grow and continue.
+                out.grow(max(out.size + self._dt_step, int(out.capacity * 1.5) + 1))
+            # else EVUTILS_PARSE_OK: input drained this call; loop (tail -> EOF).
+
+        size = out.size
+        out.c.size = size
+        self._dt_est = max(self._dt_est, size)
+        # On a normal window advance the clock; on a count-cut stay in the same
+        # time window so the next call continues it (matches the accumulator path).
+        if not count_cut:
+            self._current_ts += delta_t
+        self._n_read_events += size
+        self._eof = dec.is_eof()
+
+        output = events_view(out)
+        if self._normalize_ts:
+            output.t -= self._first_ts - self._start_ts
+        return output
+
     def _read(self, delta_t:int|None=None, n_events:int|None=None) -> Any:
         """Unguarded body of :meth:`read` (also driven by the prefetch worker)."""
         # If not initialized, initialize
@@ -504,6 +766,20 @@ class EventReader():
             # chunks (NPZ/CSV) can hand that out directly.
             if getattr(dec, "_independent_windows", False):
                 return self._read_n_events_readchunk(n)
+
+        # Fast path: pure delta_t streaming with a native-fill decoder, no
+        # triggers, and nothing left in the staging accumulator. Hands out a
+        # zero-copy view of the window instead of copying it out (slice_copy).
+        if (self._mode == "delta_t" and n_events is None
+                and self._native_fill
+                and not self._read_external_triggers
+                and (self._buffer is None or len(self._buffer) == 0)):
+            dt = delta_t if delta_t is not None else self._delta_t
+            # Prefer the dedicated C delta_t parser (one GIL-free call per window,
+            # no boundary search or overshoot carry) when the format has one.
+            if getattr(self._file_decoder, "_has_delta_t_parser", False):
+                return self._read_delta_t_c(dt)
+            return self._read_delta_t_fast(dt)
 
         # Allocate the staging accumulator on first use.
         if self._buffer is None:
@@ -678,6 +954,9 @@ class EventReader():
         self._n_read_events = 0
         self._eof = False
         self._pace_anchor = None
+        self._dt_carry = None
+        self._dt_est = self._step
+        self._dt_slot_i = 0  # keep the recycled slots themselves (warm pages)
         if self._buffer is not None:
             self._buffer.reset()
         self._file_decoder.reset()

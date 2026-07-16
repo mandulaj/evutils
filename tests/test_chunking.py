@@ -64,3 +64,23 @@ def test_get_dt_events():
     # dt larger than stream
     sub2 = get_dt_events(events, dt=100_000)
     assert len(sub2) == len(events)
+
+def test_stream_delta_t_shape_mirrors_input():
+    """A trigger-less stream must yield bare EventArrays (not tuples), and the
+    windows must reassemble to the input stream. Regression: the generators
+    used to test the accumulator's always-present trigger buffer and yielded
+    (events, triggers) tuples unconditionally."""
+    from evutils.chunking import stream_delta_t, stream_n_events
+    from evutils.types import EventArray
+
+    events = random_events(5000, start_ts=0, end_ts=100_000)
+    events = sort_events(events)
+    src = EventArray.from_aos(events)
+
+    for gen in (stream_delta_t(iter([src]), 10_000),
+                stream_n_events(iter([src]), 700)):
+        chunks = list(gen)
+        assert all(not isinstance(c, tuple) for c in chunks)
+        total = np.concatenate([np.asarray(c) for c in chunks])
+        assert len(total) == len(events)
+        assert np.array_equal(total['t'], events['t'])

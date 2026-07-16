@@ -153,3 +153,51 @@ def test_nonpositive_windows_rejected(uniform_file: Any) -> None:
         EventReader(p, delta_t=-1)
     with pytest.raises(TypeError):
         EventReader(p, delta_t=1.5)  # type: ignore[arg-type]
+
+
+####################################
+# reuse_buffers (recycled delta_t window buffers)
+####################################
+
+def _windows(path: Any, fmt_kwargs: dict, **reader_kwargs: Any) -> list:
+    from evutils.io import EventReader
+    out = []
+    with EventReader(path, delta_t=10_000, **reader_kwargs) as r:
+        for c in r:
+            a = np.asarray(c)
+            out.append(a.copy())
+    return out
+
+
+@pytest.mark.parametrize("fmt", ["evt2", "evt3"])  # Python fast path / C parser path
+def test_reuse_buffers_matches_default(tmp_path: Any, fmt: str) -> None:
+    """reuse_buffers=True must yield the identical window sequence as the
+    default (independent buffers), for both delta_t fast paths."""
+    from evutils.io import EventWriter
+    ev = _uniform_events(5000, dt=13)
+    p = tmp_path / f"reuse.{'raw' if fmt.startswith('evt') else fmt}"
+    with EventWriter(p, format=fmt) as w:
+        w.write(ev)
+    ref = _windows(p, {})
+    got = _windows(p, {}, reuse_buffers=True)
+    assert len(ref) == len(got)
+    for a, b in zip(ref, got):
+        assert np.array_equal(a, b)
+    assert sum(len(a) for a in got) == len(ev)
+
+
+@pytest.mark.parametrize("fmt", ["evt2", "evt3"])
+def test_reuse_buffers_async_matches_default(tmp_path: Any, fmt: str) -> None:
+    """Recycled buffers must stay valid across the async prefetch queue: the
+    ring is sized to prefetch_depth, so queued windows are never overwritten
+    before the consumer copies them."""
+    from evutils.io import EventWriter
+    ev = _uniform_events(5000, dt=13)
+    p = tmp_path / "reuse_async.raw"
+    with EventWriter(p, format=fmt) as w:
+        w.write(ev)
+    ref = _windows(p, {})
+    got = _windows(p, {}, reuse_buffers=True, async_read=True, prefetch_depth=3)
+    assert len(ref) == len(got)
+    for a, b in zip(ref, got):
+        assert np.array_equal(a, b)

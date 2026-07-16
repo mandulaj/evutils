@@ -42,6 +42,10 @@ from ._native_core import (
     events_view,
     triggers_view,
     parse_step,
+    EVUTILS_PARSE_ERROR,
+    EVUTILS_PARSE_WINDOW_DONE,
+    EVUTILS_PARSE_OUTPUT_FULL,
+    NativeError,
 )
 from ._native_evt import (
     Evt2Input,
@@ -442,6 +446,56 @@ class EventDecoder_EVT(EventDecoder):
         if self._offset >= len(self._words):
             self._eof = True
         return appended
+
+    @property
+    def _has_delta_t_parser(self) -> bool:
+        """True when a dedicated C delta_t parser exists for this format, so the
+        reader can decode a whole time window in one GIL-free C call (no
+        Python-side searchsorted / overshoot carry). EVT3 only, for now."""
+        return self._format == "evt3" and hasattr(self._parser, "parse_delta_t_soa")
+
+    def parse_step_delta_t(self, events: EventSoABuffers, triggers: TriggerSoABuffers,
+                           end_ts: int) -> tuple[int, int]:
+        """Run the dedicated C delta_t parser once, appending events with
+        timestamp ``< end_ts`` into ``events``.
+
+        Returns ``(appended, status)`` where status is one of
+        ``EVUTILS_PARSE_WINDOW_DONE`` (the time boundary was reached -- the
+        window is complete), ``EVUTILS_PARSE_OUTPUT_FULL`` (grow and call again),
+        or ``EVUTILS_PARSE_OK`` (input drained for this call). At true EOF the
+        final incomplete vector group is flushed via the tail pad, mirroring
+        :meth:`parse_step`.
+        """
+        if not self._is_initialized:
+            self.init()
+        words = self._words
+        if words is None or self._offset >= len(words):
+            self._eof = True
+            return 0, EVUTILS_PARSE_WINDOW_DONE
+        before = events.size
+        inp = self._input_cls(words[self._offset:])
+        res = self._parser.parse_delta_t_soa(inp, events, triggers, end_ts)
+        if res.status == EVUTILS_PARSE_ERROR:
+            raise NativeError(f"{self._format} delta_t parse error at word {self._offset}")
+        consumed = inp.consumed(res)
+        status = int(res.status)
+        # Input drained with no progress => only the sub-PADDING tail remains;
+        # flush it (incomplete final group) and mark EOF, as parse_step does.
+        if consumed == 0 and status not in (EVUTILS_PARSE_WINDOW_DONE, EVUTILS_PARSE_OUTPUT_FULL):
+            if self._tail_pad and self._word_dtype is not None:
+                tail = words[self._offset:]
+                if len(tail):
+                    scratch = np.zeros(len(tail) + self._tail_pad, dtype=self._word_dtype)
+                    scratch[: len(tail)] = tail
+                    self._parser.parse_delta_t_soa(
+                        self._input_cls(scratch), events, triggers, end_ts)
+            self._offset = len(words)
+            self._eof = True
+            return events.size - before, status
+        self._offset += consumed
+        if self._offset >= len(words):
+            self._eof = True
+        return events.size - before, status
 
     def read_chunk(self, delta_t_hint: int | None = None,
                    n_events_hint: int | None = None) -> 'EventArray | tuple[EventArray, TriggerArray]':

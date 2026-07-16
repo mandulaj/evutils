@@ -14,7 +14,11 @@ typedef enum {
     EVUTILS_PARSE_INPUT_EMPTY = 1,
     EVUTILS_PARSE_OUTPUT_FULL = 2,
     EVUTILS_PARSE_ERROR = 3,
-    EVUTILS_PARSE_INCOMPLETE = 4
+    EVUTILS_PARSE_INCOMPLETE = 4,
+    /* A delta_t parser reached the requested time window (an event's timestamp
+     * hit end_ts): the window is complete and the parser stopped at that exact
+     * boundary. */
+    EVUTILS_PARSE_WINDOW_DONE = 5
 } parse_status_t;
 
 
