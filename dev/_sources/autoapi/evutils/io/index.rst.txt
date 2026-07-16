@@ -302,7 +302,7 @@ Package Contents
 
 
 
-.. py:class:: EventWriter(file: pathlib.Path | str | io.BufferedIOBase, width: int | None = None, height: int | None = None, dt: datetime.datetime | None = None, file_encoder: evutils.io.encoders.EventEncoder | None = None, **kwargs: Any)
+.. py:class:: EventWriter(file: pathlib.Path | str | io.BufferedIOBase, width: int | None = None, height: int | None = None, dt: datetime.datetime | None = None, file_encoder: evutils.io.encoders.EventEncoder | None = None, mode: str = 'w+b', **kwargs: Any)
 
    Base class for writing events to different file formats.
 
@@ -315,6 +315,7 @@ Package Contents
                   for some formats).
    :param dt: Timestamp of the recording (default is the current time, but information is not saved in all formats)
    :param file_encoder: File encoder to use, by default None (chosen from the file extension)
+   :param mode: File open mode, by default 'w+b'
    :param \*\*kwargs: Additional arguments for the file encoder
 
    .. rubric:: Examples

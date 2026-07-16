@@ -509,6 +509,53 @@
 <code class="docutils literal notranslate"><span class="pre">EventReader</span></code> / <code class="docutils literal notranslate"><span class="pre">EventWriter</span></code> pick the right backend from the file extension
 (or from magic bytes for extensionless streams). This page lists every format,
 its support status, and format-specific options.</p>
+<section id="the-eventarray-representation">
+<h2>The <code class="docutils literal notranslate"><span class="pre">EventArray</span></code> representation<a class="headerlink" href="#the-eventarray-representation" title="Link to this heading">#</a></h2>
+<p>Everything the readers and writers exchange is an <code class="docutils literal notranslate"><span class="pre">EventArray</span></code>
+(<code class="docutils literal notranslate"><span class="pre">evutils.types</span></code>) – a lightweight wrapper storing the four event fields as
+separate parallel NumPy arrays, a <strong>struct-of-arrays</strong> (SoA) layout.</p>
+<p>Fields (<code class="docutils literal notranslate"><span class="pre">Event_dtype</span></code>):</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">t</span></code> – <code class="docutils literal notranslate"><span class="pre">int64</span></code>, signed 64-bit microsecond timestamp (µs range ~±292,000 years).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code> – <code class="docutils literal notranslate"><span class="pre">uint16</span></code>, up to 65,535 × 65,535 pixel resolution.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">p</span></code> – <code class="docutils literal notranslate"><span class="pre">uint8</span></code>, polarity.</p></li>
+</ul>
+<p>Why SoA:</p>
+<ul class="simple">
+<li><p>Native layout of the C parsers.</p></li>
+<li><p>Column access is contiguous and cache-friendly; NumPy and the Numba-JIT’d
+transforms vectorize over whole columns.</p></li>
+<li><p>No per-record alignment padding: 8+2+2+1 = <strong>13 bytes/event</strong> (≈ 13 MB per
+million events).</p></li>
+</ul>
+<section id="array-of-structs-is-supported-too">
+<h3>Array-of-structs is supported too<a class="headerlink" href="#array-of-structs-is-supported-too" title="Link to this heading">#</a></h3>
+<p>The array-of-structs (AoS) form – one NumPy structured array of <code class="docutils literal notranslate"><span class="pre">(t,</span> <span class="pre">x,</span> <span class="pre">y,</span> <span class="pre">p)</span></code>
+records (<code class="docutils literal notranslate"><span class="pre">dtype</span> <span class="pre">=</span> <span class="pre">Event_dtype</span></code>) – is first-class. Conversions are cheap:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">evutils.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventArray</span><span class="p">,</span> <span class="n">Event_dtype</span>
+
+<span class="n">aos</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">Event_dtype</span><span class="p">)</span>  <span class="c1"># array-of-structs</span>
+<span class="n">soa</span>  <span class="o">=</span> <span class="n">EventArray</span><span class="o">.</span><span class="n">from_aos</span><span class="p">(</span><span class="n">aos</span><span class="p">)</span>           <span class="c1"># -&gt; struct-of-arrays</span>
+<span class="n">back</span> <span class="o">=</span> <span class="n">soa</span><span class="o">.</span><span class="n">to_aos</span><span class="p">()</span>                       <span class="c1"># -&gt; array-of-structs</span>
+<span class="n">same</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">soa</span><span class="p">)</span>                    <span class="c1"># __array__ also yields AoS</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Transforms/helpers <strong>dispatch on input type</strong>: ndarray in gives ndarray out,
+<code class="docutils literal notranslate"><span class="pre">EventArray</span></code> in gives <code class="docutils literal notranslate"><span class="pre">EventArray</span></code> out – stay in whichever form your code uses.</p></li>
+<li><p><strong>AoS</strong> for per-record iteration, a single opaque buffer for another library or
+serializer (<code class="docutils literal notranslate"><span class="pre">np.savez</span></code>, memory-mapping, packed-record C code), or sorting whole
+events. C-aligned record is 8+2+2+1 + 3 pad = <strong>16 bytes/event</strong>.</p></li>
+<li><p><strong>SoA</strong> for the column-wise vectorized processing that dominates event
+workloads (per-field math, masking, JIT kernels). <code class="docutils literal notranslate"><span class="pre">evutils</span></code> keeps SoA as the
+working form and drops to AoS at the boundaries.</p></li>
+</ul>
+<p>An optional lightweight <code class="docutils literal notranslate"><span class="pre">metadata</span></code> dict (e.g. <code class="docutils literal notranslate"><span class="pre">sensor_size</span></code>) rides along on the
+<code class="docutils literal notranslate"><span class="pre">EventArray</span></code>, populated by readers and consumed by writers where the format
+carries geometry.</p>
+</section>
+</section>
 <section id="io-roadmap-goals">
 <h2>IO Roadmap &amp; Goals<a class="headerlink" href="#io-roadmap-goals" title="Link to this heading">#</a></h2>
 <p>We are aiming for universal event format support with the highest possible performance and extensibility:</p>
@@ -887,6 +934,10 @@ AEDAT (all versions), Prophesee HDF5 and DSEC HDF5 are still to be added.</p>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Supported Formats</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-eventarray-representation">The <code class="docutils literal notranslate"><span class="pre">EventArray</span></code> representation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#array-of-structs-is-supported-too">Array-of-structs is supported too</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#io-roadmap-goals">IO Roadmap &amp; Goals</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#format-matrix">Format Matrix</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#format-overview">Format overview</a></li>

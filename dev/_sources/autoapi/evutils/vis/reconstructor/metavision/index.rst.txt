@@ -9,6 +9,15 @@
 
 
 
+Attributes
+----------
+
+.. autoapisummary::
+
+   evutils.vis.reconstructor.metavision.torch
+   evutils.vis.reconstructor.metavision.F
+
+
 Classes
 -------
 
@@ -19,6 +28,12 @@ Classes
 
 Module Contents
 ---------------
+
+.. py:data:: torch
+   :value: False
+
+
+.. py:data:: F
 
 .. py:class:: Metavision_Reconstructor(height: int, width: int, args: Any = None)
 

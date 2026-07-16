@@ -588,13 +588,12 @@
         
        
 
-        <span class="n">window</span> <span class="o">=</span> <span class="n">events</span><span class="p">[</span><span class="n">index_start</span><span class="p">:</span><span class="n">index_start</span> <span class="o">+</span> <span class="n">next_window_index</span><span class="p">]</span>
-        <span class="k">yield</span> <span class="n">window</span>
-
-
-        <span class="c1"># Exit if the next window index is  not full</span>
+        <span class="c1"># Exit if the next window index is not full</span>
         <span class="k">if</span> <span class="n">full_window</span> <span class="ow">and</span> <span class="n">index_start</span> <span class="o">+</span> <span class="n">next_window_index</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">events</span><span class="p">):</span>
             <span class="k">break</span>
+
+        <span class="n">window</span> <span class="o">=</span> <span class="n">events</span><span class="p">[</span><span class="n">index_start</span><span class="p">:</span><span class="n">index_start</span> <span class="o">+</span> <span class="n">next_window_index</span><span class="p">]</span>
+        <span class="k">yield</span> <span class="n">window</span>
 
         <span class="n">current_ts</span> <span class="o">+=</span> <span class="n">delta_t</span>
         <span class="n">index_start</span> <span class="o">+=</span> <span class="n">next_frame_index</span></div>

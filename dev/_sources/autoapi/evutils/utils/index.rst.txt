@@ -77,13 +77,13 @@ Package Contents
 
 
 
-   .. py:method:: is_valid(width: int = 1280, height: int = 720) -> bool
+   .. py:method:: is_valid(width: int | None = None, height: int | None = None) -> bool
 
       Check if all events are valid (sorted, valid polarity, and valid coordinates).
 
-      :param width: Maximum valid width, by default 1280.
+      :param width: Maximum valid width. If None, x coordinates are not checked.
       :type width: int, optional
-      :param height: Maximum valid height, by default 720.
+      :param height: Maximum valid height. If None, y coordinates are not checked.
       :type height: int, optional
 
       :returns: True if all checks pass.

@@ -472,7 +472,7 @@
 <a class="reference external" href="https://mandulaj.github.io/evutils/coverage/"><img alt="Coverage" src="https://mandulaj.github.io/evutils/coverage/badge.svg" /></a>
 <a class="reference external" href="https://mandulaj.github.io/evutils/"><img alt="Documentation" src="https://img.shields.io/badge/docs-GitHub%20Pages-blue" /></a>
 <a class="reference external" href="https://github.com/mandulaj/evutils"><img alt="GitHub repo size" src="https://img.shields.io/github/repo-size/mandulaj/evutils" /></a>
-<a class="reference external" href="https://github.com/mandulaj/evutils?tab=MIT-1-ov-file"><img alt="GitHub License" src="https://img.shields.io/github/license/mandulaj/evutils" /></a></p>
+<a class="reference external" href="https://github.com/mandulaj/evutils?tab=GPL-3.0-1-ov-file"><img alt="GitHub License" src="https://img.shields.io/github/license/mandulaj/evutils" /></a></p>
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
 <p>EV-Utils (<code class="docutils literal notranslate"><span class="pre">evutils</span></code>) is a performant collection of utilities for working with event-based vision data. Built with minimal dependencies, it relies on a compiled C backend for speed while offering a clean, modular Python interface.</p>
@@ -641,7 +641,22 @@ Wrappers for various dataset loaders -->
 </section>
 <section id="types">
 <h4><code class="docutils literal notranslate"><span class="pre">types</span></code><a class="headerlink" href="#types" title="Link to this heading">#</a></h4>
-<p>This provides several standard types for representing Events in numpy arrays</p>
+<p>The library is built around the <code class="docutils literal notranslate"><span class="pre">EventArray</span></code> type — a wrapper giving events a
+<strong>struct-of-arrays</strong> (SoA) representation, which nearly every reader, writer and
+transform exchanges:</p>
+<ul class="simple">
+<li><p>Fields (<code class="docutils literal notranslate"><span class="pre">Event_dtype</span></code>): <code class="docutils literal notranslate"><span class="pre">t</span></code> <code class="docutils literal notranslate"><span class="pre">int64</span></code> (signed 64-bit µs), <code class="docutils literal notranslate"><span class="pre">x</span></code>/<code class="docutils literal notranslate"><span class="pre">y</span></code> <code class="docutils literal notranslate"><span class="pre">uint16</span></code> (up to
+65,535 × 65,535 px), <code class="docutils literal notranslate"><span class="pre">p</span></code> <code class="docutils literal notranslate"><span class="pre">uint8</span></code>.</p></li>
+<li><p><strong>SoA</strong> — four contiguous columns; cache-friendly, vectorizes over whole
+columns, no record padding: 8+2+2+1 = <strong>13 bytes/event</strong> (≈ 13 MB/MEv). Best
+for the column-wise processing that dominates event workloads.</p></li>
+<li><p><strong>Array-of-structs</strong> equally supported (<code class="docutils literal notranslate"><span class="pre">from_aos</span></code> / <code class="docutils literal notranslate"><span class="pre">to_aos</span></code> / <code class="docutils literal notranslate"><span class="pre">np.asarray</span></code>,
+cheap); C-aligned record is <strong>16 bytes/event</strong>. Best for per-record iteration
+or an opaque buffer for another library/serializer. Transforms dispatch on
+input type, so you get back whichever form you passed in.</p></li>
+<li><p>Slicing, field subsetting, and an optional lightweight <code class="docutils literal notranslate"><span class="pre">metadata</span></code> dict (e.g.
+<code class="docutils literal notranslate"><span class="pre">sensor_size</span></code>) round out the type.</p></li>
+</ul>
 </section>
 <section id="vis">
 <h4><code class="docutils literal notranslate"><span class="pre">vis</span></code><a class="headerlink" href="#vis" title="Link to this heading">#</a></h4>
@@ -689,9 +704,9 @@ uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </sp
 <li><p>[x] Chunked &amp; Streaming access</p></li>
 <li><p>[x] External trigger data parsing</p></li>
 <li><p>[ ] <strong>Random access / Timestamp indexing</strong> (Big TODO for the future)</p></li>
-<li><p>[ ] <strong>Arbitrary input sources:</strong> memory-mapped IO, pure in-memory streams, HTTP streams</p></li>
+<li><p>[x] <strong>Arbitrary input sources:</strong> memory-mapped IO, pure in-memory streams (HTTP streams pending)</p></li>
 <li><p>[ ] <strong>On-the-fly Compression wrappers:</strong> passing file handles through <code class="docutils literal notranslate"><span class="pre">zstd</span></code> or <code class="docutils literal notranslate"><span class="pre">lz4</span></code> compression transparently before decoding</p></li>
-<li><p>[ ] <strong>EventStreamer Pipeline Refactor:</strong> Decouple <code class="docutils literal notranslate"><span class="pre">EventReader</span></code>’s monolithic chunking logic into composable functional generators in <code class="docutils literal notranslate"><span class="pre">chunking.py</span></code>, exposing a native <code class="docutils literal notranslate"><span class="pre">EventStreamer</span></code> for power-users while turning <code class="docutils literal notranslate"><span class="pre">EventReader</span></code> into a clean Façade.</p></li>
+<li><p>[ ] <strong>EventStreamer Pipeline Refactor:</strong> Decouple <code class="docutils literal notranslate"><span class="pre">EventReader</span></code>’s monolithic chunking logic into composable functional generators in <code class="docutils literal notranslate"><span class="pre">chunking.py</span></code>, exposing a native <code class="docutils literal notranslate"><span class="pre">EventStreamer</span></code> for power-users while turning <code class="docutils literal notranslate"><span class="pre">EventReader</span></code> into a clean Façade. <em>(<code class="docutils literal notranslate"><span class="pre">EventStreamer</span></code> and generators complete; <code class="docutils literal notranslate"><span class="pre">EventReader</span></code> Facade pending).</em></p></li>
 </ul>
 </section>
 <section id="acknowledgements">

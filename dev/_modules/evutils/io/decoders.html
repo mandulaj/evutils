@@ -614,8 +614,11 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_sniff_prophesee</span><span class="p">(</span><span class="n">head</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fallback: any other ``&quot;% &quot;``-headed stream is treated as RAW/EVT.&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">head</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="sa">b</span><span class="s2">&quot;% &quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fallback: any other ``&quot;% &quot;``-headed stream with prophesee-like metadata.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">head</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;% &quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="n">low</span> <span class="o">=</span> <span class="n">head</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">return</span> <span class="sa">b</span><span class="s2">&quot;system_id&quot;</span> <span class="ow">in</span> <span class="n">low</span> <span class="ow">or</span> <span class="sa">b</span><span class="s2">&quot;firmware_version&quot;</span> <span class="ow">in</span> <span class="n">low</span> <span class="ow">or</span> <span class="sa">b</span><span class="s2">&quot;plugin name&quot;</span> <span class="ow">in</span> <span class="n">low</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_sniff_aedat</span><span class="p">(</span><span class="n">head</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
