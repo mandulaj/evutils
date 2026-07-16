@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>evutils.repr._frame &#8212; evutils v0.3.17 documentation</title>
+    <title>evutils.dense._frame &#8212; evutils v0.3.17 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
     <script src="../../../_static/documentation_options.js?v=ffd5bf7f"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/evutils/repr/_frame';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/evutils/dense/_frame';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://mandulaj.github.io/evutils/switcher.json';
@@ -467,7 +467,7 @@
     
     <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">evutils.repr._frame</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">evutils.dense._frame</span></li>
   </ul>
 </nav>
 </div>
@@ -484,7 +484,7 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <h1>Source code for evutils.repr._frame</h1><div class="highlight"><pre>
+  <h1>Source code for evutils.dense._frame</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;Module for generating frame-based representations from events.&quot;&quot;&quot;</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -506,7 +506,7 @@
                 <span class="n">buffer</span><span class="p">[</span><span class="n">yi</span><span class="p">,</span> <span class="n">xi</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
 
 <div class="viewcode-block" id="frame_gray">
-<a class="viewcode-back" href="../../../autoapi/evutils/repr/index.html#evutils.repr.frame_gray">[docs]</a>
+<a class="viewcode-back" href="../../../autoapi/evutils/dense/index.html#evutils.dense.frame_gray">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">frame_gray</span><span class="p">(</span><span class="n">events</span><span class="p">:</span> <span class="s1">&#39;np.ndarray | EventArray&#39;</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1280</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">720</span><span class="p">,</span> <span class="n">dtype</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate a grayscale frame from the events.</span>
 
@@ -529,7 +529,7 @@
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">    &gt;&gt;&gt; from evutils.repr import frame_gray</span>
+<span class="sd">    &gt;&gt;&gt; from evutils.dense import frame_gray</span>
 <span class="sd">    &gt;&gt;&gt; events = np.array([(10, 20, 100, 1), (15, 25, 200, 0)],</span>
 <span class="sd">    ...                   dtype=[(&#39;x&#39;, &#39;&lt;u2&#39;), (&#39;y&#39;, &#39;&lt;u2&#39;), (&#39;t&#39;, &#39;&lt;i8&#39;), (&#39;p&#39;, &#39;i1&#39;)])</span>
 <span class="sd">    &gt;&gt;&gt; frame = frame_gray(events, width=100, height=100)</span>
@@ -561,7 +561,7 @@
                 <span class="n">buffer</span><span class="p">[</span><span class="n">yi</span><span class="p">,</span> <span class="n">xi</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">neg_color</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
 
 <div class="viewcode-block" id="frame_rgb">
-<a class="viewcode-back" href="../../../autoapi/evutils/repr/index.html#evutils.repr.frame_rgb">[docs]</a>
+<a class="viewcode-back" href="../../../autoapi/evutils/dense/index.html#evutils.dense.frame_rgb">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">frame_rgb</span><span class="p">(</span><span class="n">ev</span><span class="p">:</span> <span class="s1">&#39;np.ndarray | EventArray&#39;</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1280</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">720</span><span class="p">,</span> <span class="n">bg_color</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">pos_color</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">neg_color</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate an RGB frame from the events.</span>
 
@@ -588,7 +588,7 @@
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">    &gt;&gt;&gt; from evutils.repr import frame_rgb</span>
+<span class="sd">    &gt;&gt;&gt; from evutils.dense import frame_rgb</span>
 <span class="sd">    &gt;&gt;&gt; events = np.array([(10, 20, 100, 1), (15, 25, 200, 0)],</span>
 <span class="sd">    ...                   dtype=[(&#39;x&#39;, &#39;&lt;u2&#39;), (&#39;y&#39;, &#39;&lt;u2&#39;), (&#39;t&#39;, &#39;&lt;i8&#39;), (&#39;p&#39;, &#39;i1&#39;)])</span>
 <span class="sd">    &gt;&gt;&gt; frame = frame_rgb(events, width=100, height=100)</span>
@@ -623,7 +623,7 @@
                 <span class="n">buffer</span><span class="p">[</span><span class="n">yi</span><span class="p">,</span> <span class="n">xi</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">1</span>
 
 <div class="viewcode-block" id="frame_diff">
-<a class="viewcode-back" href="../../../autoapi/evutils/repr/index.html#evutils.repr.frame_diff">[docs]</a>
+<a class="viewcode-back" href="../../../autoapi/evutils/dense/index.html#evutils.dense.frame_diff">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">frame_diff</span><span class="p">(</span><span class="n">ev</span><span class="p">:</span> <span class="s1">&#39;np.ndarray | EventArray&#39;</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1280</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">720</span><span class="p">,</span> <span class="n">dtype</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate a differential frame from the events.</span>
 
@@ -646,7 +646,7 @@
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">    &gt;&gt;&gt; from evutils.repr import frame_diff</span>
+<span class="sd">    &gt;&gt;&gt; from evutils.dense import frame_diff</span>
 <span class="sd">    &gt;&gt;&gt; events = np.array([(10, 20, 100, 1), (15, 25, 200, 0)],</span>
 <span class="sd">    ...                   dtype=[(&#39;x&#39;, &#39;&lt;u2&#39;), (&#39;y&#39;, &#39;&lt;u2&#39;), (&#39;t&#39;, &#39;&lt;i8&#39;), (&#39;p&#39;, &#39;i1&#39;)])</span>
 <span class="sd">    &gt;&gt;&gt; frame = frame_diff(events, width=100, height=100)</span>

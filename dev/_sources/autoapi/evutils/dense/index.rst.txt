@@ -1,7 +1,7 @@
-:py:mod:`evutils.repr`
-======================
+:py:mod:`evutils.dense`
+=======================
 
-.. py:module:: evutils.repr
+.. py:module:: evutils.dense
 
 .. autoapi-nested-parse::
 
@@ -18,14 +18,14 @@ Functions
 
 .. autoapisummary::
 
-   evutils.repr.histogram
-   evutils.repr.wedge_histogram
-   evutils.repr.voxel_histogram
-   evutils.repr.timesurface
-   evutils.repr.frame_diff
-   evutils.repr.frame_rgb
-   evutils.repr.frame_gray
-   evutils.repr.tore
+   evutils.dense.histogram
+   evutils.dense.wedge_histogram
+   evutils.dense.voxel_histogram
+   evutils.dense.timesurface
+   evutils.dense.frame_diff
+   evutils.dense.frame_rgb
+   evutils.dense.frame_gray
+   evutils.dense.tore
 
 
 Package Contents
@@ -52,7 +52,7 @@ Package Contents
    .. rubric:: Examples
 
    >>> import numpy as np
-   >>> from evutils.repr import histogram
+   >>> from evutils.dense import histogram
    >>> events = np.array([(10, 20, 100, 1), (15, 25, 200, 0)],
    ...                   dtype=[('x', '<u2'), ('y', '<u2'), ('t', '<i8'), ('p', 'i1')])
    >>> frame = histogram(events, width=100, height=100)
@@ -81,7 +81,7 @@ Package Contents
    .. rubric:: Examples
 
    >>> import numpy as np
-   >>> from evutils.repr import wedge_histogram
+   >>> from evutils.dense import wedge_histogram
    >>> events = np.array([(10, 20, 100, 1), (15, 25, 200, 0)],
    ...                   dtype=[('x', '<u2'), ('y', '<u2'), ('t', '<i8'), ('p', 'i1')])
    >>> frame = wedge_histogram(events, width=100, height=100)
@@ -112,7 +112,7 @@ Package Contents
    .. rubric:: Examples
 
    >>> import numpy as np
-   >>> from evutils.repr import voxel_histogram
+   >>> from evutils.dense import voxel_histogram
    >>> events = np.array([(10, 20, 100, 1), (15, 25, 200, 0), (20, 30, 10000, 1)],
    ...                   dtype=[('x', '<u2'), ('y', '<u2'), ('t', '<i8'), ('p', 'i1')])
    >>> grid = voxel_histogram(events, width=100, height=100, n_bins=10, dt=10000)
@@ -141,7 +141,7 @@ Package Contents
    .. rubric:: Examples
 
    >>> import numpy as np
-   >>> from evutils.repr import timesurface
+   >>> from evutils.dense import timesurface
    >>> events = np.array([(10, 20, 100, 1), (15, 25, 200, 0)],
    ...                   dtype=[('x', '<u2'), ('y', '<u2'), ('t', '<i8'), ('p', 'i1')])
    >>> frame = timesurface(events, width=100, height=100)
@@ -170,7 +170,7 @@ Package Contents
    .. rubric:: Examples
 
    >>> import numpy as np
-   >>> from evutils.repr import frame_diff
+   >>> from evutils.dense import frame_diff
    >>> events = np.array([(10, 20, 100, 1), (15, 25, 200, 0)],
    ...                   dtype=[('x', '<u2'), ('y', '<u2'), ('t', '<i8'), ('p', 'i1')])
    >>> frame = frame_diff(events, width=100, height=100)
@@ -201,7 +201,7 @@ Package Contents
    .. rubric:: Examples
 
    >>> import numpy as np
-   >>> from evutils.repr import frame_rgb
+   >>> from evutils.dense import frame_rgb
    >>> events = np.array([(10, 20, 100, 1), (15, 25, 200, 0)],
    ...                   dtype=[('x', '<u2'), ('y', '<u2'), ('t', '<i8'), ('p', 'i1')])
    >>> frame = frame_rgb(events, width=100, height=100)
@@ -228,7 +228,7 @@ Package Contents
    .. rubric:: Examples
 
    >>> import numpy as np
-   >>> from evutils.repr import frame_gray
+   >>> from evutils.dense import frame_gray
    >>> events = np.array([(10, 20, 100, 1), (15, 25, 200, 0)],
    ...                   dtype=[('x', '<u2'), ('y', '<u2'), ('t', '<i8'), ('p', 'i1')])
    >>> frame = frame_gray(events, width=100, height=100)
@@ -259,7 +259,7 @@ Package Contents
    .. rubric:: Examples
 
    >>> import numpy as np
-   >>> from evutils.repr import tore
+   >>> from evutils.dense import tore
    >>> events = np.array([(10, 20, 100, 1), (15, 25, 200, 0)],
    ...                   dtype=[('x', '<u2'), ('y', '<u2'), ('t', '<i8'), ('p', 'i1')])
    >>> frame = tore(events, width=100, height=100, n_events=4)

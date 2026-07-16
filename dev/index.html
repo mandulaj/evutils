@@ -527,20 +527,23 @@ uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </s
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>└── augment     - Event augmentations
 └── chunking    - Splitting event streams into fixed-size windows
 └── dataset     - Wrappers for various dataset loaders
+└── dense       - Dense representations (voxel grids, time surfaces, histograms)
+└── filtering   - Event stream filtering (masking, timestamp normalization)
 └── io          - Event reading and writing interfaces
     ├── reader 
     └── writer
-└── processing  - Event stream processing and filtering (denoising, masking)
 └── random      - Random event generation and noise injection
-└── repr        - Dense representations (voxel grids, time surfaces, histograms)
 └── torch       - PyTorch integration (requires evutils[torch])
+└── transforms  - torchvision-style augmentation transforms (+ functional)
 └── types       - Standard types for representing Events in NumPy arrays
-└── utils       - General-purpose helpers
 └── vis         - Visualization methods
     ├── histogram
     └── reconstructor
 </pre></div>
 </div>
+<p>A future <code class="docutils literal notranslate"><span class="pre">sparse</span></code> module will sit alongside <code class="docutils literal notranslate"><span class="pre">dense</span></code> once sparse representations
+(event graphs, sparse tensors, point clouds) land. <code class="docutils literal notranslate"><span class="pre">EventsChecker</span></code> (event-array
+validation) lives in <code class="docutils literal notranslate"><span class="pre">types</span></code>.</p>
 <section id="quick-api-overview">
 <h3>Quick API overview<a class="headerlink" href="#quick-api-overview" title="Link to this heading">#</a></h3>
 <!-- ### `augment`

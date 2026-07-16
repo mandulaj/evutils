@@ -498,7 +498,7 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Event_dtype&#39;</span><span class="p">,</span> <span class="s1">&#39;Trigger_dtype&#39;</span><span class="p">,</span> <span class="s1">&#39;Event&#39;</span><span class="p">,</span> <span class="s1">&#39;EventArray&#39;</span><span class="p">,</span> <span class="s1">&#39;TriggerArray&#39;</span><span class="p">,</span> <span class="s1">&#39;is_monotonically_increasing&#39;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Event_dtype&#39;</span><span class="p">,</span> <span class="s1">&#39;Trigger_dtype&#39;</span><span class="p">,</span> <span class="s1">&#39;Event&#39;</span><span class="p">,</span> <span class="s1">&#39;EventArray&#39;</span><span class="p">,</span> <span class="s1">&#39;TriggerArray&#39;</span><span class="p">,</span> <span class="s1">&#39;is_monotonically_increasing&#39;</span><span class="p">,</span> <span class="s1">&#39;EventsChecker&#39;</span><span class="p">]</span>
 
 
 <span class="c1">#: A structured numpy dtype for event data.</span>
@@ -814,6 +814,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">id_arr</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="n">metadata</span></div>
 
+
+
+<span class="c1"># EventsChecker validates the event types defined above; imported here (at the</span>
+<span class="c1"># end, after the types exist) so it is reachable as ``evutils.types.EventsChecker``</span>
+<span class="c1"># without a circular import.</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._checker</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventsChecker</span>  <span class="c1"># noqa: E402</span>
 </pre></div>
 
                 </article>

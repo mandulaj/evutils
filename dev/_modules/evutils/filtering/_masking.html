@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>evutils.repr._voxel &#8212; evutils v0.3.17 documentation</title>
+    <title>evutils.filtering._masking &#8212; evutils v0.3.17 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
     <script src="../../../_static/documentation_options.js?v=ffd5bf7f"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/evutils/repr/_voxel';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/evutils/filtering/_masking';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://mandulaj.github.io/evutils/switcher.json';
@@ -467,7 +467,7 @@
     
     <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">evutils.repr._voxel</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">evutils.filtering._masking</span></li>
   </ul>
 </nav>
 </div>
@@ -484,77 +484,73 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <h1>Source code for evutils.repr._voxel</h1><div class="highlight"><pre>
-<span></span>
-<span class="sd">&quot;&quot;&quot;Module for generating voxel grid representations from events.&quot;&quot;&quot;</span>
-
-<span class="kn">from</span><span class="w"> </span><span class="nn">._histogram</span><span class="w"> </span><span class="kn">import</span> <span class="n">histogram</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">..chunking</span><span class="w"> </span><span class="kn">import</span> <span class="n">window_delta_t</span>
-
+  <h1>Source code for evutils.filtering._masking</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Module for applying spatial masks to event arrays.&quot;&quot;&quot;</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">..types</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventArray</span>
-
-<div class="viewcode-block" id="voxel_histogram">
-<a class="viewcode-back" href="../../../autoapi/evutils/repr/index.html#evutils.repr.voxel_histogram">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">voxel_histogram</span><span class="p">(</span><span class="n">events</span><span class="p">:</span> <span class="s1">&#39;np.ndarray | EventArray&#39;</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1280</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">720</span><span class="p">,</span> <span class="n">n_bins</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">dt</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10_000</span><span class="p">,</span> <span class="n">dtype</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate a voxel grid from the events.</span>
+<div class="viewcode-block" id="mask_events">
+<a class="viewcode-back" href="../../../autoapi/evutils/filtering/index.html#evutils.filtering.mask_events">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">mask_events</span><span class="p">(</span><span class="n">events</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">mask</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Masks events based on a given mask.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    events : np.ndarray</span>
-<span class="sd">        Array of events in the :class:`~evutils.types.Events` format.</span>
-<span class="sd">    width : int, optional</span>
-<span class="sd">        Width of the voxel grid, by default 1280.</span>
-<span class="sd">    height : int, optional</span>
-<span class="sd">        Height of the voxel grid, by default 720.</span>
-<span class="sd">    n_bins : int, optional</span>
-<span class="sd">        Number of depth bins (time slices) in the voxel grid, by default 10.</span>
-<span class="sd">    dt : int, optional</span>
-<span class="sd">        Time delta in microseconds for events buffer by default 10_000 (10 ms).</span>
-<span class="sd">    dtype : np.dtype, optional</span>
-<span class="sd">        Data type of the output voxel grid, by default np.uint8.</span>
-
+<span class="sd">        Array of events to be masked.</span>
+<span class="sd">    mask : np.ndarray</span>
+<span class="sd">        A 2D mask array where the events will be checked against. </span>
+<span class="sd">        The mask should have the same shape as the event frame size.</span>
+<span class="sd">        </span>
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    np.ndarray</span>
-<span class="sd">        A numpy array with the voxel grid (n_bins, height, width, 3).</span>
+<span class="sd">        Array of events that fall within the valid regions of the mask.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">    &gt;&gt;&gt; from evutils.repr import voxel_histogram</span>
-<span class="sd">    &gt;&gt;&gt; events = np.array([(10, 20, 100, 1), (15, 25, 200, 0), (20, 30, 10000, 1)],</span>
-<span class="sd">    ...                   dtype=[(&#39;x&#39;, &#39;&lt;u2&#39;), (&#39;y&#39;, &#39;&lt;u2&#39;), (&#39;t&#39;, &#39;&lt;i8&#39;), (&#39;p&#39;, &#39;i1&#39;)])</span>
-<span class="sd">    &gt;&gt;&gt; grid = voxel_histogram(events, width=100, height=100, n_bins=10, dt=10000)</span>
-<span class="sd">    &gt;&gt;&gt; grid.shape</span>
-<span class="sd">    (10, 100, 100, 3)</span>
+<span class="sd">    &gt;&gt;&gt; from evutils.filtering import mask_events</span>
+<span class="sd">    &gt;&gt;&gt; events = np.array(</span>
+<span class="sd">    ...     [(0, 0, 100, 1), (1, 1, 200, 1), (2, 2, 300, 0)],</span>
+<span class="sd">    ...     dtype=[(&#39;x&#39;, &#39;u2&#39;), (&#39;y&#39;, &#39;u2&#39;), (&#39;t&#39;, &#39;i8&#39;), (&#39;p&#39;, &#39;i1&#39;)]</span>
+<span class="sd">    ... )</span>
+<span class="sd">    &gt;&gt;&gt; mask = np.array([</span>
+<span class="sd">    ...     [1, 0, 0],</span>
+<span class="sd">    ...     [0, 0, 0],</span>
+<span class="sd">    ...     [0, 0, 1]</span>
+<span class="sd">    ... ])</span>
+<span class="sd">    &gt;&gt;&gt; masked_events = mask_events(events, mask)</span>
+<span class="sd">    &gt;&gt;&gt; masked_events[[&#39;x&#39;, &#39;y&#39;]].tolist()</span>
+<span class="sd">    [(0, 0), (2, 2)]</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">buffer</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_bins</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="c1"># Check if mask is a 2D array</span>
+    <span class="k">if</span> <span class="n">mask</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Mask must be a 2D array&quot;</span><span class="p">)</span>
 
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">events</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">events</span>
+    
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="s1">&#39;dtype&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">events</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span> <span class="ow">and</span> <span class="s1">&#39;x&#39;</span> <span class="ow">in</span> <span class="n">events</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span> <span class="ow">and</span> <span class="s1">&#39;y&#39;</span> <span class="ow">in</span> <span class="n">events</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">events</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">events</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;events must be a structured array or object with &#39;x&#39; and &#39;y&#39; fields&quot;</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">events</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">buffer</span>
+    <span class="c1"># Check if max x and y in events are within the mask dimensions</span>
+    <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">y</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Events x and y coordinates must be non-negative&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">or</span> <span class="n">y</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Events x and y coordinates must be within the mask dimensions&quot;</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">events</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">events</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">dt</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Events span a duration greater than dt (</span><span class="si">{</span><span class="n">dt</span><span class="si">}</span><span class="s2">).&quot;</span><span class="p">)</span>
-
-    <span class="n">bin_dt</span> <span class="o">=</span> <span class="n">dt</span> <span class="o">//</span> <span class="n">n_bins</span>  <span class="c1"># Time per bin in microseconds</span>
-
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">window_delta_t</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">delta_t</span><span class="o">=</span><span class="n">bin_dt</span><span class="p">)):</span>
-        <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="n">n_bins</span><span class="p">:</span>
-            <span class="k">break</span>
-        <span class="n">hist</span> <span class="o">=</span> <span class="n">histogram</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
-
-        <span class="c1"># Only keep the r and b channels</span>
-        <span class="n">buffer</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">hist</span>
-
-
-
-    <span class="k">return</span> <span class="n">buffer</span></div>
+    <span class="n">valid_events</span> <span class="o">=</span> <span class="n">mask</span><span class="p">[</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    
+    <span class="k">return</span> <span class="n">events</span><span class="p">[</span><span class="n">valid_events</span><span class="p">]</span></div>
 
 </pre></div>
 

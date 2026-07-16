@@ -55,7 +55,7 @@
     <link rel="icon" href="../../../_static/event_hexagon_broken.webp"/>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-    <link rel="next" title="evutils.utils" href="../utils/index.html" />
+    <link rel="next" title="evutils.vis" href="../vis/index.html" />
     <link rel="prev" title="evutils.transforms.transforms" href="../transforms/transforms/index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -451,6 +451,8 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils</span></code></a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../chunking/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.chunking</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="../dataset/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.dataset</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../dense/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.dense</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../filtering/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.filtering</span></code></a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../io/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.io</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../io/buffer/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.io.buffer</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../io/common/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.io.common</span></code></a></li>
@@ -460,9 +462,7 @@
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="../jit/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.jit</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../processing/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.processing</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="../random/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.random</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../repr/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.repr</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="../torch/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.torch</span></code></a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../transforms/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.transforms</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../transforms/compose/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.transforms.compose</span></code></a></li>
@@ -471,7 +471,6 @@
 </ul>
 </details></li>
 <li class="toctree-l2 current active"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.types</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utils/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.utils</span></code></a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../vis/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.vis</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../vis/open3d/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.vis.open3d</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../vis/plot3d/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.vis.plot3d</span></code></a></li>
@@ -579,6 +578,9 @@ together with small helpers for checking event arrays.</p>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#evutils.types.TriggerArray" title="evutils.types.TriggerArray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TriggerArray</span></code></a></p></td>
 <td><p>A container for storing trigger data in a struct-of-arrays (SoA) layout.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#evutils.types.EventsChecker" title="evutils.types.EventsChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EventsChecker</span></code></a></p></td>
+<td><p>Class to check if events are valid.</p></td>
 </tr>
 </tbody>
 </table>
@@ -807,6 +809,118 @@ updating it.</p>
 
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="evutils.types.EventsChecker">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.types.</span></span><span class="sig-name descname"><span class="pre">EventsChecker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">events</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/evutils/_checker.html#EventsChecker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.types.EventsChecker" title="Link to this definition">#</a></dt>
+<dd><p>Class to check if events are valid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>events</strong> (<em>np.ndarray</em>) – Array of events to check.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.types.EventsChecker.events">
+<span class="sig-name descname"><span class="pre">events</span></span><a class="headerlink" href="#evutils.types.EventsChecker.events" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.types.EventsChecker.is_sorted">
+<span class="sig-name descname"><span class="pre">is_sorted</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../../_modules/evutils/_checker.html#EventsChecker.is_sorted"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.types.EventsChecker.is_sorted" title="Link to this definition">#</a></dt>
+<dd><p>Check if events are sorted by timestamp.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if events are sorted in non-decreasing order of timestamps.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.types.EventsChecker.has_valid_polarity">
+<span class="sig-name descname"><span class="pre">has_valid_polarity</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../../_modules/evutils/_checker.html#EventsChecker.has_valid_polarity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.types.EventsChecker.has_valid_polarity" title="Link to this definition">#</a></dt>
+<dd><p>Check if events have valid polarity (0 or 1).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if all events have polarity 0 or 1.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.types.EventsChecker.has_valid_x">
+<span class="sig-name descname"><span class="pre">has_valid_x</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../../_modules/evutils/_checker.html#EventsChecker.has_valid_x"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.types.EventsChecker.has_valid_x" title="Link to this definition">#</a></dt>
+<dd><p>Check if events have valid x coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>width</strong> (<em>int</em>) – Maximum valid width (exclusive).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if all events have x coordinates in [0, width).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.types.EventsChecker.has_valid_y">
+<span class="sig-name descname"><span class="pre">has_valid_y</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../../_modules/evutils/_checker.html#EventsChecker.has_valid_y"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.types.EventsChecker.has_valid_y" title="Link to this definition">#</a></dt>
+<dd><p>Check if events have valid y coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>height</strong> (<em>int</em>) – Maximum valid height (exclusive).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if all events have y coordinates in [0, height).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.types.EventsChecker.is_valid">
+<span class="sig-name descname"><span class="pre">is_valid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../../_modules/evutils/_checker.html#EventsChecker.is_valid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.types.EventsChecker.is_valid" title="Link to this definition">#</a></dt>
+<dd><p>Check if all events are valid (sorted, valid polarity, and valid coordinates).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>width</strong> (<em>int</em><em>, </em><em>optional</em>) – Maximum valid width. If None, x coordinates are not checked.</p></li>
+<li><p><strong>height</strong> (<em>int</em><em>, </em><em>optional</em>) – Maximum valid height. If None, y coordinates are not checked.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if all checks pass.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.types.EventsChecker.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../../../_modules/evutils/_checker.html#EventsChecker.__repr__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.types.EventsChecker.__repr__" title="Link to this definition">#</a></dt>
+<dd><p>Return string representation of the EventsChecker.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>String representation indicating the EventsChecker and number of events.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 </section>
 
@@ -830,11 +944,11 @@ updating it.</p>
       </div>
     </a>
     <a class="right-next"
-       href="../utils/index.html"
+       href="../vis/index.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.utils</span></code></p>
+        <p class="prev-next-title"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.vis</span></code></p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -880,6 +994,16 @@ updating it.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.types.TriggerArray.p"><code class="docutils literal notranslate"><span class="pre">TriggerArray.p</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.types.TriggerArray.id"><code class="docutils literal notranslate"><span class="pre">TriggerArray.id</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.types.TriggerArray.metadata"><code class="docutils literal notranslate"><span class="pre">TriggerArray.metadata</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.types.EventsChecker"><code class="docutils literal notranslate"><span class="pre">EventsChecker</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.types.EventsChecker.events"><code class="docutils literal notranslate"><span class="pre">EventsChecker.events</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.types.EventsChecker.is_sorted"><code class="docutils literal notranslate"><span class="pre">EventsChecker.is_sorted()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.types.EventsChecker.has_valid_polarity"><code class="docutils literal notranslate"><span class="pre">EventsChecker.has_valid_polarity()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.types.EventsChecker.has_valid_x"><code class="docutils literal notranslate"><span class="pre">EventsChecker.has_valid_x()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.types.EventsChecker.has_valid_y"><code class="docutils literal notranslate"><span class="pre">EventsChecker.has_valid_y()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.types.EventsChecker.is_valid"><code class="docutils literal notranslate"><span class="pre">EventsChecker.is_valid()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.types.EventsChecker.__repr__"><code class="docutils literal notranslate"><span class="pre">EventsChecker.__repr__()</span></code></a></li>
 </ul>
 </li>
 </ul>

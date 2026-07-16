@@ -31,15 +31,14 @@ Submodules
 
    /autoapi/evutils/chunking/index
    /autoapi/evutils/dataset/index
+   /autoapi/evutils/dense/index
+   /autoapi/evutils/filtering/index
    /autoapi/evutils/io/index
    /autoapi/evutils/jit/index
-   /autoapi/evutils/processing/index
    /autoapi/evutils/random/index
-   /autoapi/evutils/repr/index
    /autoapi/evutils/torch/index
    /autoapi/evutils/transforms/index
    /autoapi/evutils/types/index
-   /autoapi/evutils/utils/index
    /autoapi/evutils/vis/index
 
 .. list-table::
@@ -50,24 +49,22 @@ Submodules
      - Splitting event streams into chunks.
    * - :py:mod:`dataset <evutils.dataset>`
      - Dataset loading and management.
+   * - :py:mod:`dense <evutils.dense>`
+     - Dense representations of event data.
+   * - :py:mod:`filtering <evutils.filtering>`
+     - Event stream filtering and cleanup.
    * - :py:mod:`io <evutils.io>`
      - Reading and writing events in various file formats.
    * - :py:mod:`jit <evutils.jit>`
      - Lazy numba compilation helper.
-   * - :py:mod:`processing <evutils.processing>`
-     - Event stream processing and filtering.
    * - :py:mod:`random <evutils.random>`
      - Generation and perturbation of synthetic events.
-   * - :py:mod:`repr <evutils.repr>`
-     - Dense representations of event data.
    * - :py:mod:`torch <evutils.torch>`
      - PyTorch integration.
    * - :py:mod:`transforms <evutils.transforms>`
      - Data augmentation transforms for events.
    * - :py:mod:`types <evutils.types>`
      - Core data types for event streams.
-   * - :py:mod:`utils <evutils.utils>`
-     - General-purpose helpers.
    * - :py:mod:`vis <evutils.vis>`
      - Visualization tools for event camera data.
 

@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>evutils.processing._masking &#8212; evutils v0.3.17 documentation</title>
+    <title>evutils.filtering._timestamp &#8212; evutils v0.3.17 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
     <script src="../../../_static/documentation_options.js?v=ffd5bf7f"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/evutils/processing/_masking';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/evutils/filtering/_timestamp';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://mandulaj.github.io/evutils/switcher.json';
@@ -467,7 +467,7 @@
     
     <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">evutils.processing._masking</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">evutils.filtering._timestamp</span></li>
   </ul>
 </nav>
 </div>
@@ -484,73 +484,63 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <h1>Source code for evutils.processing._masking</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Module for applying spatial masks to event arrays.&quot;&quot;&quot;</span>
+  <h1>Source code for evutils.filtering._timestamp</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Utility functions for processing event arrays.&quot;&quot;&quot;</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 
-<div class="viewcode-block" id="mask_events">
-<a class="viewcode-back" href="../../../autoapi/evutils/processing/index.html#evutils.processing.mask_events">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">mask_events</span><span class="p">(</span><span class="n">events</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">mask</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Masks events based on a given mask.</span>
+<div class="viewcode-block" id="normalize_ts">
+<a class="viewcode-back" href="../../../autoapi/evutils/filtering/index.html#evutils.filtering.normalize_ts">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">normalize_ts</span><span class="p">(</span><span class="n">events</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">start_ts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Normalizes the timestamps of events to start from zero.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    events : np.ndarray</span>
-<span class="sd">        Array of events to be masked.</span>
-<span class="sd">    mask : np.ndarray</span>
-<span class="sd">        A 2D mask array where the events will be checked against. </span>
-<span class="sd">        The mask should have the same shape as the event frame size.</span>
-<span class="sd">        </span>
+<span class="sd">        Array of events with a &#39;t&#39; field representing timestamps.</span>
+<span class="sd">    start_ts : int, optional</span>
+<span class="sd">        The timestamp to normalize from, by default 0.</span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    np.ndarray</span>
-<span class="sd">        Array of events that fall within the valid regions of the mask.</span>
+<span class="sd">        Array of events with normalized timestamps.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">    &gt;&gt;&gt; from evutils.processing import mask_events</span>
+<span class="sd">    &gt;&gt;&gt; from evutils.filtering import normalize_ts</span>
 <span class="sd">    &gt;&gt;&gt; events = np.array(</span>
 <span class="sd">    ...     [(0, 0, 100, 1), (1, 1, 200, 1), (2, 2, 300, 0)],</span>
 <span class="sd">    ...     dtype=[(&#39;x&#39;, &#39;u2&#39;), (&#39;y&#39;, &#39;u2&#39;), (&#39;t&#39;, &#39;i8&#39;), (&#39;p&#39;, &#39;i1&#39;)]</span>
 <span class="sd">    ... )</span>
-<span class="sd">    &gt;&gt;&gt; mask = np.array([</span>
-<span class="sd">    ...     [1, 0, 0],</span>
-<span class="sd">    ...     [0, 0, 0],</span>
-<span class="sd">    ...     [0, 0, 1]</span>
-<span class="sd">    ... ])</span>
-<span class="sd">    &gt;&gt;&gt; masked_events = mask_events(events, mask)</span>
-<span class="sd">    &gt;&gt;&gt; masked_events[[&#39;x&#39;, &#39;y&#39;]].tolist()</span>
-<span class="sd">    [(0, 0), (2, 2)]</span>
+<span class="sd">    &gt;&gt;&gt; norm_events = normalize_ts(events.copy())</span>
+<span class="sd">    &gt;&gt;&gt; norm_events[&#39;t&#39;]</span>
+<span class="sd">    array([  0, 100, 200])</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Check if mask is a 2D array</span>
-    <span class="k">if</span> <span class="n">mask</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Mask must be a 2D array&quot;</span><span class="p">)</span>
-
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">events</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">events</span>
-    
-    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="s1">&#39;dtype&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">events</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span> <span class="ow">and</span> <span class="s1">&#39;x&#39;</span> <span class="ow">in</span> <span class="n">events</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span> <span class="ow">and</span> <span class="s1">&#39;y&#39;</span> <span class="ow">in</span> <span class="n">events</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">events</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span>
-        <span class="n">y</span> <span class="o">=</span> <span class="n">events</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span>
-    <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">):</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">)</span>
-        <span class="n">y</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="s1">&#39;dtype&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">events</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span> <span class="ow">and</span> <span class="s1">&#39;t&#39;</span> <span class="ow">in</span> <span class="n">events</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
+        <span class="n">t_arr</span> <span class="o">=</span> <span class="n">events</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="s1">&#39;t&#39;</span><span class="p">):</span>
+        <span class="n">t_arr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="s1">&#39;t&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;events must be a structured array or object with &#39;x&#39; and &#39;y&#39; fields&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;events must be a structured array or object with a &#39;t&#39; field&quot;</span><span class="p">)</span>
 
-    <span class="c1"># Check if max x and y in events are within the mask dimensions</span>
-    <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">y</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Events x and y coordinates must be non-negative&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">or</span> <span class="n">y</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Events x and y coordinates must be within the mask dimensions&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="s1">&#39;flags&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">events</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">writeable</span><span class="p">:</span>
+        <span class="n">events</span> <span class="o">=</span> <span class="n">events</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="s1">&#39;dtype&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">events</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span> <span class="ow">and</span> <span class="s1">&#39;t&#39;</span> <span class="ow">in</span> <span class="n">events</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
+            <span class="n">t_arr</span> <span class="o">=</span> <span class="n">events</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">t_arr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="s1">&#39;t&#39;</span><span class="p">)</span>
 
-    <span class="n">valid_events</span> <span class="o">=</span> <span class="n">mask</span><span class="p">[</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span>
-    
-    <span class="k">return</span> <span class="n">events</span><span class="p">[</span><span class="n">valid_events</span><span class="p">]</span></div>
+    <span class="n">min_ts</span> <span class="o">=</span> <span class="n">t_arr</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+    <span class="n">t_arr</span> <span class="o">-=</span> <span class="n">min_ts</span> <span class="o">-</span> <span class="n">start_ts</span>
+
+    <span class="k">return</span> <span class="n">events</span></div>
 
 </pre></div>
 

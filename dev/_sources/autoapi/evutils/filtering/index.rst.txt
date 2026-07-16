@@ -1,14 +1,15 @@
-:py:mod:`evutils.processing`
-============================
+:py:mod:`evutils.filtering`
+===========================
 
-.. py:module:: evutils.processing
+.. py:module:: evutils.filtering
 
 .. autoapi-nested-parse::
 
-   Event stream processing and filtering.
+   Event stream filtering and cleanup.
 
-   Operations that transform or filter events — denoising, spatial/temporal
-   cropping, downsampling and similar steps.
+   Operations that select, mask or normalize events: spatial masking and
+   timestamp normalization. More filters (denoising, cropping, downsampling)
+   will land here.
 
 
 
@@ -17,8 +18,8 @@ Functions
 
 .. autoapisummary::
 
-   evutils.processing.mask_events
-   evutils.processing.normalize_ts
+   evutils.filtering.mask_events
+   evutils.filtering.normalize_ts
 
 
 Package Contents
@@ -40,7 +41,7 @@ Package Contents
    .. rubric:: Examples
 
    >>> import numpy as np
-   >>> from evutils.processing import mask_events
+   >>> from evutils.filtering import mask_events
    >>> events = np.array(
    ...     [(0, 0, 100, 1), (1, 1, 200, 1), (2, 2, 300, 0)],
    ...     dtype=[('x', 'u2'), ('y', 'u2'), ('t', 'i8'), ('p', 'i1')]
@@ -70,7 +71,7 @@ Package Contents
    .. rubric:: Examples
 
    >>> import numpy as np
-   >>> from evutils.processing import normalize_ts
+   >>> from evutils.filtering import normalize_ts
    >>> events = np.array(
    ...     [(0, 0, 100, 1), (1, 1, 200, 1), (2, 2, 300, 0)],
    ...     dtype=[('x', 'u2'), ('y', 'u2'), ('t', 'i8'), ('p', 'i1')]

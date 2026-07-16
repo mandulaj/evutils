@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>evutils.processing._utils &#8212; evutils v0.3.17 documentation</title>
+    <title>evutils.dense._tore &#8212; evutils v0.3.17 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
     <script src="../../../_static/documentation_options.js?v=ffd5bf7f"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/evutils/processing/_utils';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/evutils/dense/_tore';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://mandulaj.github.io/evutils/switcher.json';
@@ -467,7 +467,7 @@
     
     <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">evutils.processing._utils</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">evutils.dense._tore</span></li>
   </ul>
 </nav>
 </div>
@@ -484,63 +484,79 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <h1>Source code for evutils.processing._utils</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Utility functions for processing event arrays.&quot;&quot;&quot;</span>
+  <h1>Source code for evutils.dense._tore</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Module for generating Time-Ordered Recent Event (TORE) representations from events.&quot;&quot;&quot;</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..jit</span><span class="w"> </span><span class="kn">import</span> <span class="n">lazy_njit_unwrapped_events</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..types</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventArray</span>
 
+<span class="nd">@lazy_njit_unwrapped_events</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_tore_jit</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">tore_fifo</span><span class="p">,</span> <span class="n">tore_fifo_idx</span><span class="p">,</span> <span class="n">t_res</span><span class="p">,</span> <span class="n">tau</span><span class="p">):</span>
+    <span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">n_events</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">tore_fifo</span><span class="o">.</span><span class="n">shape</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">xi</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">yi</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">pi</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">ti</span> <span class="o">=</span> <span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">xi</span> <span class="o">&lt;</span> <span class="n">width</span> <span class="ow">and</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">yi</span> <span class="o">&lt;</span> <span class="n">height</span><span class="p">:</span>
+            <span class="n">k_idx</span> <span class="o">=</span> <span class="n">tore_fifo_idx</span><span class="p">[</span><span class="n">yi</span><span class="p">,</span> <span class="n">xi</span><span class="p">,</span> <span class="n">pi</span><span class="p">]</span>
+            <span class="n">tore_fifo_idx</span><span class="p">[</span><span class="n">yi</span><span class="p">,</span> <span class="n">xi</span><span class="p">,</span> <span class="n">pi</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">k_idx</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">dt</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">t_res</span> <span class="o">-</span> <span class="n">ti</span><span class="p">))</span>
+                <span class="n">tore_fifo</span><span class="p">[</span><span class="n">yi</span><span class="p">,</span> <span class="n">xi</span><span class="p">,</span> <span class="n">k_idx</span><span class="p">,</span> <span class="n">pi</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">dt</span> <span class="o">/</span> <span class="n">tau</span><span class="p">)</span>
 
-<div class="viewcode-block" id="normalize_ts">
-<a class="viewcode-back" href="../../../autoapi/evutils/processing/index.html#evutils.processing.normalize_ts">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">normalize_ts</span><span class="p">(</span><span class="n">events</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">start_ts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Normalizes the timestamps of events to start from zero.</span>
+<div class="viewcode-block" id="tore">
+<a class="viewcode-back" href="../../../autoapi/evutils/dense/index.html#evutils.dense.tore">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">tore</span><span class="p">(</span><span class="n">events</span><span class="p">:</span> <span class="s1">&#39;np.ndarray | EventArray&#39;</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1280</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">720</span><span class="p">,</span> <span class="n">n_events</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="n">tau</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10_000</span><span class="p">,</span> <span class="n">dtype</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate a TORE from the events.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    events : np.ndarray</span>
-<span class="sd">        Array of events with a &#39;t&#39; field representing timestamps.</span>
-<span class="sd">    start_ts : int, optional</span>
-<span class="sd">        The timestamp to normalize from, by default 0.</span>
-
+<span class="sd">        Array of events in the :class:`~evutils.types.Events` format</span>
+<span class="sd">    width : int, optional</span>
+<span class="sd">        Width of the frame, by default 1280</span>
+<span class="sd">    height : int, optional</span>
+<span class="sd">        Height of the frame, by default 720</span>
+<span class="sd">    n_events : int, optional</span>
+<span class="sd">        Number of events to keep in the TORE, by default 4</span>
+<span class="sd">    tau : int, optional</span>
+<span class="sd">        Time constant for the exponential decay, by default 10_000</span>
+<span class="sd">    dtype : np.dtype, optional</span>
+<span class="sd">        Data type of the output array, by default np.uint8</span>
+<span class="sd">    </span>
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    np.ndarray</span>
-<span class="sd">        Array of events with normalized timestamps.</span>
+<span class="sd">        A numpy array with the TORE representation (height, width, n_events, 2)</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">    &gt;&gt;&gt; from evutils.processing import normalize_ts</span>
-<span class="sd">    &gt;&gt;&gt; events = np.array(</span>
-<span class="sd">    ...     [(0, 0, 100, 1), (1, 1, 200, 1), (2, 2, 300, 0)],</span>
-<span class="sd">    ...     dtype=[(&#39;x&#39;, &#39;u2&#39;), (&#39;y&#39;, &#39;u2&#39;), (&#39;t&#39;, &#39;i8&#39;), (&#39;p&#39;, &#39;i1&#39;)]</span>
-<span class="sd">    ... )</span>
-<span class="sd">    &gt;&gt;&gt; norm_events = normalize_ts(events.copy())</span>
-<span class="sd">    &gt;&gt;&gt; norm_events[&#39;t&#39;]</span>
-<span class="sd">    array([  0, 100, 200])</span>
+<span class="sd">    &gt;&gt;&gt; from evutils.dense import tore</span>
+<span class="sd">    &gt;&gt;&gt; events = np.array([(10, 20, 100, 1), (15, 25, 200, 0)],</span>
+<span class="sd">    ...                   dtype=[(&#39;x&#39;, &#39;&lt;u2&#39;), (&#39;y&#39;, &#39;&lt;u2&#39;), (&#39;t&#39;, &#39;&lt;i8&#39;), (&#39;p&#39;, &#39;i1&#39;)])</span>
+<span class="sd">    &gt;&gt;&gt; frame = tore(events, width=100, height=100, n_events=4)</span>
+<span class="sd">    &gt;&gt;&gt; frame.shape</span>
+<span class="sd">    (100, 100, 4, 2)</span>
+
+<span class="sd">    [1] Baldwin, R. W., Liu, R., Almatrafi, M., Asari, V., &amp; Hirakawa, K. (2022). Time-ordered recent event (tore) volumes for event cameras. IEEE Transactions on Pattern Analysis and Machine Intelligence, 45(2), 2519-2532.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tore_fifo</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">n_events</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">events</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">events</span>
+        <span class="k">return</span> <span class="n">tore_fifo</span>
 
-    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="s1">&#39;dtype&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">events</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span> <span class="ow">and</span> <span class="s1">&#39;t&#39;</span> <span class="ow">in</span> <span class="n">events</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
-        <span class="n">t_arr</span> <span class="o">=</span> <span class="n">events</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">]</span>
-    <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="s1">&#39;t&#39;</span><span class="p">):</span>
-        <span class="n">t_arr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="s1">&#39;t&#39;</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;events must be a structured array or object with a &#39;t&#39; field&quot;</span><span class="p">)</span>
+    <span class="n">tore_fifo_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">n_events</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="s1">&#39;flags&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">events</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">writeable</span><span class="p">:</span>
-        <span class="n">events</span> <span class="o">=</span> <span class="n">events</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="s1">&#39;dtype&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">events</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span> <span class="ow">and</span> <span class="s1">&#39;t&#39;</span> <span class="ow">in</span> <span class="n">events</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
-            <span class="n">t_arr</span> <span class="o">=</span> <span class="n">events</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">t_arr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="s1">&#39;t&#39;</span><span class="p">)</span>
-
-    <span class="n">min_ts</span> <span class="o">=</span> <span class="n">t_arr</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
-    <span class="n">t_arr</span> <span class="o">-=</span> <span class="n">min_ts</span> <span class="o">-</span> <span class="n">start_ts</span>
-
-    <span class="k">return</span> <span class="n">events</span></div>
+    <span class="n">t_res</span> <span class="o">=</span> <span class="n">events</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    
+    <span class="n">_tore_jit</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">tore_fifo</span><span class="p">,</span> <span class="n">tore_fifo_idx</span><span class="p">,</span> <span class="n">t_res</span><span class="p">,</span> <span class="n">tau</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">tore_fifo</span></div>
 
 </pre></div>
 

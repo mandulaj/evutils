@@ -6,9 +6,8 @@
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-
-    <title>evutils &#8212; evutils v0.3.17 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>evutils._checker &#8212; evutils v0.3.17 documentation</title>
   
   
   
@@ -42,7 +41,7 @@
     <script src="../../_static/documentation_options.js?v=ffd5bf7f"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'autoapi/evutils/index';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/evutils/_checker';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://mandulaj.github.io/evutils/switcher.json';
@@ -55,8 +54,6 @@
     <link rel="icon" href="../../_static/event_hexagon_broken.webp"/>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="evutils.chunking" href="chunking/index.html" />
-    <link rel="prev" title="API Reference" href="../index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -163,8 +160,8 @@
 </li>
 
 
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="../index.html">
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../autoapi/index.html">
     API Reference
   </a>
 </li>
@@ -287,10 +284,6 @@
   
 
   
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
 </div>
 
     </header>
@@ -301,8 +294,10 @@
       
       
       
+        
+      
       <dialog id="pst-primary-sidebar-modal"></dialog>
-      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
         
 
   
@@ -331,8 +326,8 @@
 </li>
 
 
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="../index.html">
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../autoapi/index.html">
     API Reference
   </a>
 </li>
@@ -434,60 +429,6 @@
     
   </div>
   
-    <div class="sidebar-primary-items__start sidebar-primary__section">
-        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
-  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
-    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
-  </svg>
-  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
-  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
-</button></div>
-        <div class="sidebar-primary-item">
-
-<nav class="bd-docs-nav bd-links"
-     aria-label="Section Navigation">
-  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active has-children"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils</span></code></a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="chunking/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.chunking</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="dataset/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.dataset</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="dense/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.dense</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="filtering/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.filtering</span></code></a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="io/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.io</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="io/buffer/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.io.buffer</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="io/common/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.io.common</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="io/decoders/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.io.decoders</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="io/encoders/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.io.encoders</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="io/stream/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.io.stream</span></code></a></li>
-</ul>
-</details></li>
-<li class="toctree-l2"><a class="reference internal" href="jit/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.jit</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="random/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.random</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="torch/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.torch</span></code></a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="transforms/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.transforms</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="transforms/compose/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.transforms.compose</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="transforms/functional/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.transforms.functional</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="transforms/transforms/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.transforms.transforms</span></code></a></li>
-</ul>
-</details></li>
-<li class="toctree-l2"><a class="reference internal" href="types/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.types</span></code></a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="vis/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.vis</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="vis/open3d/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.vis.open3d</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vis/plot3d/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.vis.plot3d</span></code></a></li>
-<li class="toctree-l3 has-children"><a class="reference internal" href="vis/reconstructor/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.vis.reconstructor</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l4"><a class="reference internal" href="vis/reconstructor/metavision/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.vis.reconstructor.metavision</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vis/reconstructor/rpg/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.vis.reconstructor.rpg</span></code></a></li>
-</ul>
-</details></li>
-</ul>
-</details></li>
-</ul>
-</details></li>
-</ul>
-</div>
-</nav></div>
-    </div>
-  
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
       <div class="sidebar-primary-item">
@@ -524,9 +465,9 @@
       </a>
     </li>
     
-    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">API Reference</a></li>
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils</span></code></span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">evutils._checker</span></li>
   </ul>
 </nav>
 </div>
@@ -543,85 +484,145 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="module-evutils">
-<span id="evutils"></span><h1><a class="reference internal" href="#module-evutils" title="evutils"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils</span></code></a><a class="headerlink" href="#module-evutils" title="Link to this heading">#</a></h1>
-<p>evutils: utilities for event-based data.</p>
-<p>Event-based data processing and visualization utilities.</p>
-<p>To get started:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">evutils</span>
-<span class="o">...</span>
+  <h1>Source code for evutils._checker</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Module providing utilities to check the validity of event arrays.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+
+<div class="viewcode-block" id="EventsChecker">
+<a class="viewcode-back" href="../../autoapi/evutils/types/index.html#evutils.types.EventsChecker">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">EventsChecker</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Class to check if events are valid.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    events : np.ndarray</span>
+<span class="sd">        Array of events to check.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">events</span><span class="p">:</span> <span class="s1">&#39;np.ndarray | Any&#39;</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">Event_dtype</span><span class="p">,</span> <span class="n">SoaArray</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">SoaArray</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">events</span><span class="o">.</span><span class="n">_aos_dtype</span> <span class="o">!=</span> <span class="n">Event_dtype</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;events must be of type Events&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="s1">&#39;dtype&#39;</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;events must be a NumPy array or SoaArray&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">events</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="n">Event_dtype</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;events must be of type Events&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">events</span> <span class="o">=</span> <span class="n">events</span>
+
+<div class="viewcode-block" id="EventsChecker.is_sorted">
+<a class="viewcode-back" href="../../autoapi/evutils/types/index.html#evutils.types.EventsChecker.is_sorted">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_sorted</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if events are sorted by timestamp.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            True if events are sorted in non-decreasing order of timestamps.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span></div>
+
+
+<div class="viewcode-block" id="EventsChecker.has_valid_polarity">
+<a class="viewcode-back" href="../../autoapi/evutils/types/index.html#evutils.types.EventsChecker.has_valid_polarity">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_valid_polarity</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if events have valid polarity (0 or 1).</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            True if all events have polarity 0 or 1.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s1">&#39;p&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s1">&#39;p&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)))</span></div>
+
+    
+<div class="viewcode-block" id="EventsChecker.has_valid_x">
+<a class="viewcode-back" href="../../autoapi/evutils/types/index.html#evutils.types.EventsChecker.has_valid_x">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_valid_x</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if events have valid x coordinates.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        width : int</span>
+<span class="sd">            Maximum valid width (exclusive).</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            True if all events have x coordinates in [0, width).</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">width</span><span class="p">)))</span></div>
+
+    
+<div class="viewcode-block" id="EventsChecker.has_valid_y">
+<a class="viewcode-back" href="../../autoapi/evutils/types/index.html#evutils.types.EventsChecker.has_valid_y">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_valid_y</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if events have valid y coordinates.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        height : int</span>
+<span class="sd">            Maximum valid height (exclusive).</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            True if all events have y coordinates in [0, height).</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">height</span><span class="p">)))</span></div>
+
+    
+<div class="viewcode-block" id="EventsChecker.is_valid">
+<a class="viewcode-back" href="../../autoapi/evutils/types/index.html#evutils.types.EventsChecker.is_valid">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if all events are valid (sorted, valid polarity, and valid coordinates).</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        width : int, optional</span>
+<span class="sd">            Maximum valid width. If None, x coordinates are not checked.</span>
+<span class="sd">        height : int, optional</span>
+<span class="sd">            Maximum valid height. If None, y coordinates are not checked.</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            True if all checks pass.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">valid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_sorted</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_valid_polarity</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">width</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">valid</span> <span class="o">=</span> <span class="n">valid</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_valid_x</span><span class="p">(</span><span class="n">width</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">height</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">valid</span> <span class="o">=</span> <span class="n">valid</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_valid_y</span><span class="p">(</span><span class="n">height</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">valid</span></div>
+
+    
+<div class="viewcode-block" id="EventsChecker.__repr__">
+<a class="viewcode-back" href="../../autoapi/evutils/types/index.html#evutils.types.EventsChecker.__repr__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return string representation of the EventsChecker.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            String representation indicating the EventsChecker and number of events.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;EventsChecker(events=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span></div>
+</div>
+
 </pre></div>
-</div>
-<p class="rubric">Notes</p>
-<p>Anything worth calling out up front.</p>
-<section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">#</a></h2>
-<div class="toctree-wrapper compound">
-</div>
-<div class="pst-scrollable-table-container"><table class="table">
-<colgroup>
-<col style="width: 30.0%" />
-<col style="width: 70.0%" />
-</colgroup>
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="chunking/index.html#module-evutils.chunking" title="evutils.chunking"><code class="xref py py-mod docutils literal notranslate"><span class="pre">chunking</span></code></a></p></td>
-<td><p>Splitting event streams into chunks.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="dataset/index.html#module-evutils.dataset" title="evutils.dataset"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dataset</span></code></a></p></td>
-<td><p>Dataset loading and management.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="dense/index.html#module-evutils.dense" title="evutils.dense"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dense</span></code></a></p></td>
-<td><p>Dense representations of event data.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="filtering/index.html#module-evutils.filtering" title="evutils.filtering"><code class="xref py py-mod docutils literal notranslate"><span class="pre">filtering</span></code></a></p></td>
-<td><p>Event stream filtering and cleanup.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="io/index.html#module-evutils.io" title="evutils.io"><code class="xref py py-mod docutils literal notranslate"><span class="pre">io</span></code></a></p></td>
-<td><p>Reading and writing events in various file formats.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="jit/index.html#module-evutils.jit" title="evutils.jit"><code class="xref py py-mod docutils literal notranslate"><span class="pre">jit</span></code></a></p></td>
-<td><p>Lazy numba compilation helper.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="random/index.html#module-evutils.random" title="evutils.random"><code class="xref py py-mod docutils literal notranslate"><span class="pre">random</span></code></a></p></td>
-<td><p>Generation and perturbation of synthetic events.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="torch/index.html#module-evutils.torch" title="evutils.torch"><code class="xref py py-mod docutils literal notranslate"><span class="pre">torch</span></code></a></p></td>
-<td><p>PyTorch integration.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="transforms/index.html#module-evutils.transforms" title="evutils.transforms"><code class="xref py py-mod docutils literal notranslate"><span class="pre">transforms</span></code></a></p></td>
-<td><p>Data augmentation transforms for events.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="types/index.html#module-evutils.types" title="evutils.types"><code class="xref py py-mod docutils literal notranslate"><span class="pre">types</span></code></a></p></td>
-<td><p>Core data types for event streams.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="vis/index.html#module-evutils.vis" title="evutils.vis"><code class="xref py py-mod docutils literal notranslate"><span class="pre">vis</span></code></a></p></td>
-<td><p>Visualization tools for event camera data.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-</section>
-<section id="attributes">
-<h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">#</a></h2>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#evutils.__version__" title="evutils.__version__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__version__</span></code></a></p></td>
-<td><p></p></td>
-</tr>
-</tbody>
-</table>
-</div>
-</section>
-<section id="package-contents">
-<h2>Package Contents<a class="headerlink" href="#package-contents" title="Link to this heading">#</a></h2>
-<dl class="py data">
-<dt class="sig sig-object py" id="evutils.__version__">
-<span class="sig-prename descclassname"><span class="pre">evutils.</span></span><span class="sig-name descname"><span class="pre">__version__</span></span><a class="headerlink" href="#evutils.__version__" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
-
-</section>
-</section>
-
 
                 </article>
               
@@ -632,62 +633,12 @@
                 <footer class="prev-next-footer d-print-none">
                   
 <div class="prev-next-area">
-    <a class="left-prev"
-       href="../index.html"
-       title="previous page">
-      <i class="fa-solid fa-angle-left"></i>
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">API Reference</p>
-      </div>
-    </a>
-    <a class="right-next"
-       href="chunking/index.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.chunking</span></code></p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
-    </a>
 </div>
                 </footer>
               
             </div>
             
             
-              
-                <dialog id="pst-secondary-sidebar-modal"></dialog>
-                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
-
-
-  <div class="sidebar-secondary-item">
-<div
-    id="pst-page-navigation-heading-2"
-    class="page-toc tocsection onthispage">
-    <i class="fa-solid fa-list"></i> On this page
-  </div>
-  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
-    <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submodules">Submodules</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#attributes">Attributes</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#package-contents">Package Contents</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.__version__"><code class="docutils literal notranslate"><span class="pre">__version__</span></code></a></li>
-</ul>
-</li>
-</ul>
-  </nav></div>
-
-  <div class="sidebar-secondary-item">
-
-  <div class="tocsection sourcelink">
-    <a href="../../_sources/autoapi/evutils/index.rst.txt">
-      <i class="fa-solid fa-file-lines"></i> Show Source
-    </a>
-  </div>
-</div>
-
-</div></div>
               
             
           </div>
