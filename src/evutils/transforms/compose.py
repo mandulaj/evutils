@@ -51,7 +51,8 @@ class Compose:
         if current_jit_block:
              self._execution_plan.append(("jit", current_jit_block))
 
-    def __call__(self, events):
+    def __call__(self, events, target=None):
+        import inspect
         for step_type, block in self._execution_plan:
             if len(events) == 0:
                 break
@@ -60,10 +61,26 @@ class Compose:
                 t, x, y, p = unwrap_events(events)
                 for transform in block:
                     t, x, y, p = transform._forward_jit(t, x, y, p)
+                    if target is not None:
+                        target = transform._transform_target(target)
                 events = repack_events(events, t, x, y, p)
             else:
-                events = block(events)
+                if target is not None:
+                    # Check if standard block accepts a target
+                    sig = inspect.signature(block)
+                    if len(sig.parameters) > 1:
+                        res = block(events, target)
+                        if isinstance(res, tuple) and len(res) == 2:
+                            events, target = res
+                        else:
+                            events = res
+                    else:
+                        events = block(events)
+                else:
+                    events = block(events)
                 
+        if target is not None:
+            return events, target
         return events
 
     def __repr__(self):

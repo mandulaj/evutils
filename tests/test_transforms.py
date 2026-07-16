@@ -12,6 +12,8 @@ def test_drop_random_events():
     # Normal case
     dropped = drop_random_events(events, drop_rate=0.1)
     assert 70 <= len(dropped) <= 100
+    # Survivors must stay in temporal order
+    assert np.all(np.diff(dropped['t']) >= 0)
 
     # Value errors
     with pytest.raises(ValueError, match="drop_rate must be between 0 and 1"):
@@ -81,3 +83,33 @@ def test_compose_and_transforms():
     dropped_mixed = pipeline_mixed(events)
     assert 60 <= len(dropped_mixed) <= 100
     assert isinstance(dropped_mixed, EventArray)
+
+def test_target_transformation():
+    from evutils.transforms import Transform
+    
+    # Custom transform that modifies target
+    class DummyTargetCrop(Transform):
+        def _forward_jit(self, t, x, y, p):
+            return t, x, y, p
+            
+        def _transform_target(self, target):
+            if isinstance(target, dict) and "bbox" in target:
+                target["bbox"] = [v - 10 for v in target["bbox"]]
+            return target
+            
+    events = EventArray(t=[1], x=[1], y=[1], p=[1])
+    target = {"class": "car", "bbox": [50, 50, 100, 100]}
+    
+    # 1. Standalone
+    transform = DummyTargetCrop()
+    out_events, out_target = transform(events, target=target.copy())
+    assert out_target["bbox"] == [40, 40, 90, 90]
+    
+    # 2. Compose
+    pipeline = Compose([
+        DropRandomEvents(drop_rate=0.1),
+        DummyTargetCrop()
+    ])
+    
+    out_events, out_target = pipeline(events, target=target.copy())
+    assert out_target["bbox"] == [40, 40, 90, 90]
