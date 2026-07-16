@@ -15,9 +15,14 @@ class EventsChecker():
 
     """
     
-    def __init__(self, events: np.ndarray):
-        if events.dtype != Event_dtype:
-            raise ValueError("events must be of type Events")
+    def __init__(self, events: 'np.ndarray | Any'):
+        from ..types import SoaArray
+        if isinstance(events, SoaArray):
+            if events._aos_dtype != Event_dtype:
+                raise ValueError("events must be of type Events")
+        else:
+            if events.dtype != Event_dtype:
+                raise ValueError("events must be of type Events")
 
         self.events = events
 
@@ -99,7 +104,7 @@ class EventsChecker():
         Returns
         -------
         str
-            String representation indicating if events are valid.
+            String representation indicating the EventsChecker and number of events.
 
         """
-        return f"EventsChecker(events={self.is_valid()})"
+        return f"EventsChecker(events={len(self.events)})"

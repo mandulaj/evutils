@@ -76,10 +76,11 @@ class EventAccumulator():
             b = self._buf
             n = b.size - s
             if n > 0:
-                b.t[:n] = b.t[s:b.size]
-                b.x[:n] = b.x[s:b.size]
-                b.y[:n] = b.y[s:b.size]
-                b.p[:n] = b.p[s:b.size]
+                import ctypes
+                ctypes.memmove(b.t.ctypes.data, b.t.ctypes.data + s * b.t.itemsize, n * b.t.itemsize)
+                ctypes.memmove(b.x.ctypes.data, b.x.ctypes.data + s * b.x.itemsize, n * b.x.itemsize)
+                ctypes.memmove(b.y.ctypes.data, b.y.ctypes.data + s * b.y.itemsize, n * b.y.itemsize)
+                ctypes.memmove(b.p.ctypes.data, b.p.ctypes.data + s * b.p.itemsize, n * b.p.itemsize)
             b.c.size = n
             self._start = 0
 
@@ -88,9 +89,10 @@ class EventAccumulator():
             t = self._tr
             n_tr = t.size - s_tr
             if n_tr > 0:
-                t.t[:n_tr] = t.t[s_tr:t.size]
-                t.id[:n_tr] = t.id[s_tr:t.size]
-                t.p[:n_tr] = t.p[s_tr:t.size]
+                import ctypes
+                ctypes.memmove(t.t.ctypes.data, t.t.ctypes.data + s_tr * t.t.itemsize, n_tr * t.t.itemsize)
+                ctypes.memmove(t.id.ctypes.data, t.id.ctypes.data + s_tr * t.id.itemsize, n_tr * t.id.itemsize)
+                ctypes.memmove(t.p.ctypes.data, t.p.ctypes.data + s_tr * t.p.itemsize, n_tr * t.p.itemsize)
             t.c.size = n_tr
             self._tr_start = 0
 

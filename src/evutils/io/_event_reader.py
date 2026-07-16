@@ -215,11 +215,13 @@ class EventReader():
         elif self._mode == "delta_t":
             if delta_t is None:
                 raise ValueError("delta_t must be specified")
-            n_events = max_events
+            if n_events is None:
+                n_events = max_events
         elif self._mode == "n_events":
             if n_events is None:
                 raise ValueError("n_events must be specified")
-            delta_t = max_time
+            if delta_t is None:
+                delta_t = max_time
         elif self._mode == "mixed":
             if delta_t is None:
                 delta_t = self.DEFAULT_DELTA_T

@@ -32,7 +32,7 @@ class EventStreamer:
                     ev_chunk = chunk
                     tr_chunk = TriggerArray.empty()
             else:
-                ev_chunk = chunk
+                ev_chunk = chunk[0] if isinstance(chunk, tuple) else chunk
                 tr_chunk = None
                 
             if len(ev_chunk) == 0 and (tr_chunk is None or len(tr_chunk) == 0):
