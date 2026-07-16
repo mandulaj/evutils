@@ -4,6 +4,8 @@ Bridges between evutils and PyTorch: tensor conversion, ``Dataset`` /
 ``DataLoader`` wrappers, and transforms for training on event data.
 """
 
+# TODO: This module is currently a stub and needs to be implemented.
+
 __all__: list[str] = []
 
 from typing import Any
