@@ -5,6 +5,54 @@
 (or from magic bytes for extensionless streams). This page lists every format,
 its support status, and format-specific options.
 
+## The `EventArray` representation
+
+Everything the readers and writers exchange is an `EventArray`
+(`evutils.types`) -- a lightweight wrapper storing the four event fields as
+separate parallel NumPy arrays, a **struct-of-arrays** (SoA) layout.
+
+Fields (`Event_dtype`):
+
+- `t` -- `int64`, signed 64-bit microsecond timestamp (µs range ~±292,000 years).
+- `x`, `y` -- `uint16`, up to 65,535 × 65,535 pixel resolution.
+- `p` -- `uint8`, polarity.
+
+Why SoA:
+
+- Native layout of the C parsers.
+- Column access is contiguous and cache-friendly; NumPy and the Numba-JIT'd
+  transforms vectorize over whole columns.
+- No per-record alignment padding: 8+2+2+1 = **13 bytes/event** (≈ 13 MB per
+  million events).
+
+### Array-of-structs is supported too
+
+The array-of-structs (AoS) form -- one NumPy structured array of `(t, x, y, p)`
+records (`dtype = Event_dtype`) -- is first-class. Conversions are cheap:
+
+```python
+import numpy as np
+from evutils.types import EventArray, Event_dtype
+
+aos  = np.zeros(1000, dtype=Event_dtype)  # array-of-structs
+soa  = EventArray.from_aos(aos)           # -> struct-of-arrays
+back = soa.to_aos()                       # -> array-of-structs
+same = np.asarray(soa)                    # __array__ also yields AoS
+```
+
+- Transforms/helpers **dispatch on input type**: ndarray in gives ndarray out,
+  `EventArray` in gives `EventArray` out -- stay in whichever form your code uses.
+- **AoS** for per-record iteration, a single opaque buffer for another library or
+  serializer (`np.savez`, memory-mapping, packed-record C code), or sorting whole
+  events. C-aligned record is 8+2+2+1 + 3 pad = **16 bytes/event**.
+- **SoA** for the column-wise vectorized processing that dominates event
+  workloads (per-field math, masking, JIT kernels). `evutils` keeps SoA as the
+  working form and drops to AoS at the boundaries.
+
+An optional lightweight `metadata` dict (e.g. `sensor_size`) rides along on the
+`EventArray`, populated by readers and consumed by writers where the format
+carries geometry.
+
 ## IO Roadmap & Goals
 
 We are aiming for universal event format support with the highest possible performance and extensibility:

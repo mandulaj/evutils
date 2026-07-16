@@ -120,7 +120,21 @@ Generating random events and adding noise to event recordings
 
 #### `types`
 
-This provides several standard types for representing Events in numpy arrays
+The library is built around the `EventArray` type — a wrapper giving events a
+**struct-of-arrays** (SoA) representation, which nearly every reader, writer and
+transform exchanges:
+
+- Fields (`Event_dtype`): `t` `int64` (signed 64-bit µs), `x`/`y` `uint16` (up to
+  65,535 × 65,535 px), `p` `uint8`.
+- **SoA** — four contiguous columns; cache-friendly, vectorizes over whole
+  columns, no record padding: 8+2+2+1 = **13 bytes/event** (≈ 13 MB/MEv). Best
+  for the column-wise processing that dominates event workloads.
+- **Array-of-structs** equally supported (`from_aos` / `to_aos` / `np.asarray`,
+  cheap); C-aligned record is **16 bytes/event**. Best for per-record iteration
+  or an opaque buffer for another library/serializer. Transforms dispatch on
+  input type, so you get back whichever form you passed in.
+- Slicing, field subsetting, and an optional lightweight `metadata` dict (e.g.
+  `sensor_size`) round out the type.
 
 
 #### `vis`
