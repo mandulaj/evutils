@@ -81,6 +81,9 @@ def _bind_evt(handle: ctypes.CDLL) -> None:
     if hasattr(handle, "EVT3_parse_chunk_soa"):
         handle.EVT3_parse_chunk_soa.argtypes = [c_void_p, POINTER(Evt3InputBuffer), POINTER(EventBufferSOA), POINTER(TriggerBufferSOA)]
         handle.EVT3_parse_chunk_soa.restype = ParserResult
+    if hasattr(handle, "EVT3_parse_delta_t_soa"):
+        handle.EVT3_parse_delta_t_soa.argtypes = [c_void_p, POINTER(Evt3InputBuffer), POINTER(EventBufferSOA), POINTER(TriggerBufferSOA), c_uint64]
+        handle.EVT3_parse_delta_t_soa.restype = ParserResult
     if hasattr(handle, "EVT2_state_size"):
         handle.EVT2_state_size.argtypes = []
         handle.EVT2_state_size.restype = ctypes.c_size_t
@@ -110,6 +113,8 @@ class Evt3Parser:
     def reset(self) -> None: ctypes.memset(self._buf, 0, len(self._buf))
     def parse_chunk_soa(self, inp: Evt3Input, events: EventSoABuffers, triggers: TriggerSoABuffers) -> ParserResult:
         return cast(ParserResult, lib().EVT3_parse_chunk_soa(self._state, byref(inp.c), byref(events.c), byref(triggers.c)))
+    def parse_delta_t_soa(self, inp: Evt3Input, events: EventSoABuffers, triggers: TriggerSoABuffers, end_ts: int) -> ParserResult:
+        return cast(ParserResult, lib().EVT3_parse_delta_t_soa(self._state, byref(inp.c), byref(events.c), byref(triggers.c), c_uint64(end_ts)))
     def __enter__(self) -> "Evt3Parser": return self
 
 class Evt2Parser:

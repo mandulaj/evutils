@@ -231,3 +231,145 @@ parser_result_t EVT3_parse_chunk_soa(
     };
 }
 
+
+/* delta_t variant: a specialised copy of EVT3_parse_chunk_soa that stops as soon
+ * as the running timestamp reaches end_ts, so one call decodes exactly one time
+ * window (events with ts < end_ts) with no Python-side boundary search or
+ * overshoot carry. The n_events parser above is left untouched (and branch-free)
+ * -- only the top-of-loop timestamp guard and the shared vector sub-parser
+ * differ. Emits EVUTILS_PARSE_WINDOW_DONE when the window boundary is reached.
+ *
+ * The guard sits at the top of the loop because in EVT3 the timestamp only
+ * changes at TIME_LOW / TIME_HIGH words; every event (ADDR_X, VECT_*) copies the
+ * current local_state.ts, so once ts >= end_ts no further event can belong to
+ * this window. State is persisted, so the next call resumes at the exact word
+ * with the correct timestamp. */
+EVUTILS_TARGET_CLONES
+parser_result_t EVT3_parse_delta_t_soa(
+    evt3_state_t *state,
+    const evt3_input_buffer_t *input_buffer,
+    event_buffer_soa_t *event_buffer,
+    trigger_buffer_soa_t *trigger_buffer,
+    timestamp_t end_ts) {
+
+    const uint16_t *restrict current = input_buffer->begin;
+    const uint16_t * end_offset = input_buffer->end - EVT3_INPUT_PADDING;
+
+    const size_t events_capacity = event_buffer->capacity;
+    const size_t events_capacity_offset = events_capacity - 64;
+    size_t n_events_read = event_buffer->size;
+
+    timestamp_t* restrict out_ts = event_buffer->t;
+    uint16_t* restrict out_x = event_buffer->x;
+    uint16_t* restrict out_y = event_buffer->y;
+    uint8_t* restrict out_p = event_buffer->p;
+
+    const size_t triggers_capacity = trigger_buffer->capacity;
+    size_t n_triggers_read = trigger_buffer->size;
+
+    timestamp_t* restrict trigger_ts = trigger_buffer->t;
+    uint8_t* restrict trigger_id = trigger_buffer->id;
+    uint8_t* restrict trigger_p = trigger_buffer->p;
+
+    evt3_state_t local_state = *state;
+
+    while(
+        current < end_offset &&
+        n_events_read < events_capacity_offset &&
+        n_triggers_read < triggers_capacity) {
+
+        /* Time boundary reached: every remaining event would land in the next
+         * window. Stop here; state (incl. ts) is saved for the next call. */
+        if (local_state.ts >= end_ts) {
+            break;
+        }
+
+        __builtin_prefetch(current + 64, 0, 0);
+        uint32_t packet_type = EVT3_get_packet_type(*current);
+        uint32_t packet_data = EVT3_get_packet_data(*current);
+
+        if(packet_type == EVT3_EVT_ADDR_X) {
+            out_ts[n_events_read] = local_state.ts;
+            out_y[n_events_read] = local_state.y;
+            out_x[n_events_read] = (packet_data & 0x7FF);
+            out_p[n_events_read] = (packet_data & 0x800) >> 11;
+            n_events_read++;
+            current++;
+            continue;
+        }
+        if(packet_type == EVT3_VECT_BASE_X) {
+            local_state.vecbase_x  = packet_data & 0x7FF;
+            local_state.vecbase_p = (packet_data & 0x800) >> 11;
+            current++;
+            while (EVT3_get_packet_type(*current) == EVT3_VECT_12 && current < end_offset && n_events_read < events_capacity_offset) {
+                current = EVT3_parse_vector_12_12_8_soa(current, &local_state, out_ts, out_x, out_y, out_p, &n_events_read);
+            }
+            continue;
+        }
+
+        switch(packet_type) {
+            case EVT3_EVT_ADDR_Y:
+                local_state.y = packet_data & 0x7FF;
+                break;
+            case EVT3_EVT_TIME_HIGH:
+                {
+                    uint32_t new_ts_high = packet_data << 12;
+                    if(unlikely(new_ts_high < local_state.ts_high)) {
+                        local_state.ts_high_high += 0x1000000;
+                    }
+                    local_state.ts_high = new_ts_high;
+                    current++;
+                    packet_type = EVT3_get_packet_type(*current);
+                    if(unlikely(packet_type != EVT3_EVT_TIME_LOW)) {
+                        continue;
+                    }
+                    packet_data = EVT3_get_packet_data(*current);
+                }
+                __attribute__((fallthrough));
+            case EVT3_EVT_TIME_LOW:
+                local_state.ts_low = packet_data;
+                local_state.ts = local_state.ts_high_high | local_state.ts_high | local_state.ts_low;
+                break;
+            case EVT3_EXT_TRIGGER:
+                trigger_ts[n_triggers_read] = local_state.ts;
+                trigger_id[n_triggers_read] = packet_data >> 8;
+                trigger_p[n_triggers_read] = packet_data & 0x1;
+                n_triggers_read++;
+                break;
+            case EVT3_VECT_12:
+                current = EVT3_parse_vector_12_12_8_soa(current, &local_state, out_ts, out_x, out_y, out_p, &n_events_read);
+                continue;
+                break;
+            case EVT3_VECT_8:
+            case EVT3_EVT_ADDR_X:
+            case EVT3_VECT_BASE_X:
+                __builtin_unreachable();
+                break;
+            case EVT3_OTHERS:
+            case EVT3_CONTINUED_12:
+            case EVT3_CONTINUED_4:
+            default:
+                break;
+        }
+        current++;
+    }
+
+    *state = local_state;
+    event_buffer->size = n_events_read;
+    trigger_buffer->size = n_triggers_read;
+
+    parse_status_t status;
+    if (local_state.ts >= end_ts) {
+        status = EVUTILS_PARSE_WINDOW_DONE;
+    } else if (n_events_read >= events_capacity_offset || n_triggers_read >= triggers_capacity) {
+        status = EVUTILS_PARSE_OUTPUT_FULL;
+    } else {
+        status = EVUTILS_PARSE_OK;  /* input drained for this call */
+    }
+
+    return (parser_result_t){
+        .current = (const void *)current,
+        .status = status
+    };
+}
+

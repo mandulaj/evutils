@@ -53,6 +53,16 @@ parser_result_t EVT3_parse_chunk_soa(
     event_buffer_soa_t      *event_buffer,
     trigger_buffer_soa_t    *trigger_buffer);
 
+/* delta_t variant: stops when the running timestamp reaches end_ts, decoding
+ * exactly one time window per call (see evt3.c). Returns
+ * EVUTILS_PARSE_WINDOW_DONE when the boundary is reached. */
+parser_result_t EVT3_parse_delta_t_soa(
+    evt3_state_t            *state,
+    const evt3_input_buffer_t *input_buffer,
+    event_buffer_soa_t      *event_buffer,
+    trigger_buffer_soa_t    *trigger_buffer,
+    timestamp_t              end_ts);
+
 #ifdef __cplusplus
 }
 #endif

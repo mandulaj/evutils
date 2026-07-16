@@ -66,12 +66,12 @@ def cat_tr_t(chunks) -> list:
 def test_stream_delta_t_regroups_across_chunk_boundaries():
     raw = [ev([0, 10, 20]), ev([30, 35, 55]), ev([60, 90, 95])]
     out = list(stream_delta_t(iter(raw), delta_t=30))
-    # stream_delta_t always yields (ev, tr) tuples (the accumulator always has a
-    # trigger buffer). Every input event survives, in order.
+    # A trigger-less stream yields bare EventArrays (the output mirrors the
+    # input shape). Every input event survives, in order.
+    assert all(not isinstance(w, tuple) for w in out)
     assert cat_t(out) == [0, 10, 20, 30, 35, 55, 60, 90, 95]
     # full (non-final) windows respect the delta_t span
-    for w in out[:-1]:
-        e = w[0]
+    for e in out[:-1]:
         if len(e) > 1:
             assert int(e.t[-1]) - int(e.t[0]) < 30
 
@@ -104,8 +104,9 @@ def test_stream_delta_t_skips_empty_leading_chunks():
 def test_stream_n_events_fixed_size_with_remainder():
     raw = [ev(range(0, 5)), ev(range(5, 10)), ev(range(10, 13))]
     out = list(stream_n_events(iter(raw), n_events=4))
-    # always (ev, tr) tuples; window sizes counted on the event component
-    assert [len(w[0]) for w in out] == [4, 4, 4, 1]  # 13 = 3*4 + 1
+    # trigger-less input -> bare EventArray windows (output mirrors input shape)
+    assert all(not isinstance(w, tuple) for w in out)
+    assert [len(w) for w in out] == [4, 4, 4, 1]  # 13 = 3*4 + 1
     assert cat_t(out) == list(range(13))
 
 
@@ -267,10 +268,10 @@ def test_event_streamer_pipes_into_stream_n_events(tmp_path):
         w.write(events)
 
     # stream_n_events copies into its accumulator, so piping the aliasing
-    # EventStreamer through it is safe. Output windows are (ev, tr) tuples.
+    # EventStreamer through it is safe. Trigger-less input -> bare windows.
     windows = list(stream_n_events(EventStreamer(p), n_events=128))
-    assert [len(w[0]) for w in windows[:-1]] == [128] * (len(windows) - 1)
-    got = np.concatenate([w[0].t for w in windows])
+    assert [len(w) for w in windows[:-1]] == [128] * (len(windows) - 1)
+    got = np.concatenate([w.t for w in windows])
     assert np.array_equal(got, events['t'])
 
 
