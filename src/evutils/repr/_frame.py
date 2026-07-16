@@ -1,12 +1,24 @@
 """Module for generating frame-based representations from events."""
 
-import numba 
 import numpy as np
 from typing import Any
+from ..jit import lazy_njit_unwrapped_events
+from ..types import EventArray
 
+@lazy_njit_unwrapped_events
+def _frame_gray_jit(t, x, y, p, buffer):
+    height, width = buffer.shape
+    for i in range(len(t)):
+        xi = x[i]
+        yi = y[i]
+        pi = p[i]
+        if 0 <= xi < width and 0 <= yi < height:
+            if pi == 1:
+                buffer[yi, xi] = 255
+            else:
+                buffer[yi, xi] = 0
 
-@numba.njit
-def frame_gray(events: np.ndarray, width: int = 1280, height: int = 720, dtype: Any = np.uint8) -> np.ndarray:
+def frame_gray(events: 'np.ndarray | EventArray', width: int = 1280, height: int = 720, dtype: Any = np.uint8) -> np.ndarray:
     """Generate a grayscale frame from the events.
 
     Parameters
@@ -36,25 +48,29 @@ def frame_gray(events: np.ndarray, width: int = 1280, height: int = 720, dtype: 
     (100, 100)
     """
     buffer = np.full((height, width), 128, dtype=dtype)
-
-
-    for e in events:
-        x = e['x']
-        y = e['y']
-        p = e['p']
-
-        if p == 1:
-            p = 255
-        else:
-            p = 0
-
-        buffer[y, x] = p 
-
+    if len(events) > 0:
+        _frame_gray_jit(events, buffer)
     return buffer
 
 
-@numba.njit
-def frame_rgb(ev: np.ndarray, width: int = 1280, height: int = 720, bg_color: Any = np.array((0, 0, 0)), pos_color: Any = np.array((255, 0, 0)), neg_color: Any = np.array((0, 0, 255))) -> np.ndarray:
+@lazy_njit_unwrapped_events
+def _frame_rgb_jit(t, x, y, p, buffer, pos_color, neg_color):
+    height, width, _ = buffer.shape
+    for i in range(len(t)):
+        xi = x[i]
+        yi = y[i]
+        pi = p[i]
+        if 0 <= xi < width and 0 <= yi < height:
+            if pi == 1:
+                buffer[yi, xi, 0] = pos_color[0]
+                buffer[yi, xi, 1] = pos_color[1]
+                buffer[yi, xi, 2] = pos_color[2]
+            else:
+                buffer[yi, xi, 0] = neg_color[0]
+                buffer[yi, xi, 1] = neg_color[1]
+                buffer[yi, xi, 2] = neg_color[2]
+
+def frame_rgb(ev: 'np.ndarray | EventArray', width: int = 1280, height: int = 720, bg_color: Any = None, pos_color: Any = None, neg_color: Any = None) -> np.ndarray:
     """Generate an RGB frame from the events.
 
     Parameters
@@ -87,24 +103,33 @@ def frame_rgb(ev: np.ndarray, width: int = 1280, height: int = 720, bg_color: An
     >>> frame.shape
     (100, 100, 3)
     """
+    if bg_color is None: bg_color = np.array([0, 0, 0], dtype=np.uint8)
+    if pos_color is None: pos_color = np.array([255, 0, 0], dtype=np.uint8)
+    if neg_color is None: neg_color = np.array([0, 0, 255], dtype=np.uint8)
+
     buffer = np.zeros((height, width, 3), dtype=np.uint8)
     buffer[:, :] = bg_color
 
-    for e in ev:
-        x = e['x']
-        y = e['y']
-        p = e['p']
-
-        if p == 1:
-            buffer[y, x] = pos_color
-        else:
-            buffer[y, x] = neg_color
+    if len(ev) > 0:
+        _frame_rgb_jit(ev, buffer, pos_color, neg_color)
 
     return buffer
 
 
-@numba.njit
-def frame_diff(ev: np.ndarray, width: int = 1280, height: int = 720, dtype: Any = np.int8) -> np.ndarray:
+@lazy_njit_unwrapped_events
+def _frame_diff_jit(t, x, y, p, buffer):
+    height, width = buffer.shape
+    for i in range(len(t)):
+        xi = x[i]
+        yi = y[i]
+        pi = p[i]
+        if 0 <= xi < width and 0 <= yi < height:
+            if pi == 1:
+                buffer[yi, xi] += 1
+            else:
+                buffer[yi, xi] -= 1
+
+def frame_diff(ev: 'np.ndarray | EventArray', width: int = 1280, height: int = 720, dtype: Any = np.int8) -> np.ndarray:
     """Generate a differential frame from the events.
 
     Parameters
@@ -134,16 +159,7 @@ def frame_diff(ev: np.ndarray, width: int = 1280, height: int = 720, dtype: Any 
     (100, 100)
     """
     buffer = np.zeros((height, width), dtype=dtype)
-
-    for e in ev:
-        x = e['x']
-        y = e['y']
-        p = e['p']
-
-        if p == 1:
-            buffer[y, x] += 1
-        else:
-            buffer[y, x] -= 1
-
+    if len(ev) > 0:
+        _frame_diff_jit(ev, buffer)
     return buffer
 

@@ -2,11 +2,26 @@
 """Module for generating time surface representations from events."""
 
 import numpy as np
-import numba
 from typing import Any 
+from ..jit import lazy_njit_unwrapped_events
+from ..types import EventArray
 
-@numba.njit
-def timesurface(events: np.ndarray, width: int = 1280, height: int = 720, tau: int = 10_000, dtype: Any = np.float32) -> np.ndarray:
+@lazy_njit_unwrapped_events
+def _timesurface_jit(t, x, y, p, buffer, t_ref, tau):
+    height, width = buffer.shape
+    for i in range(len(t)):
+        xi = x[i]
+        yi = y[i]
+        ti = t[i]
+        pi = p[i]
+        if 0 <= xi < width and 0 <= yi < height:
+            dt = max(0.0, float(t_ref - ti))
+            value = np.exp(-dt / tau)
+            if pi == 0:
+                value = -value
+            buffer[yi, xi] = value
+
+def timesurface(events: 'np.ndarray | EventArray', width: int = 1280, height: int = 720, tau: int = 10_000, dtype: Any = np.float32) -> np.ndarray:
     """Generate a time surface frame from the events.
 
     Parameters
@@ -47,23 +62,9 @@ def timesurface(events: np.ndarray, width: int = 1280, height: int = 720, tau: i
         return buffer
 
     # Last event timestamp
-    t_ref = events[-1]['t']
-
-    for e in events:
-        x = e['x']
-        y = e['y']
-        t = e['t']
-        p = e['p']
-
-        value = np.exp(-(t_ref - t) / tau)
-
-        # If polarity is 1, we keep the value as is, flip it if polarity is 0
-        if p == 0:
-            value = -value
-
-        # Update the buffer
-        buffer[y, x] = value
-
+    t_ref = events['t'][-1]
+    
+    _timesurface_jit(events, buffer, t_ref, tau)
 
     return buffer
 
