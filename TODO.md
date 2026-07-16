@@ -36,7 +36,11 @@ We aim for universal event format support, prioritizing blazing fast read/write 
 ### Future / Ongoing
 - [x] **Arbitrary input sources:** memory-mapped IO, pure in-memory streams (HTTP streams pending).
 - [ ] **Performance Chasing:** Continuously benchmark against `evlib`, `expelliarmus`, and others, striving for the absolute fastest decoding times in the ecosystem.
-- [ ] **PyTorch Integration (`torch/`)**: Implement the PyTorch dataset wrappers, dataloaders, and tensor conversion utilities.
-- [ ] **Dataset Loaders (`dataset/`)**: Implement standard loaders for common event vision datasets.
 
-
+## ML & Computer Vision Ecosystem
+To make `evutils` a one-stop-shop for training neural networks and running algorithms, the following features are planned:
+- [ ] **Robust Noise Filtering:** Implement standard event stream cleanup algorithms, including Spatiotemporal (Background Activity) filters, Hot Pixel filters, and Refractory Period filters.
+- [ ] **Spatial ML Augmentations (`transforms/`):** Build a library of composable geometric transformations for ML training, including Random Spatial/Center Crops, Random Flips (Horizontal/Vertical/Polarity), and Spatial Jitter.
+- [ ] **PyTorch Integration (`torch/`):** Implement PyTorch-native versions of representations (e.g. `events_to_voxel_torch` to run on GPU) and `DataLoader` collators capable of batching variable-length event sequences efficiently.
+- [ ] **Standardized Dataset APIs (`dataset/`):** Provide out-of-the-box downloaders and format wrappers for standard baselines (DVS128 Gesture, N-Cars, MVSEC, 1 Megapixel Automotive Dataset) to eliminate data loading boilerplate.
+- [ ] **Algorithmic Baselines:** Implement traditional CV algorithm baselines directly on events, such as Contrast Maximization for evaluating optical flow and motion compensation data quality.
