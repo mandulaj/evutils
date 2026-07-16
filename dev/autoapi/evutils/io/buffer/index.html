@@ -624,9 +624,10 @@ in range).</p>
 <span class="sig-name descname"><span class="pre">prepare</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">evutils.io._native_core.EventSoABuffers</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">evutils.io._native_core.TriggerSoABuffers</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../_modules/evutils/io/buffer.html#EventAccumulator.prepare"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.buffer.EventAccumulator.prepare" title="Link to this definition">#</a></dt>
 <dd><p>Ready the buffer for the decoder to append up to <code class="docutils literal notranslate"><span class="pre">step</span></code> events, and
 return <code class="docutils literal notranslate"><span class="pre">(events_soa,</span> <span class="pre">triggers_soa)</span></code> for <code class="docutils literal notranslate"><span class="pre">decoder.parse_step</span></code>.</p>
-<p>Rotates out consumed events if there is not enough tail room, then caps
-the SoA capacity the parser sees to <code class="docutils literal notranslate"><span class="pre">size</span> <span class="pre">+</span> <span class="pre">step</span></code> so a single step does
-not overshoot the requested window by more than one step’s worth.</p>
+<p>Reclaims consumed events (and grows the buffer if a window outgrows the
+modest initial capacity), then caps the SoA capacity the parser sees to
+<code class="docutils literal notranslate"><span class="pre">size</span> <span class="pre">+</span> <span class="pre">step</span></code> so a single step does not overshoot the requested window
+by more than one step’s worth.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>step</strong> (<em>int</em>) – The number of events the decoder is expected to append.</p>

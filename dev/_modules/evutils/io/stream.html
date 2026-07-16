@@ -502,7 +502,11 @@
         <span class="k">if</span> <span class="n">decoder_cls</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">decoder_cls</span> <span class="o">=</span> <span class="n">resolve_decoder_cls</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
         
-        <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span> <span class="o">=</span> <span class="n">decoder_cls</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">read_external_triggers</span><span class="o">=</span><span class="n">ext_trigger</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="c1"># Set the flag as an attribute after construction (as EventReader does)</span>
+        <span class="c1"># rather than forcing it through every decoder&#39;s __init__: several</span>
+        <span class="c1"># decoders (DAT/NPZ/HDF5/CSV) don&#39;t accept it as a constructor kwarg.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span> <span class="o">=</span> <span class="n">decoder_cls</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">read_external_triggers</span> <span class="o">=</span> <span class="n">ext_trigger</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ext_trigger</span> <span class="o">=</span> <span class="n">ext_trigger</span>
 
 <div class="viewcode-block" id="EventStreamer.__iter__">

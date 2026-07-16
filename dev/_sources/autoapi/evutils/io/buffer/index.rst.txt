@@ -66,9 +66,10 @@ Module Contents
       Ready the buffer for the decoder to append up to ``step`` events, and
       return ``(events_soa, triggers_soa)`` for ``decoder.parse_step``.
 
-      Rotates out consumed events if there is not enough tail room, then caps
-      the SoA capacity the parser sees to ``size + step`` so a single step does
-      not overshoot the requested window by more than one step's worth.
+      Reclaims consumed events (and grows the buffer if a window outgrows the
+      modest initial capacity), then caps the SoA capacity the parser sees to
+      ``size + step`` so a single step does not overshoot the requested window
+      by more than one step's worth.
 
       :param step: The number of events the decoder is expected to append.
       :type step: int

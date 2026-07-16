@@ -545,6 +545,11 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
+    <span class="c1">#: DAT is a fixed 2-word-per-event format, so the parser fills an output</span>
+    <span class="c1">#: buffer to exactly its capacity -&gt; eligible for EventReader&#39;s zero-copy</span>
+    <span class="c1">#: n_events fast path.</span>
+    <span class="n">_exact_window</span> <span class="o">=</span> <span class="kc">True</span>
+
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="n">ByteSource</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1_000_000</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_header</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>

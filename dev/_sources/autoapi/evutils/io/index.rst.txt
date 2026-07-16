@@ -56,7 +56,7 @@ Classes
 Package Contents
 ----------------
 
-.. py:class:: EventReader(file: pathlib.Path | str | io.BufferedReader | bytes | evutils.io._source.ByteSource, delta_t: int | None = None, n_events: int | None = None, mode: str = 'auto', start_ts: int = 0, normalize_ts: bool = False, max_time: int = 1000000000000, max_events: int = 10000000, width: int | None = None, height: int | None = None, ext_trigger: bool = False, async_read: bool = False, real_time: bool = False, playback_speed: float = 1.0, max_gap: float | None = 1.0, file_decoder: evutils.io.decoders.EventDecoder | type[evutils.io.decoders.EventDecoder] | None = None, **kwargs: Any)
+.. py:class:: EventReader(file: pathlib.Path | str | io.BufferedReader | bytes | evutils.io._source.ByteSource, delta_t: int | None = None, n_events: int | None = None, mode: str = 'auto', start_ts: int = 0, normalize_ts: bool = False, max_time: int = 1000000000000, max_events: int = 10000000, width: int | None = None, height: int | None = None, ext_trigger: bool = False, async_read: bool = False, prefetch_depth: int | None = None, reuse_buffers: bool = False, real_time: bool = False, playback_speed: float = 1.0, max_gap: float | None = 1.0, file_decoder: evutils.io.decoders.EventDecoder | type[evutils.io.decoders.EventDecoder] | None = None, **kwargs: Any)
 
    Class for reading and automatically decoding and slicing events from a file or stream.
 
@@ -94,6 +94,22 @@ Package Contents
                       ``read_all()`` stay synchronous and raise while an asynchronous
                       iterator is active.
    :type async_read: bool, default=False
+   :param prefetch_depth: How many decoded windows the ``async_read`` worker may buffer ahead of
+                          the consumer (default 2 when ``None``). Deeper queues cost memory
+                          (depth x window size) but ride out I/O stalls: for real-time playback
+                          from a cold file, a depth of ~6 absorbs multi-window disk page-fault
+                          hitches that a depth of 2 cannot. Ignored without ``async_read``.
+   :type prefetch_depth: int or None, default=None
+   :param reuse_buffers: Recycle the decode buffers of ``delta_t`` windows (openeb-style ring)
+                         instead of allocating a fresh buffer per window. Large windows make the
+                         per-window allocation the dominant cost (page-faulting hundreds of MB
+                         every window); with recycling the buffer pages stay warm and delta_t
+                         reads run at ~the raw decoder ceiling. The returned array then
+                         **aliases** a recycled buffer: it is valid until ``prefetch_depth``
+                         further windows have been read (or one window, without ``async_read``)
+                         -- copy it if you keep it longer, exactly like ``EventStreamer``
+                         chunks. Off by default: every window is an independent array.
+   :type reuse_buffers: bool, default=False
    :param real_time: Pace :meth:`read` and iteration to the recording's own timeline: each
                      chunk is released only once the wall-clock time since the first chunk
                      matches the event time it covers, so the stream plays back as if live.

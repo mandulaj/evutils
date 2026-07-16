@@ -663,36 +663,39 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">acc</span> <span class="o">=</span> <span class="n">EventAccumulator</span><span class="p">(</span><span class="n">capacity</span><span class="o">=</span><span class="mi">100_000_000</span><span class="p">)</span>
     <span class="n">current_ts</span> <span class="o">=</span> <span class="kc">None</span>
-    
+    <span class="n">has_triggers</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># set from the stream&#39;s items: tuple =&gt; (events, triggers)</span>
+
     <span class="k">for</span> <span class="n">incoming</span> <span class="ow">in</span> <span class="n">raw_stream</span><span class="p">:</span>
         <span class="c1"># Handle unpacking depending on if the stream yields triggers or not</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">incoming</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="n">has_triggers</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="n">ev</span><span class="p">,</span> <span class="n">tr</span> <span class="o">=</span> <span class="n">incoming</span>
             <span class="n">acc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ev</span><span class="p">,</span> <span class="n">tr</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">acc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">incoming</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            
+
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">acc</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">continue</span>
-            
+
         <span class="c1"># Initialize our absolute time anchor from the very first event</span>
         <span class="k">if</span> <span class="n">current_ts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">current_ts</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">acc</span><span class="o">.</span><span class="n">t_window</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
-            
+
         <span class="c1"># Yield as many full windows as we have accumulated</span>
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
             <span class="n">end_ts</span> <span class="o">=</span> <span class="n">current_ts</span> <span class="o">+</span> <span class="n">delta_t</span>
             <span class="n">t</span> <span class="o">=</span> <span class="n">acc</span><span class="o">.</span><span class="n">t_window</span><span class="p">()</span>
-            
+
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">t</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">end_ts</span><span class="p">:</span>
                 <span class="c1"># Not enough data for a full window yet; fetch more chunks</span>
                 <span class="k">break</span>
-                
+
             <span class="c1"># Find boundary</span>
             <span class="n">idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">end_ts</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">))</span>
-            
-            <span class="c1"># Slice and yield</span>
-            <span class="k">if</span> <span class="n">acc</span><span class="o">.</span><span class="n">_tr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+
+            <span class="c1"># Slice and yield. Mirror the input shape: only a trigger-carrying</span>
+            <span class="c1"># stream ((events, triggers) tuples) yields tuples back.</span>
+            <span class="k">if</span> <span class="n">has_triggers</span><span class="p">:</span>
                 <span class="n">tr_t</span> <span class="o">=</span> <span class="n">acc</span><span class="o">.</span><span class="n">t_window_tr</span><span class="p">()</span>
                 <span class="n">tr_idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">tr_t</span><span class="p">,</span> <span class="n">end_ts</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">))</span>
                 <span class="n">chunk_ev</span><span class="p">,</span> <span class="n">chunk_tr</span> <span class="o">=</span> <span class="n">acc</span><span class="o">.</span><span class="n">slice_copy</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">tr_idx</span><span class="p">)</span>
@@ -700,12 +703,12 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">chunk_ev</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">acc</span><span class="o">.</span><span class="n">slice_copy</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
                 <span class="k">yield</span> <span class="n">chunk_ev</span>
-                
+
             <span class="n">current_ts</span> <span class="o">+=</span> <span class="n">delta_t</span>
 
     <span class="c1"># Stream finished! Yield whatever is leftover in the buffer</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">acc</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">acc</span><span class="o">.</span><span class="n">_tr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">has_triggers</span><span class="p">:</span>
             <span class="k">yield</span> <span class="n">acc</span><span class="o">.</span><span class="n">slice_copy</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">acc</span><span class="p">),</span> <span class="n">acc</span><span class="o">.</span><span class="n">_tr</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="n">acc</span><span class="o">.</span><span class="n">_tr_start</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">yield</span> <span class="n">acc</span><span class="o">.</span><span class="n">slice_copy</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">acc</span><span class="p">),</span> <span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></div>
@@ -717,14 +720,16 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">stream_n_events</span><span class="p">(</span><span class="n">raw_stream</span><span class="p">:</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">n_events</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Pipeline generator: chunks stream by event count.&quot;&quot;&quot;</span>
     <span class="n">acc</span> <span class="o">=</span> <span class="n">EventAccumulator</span><span class="p">(</span><span class="n">capacity</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="mi">1_000_000</span><span class="p">,</span> <span class="n">n_events</span> <span class="o">*</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="n">has_triggers</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># set from the stream&#39;s items: tuple =&gt; (events, triggers)</span>
     <span class="k">for</span> <span class="n">incoming</span> <span class="ow">in</span> <span class="n">raw_stream</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">incoming</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="n">has_triggers</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="n">acc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">incoming</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">incoming</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">acc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">incoming</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            
+
         <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">acc</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">n_events</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">acc</span><span class="o">.</span><span class="n">_tr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">has_triggers</span><span class="p">:</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">acc</span><span class="p">)</span> <span class="o">==</span> <span class="n">n_events</span><span class="p">:</span>
                     <span class="n">tr_idx</span> <span class="o">=</span> <span class="n">acc</span><span class="o">.</span><span class="n">_tr</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="n">acc</span><span class="o">.</span><span class="n">_tr_start</span>
                 <span class="k">else</span><span class="p">:</span>
@@ -732,9 +737,9 @@
                 <span class="k">yield</span> <span class="n">acc</span><span class="o">.</span><span class="n">slice_copy</span><span class="p">(</span><span class="n">n_events</span><span class="p">,</span> <span class="n">tr_idx</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">yield</span> <span class="n">acc</span><span class="o">.</span><span class="n">slice_copy</span><span class="p">(</span><span class="n">n_events</span><span class="p">,</span> <span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-                
+
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">acc</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">acc</span><span class="o">.</span><span class="n">_tr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">has_triggers</span><span class="p">:</span>
             <span class="k">yield</span> <span class="n">acc</span><span class="o">.</span><span class="n">slice_copy</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">acc</span><span class="p">),</span> <span class="n">acc</span><span class="o">.</span><span class="n">_tr</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="n">acc</span><span class="o">.</span><span class="n">_tr_start</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">yield</span> <span class="n">acc</span><span class="o">.</span><span class="n">slice_copy</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">acc</span><span class="p">),</span> <span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></div>

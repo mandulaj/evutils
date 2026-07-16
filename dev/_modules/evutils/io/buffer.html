@@ -592,16 +592,30 @@
             <span class="n">t</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="n">n_tr</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_tr_start</span> <span class="o">=</span> <span class="mi">0</span>
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">_ensure_events</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">headroom</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Guarantee ``headroom`` free event slots past the current size:</span>
+<span class="sd">        reclaim consumed front first, then grow the backing arrays if that is</span>
+<span class="sd">        still not enough (an oversized window, or drain-to-EOF mode). Growing is</span>
+<span class="sd">        geometric so a stream of large windows costs at most a few reallocs.&quot;&quot;&quot;</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buf</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_capacity</span> <span class="o">-</span> <span class="n">b</span><span class="o">.</span><span class="n">size</span> <span class="o">&lt;</span> <span class="n">headroom</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_rotate</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_capacity</span> <span class="o">-</span> <span class="n">b</span><span class="o">.</span><span class="n">size</span> <span class="o">&lt;</span> <span class="n">headroom</span><span class="p">:</span>
+            <span class="n">new_cap</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">size</span> <span class="o">+</span> <span class="n">headroom</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_capacity</span> <span class="o">*</span> <span class="mf">1.5</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">b</span><span class="o">.</span><span class="n">grow</span><span class="p">(</span><span class="n">new_cap</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_capacity</span> <span class="o">=</span> <span class="n">new_cap</span>
+
 <div class="viewcode-block" id="EventAccumulator.prepare">
 <a class="viewcode-back" href="../../../autoapi/evutils/io/buffer/index.html#evutils.io.buffer.EventAccumulator.prepare">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">prepare</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">EventSoABuffers</span><span class="p">,</span> <span class="n">TriggerSoABuffers</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Ready the buffer for the decoder to append up to ``step`` events, and</span>
 <span class="sd">        return ``(events_soa, triggers_soa)`` for ``decoder.parse_step``.</span>
 
-<span class="sd">        Rotates out consumed events if there is not enough tail room, then caps</span>
-<span class="sd">        the SoA capacity the parser sees to ``size + step`` so a single step does</span>
-<span class="sd">        not overshoot the requested window by more than one step&#39;s worth.</span>
-<span class="sd">        </span>
+<span class="sd">        Reclaims consumed events (and grows the buffer if a window outgrows the</span>
+<span class="sd">        modest initial capacity), then caps the SoA capacity the parser sees to</span>
+<span class="sd">        ``size + step`` so a single step does not overshoot the requested window</span>
+<span class="sd">        by more than one step&#39;s worth.</span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        step : int</span>
@@ -615,8 +629,11 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buf</span>
         <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tr</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_capacity</span> <span class="o">-</span> <span class="n">b</span><span class="o">.</span><span class="n">size</span> <span class="o">&lt;</span> <span class="n">step</span> <span class="ow">or</span> <span class="n">t</span><span class="o">.</span><span class="n">capacity</span> <span class="o">-</span> <span class="n">t</span><span class="o">.</span><span class="n">size</span> <span class="o">&lt;</span> <span class="n">step</span> <span class="o">//</span> <span class="mi">16</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_events</span><span class="p">(</span><span class="n">step</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">capacity</span> <span class="o">-</span> <span class="n">t</span><span class="o">.</span><span class="n">size</span> <span class="o">&lt;</span> <span class="n">step</span> <span class="o">//</span> <span class="mi">16</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_rotate</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">capacity</span> <span class="o">-</span> <span class="n">t</span><span class="o">.</span><span class="n">size</span> <span class="o">&lt;</span> <span class="n">step</span> <span class="o">//</span> <span class="mi">16</span><span class="p">:</span>
+                <span class="n">t</span><span class="o">.</span><span class="n">grow</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">size</span> <span class="o">+</span> <span class="nb">max</span><span class="p">(</span><span class="n">step</span> <span class="o">//</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
         <span class="n">b</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">capacity</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_capacity</span><span class="p">,</span> <span class="n">b</span><span class="o">.</span><span class="n">size</span> <span class="o">+</span> <span class="n">step</span><span class="p">)</span>
         <span class="n">t</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">capacity</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">capacity</span>
         <span class="k">return</span> <span class="n">b</span><span class="p">,</span> <span class="n">t</span></div>
@@ -638,12 +655,7 @@
         <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buf</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_capacity</span> <span class="o">-</span> <span class="n">b</span><span class="o">.</span><span class="n">size</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_rotate</span><span class="p">()</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_capacity</span> <span class="o">-</span> <span class="n">b</span><span class="o">.</span><span class="n">size</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;EventAccumulator full: can&#39;t append </span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_capacity</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">b</span><span class="o">.</span><span class="n">size</span><span class="si">}</span><span class="s2"> free)&quot;</span>
-                <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_events</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>  <span class="c1"># rotate + grow so a large chunk always fits</span>
             <span class="n">e</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">size</span>
             <span class="n">b</span><span class="o">.</span><span class="n">t</span><span class="p">[</span><span class="n">e</span><span class="p">:</span><span class="n">e</span> <span class="o">+</span> <span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">t</span>
             <span class="n">b</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">e</span><span class="p">:</span><span class="n">e</span> <span class="o">+</span> <span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">x</span>

@@ -1231,6 +1231,31 @@ native output-buffer capacity). Does not bound the file size.</p></li>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="evutils.io.decoders.EventDecoder_EVT.parse_step_delta_t">
+<span class="sig-name descname"><span class="pre">parse_step_delta_t</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">events</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">evutils.io._native_core.EventSoABuffers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">triggers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">evutils.io._native_core.TriggerSoABuffers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_ts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../_modules/evutils/io/_evt.html#EventDecoder_EVT.parse_step_delta_t"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.decoders.EventDecoder_EVT.parse_step_delta_t" title="Link to this definition">#</a></dt>
+<dd><p>Run the dedicated C delta_t parser once, appending events with
+timestamp <code class="docutils literal notranslate"><span class="pre">&lt;</span> <span class="pre">end_ts</span></code> into <code class="docutils literal notranslate"><span class="pre">events</span></code>.</p>
+<p>Returns <code class="docutils literal notranslate"><span class="pre">(appended,</span> <span class="pre">status)</span></code> where status is one of
+<code class="docutils literal notranslate"><span class="pre">EVUTILS_PARSE_WINDOW_DONE</span></code> (the time boundary was reached – the
+window is complete), <code class="docutils literal notranslate"><span class="pre">EVUTILS_PARSE_OUTPUT_FULL</span></code> (grow and call again),
+or <code class="docutils literal notranslate"><span class="pre">EVUTILS_PARSE_OK</span></code> (input drained for this call). At true EOF the
+final incomplete vector group is flushed via the tail pad, mirroring
+<a class="reference internal" href="#evutils.io.decoders.EventDecoder_EVT.parse_step" title="evutils.io.decoders.EventDecoder_EVT.parse_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">parse_step()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>events</strong> (<em>evutils.io._native_core.EventSoABuffers</em>)</p></li>
+<li><p><strong>triggers</strong> (<em>evutils.io._native_core.TriggerSoABuffers</em>)</p></li>
+<li><p><strong>end_ts</strong> (<em>int</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple[int, int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="evutils.io.decoders.EventDecoder_EVT.read_chunk">
 <span class="sig-name descname"><span class="pre">read_chunk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">delta_t_hint</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_events_hint</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../../types/index.html#evutils.types.EventArray" title="evutils.types.EventArray"><span class="pre">EventArray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../../types/index.html#evutils.types.EventArray" title="evutils.types.EventArray"><span class="pre">EventArray</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="../../types/index.html#evutils.types.TriggerArray" title="evutils.types.TriggerArray"><span class="pre">TriggerArray</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../_modules/evutils/io/_evt.html#EventDecoder_EVT.read_chunk"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.decoders.EventDecoder_EVT.read_chunk" title="Link to this definition">#</a></dt>
 <dd><p>Read a chunk of events.</p>
@@ -1575,6 +1600,7 @@ that have no filename.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.decoders.EventDecoder_EVT.SUPPORTS_EXT_TRIGGERS"><code class="docutils literal notranslate"><span class="pre">EventDecoder_EVT.SUPPORTS_EXT_TRIGGERS</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.decoders.EventDecoder_EVT.init"><code class="docutils literal notranslate"><span class="pre">EventDecoder_EVT.init()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.decoders.EventDecoder_EVT.parse_step"><code class="docutils literal notranslate"><span class="pre">EventDecoder_EVT.parse_step()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.decoders.EventDecoder_EVT.parse_step_delta_t"><code class="docutils literal notranslate"><span class="pre">EventDecoder_EVT.parse_step_delta_t()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.decoders.EventDecoder_EVT.read_chunk"><code class="docutils literal notranslate"><span class="pre">EventDecoder_EVT.read_chunk()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.decoders.EventDecoder_EVT.read_all"><code class="docutils literal notranslate"><span class="pre">EventDecoder_EVT.read_all()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.decoders.EventDecoder_EVT.reset"><code class="docutils literal notranslate"><span class="pre">EventDecoder_EVT.reset()</span></code></a></li>

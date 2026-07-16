@@ -529,6 +529,10 @@
     <span class="n">events_view</span><span class="p">,</span>
     <span class="n">triggers_view</span><span class="p">,</span>
     <span class="n">parse_step</span><span class="p">,</span>
+    <span class="n">EVUTILS_PARSE_ERROR</span><span class="p">,</span>
+    <span class="n">EVUTILS_PARSE_WINDOW_DONE</span><span class="p">,</span>
+    <span class="n">EVUTILS_PARSE_OUTPUT_FULL</span><span class="p">,</span>
+    <span class="n">NativeError</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._native_evt</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">Evt2Input</span><span class="p">,</span>
@@ -636,6 +640,18 @@
     <span class="n">_TAIL_PAD</span> <span class="o">=</span> <span class="mi">8</span>  <span class="c1"># &gt;= parser look-ahead padding (EVT3_INPUT_PADDING)</span>
     <span class="n">SUPPORTS_EXT_TRIGGERS</span> <span class="o">=</span> <span class="kc">True</span>
 
+    <span class="c1"># Per-format TIME_HIGH record descriptor: (type-field right-shift, type code).</span>
+    <span class="c1"># Used to skip leading records until the first TIME_HIGH establishes a valid</span>
+    <span class="c1"># time base -- events before it carry an undefined timestamp (a stream sliced</span>
+    <span class="c1"># after capture start begins mid-group). Matches OpenEB / the reference</span>
+    <span class="c1"># decoders, which drop those events.</span>
+    <span class="n">_TIME_HIGH_TYPE</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;evt3&quot;</span><span class="p">:</span>  <span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mh">0x8</span><span class="p">),</span>   <span class="c1"># 16-bit words, type in bits 12..15</span>
+        <span class="s2">&quot;evt2&quot;</span><span class="p">:</span>  <span class="p">(</span><span class="mi">28</span><span class="p">,</span> <span class="mh">0x8</span><span class="p">),</span>   <span class="c1"># 32-bit words, type in bits 28..31</span>
+        <span class="s2">&quot;evt21&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">28</span><span class="p">,</span> <span class="mh">0x8</span><span class="p">),</span>
+        <span class="s2">&quot;evt4&quot;</span><span class="p">:</span>  <span class="p">(</span><span class="mi">28</span><span class="p">,</span> <span class="mh">0xE</span><span class="p">),</span>   <span class="c1"># EVT4 TIME_HIGH code differs (0xE)</span>
+    <span class="p">}</span>
+
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="n">ByteSource</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1_000_000</span><span class="p">,</span> <span class="n">read_external_triggers</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">,</span> <span class="n">read_external_triggers</span><span class="o">=</span><span class="n">read_external_triggers</span><span class="p">)</span>
 
@@ -661,6 +677,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_payload_off</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>       <span class="c1"># byte offset where the binary payload starts</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_words</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>          <span class="c1"># uint16 view of the whole payload</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>            <span class="c1"># current word offset into _words</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_start_offset</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>      <span class="c1"># word offset of the first TIME_HIGH</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_parser</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
 
 
@@ -834,7 +851,8 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_words</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">word_dtype</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_start_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_first_time_high</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start_offset</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_parser</span> <span class="o">=</span> <span class="n">parser_cls</span><span class="p">()</span>
         <span class="n">cap</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_chunk_size</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_events</span> <span class="o">=</span> <span class="n">EventSoABuffers</span><span class="p">(</span><span class="n">cap</span><span class="p">)</span>
@@ -842,9 +860,53 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_is_initialized</span> <span class="o">=</span> <span class="kc">True</span></div>
 
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">_find_first_time_high</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Word offset of the first TIME_HIGH record in the payload.</span>
+
+<span class="sd">        Records before the first TIME_HIGH have no established time base (their</span>
+<span class="sd">        timestamp would decode to 0), which happens when a stream is sliced</span>
+<span class="sd">        after capture start and begins mid-group. The reference decoders drop</span>
+<span class="sd">        those records; starting decode at the first TIME_HIGH does the same</span>
+<span class="sd">        while keeping the raw, absolute timestamps that follow.</span>
+
+<span class="sd">        Scans in exponentially growing blocks -- the first TIME_HIGH is almost</span>
+<span class="sd">        always within the first few thousand words, so the whole payload is</span>
+<span class="sd">        rarely touched. Returns 0 if the format has no TIME_HIGH descriptor or</span>
+<span class="sd">        none is found (leave the stream untouched).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">desc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_TIME_HIGH_TYPE</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_format</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">desc</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_words</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>
+        <span class="n">shift</span><span class="p">,</span> <span class="n">code</span> <span class="o">=</span> <span class="n">desc</span>
+        <span class="n">words</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_words</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">)</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">block</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">16</span>
+        <span class="k">while</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">:</span>
+            <span class="n">stop</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">start</span> <span class="o">+</span> <span class="n">block</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+            <span class="n">seg</span> <span class="o">=</span> <span class="n">words</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">stop</span><span class="p">]</span>
+            <span class="n">hits</span> <span class="o">=</span> <span class="p">((</span><span class="n">seg</span> <span class="o">&gt;&gt;</span> <span class="n">shift</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0xF</span><span class="p">)</span> <span class="o">==</span> <span class="n">code</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">hits</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">hits</span><span class="p">[</span><span class="n">idx</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="n">start</span> <span class="o">+</span> <span class="n">idx</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">stop</span>
+            <span class="n">block</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">block</span> <span class="o">*</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">24</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_tail_pad</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_TAIL_PAD</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format</span> <span class="o">==</span> <span class="s2">&quot;evt3&quot;</span> <span class="k">else</span> <span class="mi">0</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_exact_window</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;True when the parser emits exactly one event per record, so it fills</span>
+<span class="sd">        an output buffer to precisely its capacity. Only EVT2 qualifies: EVT3,</span>
+<span class="sd">        EVT2.1 *and EVT4* all expand vector groups (a single word can emit up to</span>
+<span class="sd">        32 events and the parser stops a few short of capacity), so they cannot</span>
+<span class="sd">        use EventReader&#39;s zero-copy n_events fast path. Note EVT4&#39;s encoder only</span>
+<span class="sd">        writes scalar CD, but the decoder must stay correct for vectorised EVT4</span>
+<span class="sd">        input too.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format</span> <span class="o">==</span> <span class="s2">&quot;evt2&quot;</span>
 
 <div class="viewcode-block" id="EventDecoder_EVT.parse_step">
 <a class="viewcode-back" href="../../../autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_EVT.parse_step">[docs]</a>
@@ -878,6 +940,59 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_words</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_eof</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">return</span> <span class="n">appended</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_has_delta_t_parser</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;True when a dedicated C delta_t parser exists for this format, so the</span>
+<span class="sd">        reader can decode a whole time window in one GIL-free C call (no</span>
+<span class="sd">        Python-side searchsorted / overshoot carry). EVT3 only, for now.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format</span> <span class="o">==</span> <span class="s2">&quot;evt3&quot;</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parser</span><span class="p">,</span> <span class="s2">&quot;parse_delta_t_soa&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="EventDecoder_EVT.parse_step_delta_t">
+<a class="viewcode-back" href="../../../autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_EVT.parse_step_delta_t">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">parse_step_delta_t</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">events</span><span class="p">:</span> <span class="n">EventSoABuffers</span><span class="p">,</span> <span class="n">triggers</span><span class="p">:</span> <span class="n">TriggerSoABuffers</span><span class="p">,</span>
+                           <span class="n">end_ts</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run the dedicated C delta_t parser once, appending events with</span>
+<span class="sd">        timestamp ``&lt; end_ts`` into ``events``.</span>
+
+<span class="sd">        Returns ``(appended, status)`` where status is one of</span>
+<span class="sd">        ``EVUTILS_PARSE_WINDOW_DONE`` (the time boundary was reached -- the</span>
+<span class="sd">        window is complete), ``EVUTILS_PARSE_OUTPUT_FULL`` (grow and call again),</span>
+<span class="sd">        or ``EVUTILS_PARSE_OK`` (input drained for this call). At true EOF the</span>
+<span class="sd">        final incomplete vector group is flushed via the tail pad, mirroring</span>
+<span class="sd">        :meth:`parse_step`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_initialized</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+        <span class="n">words</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_words</span>
+        <span class="k">if</span> <span class="n">words</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_eof</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">return</span> <span class="mi">0</span><span class="p">,</span> <span class="n">EVUTILS_PARSE_WINDOW_DONE</span>
+        <span class="n">before</span> <span class="o">=</span> <span class="n">events</span><span class="o">.</span><span class="n">size</span>
+        <span class="n">inp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_cls</span><span class="p">(</span><span class="n">words</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_offset</span><span class="p">:])</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parser</span><span class="o">.</span><span class="n">parse_delta_t_soa</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">events</span><span class="p">,</span> <span class="n">triggers</span><span class="p">,</span> <span class="n">end_ts</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">EVUTILS_PARSE_ERROR</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">NativeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_format</span><span class="si">}</span><span class="s2"> delta_t parse error at word </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_offset</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">consumed</span> <span class="o">=</span> <span class="n">inp</span><span class="o">.</span><span class="n">consumed</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">status</span><span class="p">)</span>
+        <span class="c1"># Input drained with no progress =&gt; only the sub-PADDING tail remains;</span>
+        <span class="c1"># flush it (incomplete final group) and mark EOF, as parse_step does.</span>
+        <span class="k">if</span> <span class="n">consumed</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">status</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">EVUTILS_PARSE_WINDOW_DONE</span><span class="p">,</span> <span class="n">EVUTILS_PARSE_OUTPUT_FULL</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tail_pad</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_word_dtype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">tail</span> <span class="o">=</span> <span class="n">words</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_offset</span><span class="p">:]</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tail</span><span class="p">):</span>
+                    <span class="n">scratch</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tail</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tail_pad</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_word_dtype</span><span class="p">)</span>
+                    <span class="n">scratch</span><span class="p">[:</span> <span class="nb">len</span><span class="p">(</span><span class="n">tail</span><span class="p">)]</span> <span class="o">=</span> <span class="n">tail</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_parser</span><span class="o">.</span><span class="n">parse_delta_t_soa</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_input_cls</span><span class="p">(</span><span class="n">scratch</span><span class="p">),</span> <span class="n">events</span><span class="p">,</span> <span class="n">triggers</span><span class="p">,</span> <span class="n">end_ts</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_eof</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">return</span> <span class="n">events</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="n">before</span><span class="p">,</span> <span class="n">status</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span> <span class="o">+=</span> <span class="n">consumed</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_eof</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="n">events</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="n">before</span><span class="p">,</span> <span class="n">status</span></div>
 
 
 <div class="viewcode-block" id="EventDecoder_EVT.read_chunk">
@@ -916,9 +1031,12 @@
 
 
     <span class="c1"># Initial output-capacity estimate (events per input word) for the</span>
-    <span class="c1"># single-buffer read_all() path. EVT2 is an exact upper bound (&lt;=1 event per</span>
-    <span class="c1"># 32-bit word); EVT3/EVT2.1 vary with vector density, so decode_all_soa grows</span>
-    <span class="c1"># the buffer if the estimate is too small.</span>
+    <span class="c1"># single-buffer read_all() path. EVT2/EVT4 are exact upper bounds (&lt;=1 event</span>
+    <span class="c1"># per 32-bit word); EVT3/EVT2.1 vary with vector density. The estimate only</span>
+    <span class="c1"># needs to be a rough ballpark: if it is too small decode_all_soa grows the</span>
+    <span class="c1"># buffer once, extrapolating the true count from the fraction of input</span>
+    <span class="c1"># consumed so far (no repeated reallocation even for dense EVT2.1 vector</span>
+    <span class="c1"># streams, which reach ~14+ events per word).</span>
     <span class="n">_READ_ALL_EST</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;evt3&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s2">&quot;evt2&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s2">&quot;evt21&quot;</span><span class="p">:</span> <span class="mf">1.5</span><span class="p">,</span> <span class="s2">&quot;evt4&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">}</span>
 
 <div class="viewcode-block" id="EventDecoder_EVT.read_all">
@@ -963,7 +1081,7 @@
 <span class="sd">        None</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start_offset</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_eof</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parser</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_parser</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>

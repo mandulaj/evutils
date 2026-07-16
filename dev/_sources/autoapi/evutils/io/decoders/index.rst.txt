@@ -453,6 +453,20 @@ Module Contents
 
 
 
+   .. py:method:: parse_step_delta_t(events: evutils.io._native_core.EventSoABuffers, triggers: evutils.io._native_core.TriggerSoABuffers, end_ts: int) -> tuple[int, int]
+
+      Run the dedicated C delta_t parser once, appending events with
+      timestamp ``< end_ts`` into ``events``.
+
+      Returns ``(appended, status)`` where status is one of
+      ``EVUTILS_PARSE_WINDOW_DONE`` (the time boundary was reached -- the
+      window is complete), ``EVUTILS_PARSE_OUTPUT_FULL`` (grow and call again),
+      or ``EVUTILS_PARSE_OK`` (input drained for this call). At true EOF the
+      final incomplete vector group is flushed via the tail pad, mirroring
+      :meth:`parse_step`.
+
+
+
    .. py:method:: read_chunk(delta_t_hint: int | None = None, n_events_hint: int | None = None) -> EventArray | tuple[EventArray, TriggerArray]
 
       Read a chunk of events.
