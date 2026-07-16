@@ -32,6 +32,8 @@ class EventWriter():
         Timestamp of the recording (default is the current time, but information is not saved in all formats)
     file_encoder
         File encoder to use, by default None (chosen from the file extension)
+    mode
+        File open mode, by default 'w+b'
     **kwargs
         Additional arguments for the file encoder
 
@@ -53,8 +55,8 @@ class EventWriter():
 
     """
 
-    def __init__(self, file: Path | str | io.BufferedIOBase, width:int|None=None, height:int|None=None, dt: datetime|None = None,  file_encoder: ev_encoders.EventEncoder | None = None, **kwargs: Any):
-
+    def __init__(self, file: Path | str | io.BufferedIOBase, width:int|None=None, height:int|None=None, dt: datetime|None = None,  file_encoder: ev_encoders.EventEncoder | None = None, mode: str = 'w+b', **kwargs: Any):
+        self._mode = mode
         self._file_name: Path | None = None
 
         # Handle paths as input
@@ -130,9 +132,9 @@ class EventWriter():
             The opened file object.
 
         """
-        # 'w+b' (not 'wb'): container encoders (HDF5) need the stream to be
+        # default 'w+b' (not 'wb'): container encoders (HDF5) need the stream to be
         # readable and seekable, and it costs nothing for the append-only ones.
-        return open(str(file_name), 'w+b')
+        return open(str(file_name), self._mode)
 
     def init(self) -> None:
         """Initialize the writer (e.g. open the file, write the header).
