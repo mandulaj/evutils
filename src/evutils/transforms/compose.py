@@ -70,14 +70,15 @@ class Compose:
             if step_type == "jit":
                 t, x, y, p = unwrap_events(events)
                 for transform in block:
-                    # A transform earlier in the block may have dropped every
-                    # event; stop before a kernel that assumes non-empty input
-                    # (e.g. deriving a sensor extent from x.max()) sees it.
-                    if len(t) == 0:
-                        break
                     # Let the transform fall back to the container's sensor_size.
                     transform.bind_context(events)
-                    t, x, y, p = transform._forward_jit(t, x, y, p)
+                    # A transform earlier in the block may have dropped every
+                    # event; skip kernels that assume non-empty input (e.g.
+                    # deriving a sensor extent from x.max()), but still let the
+                    # transform update the target -- matching standalone
+                    # Transform.__call__, which applies both regardless of count.
+                    if len(t) > 0:
+                        t, x, y, p = transform._forward_jit(t, x, y, p)
                     if target is not None:
                         target = transform._transform_target(target)
                 events = repack_events(events, t, x, y, p)
