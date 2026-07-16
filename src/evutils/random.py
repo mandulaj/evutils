@@ -75,7 +75,7 @@ def random_events_generator(n_events: int, width: int = 1280, height: int = 720,
         yield events
 
 
-def event_jitter_n(events: np.ndarray, mean: float = 0.0, std: float = 1.0, sort: bool = True) -> np.ndarray:
+def event_jitter_n(events: np.ndarray, mean: float = 0.0, std: float = 1.0, sort: bool = True, in_place: bool = False) -> np.ndarray:
     """Adds a random jitter to the timestamps of the events.
 
     Examples
@@ -87,6 +87,8 @@ def event_jitter_n(events: np.ndarray, mean: float = 0.0, std: float = 1.0, sort
     >>> len(jittered) == len(events)
     True
     """
+    if not in_place:
+        events = events.copy()
     events["t"] += np.round(np.random.normal(mean, std, len(events))).astype(np.int64)
 
     if sort:
@@ -95,7 +97,7 @@ def event_jitter_n(events: np.ndarray, mean: float = 0.0, std: float = 1.0, sort
     return events
 
 
-def event_jitter(events: np.ndarray, jitter: int = 1, sort: bool = True) -> np.ndarray:
+def event_jitter(events: np.ndarray, jitter: int = 1, sort: bool = True, in_place: bool = False) -> np.ndarray:
     """Adds a random jitter to the timestamps of the events.
 
     Examples
@@ -109,6 +111,8 @@ def event_jitter(events: np.ndarray, jitter: int = 1, sort: bool = True) -> np.n
     """
     jitter = int(jitter)
     
+    if not in_place:
+        events = events.copy()
     events["t"] += np.random.randint(-jitter, jitter, len(events))
 
     if sort:
