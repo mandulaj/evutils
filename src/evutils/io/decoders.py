@@ -124,8 +124,11 @@ def _sniff_evt(head: bytes) -> bool:
 
 
 def _sniff_prophesee(head: bytes) -> bool:
-    """Fallback: any other ``"% "``-headed stream is treated as RAW/EVT."""
-    return head[:2] == b"% "
+    """Fallback: any other ``"% "``-headed stream with prophesee-like metadata."""
+    if not head.startswith(b"% "):
+        return False
+    low = head.lower()
+    return b"system_id" in low or b"firmware_version" in low or b"plugin name" in low
 
 
 def _sniff_aedat(head: bytes) -> bool:

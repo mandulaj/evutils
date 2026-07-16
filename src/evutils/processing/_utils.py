@@ -34,14 +34,21 @@ def normalize_ts(events: np.ndarray, start_ts: int = 0) -> np.ndarray:
     if len(events) == 0:
         return events
 
-    if not (hasattr(events, 'dtype') and events.dtype.names and 't' in events.dtype.names):
-        if not hasattr(events, 't'):
-            raise ValueError("events must be a structured array or object with a 't' field")
+    if hasattr(events, 'dtype') and events.dtype.names and 't' in events.dtype.names:
+        t_arr = events['t']
+    elif hasattr(events, 't'):
+        t_arr = getattr(events, 't')
+    else:
+        raise ValueError("events must be a structured array or object with a 't' field")
 
     if hasattr(events, 'flags') and not events.flags.writeable:
         events = events.copy()
+        if hasattr(events, 'dtype') and events.dtype.names and 't' in events.dtype.names:
+            t_arr = events['t']
+        else:
+            t_arr = getattr(events, 't')
 
-    min_ts = events['t'].min()
-    events['t'] -= min_ts - start_ts
+    min_ts = t_arr.min()
+    t_arr -= min_ts - start_ts
 
     return events

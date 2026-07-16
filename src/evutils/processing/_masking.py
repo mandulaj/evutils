@@ -44,18 +44,21 @@ def mask_events(events: np.ndarray, mask: np.ndarray) -> np.ndarray:
     if len(events) == 0:
         return events
     
-    if not (hasattr(events, 'dtype') and events.dtype.names and 'x' in events.dtype.names and 'y' in events.dtype.names):
-        if not (hasattr(events, 'x') and hasattr(events, 'y')):
-            raise ValueError("events must be a structured array or object with 'x' and 'y' fields")
+    if hasattr(events, 'dtype') and events.dtype.names and 'x' in events.dtype.names and 'y' in events.dtype.names:
+        x = events['x']
+        y = events['y']
+    elif hasattr(events, 'x') and hasattr(events, 'y'):
+        x = getattr(events, 'x')
+        y = getattr(events, 'y')
+    else:
+        raise ValueError("events must be a structured array or object with 'x' and 'y' fields")
 
     # Check if max x and y in events are within the mask dimensions
-    if events['x'].min() < 0 or events['y'].min() < 0:
+    if x.min() < 0 or y.min() < 0:
         raise ValueError("Events x and y coordinates must be non-negative")
-    if events['x'].max() >= mask.shape[1] or events['y'].max() >= mask.shape[0]:
+    if x.max() >= mask.shape[1] or y.max() >= mask.shape[0]:
         raise ValueError("Events x and y coordinates must be within the mask dimensions")
 
-    x = events['x']
-    y = events['y']
     valid_events = mask[y, x] > 0
     
     return events[valid_events]

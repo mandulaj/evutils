@@ -217,7 +217,7 @@ class EventDecoder(ABC):
                 is_initialized_txt = "initialized"
             else:
                 is_initialized_txt = "not initialized"
-            return f"{self.__class__} - {is_initialized_txt})"
+            return f"{self.__class__} - {is_initialized_txt}"
 
     def is_eof(self) -> bool:
         """Check if the end of the file has been reached.
@@ -312,7 +312,7 @@ class EventEncoder(ABC):
             is_initialized_txt = f"Written {self._n_written_events} events"
         else:
             is_initialized_txt = "not initialized"
-        return f"{self.__class__.__name__} - {is_initialized_txt}, {self._width}x{self._height})"
+        return f"{self.__class__.__name__} - {is_initialized_txt}, {self._width}x{self._height}"
 
     def flush(self) -> None:
         """Flush any buffered data to the underlying stream."""
