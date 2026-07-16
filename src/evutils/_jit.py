@@ -32,3 +32,33 @@ def lazy_njit(fn: F) -> F:
         return compiled(*args, **kwargs)
 
     return wrapper  # type: ignore[return-value]
+
+
+def lazy_njit_unwrapped(fn: F) -> F:
+    """Decorator that unwraps SoA or AoS events into constituent arrays, 
+    then calls a lazily compiled numba function. Numba handles the 
+    specialization for strided vs contiguous memory.
+    """
+    compiled: Callable[..., Any] | None = None
+
+    @functools.wraps(fn)
+    def wrapper(events: Any, *args: Any, **kwargs: Any) -> Any:
+        nonlocal compiled
+        if compiled is None:
+            import numba as nb
+            compiled = nb.njit(fn)
+        
+        # We import SoaArray here to avoid any top-level circular imports
+        from .types import SoaArray
+        import numpy as np
+        
+        if isinstance(events, SoaArray):
+            arrays = tuple(getattr(events, f) for f in events._fields)
+        elif isinstance(events, np.ndarray) and events.dtype.names is not None:
+            arrays = tuple(events[f] for f in events.dtype.names)
+        else:
+            raise TypeError(f"Unsupported event format: {type(events)}")
+            
+        return compiled(*arrays, *args, **kwargs)
+
+    return wrapper  # type: ignore[return-value]
