@@ -567,14 +567,15 @@
             <span class="k">if</span> <span class="n">step_type</span> <span class="o">==</span> <span class="s2">&quot;jit&quot;</span><span class="p">:</span>
                 <span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="n">unwrap_events</span><span class="p">(</span><span class="n">events</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">transform</span> <span class="ow">in</span> <span class="n">block</span><span class="p">:</span>
-                    <span class="c1"># A transform earlier in the block may have dropped every</span>
-                    <span class="c1"># event; stop before a kernel that assumes non-empty input</span>
-                    <span class="c1"># (e.g. deriving a sensor extent from x.max()) sees it.</span>
-                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                        <span class="k">break</span>
                     <span class="c1"># Let the transform fall back to the container&#39;s sensor_size.</span>
                     <span class="n">transform</span><span class="o">.</span><span class="n">bind_context</span><span class="p">(</span><span class="n">events</span><span class="p">)</span>
-                    <span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="n">transform</span><span class="o">.</span><span class="n">_forward_jit</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+                    <span class="c1"># A transform earlier in the block may have dropped every</span>
+                    <span class="c1"># event; skip kernels that assume non-empty input (e.g.</span>
+                    <span class="c1"># deriving a sensor extent from x.max()), but still let the</span>
+                    <span class="c1"># transform update the target -- matching standalone</span>
+                    <span class="c1"># Transform.__call__, which applies both regardless of count.</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="n">transform</span><span class="o">.</span><span class="n">_forward_jit</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                         <span class="n">target</span> <span class="o">=</span> <span class="n">transform</span><span class="o">.</span><span class="n">_transform_target</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
                 <span class="n">events</span> <span class="o">=</span> <span class="n">repack_events</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>

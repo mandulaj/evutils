@@ -576,7 +576,10 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#evutils.transforms.functional.time_jitter" title="evutils.transforms.functional.time_jitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">time_jitter</span></code></a>(events[, std, clip_negative, sort_timestamps])</p></td>
 <td><p>Add Gaussian noise to each timestamp.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#evutils.transforms.functional.refractory_period" title="evutils.transforms.functional.refractory_period"><code class="xref py py-obj docutils literal notranslate"><span class="pre">refractory_period</span></code></a>(events, delta)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#evutils.transforms.functional.normalize_ts" title="evutils.transforms.functional.normalize_ts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">normalize_ts</span></code></a>(events[, start_ts])</p></td>
+<td><p>Shift timestamps so the earliest event lands at <code class="docutils literal notranslate"><span class="pre">start_ts</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#evutils.transforms.functional.refractory_period" title="evutils.transforms.functional.refractory_period"><code class="xref py py-obj docutils literal notranslate"><span class="pre">refractory_period</span></code></a>(events, delta)</p></td>
 <td><p>Enforce a per-pixel refractory period.</p></td>
 </tr>
 </tbody>
@@ -743,6 +746,42 @@ tuple is sampled uniformly per call. Defaults to <code class="docutils literal n
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="evutils.transforms.functional.normalize_ts">
+<span class="sig-prename descclassname"><span class="pre">evutils.transforms.functional.</span></span><span class="sig-name descname"><span class="pre">normalize_ts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">events</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_ts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/evutils/transforms/functional/_time.html#normalize_ts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.transforms.functional.normalize_ts" title="Link to this definition">#</a></dt>
+<dd><p>Shift timestamps so the earliest event lands at <code class="docutils literal notranslate"><span class="pre">start_ts</span></code>.</p>
+<p>Pure and stateless: each call normalizes the batch it is handed on its own.
+For chunk-by-chunk streams use <code class="docutils literal notranslate"><span class="pre">EventReader(normalize_ts=True)</span></code>, which
+latches the offset from the first chunk and applies it across the whole
+stream (so the timeline stays continuous instead of resetting per chunk).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>events</strong> (<em>np.ndarray</em><em> or </em><a class="reference internal" href="../../types/index.html#evutils.types.EventArray" title="evutils.types.EventArray"><em>EventArray</em></a>) – Events to normalize.</p></li>
+<li><p><strong>start_ts</strong> (<em>int</em><em>, </em><em>optional</em>) – Timestamp assigned to the earliest event. Default <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Events with shifted timestamps, in their original container type. The
+input is not modified.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray or <a class="reference internal" href="../../types/index.html#evutils.types.EventArray" title="evutils.types.EventArray">EventArray</a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">evutils.transforms.functional</span><span class="w"> </span><span class="kn">import</span> <span class="n">normalize_ts</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">events</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">0</span><span class="p">)],</span>
+<span class="gp">... </span>    <span class="n">dtype</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;u2&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;u2&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="s1">&#39;i8&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;p&#39;</span><span class="p">,</span> <span class="s1">&#39;i1&#39;</span><span class="p">)]</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">normalize_ts</span><span class="p">(</span><span class="n">events</span><span class="p">)[</span><span class="s1">&#39;t&#39;</span><span class="p">]</span>
+<span class="go">array([  0, 100, 200])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="evutils.transforms.functional.refractory_period">
 <span class="sig-prename descclassname"><span class="pre">evutils.transforms.functional.</span></span><span class="sig-name descname"><span class="pre">refractory_period</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">events</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/evutils/transforms/functional/_refractory.html#refractory_period"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.transforms.functional.refractory_period" title="Link to this definition">#</a></dt>
 <dd><p>Enforce a per-pixel refractory period.</p>
@@ -823,6 +862,7 @@ dropped.</p></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.functional.spatial_jitter"><code class="docutils literal notranslate"><span class="pre">spatial_jitter()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.functional.time_skew"><code class="docutils literal notranslate"><span class="pre">time_skew()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.functional.time_jitter"><code class="docutils literal notranslate"><span class="pre">time_jitter()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.functional.normalize_ts"><code class="docutils literal notranslate"><span class="pre">normalize_ts()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.functional.refractory_period"><code class="docutils literal notranslate"><span class="pre">refractory_period()</span></code></a></li>
 </ul>
 </li>

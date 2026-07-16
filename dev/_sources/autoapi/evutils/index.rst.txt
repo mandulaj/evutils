@@ -52,7 +52,7 @@ Submodules
    * - :py:mod:`dense <evutils.dense>`
      - Dense representations of event data.
    * - :py:mod:`filtering <evutils.filtering>`
-     - Event stream filtering and cleanup.
+     - Event stream filtering.
    * - :py:mod:`io <evutils.io>`
      - Reading and writing events in various file formats.
    * - :py:mod:`jit <evutils.jit>`

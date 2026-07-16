@@ -485,7 +485,7 @@
                 <article class="bd-article">
                   
   <h1>Source code for evutils.transforms.functional._time</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Temporal functional transforms (skew, jitter).&quot;&quot;&quot;</span>
+<span></span><span class="sd">&quot;&quot;&quot;Temporal functional transforms (skew, jitter, normalize).&quot;&quot;&quot;</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">evutils.jit</span><span class="w"> </span><span class="kn">import</span> <span class="n">lazy_njit</span>
 
@@ -563,6 +563,51 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">apply_kernel</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">_time_jitter_jit</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">std</span><span class="p">),</span>
                         <span class="nb">bool</span><span class="p">(</span><span class="n">clip_negative</span><span class="p">),</span> <span class="nb">bool</span><span class="p">(</span><span class="n">sort_timestamps</span><span class="p">))</span></div>
+
+
+
+<span class="nd">@lazy_njit</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_normalize_ts_jit</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">start_ts</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Shift every timestamp so the minimum lands at ``start_ts``.&quot;&quot;&quot;</span>
+    <span class="n">new_t</span> <span class="o">=</span> <span class="n">t</span> <span class="o">-</span> <span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_ts</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span>
+
+
+<div class="viewcode-block" id="normalize_ts">
+<a class="viewcode-back" href="../../../../autoapi/evutils/transforms/functional/index.html#evutils.transforms.functional.normalize_ts">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">normalize_ts</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">start_ts</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Shift timestamps so the earliest event lands at ``start_ts``.</span>
+
+<span class="sd">    Pure and stateless: each call normalizes the batch it is handed on its own.</span>
+<span class="sd">    For chunk-by-chunk streams use ``EventReader(normalize_ts=True)``, which</span>
+<span class="sd">    latches the offset from the first chunk and applies it across the whole</span>
+<span class="sd">    stream (so the timeline stays continuous instead of resetting per chunk).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    events : np.ndarray or EventArray</span>
+<span class="sd">        Events to normalize.</span>
+<span class="sd">    start_ts : int, optional</span>
+<span class="sd">        Timestamp assigned to the earliest event. Default ``0``.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.ndarray or EventArray</span>
+<span class="sd">        Events with shifted timestamps, in their original container type. The</span>
+<span class="sd">        input is not modified.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from evutils.transforms.functional import normalize_ts</span>
+<span class="sd">    &gt;&gt;&gt; events = np.array(</span>
+<span class="sd">    ...     [(0, 0, 100, 1), (1, 1, 200, 1), (2, 2, 300, 0)],</span>
+<span class="sd">    ...     dtype=[(&#39;x&#39;, &#39;u2&#39;), (&#39;y&#39;, &#39;u2&#39;), (&#39;t&#39;, &#39;i8&#39;), (&#39;p&#39;, &#39;i1&#39;)]</span>
+<span class="sd">    ... )</span>
+<span class="sd">    &gt;&gt;&gt; normalize_ts(events)[&#39;t&#39;]</span>
+<span class="sd">    array([  0, 100, 200])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">apply_kernel</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">_normalize_ts_jit</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">start_ts</span><span class="p">))</span></div>
 
 </pre></div>
 

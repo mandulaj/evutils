@@ -750,6 +750,37 @@
 
 
 
+<div class="viewcode-block" id="TimeNormalize">
+<a class="viewcode-back" href="../../../autoapi/evutils/transforms/transforms/index.html#evutils.transforms.TimeNormalize">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TimeNormalize</span><span class="p">(</span><span class="n">Transform</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Shifts timestamps so the earliest event lands at ``start_ts``.</span>
+
+<span class="sd">    Stateless: each call normalizes the batch it is given on its own. For a</span>
+<span class="sd">    chunk-by-chunk stream use ``EventReader(normalize_ts=True)``, which latches</span>
+<span class="sd">    the offset from the first chunk across the whole stream; dropping this</span>
+<span class="sd">    transform into a ``Compose`` over sequential chunks would instead reset each</span>
+<span class="sd">    chunk to ``start_ts`` independently.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    start_ts : int, optional</span>
+<span class="sd">        Timestamp assigned to the earliest event. Default ``0``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_ts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_ts</span> <span class="o">=</span> <span class="n">start_ts</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_forward_jit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">evutils.transforms.functional</span><span class="w"> </span><span class="kn">import</span> <span class="n">_normalize_ts_jit</span>
+        <span class="k">return</span> <span class="n">_normalize_ts_jit</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start_ts</span><span class="p">))</span>
+
+<div class="viewcode-block" id="TimeNormalize.__repr__">
+<a class="viewcode-back" href="../../../autoapi/evutils/transforms/transforms/index.html#evutils.transforms.TimeNormalize.__repr__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(start_ts=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">start_ts</span><span class="si">}</span><span class="s2">)&quot;</span></div>
+</div>
+
+
+
 <div class="viewcode-block" id="TimeJitter">
 <a class="viewcode-back" href="../../../autoapi/evutils/transforms/transforms/index.html#evutils.transforms.TimeJitter">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">TimeJitter</span><span class="p">(</span><span class="n">Transform</span><span class="p">):</span>

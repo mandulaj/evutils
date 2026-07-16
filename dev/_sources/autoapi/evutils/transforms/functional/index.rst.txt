@@ -16,6 +16,7 @@ Functions
    evutils.transforms.functional.spatial_jitter
    evutils.transforms.functional.time_skew
    evutils.transforms.functional.time_jitter
+   evutils.transforms.functional.normalize_ts
    evutils.transforms.functional.refractory_period
 
 
@@ -137,6 +138,36 @@ Package Contents
 
    :returns: Jittered events, in their original container type.
    :rtype: np.ndarray or EventArray
+
+
+.. py:function:: normalize_ts(events, start_ts=0)
+
+   Shift timestamps so the earliest event lands at ``start_ts``.
+
+   Pure and stateless: each call normalizes the batch it is handed on its own.
+   For chunk-by-chunk streams use ``EventReader(normalize_ts=True)``, which
+   latches the offset from the first chunk and applies it across the whole
+   stream (so the timeline stays continuous instead of resetting per chunk).
+
+   :param events: Events to normalize.
+   :type events: np.ndarray or EventArray
+   :param start_ts: Timestamp assigned to the earliest event. Default ``0``.
+   :type start_ts: int, optional
+
+   :returns: Events with shifted timestamps, in their original container type. The
+             input is not modified.
+   :rtype: np.ndarray or EventArray
+
+   .. rubric:: Examples
+
+   >>> import numpy as np
+   >>> from evutils.transforms.functional import normalize_ts
+   >>> events = np.array(
+   ...     [(0, 0, 100, 1), (1, 1, 200, 1), (2, 2, 300, 0)],
+   ...     dtype=[('x', 'u2'), ('y', 'u2'), ('t', 'i8'), ('p', 'i1')]
+   ... )
+   >>> normalize_ts(events)['t']
+   array([  0, 100, 200])
 
 
 .. py:function:: refractory_period(events, delta)

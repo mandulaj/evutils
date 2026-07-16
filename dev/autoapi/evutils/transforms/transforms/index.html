@@ -584,10 +584,13 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#evutils.transforms.transforms.TimeSkew" title="evutils.transforms.transforms.TimeSkew"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TimeSkew</span></code></a></p></td>
 <td><p>Rescales timestamps by an affine map <code class="docutils literal notranslate"><span class="pre">t'</span> <span class="pre">=</span> <span class="pre">t</span> <span class="pre">*</span> <span class="pre">coefficient</span> <span class="pre">+</span> <span class="pre">offset</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#evutils.transforms.transforms.TimeJitter" title="evutils.transforms.transforms.TimeJitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TimeJitter</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#evutils.transforms.transforms.TimeNormalize" title="evutils.transforms.transforms.TimeNormalize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TimeNormalize</span></code></a></p></td>
+<td><p>Shifts timestamps so the earliest event lands at <code class="docutils literal notranslate"><span class="pre">start_ts</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#evutils.transforms.transforms.TimeJitter" title="evutils.transforms.transforms.TimeJitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TimeJitter</span></code></a></p></td>
 <td><p>Adds Gaussian noise to each timestamp.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#evutils.transforms.transforms.RefractoryPeriod" title="evutils.transforms.transforms.RefractoryPeriod"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RefractoryPeriod</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#evutils.transforms.transforms.RefractoryPeriod" title="evutils.transforms.transforms.RefractoryPeriod"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RefractoryPeriod</span></code></a></p></td>
 <td><p>Enforces a per-pixel refractory period.</p></td>
 </tr>
 </tbody>
@@ -831,6 +834,41 @@ uniformly per call.</p></li>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="evutils.transforms.transforms.TimeNormalize">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.transforms.transforms.</span></span><span class="sig-name descname"><span class="pre">TimeNormalize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_ts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/evutils/transforms/transforms.html#TimeNormalize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.transforms.transforms.TimeNormalize" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#evutils.transforms.transforms.Transform" title="evutils.transforms.transforms.Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transform</span></code></a></p>
+digraph inheritancecfb343cb7e {
+bgcolor=transparent;
+rankdir=LR;
+size=&quot;8.0, 12.0&quot;;
+  &quot;TimeNormalize&quot; [URL=&quot;#evutils.transforms.transforms.TimeNormalize&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Shifts timestamps so the earliest event lands at ``start_ts``.&quot;];
+  &quot;Transform&quot; -&gt; &quot;TimeNormalize&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
+  &quot;Transform&quot; [URL=&quot;#evutils.transforms.transforms.Transform&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Base class for all evutils transforms.&quot;];
+}
+<p>Shifts timestamps so the earliest event lands at <code class="docutils literal notranslate"><span class="pre">start_ts</span></code>.</p>
+<p>Stateless: each call normalizes the batch it is given on its own. For a
+chunk-by-chunk stream use <code class="docutils literal notranslate"><span class="pre">EventReader(normalize_ts=True)</span></code>, which latches
+the offset from the first chunk across the whole stream; dropping this
+transform into a <code class="docutils literal notranslate"><span class="pre">Compose</span></code> over sequential chunks would instead reset each
+chunk to <code class="docutils literal notranslate"><span class="pre">start_ts</span></code> independently.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>start_ts</strong> (<em>int</em><em>, </em><em>optional</em>) – Timestamp assigned to the earliest event. Default <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.transforms.transforms.TimeNormalize.start_ts">
+<span class="sig-name descname"><span class="pre">start_ts</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></span><a class="headerlink" href="#evutils.transforms.transforms.TimeNormalize.start_ts" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.transforms.transforms.TimeNormalize.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/evutils/transforms/transforms.html#TimeNormalize.__repr__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.transforms.transforms.TimeNormalize.__repr__" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="evutils.transforms.transforms.TimeJitter">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.transforms.transforms.</span></span><span class="sig-name descname"><span class="pre">TimeJitter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clip_negative</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort_timestamps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/evutils/transforms/transforms.html#TimeJitter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.transforms.transforms.TimeJitter" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#evutils.transforms.transforms.Transform" title="evutils.transforms.transforms.Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transform</span></code></a></p>
@@ -993,6 +1031,11 @@ uniformly per call. Events must be sorted by timestamp.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.transforms.TimeSkew.coefficient"><code class="docutils literal notranslate"><span class="pre">TimeSkew.coefficient</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.transforms.TimeSkew.offset"><code class="docutils literal notranslate"><span class="pre">TimeSkew.offset</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.transforms.TimeSkew.__repr__"><code class="docutils literal notranslate"><span class="pre">TimeSkew.__repr__()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.transforms.TimeNormalize"><code class="docutils literal notranslate"><span class="pre">TimeNormalize</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.transforms.TimeNormalize.start_ts"><code class="docutils literal notranslate"><span class="pre">TimeNormalize.start_ts</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.transforms.TimeNormalize.__repr__"><code class="docutils literal notranslate"><span class="pre">TimeNormalize.__repr__()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.transforms.TimeJitter"><code class="docutils literal notranslate"><span class="pre">TimeJitter</span></code></a><ul class="nav section-nav flex-column">

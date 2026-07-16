@@ -548,19 +548,17 @@
                   
   <section id="module-evutils.filtering">
 <span id="evutils-filtering"></span><h1><a class="reference internal" href="#module-evutils.filtering" title="evutils.filtering"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.filtering</span></code></a><a class="headerlink" href="#module-evutils.filtering" title="Link to this heading">#</a></h1>
-<p>Event stream filtering and cleanup.</p>
-<p>Operations that select, mask or normalize events: spatial masking and
-timestamp normalization. More filters (denoising, cropping, downsampling)
-will land here.</p>
+<p>Event stream filtering.</p>
+<p>Operations that select or drop events by spatial region or content: spatial
+masking today, with denoising, ROI and downsampling to follow. (Timestamp
+normalization is a time <em>transform</em>, not a filter – see
+<a class="reference internal" href="../transforms/index.html#module-evutils.transforms" title="evutils.transforms"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.transforms</span></code></a>.)</p>
 <section id="functions">
 <h2>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#evutils.filtering.mask_events" title="evutils.filtering.mask_events"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mask_events</span></code></a>(→ numpy.ndarray)</p></td>
 <td><p>Masks events based on a given mask.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#evutils.filtering.normalize_ts" title="evutils.filtering.normalize_ts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">normalize_ts</span></code></a>(→ numpy.ndarray)</p></td>
-<td><p>Normalizes the timestamps of events to start from zero.</p></td>
 </tr>
 </tbody>
 </table>
@@ -602,38 +600,6 @@ The mask should have the same shape as the event frame size.</p></li>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">masked_events</span> <span class="o">=</span> <span class="n">mask_events</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">masked_events</span><span class="p">[[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
 <span class="go">[(0, 0), (2, 2)]</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="evutils.filtering.normalize_ts">
-<span class="sig-prename descclassname"><span class="pre">evutils.filtering.</span></span><span class="sig-name descname"><span class="pre">normalize_ts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">events</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_ts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="reference internal" href="../../../_modules/evutils/filtering/_timestamp.html#normalize_ts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.filtering.normalize_ts" title="Link to this definition">#</a></dt>
-<dd><p>Normalizes the timestamps of events to start from zero.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>events</strong> (<em>np.ndarray</em>) – Array of events with a ‘t’ field representing timestamps.</p></li>
-<li><p><strong>start_ts</strong> (<em>int</em><em>, </em><em>optional</em>) – The timestamp to normalize from, by default 0.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Array of events with normalized timestamps.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>np.ndarray</p>
-</dd>
-</dl>
-<p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">evutils.filtering</span><span class="w"> </span><span class="kn">import</span> <span class="n">normalize_ts</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">events</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">0</span><span class="p">)],</span>
-<span class="gp">... </span>    <span class="n">dtype</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;u2&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;u2&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="s1">&#39;i8&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;p&#39;</span><span class="p">,</span> <span class="s1">&#39;i1&#39;</span><span class="p">)]</span>
-<span class="gp">... </span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">norm_events</span> <span class="o">=</span> <span class="n">normalize_ts</span><span class="p">(</span><span class="n">events</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">norm_events</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">]</span>
-<span class="go">array([  0, 100, 200])</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -691,7 +657,6 @@ The mask should have the same shape as the event frame size.</p></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#package-contents">Package Contents</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.filtering.mask_events"><code class="docutils literal notranslate"><span class="pre">mask_events()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.filtering.normalize_ts"><code class="docutils literal notranslate"><span class="pre">normalize_ts()</span></code></a></li>
 </ul>
 </li>
 </ul>

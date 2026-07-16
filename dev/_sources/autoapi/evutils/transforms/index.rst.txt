@@ -62,6 +62,7 @@ Classes
    evutils.transforms.RandomFlipLR
    evutils.transforms.SpatialJitter
    evutils.transforms.TimeSkew
+   evutils.transforms.TimeNormalize
    evutils.transforms.TimeJitter
    evutils.transforms.RefractoryPeriod
 
@@ -266,6 +267,34 @@ Package Contents
 
 
    .. py:attribute:: offset
+      :value: 0
+
+
+
+   .. py:method:: __repr__()
+
+
+.. py:class:: TimeNormalize(start_ts: int = 0)
+
+   Bases: :py:obj:`Transform`
+
+   .. autoapi-inheritance-diagram:: evutils.transforms.TimeNormalize
+      :parts: 1
+
+
+   Shifts timestamps so the earliest event lands at ``start_ts``.
+
+   Stateless: each call normalizes the batch it is given on its own. For a
+   chunk-by-chunk stream use ``EventReader(normalize_ts=True)``, which latches
+   the offset from the first chunk across the whole stream; dropping this
+   transform into a ``Compose`` over sequential chunks would instead reset each
+   chunk to ``start_ts`` independently.
+
+   :param start_ts: Timestamp assigned to the earliest event. Default ``0``.
+   :type start_ts: int, optional
+
+
+   .. py:attribute:: start_ts
       :value: 0
 
 
