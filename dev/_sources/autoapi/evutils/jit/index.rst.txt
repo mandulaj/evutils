@@ -1,0 +1,55 @@
+:py:mod:`evutils.jit`
+=====================
+
+.. py:module:: evutils.jit
+
+.. autoapi-nested-parse::
+
+   Lazy numba compilation helper.
+
+   Importing numba costs several hundred milliseconds, which would be paid by
+   ``import evutils.io`` even when no numba-accelerated code path is ever used
+   (e.g. pure reading through the C parsers). :func:`lazy_njit` defers both the
+   numba import and the JIT compilation to the first call of the decorated
+   function.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   evutils.jit.F
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   evutils.jit.lazy_njit
+   evutils.jit.lazy_njit_unwrapped_events
+
+
+Module Contents
+---------------
+
+.. py:data:: F
+
+.. py:function:: lazy_njit(fn: F) -> F
+
+   ``numba.njit``, but imported and compiled on first call.
+
+   The wrapped function behaves like the ``@nb.njit``-decorated original;
+   only the timing of the numba import/compilation differs. The per-call
+   overhead after the first call is a single ``is None`` check.
+
+
+.. py:function:: lazy_njit_unwrapped_events(fn: F) -> F
+
+   Decorator that unwraps SoA or AoS events into constituent arrays,
+   then calls a lazily compiled numba function. Numba handles the
+   specialization for strided vs contiguous memory.
+
+

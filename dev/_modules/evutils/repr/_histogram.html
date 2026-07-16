@@ -487,15 +487,26 @@
   <h1>Source code for evutils.repr._histogram</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;Module for generating histogram-based representations from events.&quot;&quot;&quot;</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">numba</span> 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..jit</span><span class="w"> </span><span class="kn">import</span> <span class="n">lazy_njit_unwrapped_events</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..types</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventArray</span>
 
+<span class="nd">@lazy_njit_unwrapped_events</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_histogram_jit</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">buffer</span><span class="p">,</span> <span class="n">clip</span><span class="p">):</span>
+    <span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">buffer</span><span class="o">.</span><span class="n">shape</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">)):</span>
+        <span class="n">xi</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">yi</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">pi</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">xi</span> <span class="o">&lt;</span> <span class="n">width</span> <span class="ow">and</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">yi</span> <span class="o">&lt;</span> <span class="n">height</span><span class="p">:</span>
+            <span class="n">pi_mapped</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">pi</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="mi">2</span>
+            <span class="k">if</span> <span class="n">buffer</span><span class="p">[</span><span class="n">yi</span><span class="p">,</span> <span class="n">xi</span><span class="p">,</span> <span class="n">pi_mapped</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">clip</span><span class="p">:</span>
+                <span class="n">buffer</span><span class="p">[</span><span class="n">yi</span><span class="p">,</span> <span class="n">xi</span><span class="p">,</span> <span class="n">pi_mapped</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
 
 <div class="viewcode-block" id="histogram">
 <a class="viewcode-back" href="../../../autoapi/evutils/repr/index.html#evutils.repr.histogram">[docs]</a>
-<span class="nd">@numba</span><span class="o">.</span><span class="n">njit</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">histogram</span><span class="p">(</span><span class="n">events</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1280</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">720</span><span class="p">,</span> <span class="n">fill</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">dtype</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">histogram</span><span class="p">(</span><span class="n">events</span><span class="p">:</span> <span class="s1">&#39;np.ndarray | EventArray&#39;</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1280</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">720</span><span class="p">,</span> <span class="n">fill</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">dtype</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate a histogram frame from the events.</span>
 
 <span class="sd">    Parameters</span>
@@ -527,42 +538,37 @@
 <span class="sd">    (100, 100, 3)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">buffer</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">events</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">buffer</span>
 
-    <span class="n">clip</span> <span class="o">=</span> <span class="mi">255</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">clip</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">iinfo</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">max</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="n">clip</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">max</span>
 
-    <span class="c1"># clip = 255 if dtype == np.uint8 else 65535</span>
+    <span class="n">_histogram_jit</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">buffer</span><span class="p">,</span> <span class="n">clip</span><span class="p">)</span>
 
-    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">events</span><span class="p">:</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">e</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span>
-        <span class="n">y</span> <span class="o">=</span> <span class="n">e</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span>
-        <span class="n">p</span> <span class="o">=</span> <span class="n">e</span><span class="p">[</span><span class="s1">&#39;p&#39;</span><span class="p">]</span>
-
-        <span class="k">if</span> <span class="n">p</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">p</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># Red</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">p</span> <span class="o">=</span> <span class="mi">2</span> <span class="c1"># Blue</span>
-        
-
-
-        <span class="k">if</span> <span class="n">buffer</span><span class="p">[</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">clip</span><span class="p">:</span>
-            <span class="n">buffer</span><span class="p">[</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
-
-    <span class="c1"># If the fill flag is set, we fill the non-zero values with 255</span>
     <span class="k">if</span> <span class="n">fill</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">width</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">height</span><span class="p">):</span>
-                <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
-                    <span class="k">if</span> <span class="n">buffer</span><span class="p">[</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">c</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                        <span class="n">buffer</span><span class="p">[</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="mi">255</span>
+        <span class="n">buffer</span><span class="p">[</span><span class="n">buffer</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">255</span>
 
     <span class="k">return</span> <span class="n">buffer</span></div>
 
 
 
+<span class="nd">@lazy_njit_unwrapped_events</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_wedge_histogram_jit</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">buffer</span><span class="p">):</span>
+    <span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">buffer</span><span class="o">.</span><span class="n">shape</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">)):</span>
+        <span class="n">xi</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">yi</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">pi</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">xi</span> <span class="o">&lt;</span> <span class="n">width</span> <span class="ow">and</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">yi</span> <span class="o">&lt;</span> <span class="n">height</span><span class="p">:</span>
+            <span class="n">pi_mapped</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">pi</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="mi">2</span>
+            <span class="n">buffer</span><span class="p">[</span><span class="n">yi</span><span class="p">,</span> <span class="n">xi</span><span class="p">,</span> <span class="n">pi_mapped</span><span class="p">]</span> <span class="o">=</span> <span class="mi">255</span>
+
 <div class="viewcode-block" id="wedge_histogram">
 <a class="viewcode-back" href="../../../autoapi/evutils/repr/index.html#evutils.repr.wedge_histogram">[docs]</a>
-<span class="nd">@numba</span><span class="o">.</span><span class="n">njit</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">wedge_histogram</span><span class="p">(</span><span class="n">events</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1280</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">720</span><span class="p">,</span> <span class="n">tl</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">30e6</span><span class="p">,</span> <span class="n">dtype</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>   
+<span class="k">def</span><span class="w"> </span><span class="nf">wedge_histogram</span><span class="p">(</span><span class="n">events</span><span class="p">:</span> <span class="s1">&#39;np.ndarray | EventArray&#39;</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1280</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">720</span><span class="p">,</span> <span class="n">tl</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">30e6</span><span class="p">,</span> <span class="n">dtype</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>   
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate a wedge histogram frame from the events.</span>
 
 <span class="sd">    Parameters</span>
@@ -594,30 +600,15 @@
 <span class="sd">    (100, 100, 3)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">buffer</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">events</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">buffer</span>
 
     <span class="n">ts_norm</span> <span class="o">=</span> <span class="p">(</span><span class="n">events</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">events</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="n">tl</span>
-
-    <span class="c1"># print(len(ev))</span>
-
-    <span class="n">sel</span> <span class="o">=</span> <span class="p">(</span><span class="n">height</span><span class="o">-</span><span class="n">events</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">])</span><span class="o">/</span><span class="n">height</span> <span class="o">&gt;</span> <span class="n">ts_norm</span> <span class="o">-</span> <span class="mf">0.1</span>
+    <span class="n">sel</span> <span class="o">=</span> <span class="p">(</span><span class="n">height</span> <span class="o">-</span> <span class="n">events</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">])</span><span class="o">/</span><span class="n">height</span> <span class="o">&gt;</span> <span class="n">ts_norm</span> <span class="o">-</span> <span class="mf">0.1</span>
     <span class="n">ev_sel</span> <span class="o">=</span> <span class="n">events</span><span class="p">[</span><span class="n">sel</span><span class="p">]</span>
-    <span class="c1"># print(len(ev_sel))</span>
-    <span class="c1"># print((720-ev[&#39;y&#39;])/720, ts_norm, sel)</span>
 
-
-    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">ev_sel</span><span class="p">:</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">e</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span>
-        <span class="n">y</span> <span class="o">=</span> <span class="n">e</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span>
-        <span class="n">p</span> <span class="o">=</span> <span class="n">e</span><span class="p">[</span><span class="s1">&#39;p&#39;</span><span class="p">]</span>
-
-
-        <span class="k">if</span> <span class="n">p</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">p</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">p</span> <span class="o">=</span> <span class="mi">2</span>
-        
-        <span class="k">if</span> <span class="n">buffer</span><span class="p">[</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">128</span><span class="p">:</span>
-            <span class="n">buffer</span><span class="p">[</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">255</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ev_sel</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">_wedge_histogram_jit</span><span class="p">(</span><span class="n">ev_sel</span><span class="p">,</span> <span class="n">buffer</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">buffer</span></div>
 

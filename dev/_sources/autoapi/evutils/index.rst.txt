@@ -33,6 +33,7 @@ Submodules
    /autoapi/evutils/chunking/index
    /autoapi/evutils/dataset/index
    /autoapi/evutils/io/index
+   /autoapi/evutils/jit/index
    /autoapi/evutils/processing/index
    /autoapi/evutils/random/index
    /autoapi/evutils/repr/index
@@ -53,6 +54,8 @@ Submodules
      - Dataset loading and management.
    * - :py:mod:`io <evutils.io>`
      - Reading and writing events in various file formats.
+   * - :py:mod:`jit <evutils.jit>`
+     - Lazy numba compilation helper.
    * - :py:mod:`processing <evutils.processing>`
      - Event stream processing and filtering.
    * - :py:mod:`random <evutils.random>`
