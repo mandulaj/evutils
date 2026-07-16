@@ -115,9 +115,24 @@ events = ev_file.read()
 
 ```
 
-#### `utils`
+#### `dense`
 
-Various utility functions
+Dense representations — turn a sparse event stream into fixed-size per-pixel
+tensors: histograms, voxel grids, time surfaces, accumulation frames and TORE.
+(A future `sparse` module will hold event graphs, sparse tensors and point
+clouds.)
+
+#### `filtering`
+
+Selecting and dropping events: spatial masking today, with denoising, ROI and
+downsampling to follow.
+
+#### `transforms`
+
+torchvision/tonic-style augmentation transforms (drops, spatial flips, jitter,
+time skew/normalize, refractory filtering). Each composable `Transform` class
+pairs with a pure `functional` kernel, and `Compose` chains them with minimal
+unwrap/repack overhead.
 
 #### `random`
 
