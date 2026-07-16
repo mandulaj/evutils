@@ -112,7 +112,9 @@ parser_result_t EVT3_parse_chunk_soa(
 
     // Event output buffers
     const size_t events_capacity = event_buffer->capacity;
-    const size_t events_capacity_offset = events_capacity - 64; // We need to keep some space for vector messages
+    // Keep space for one full vector group; guard the size_t subtraction
+    // against tiny buffers (capacity <= 64 would wrap to a huge offset).
+    const size_t events_capacity_offset = events_capacity > 64 ? events_capacity - 64 : 0;
     size_t n_events_read = event_buffer->size;
 
     timestamp_t* restrict out_ts = event_buffer->t;
@@ -256,7 +258,7 @@ parser_result_t EVT3_parse_delta_t_soa(
     const uint16_t * end_offset = input_buffer->end - EVT3_INPUT_PADDING;
 
     const size_t events_capacity = event_buffer->capacity;
-    const size_t events_capacity_offset = events_capacity - 64;
+    const size_t events_capacity_offset = events_capacity > 64 ? events_capacity - 64 : 0;
     size_t n_events_read = event_buffer->size;
 
     timestamp_t* restrict out_ts = event_buffer->t;
