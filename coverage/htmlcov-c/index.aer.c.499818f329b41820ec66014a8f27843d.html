@@ -44,7 +44,7 @@
       <tr>
         <th scope="row">Lines:</th>
         <td class="coverage-high">100.0%</td>
-        <td class="coverage-high">37 / 0 / 37</td>
+        <td class="coverage-high">38 / 0 / 38</td>
       </tr>
       <tr>
         <th scope="row">Functions:</th>
@@ -96,7 +96,7 @@
   <div class="Box-header d-flex flex-space-between sticky">
     aer.c
     <div class="toggle-buttons">
-      <button type="button" class="button_toggle_coveredLine show_coveredLine" value="coveredLine" title="Toggle covered lines">37 covered</button>
+      <button type="button" class="button_toggle_coveredLine show_coveredLine" value="coveredLine" title="Toggle covered lines">38 covered</button>
       <button type="button" class="button_toggle_uncoveredLine show_uncoveredLine" value="uncoveredLine" title="Toggle uncovered lines">0 uncovered</button>
       <button type="button" class="button_toggle_partialCoveredLine show_partialCoveredLine" value="partialCoveredLine" title="Toggle partial covered lines">0 partial covered</button>
       <button type="button" class="button_toggle_excludedLine show_excludedLine" value="excludedLine" title="Toggle excluded lines">0 excluded</button>
@@ -589,24 +589,31 @@
         <td class="linebranch">
         </td>
         <td class="linecount"></td>
-        <td class="src "><span class="w">        </span><span class="p">.</span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">EVUTILS_PARSE_OK</span></td>
+        <td class="src "><span class="w">        </span><span class="cm">/* Report why parsing stopped: output space exhausted vs input drained. */</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l69" href="#l69">69</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount"></td>
-        <td class="src "><span class="w">    </span><span class="p">};</span></td>
+        <td class="linecount coveredLine show_coveredLine">54</td>
+        <td class="src  coveredLine show_coveredLine"><span class="w">        </span><span class="p">.</span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="n">capacity</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="n">EVUTILS_PARSE_OUTPUT_FULL</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">EVUTILS_PARSE_OK</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l70" href="#l70">70</a></td>
         <td class="linebranch">
         </td>
         <td class="linecount"></td>
-        <td class="src "><span class="p">}</span></td>
+        <td class="src "><span class="w">    </span><span class="p">};</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l71" href="#l71">71</a></td>
+        <td class="linebranch">
+        </td>
+        <td class="linecount"></td>
+        <td class="src "><span class="p">}</span></td>
+      </tr>
+      <tr class="source-line">
+        <td class="lineno"><a id="l72" href="#l72">72</a></td>
         <td class="linebranch">
         </td>
         <td class="linecount"></td>
@@ -619,7 +626,7 @@
         <hr class="block-separator"/>
         <footer class="text-center">
           Created using <a href="http://gcovr.com/en/8.6">GCOVR (Version 8.6)</a>
-          at 2026-07-16 12:39:57
+          at 2026-07-16 14:29:38
         </footer>
       </div>
     </div>
