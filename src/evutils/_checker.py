@@ -1,8 +1,7 @@
 """Module providing utilities to check the validity of event arrays."""
 
 import numpy as np
-from typing import Any
-
+from .types import EventArray
 
 class EventsChecker():
     """Class to check if events are valid.
@@ -14,7 +13,7 @@ class EventsChecker():
 
     """
     
-    def __init__(self, events: 'np.ndarray | Any'):
+    def __init__(self, events: 'np.ndarray | EventArray'):
         from .types import Event_dtype, SoaArray
         if isinstance(events, SoaArray):
             if events._aos_dtype != Event_dtype:

@@ -7,7 +7,6 @@ from evutils.types import SoaArray
 
 from .functional._common import sample_range
 
-
 class Transform:
     """Base class for all evutils transforms.
 
@@ -70,7 +69,6 @@ class Transform:
         """
         return target
 
-
 class DropEvent(Transform):
     """Randomly drops each event with probability ``p``.
 
@@ -100,10 +98,8 @@ class DropEvent(Transform):
     def __repr__(self):
         return f"{self.__class__.__name__}(p={self.p})"
 
-
 # Backwards-compatible alias for the pre-rename class name.
 DropRandomEvents = DropEvent
-
 
 class DropEventByTime(Transform):
     """Drops every event inside one randomly-placed time window.
@@ -126,7 +122,6 @@ class DropEventByTime(Transform):
 
     def __repr__(self):
         return f"{self.__class__.__name__}(duration_ratio={self.duration_ratio})"
-
 
 class RandomFlipLR(Transform):
     """Flips events horizontally (``x' = width - 1 - x``) with probability ``p``.
@@ -154,7 +149,6 @@ class RandomFlipLR(Transform):
 
     def __repr__(self):
         return f"{self.__class__.__name__}(sensor_size={self.sensor_size}, p={self.p})"
-
 
 class SpatialJitter(Transform):
     """Adds correlated Gaussian noise to event coordinates.
@@ -197,7 +191,6 @@ class SpatialJitter(Transform):
                 f"var_x={self.var_x}, var_y={self.var_y}, sigma_xy={self.sigma_xy}, "
                 f"clip_outliers={self.clip_outliers})")
 
-
 class TimeSkew(Transform):
     """Rescales timestamps by an affine map ``t' = t * coefficient + offset``.
 
@@ -223,7 +216,6 @@ class TimeSkew(Transform):
     def __repr__(self):
         return f"{self.__class__.__name__}(coefficient={self.coefficient}, offset={self.offset})"
 
-
 class TimeNormalize(Transform):
     """Shifts timestamps so the earliest event lands at ``start_ts``.
 
@@ -247,7 +239,6 @@ class TimeNormalize(Transform):
 
     def __repr__(self):
         return f"{self.__class__.__name__}(start_ts={self.start_ts})"
-
 
 class TimeJitter(Transform):
     """Adds Gaussian noise to each timestamp.
@@ -275,7 +266,6 @@ class TimeJitter(Transform):
     def __repr__(self):
         return (f"{self.__class__.__name__}(std={self.std}, "
                 f"clip_negative={self.clip_negative}, sort_timestamps={self.sort_timestamps})")
-
 
 class RefractoryPeriod(Transform):
     """Enforces a per-pixel refractory period.

@@ -1,7 +1,7 @@
 """Module for generating frame-based representations from events."""
 
 import numpy as np
-from typing import Any
+from evutils.types import EventArray
 from ..jit import lazy_njit_unwrapped_events
 from ..types import EventArray
 
@@ -18,7 +18,7 @@ def _frame_gray_jit(t, x, y, p, buffer):
             else:
                 buffer[yi, xi] = 0
 
-def frame_gray(events: 'np.ndarray | EventArray', width: int = 1280, height: int = 720, dtype: Any = np.uint8) -> np.ndarray:
+def frame_gray(events: 'np.ndarray | EventArray', width: int = 1280, height: int = 720, dtype: np.dtype | type = np.uint8) -> np.ndarray:
     """Generate a grayscale frame from the events.
 
     Parameters
@@ -52,7 +52,6 @@ def frame_gray(events: 'np.ndarray | EventArray', width: int = 1280, height: int
         _frame_gray_jit(events, buffer)
     return buffer
 
-
 @lazy_njit_unwrapped_events
 def _frame_rgb_jit(t, x, y, p, buffer, pos_color, neg_color):
     height, width, _ = buffer.shape
@@ -70,7 +69,7 @@ def _frame_rgb_jit(t, x, y, p, buffer, pos_color, neg_color):
                 buffer[yi, xi, 1] = neg_color[1]
                 buffer[yi, xi, 2] = neg_color[2]
 
-def frame_rgb(ev: 'np.ndarray | EventArray', width: int = 1280, height: int = 720, bg_color: Any = None, pos_color: Any = None, neg_color: Any = None) -> np.ndarray:
+def frame_rgb(ev: 'np.ndarray | EventArray', width: int = 1280, height: int = 720, bg_color: tuple[int, int, int] | None = None, pos_color: tuple[int, int, int] | None = None, neg_color: tuple[int, int, int] | None = None) -> np.ndarray:
     """Generate an RGB frame from the events.
 
     Parameters
@@ -115,7 +114,6 @@ def frame_rgb(ev: 'np.ndarray | EventArray', width: int = 1280, height: int = 72
 
     return buffer
 
-
 @lazy_njit_unwrapped_events
 def _frame_diff_jit(t, x, y, p, buffer):
     height, width = buffer.shape
@@ -129,7 +127,7 @@ def _frame_diff_jit(t, x, y, p, buffer):
             else:
                 buffer[yi, xi] -= 1
 
-def frame_diff(ev: 'np.ndarray | EventArray', width: int = 1280, height: int = 720, dtype: Any = np.int8) -> np.ndarray:
+def frame_diff(ev: 'np.ndarray | EventArray', width: int = 1280, height: int = 720, dtype: np.dtype | type = np.int8) -> np.ndarray:
     """Generate a differential frame from the events.
 
     Parameters

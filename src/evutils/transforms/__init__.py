@@ -10,7 +10,6 @@ composable :class:`Transform` class. :class:`Compose` unwraps/rewraps events
 only once around each contiguous block of JIT transforms.
 """
 
-
 from .compose import Compose
 from .transforms import (
     Transform,

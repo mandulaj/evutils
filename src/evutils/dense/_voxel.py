@@ -4,14 +4,12 @@
 from ._histogram import histogram
 from ..chunking import window_delta_t
 
-
 import numpy as np
 
-
-from typing import Any
+from evutils.types import EventArray
 from ..types import EventArray
 
-def voxel_histogram(events: 'np.ndarray | EventArray', width: int = 1280, height: int = 720, n_bins: int = 10, dt: int = 10_000, dtype: Any = np.uint8) -> np.ndarray:
+def voxel_histogram(events: 'np.ndarray | EventArray', width: int = 1280, height: int = 720, n_bins: int = 10, dt: int = 10_000, dtype: np.dtype | type = np.uint8) -> np.ndarray:
     """Generate a voxel grid from the events.
 
     Parameters
@@ -46,7 +44,6 @@ def voxel_histogram(events: 'np.ndarray | EventArray', width: int = 1280, height
     """
     buffer = np.zeros((n_bins, height, width, 3), dtype=dtype)
 
-
     if len(events) <= 2:
         return buffer
 
@@ -62,7 +59,5 @@ def voxel_histogram(events: 'np.ndarray | EventArray', width: int = 1280, height
 
         # Only keep the r and b channels
         buffer[i] = hist
-
-
 
     return buffer

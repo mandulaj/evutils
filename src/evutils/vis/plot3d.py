@@ -9,11 +9,9 @@ import cv2
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-
 from typing import Union, Optional
 from matplotlib.colors import Colormap
 from matplotlib.figure import Figure
-
 
 def plot_3d(events: np.ndarray, 
             width: int =1280, 
@@ -85,7 +83,6 @@ def plot_3d(events: np.ndarray,
 
     return fig, ax
 
-
 def plot_3d_histogram(histogram: np.ndarray,
                       down_sample: int = 4,
                       fig: Optional[Figure] = None,
@@ -137,8 +134,6 @@ def plot_3d_histogram(histogram: np.ndarray,
         # Set the A channel to 0 where the pixel is black
         image[:, :, 3] = np.where(np.all(image[:, :, :3] == 0, axis=-1), 0, 255)
 
-
-
         z = np.full(x.shape, bin)
 
         # Plot the surface
@@ -156,9 +151,6 @@ def plot_3d_histogram(histogram: np.ndarray,
     ax.set_box_aspect([width, height, max(width, height)])  # Aspect ratio
 
     return fig, ax
-
-
-
 
 def plot_3d_timesurface(events: np.ndarray, 
             width: int =1280, 

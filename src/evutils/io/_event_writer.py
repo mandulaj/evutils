@@ -6,12 +6,10 @@ Provides the `EventWriter` class for writing event data to various file formats.
 import io
 from datetime import datetime
 from pathlib import Path
-from typing import Any
 
 import numpy as np
 
 from . import encoders as ev_encoders
-
 
 class EventWriter():
     """Base class for writing events to different file formats.
@@ -37,7 +35,6 @@ class EventWriter():
     **kwargs
         Additional arguments for the file encoder
 
-
     Examples
     --------
     >>> import numpy as np
@@ -55,7 +52,7 @@ class EventWriter():
 
     """
 
-    def __init__(self, file: Path | str | io.BufferedIOBase, width:int|None=None, height:int|None=None, dt: datetime|None = None,  file_encoder: ev_encoders.EventEncoder | None = None, mode: str = 'w+b', **kwargs: Any):
+    def __init__(self, file: Path | str | io.BufferedIOBase, width:int|None=None, height:int|None=None, dt: datetime|None = None,  file_encoder: ev_encoders.EventEncoder | None = None, mode: str = 'w+b', **kwargs):
         self._mode = mode
         self._file_name: Path | None = None
 
@@ -91,7 +88,7 @@ class EventWriter():
         self._warned_triggers = False  # warn once about unsupported triggers
         self._dt = dt if dt is not None else datetime.now()
 
-    def _ensure_encoder(self, events: Any = None) -> None:
+    def _ensure_encoder(self, events: "EventArray | None" = None) -> None:
         """Build the file encoder if it hasn't been resolved yet.
 
         Dimensions are resolved in priority order: explicit ``width``/``height``
@@ -222,5 +219,5 @@ class EventWriter():
         self._file_encoder.close()
         self._file.close()
 
-    def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
+    def __exit__(self, exc_type: "type[BaseException] | None", exc_value: "BaseException | None", traceback: "types.TracebackType | None") -> None:
         self.close()

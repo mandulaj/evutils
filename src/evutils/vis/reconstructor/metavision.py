@@ -7,7 +7,6 @@ if torch:
     F = torch.nn.functional
 else:
     F = None
-from typing import Any
 
 from ._base import Reconstructor
 
@@ -32,7 +31,7 @@ try:
 
         """
 
-        def __init__(self, height: int, width: int, args: Any = None) -> None:
+        def __init__(self, height: int, width: int, args: "dict | None" = None) -> None:
             super().__init__(height, width, args if args is not None else {})
 
             self.model = EventToVideoLightningModel.load_from_checkpoint("models/e2v.ckpt")
@@ -58,7 +57,6 @@ try:
             if len(e) == 0:
                 return np.zeros((self.height, self.width), dtype=np.uint8)
 
-
             events_th = event_cd_to_torch(e).to(self.device)
             start_times = torch.FloatTensor([e['t'][0]]).view(1,).to(self.device)
 
@@ -67,7 +65,6 @@ try:
             tensor_th = F.interpolate(tensor_th, size=(self.height, self.width),
                                         mode='bilinear', align_corners=True)
             tensor_th = tensor_th.view(1, 1, nbins, self.height, self.width)
-
 
             state = self.model.model(tensor_th)
             gray = self.model.model.predict_gray(state).view(1, 1, self.height, self.width)
@@ -90,9 +87,8 @@ except ImportError:
 
         """
 
-        def __init__(self, height: int, width: int, args: Any = None) -> None:
+        def __init__(self, height: int, width: int, args: "dict | None" = None) -> None:
             raise ImportError("Please install metavision_core_ml to use this class")
         
     
-
 

@@ -7,13 +7,9 @@ To get started::
     import evutils
     ...
 
-
-
 Notes
 -----
 Anything worth calling out up front.
-
-
 
 """
 

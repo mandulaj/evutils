@@ -22,13 +22,12 @@ from __future__ import annotations
 
 import queue
 import threading
-from typing import Any, Callable, Iterator
+from typing import Callable, Iterator
 
 #: How many finished windows may be buffered ahead of the consumer. Depth 2 is
 #: enough to decouple producer and consumer; larger values only cost memory
 #: (depth x window size).
 DEFAULT_DEPTH = 2
-
 
 class PrefetchIterator:
     """Iterate a chunk source through a bounded queue filled by a worker thread.
@@ -54,14 +53,14 @@ class PrefetchIterator:
 
     """
 
-    _SENTINEL: Any = object()
+    _SENTINEL: object = object()
 
-    def __init__(self, source: Iterator[Any], depth: int = DEFAULT_DEPTH,
+    def __init__(self, source: "Iterator[EventArray]", depth: int = DEFAULT_DEPTH,
                  on_finish: Callable[[], None] | None = None):
         if depth < 1:
             raise ValueError("prefetch depth must be >= 1")
         self._source = source
-        self._queue: queue.Queue[Any] = queue.Queue(maxsize=depth)
+        self._queue: "queue.Queue[EventArray]" = queue.Queue(maxsize=depth)
         self._stop = threading.Event()
         self._exc: BaseException | None = None
         self._finished = False
@@ -74,7 +73,7 @@ class PrefetchIterator:
     # ------------------------------------------------------------------ #
     # Worker side
     # ------------------------------------------------------------------ #
-    def _put(self, item: Any) -> bool:
+    def _put(self, item: "EventArray") -> bool:
         """Blocking put that stays responsive to :meth:`close`.
 
         Returns False when cancelled. The end-of-stream sentinel must go
@@ -108,7 +107,7 @@ class PrefetchIterator:
     def __iter__(self) -> "PrefetchIterator":
         return self
 
-    def __next__(self) -> Any:
+    def __next__(self) -> "EventArray":
         if self._finished:
             raise StopIteration
         item = self._queue.get()
@@ -143,5 +142,5 @@ class PrefetchIterator:
     def __enter__(self) -> "PrefetchIterator":
         return self
 
-    def __exit__(self, *exc: Any) -> None:
+    def __exit__(self, *exc: object) -> None:
         self.close()

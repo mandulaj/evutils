@@ -4,7 +4,6 @@ from evutils.jit import lazy_njit
 
 from ._common import apply_kernel
 
-
 @lazy_njit
 def _refractory_period_jit(t, x, y, p, delta: int):
     """Discard events that fire within ``delta`` of the previous event at the same pixel.
@@ -29,7 +28,6 @@ def _refractory_period_jit(t, x, y, p, delta: int):
         last[xi, yi] = t[i]
 
     return t[keep], x[keep], y[keep], p[keep]
-
 
 def refractory_period(events, delta):
     """Enforce a per-pixel refractory period.

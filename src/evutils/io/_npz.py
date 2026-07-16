@@ -22,7 +22,7 @@ import io
 import tempfile
 import zipfile
 from datetime import datetime
-from typing import IO, Any
+from typing import IO
 
 import numpy as np
 from numpy.lib import format as npy_format
@@ -36,7 +36,6 @@ _EMPTY_EVENTS = EventArray.empty()
 #: Column name -> on-disk dtype (matches EventArray's column dtypes).
 _COLUMNS = (("t", np.dtype(np.int64)), ("x", np.dtype(np.uint16)),
             ("y", np.dtype(np.uint16)), ("p", np.dtype(np.uint8)))
-
 
 def _read_npy_header(fp: IO[bytes]) -> tuple[tuple[int, ...], np.dtype]:
     """Read the ``.npy`` magic + header from a stream, returning (shape, dtype).
@@ -56,7 +55,6 @@ def _read_npy_header(fp: IO[bytes]) -> tuple[tuple[int, ...], np.dtype]:
         raise ValueError("Fortran-ordered .npy members are not supported")
     return shape, dtype
 
-
 def _read_exact(fp: IO[bytes], nbytes: int) -> bytearray:
     """Read exactly ``nbytes`` from a (possibly decompressing) stream.
 
@@ -71,7 +69,6 @@ def _read_exact(fp: IO[bytes], nbytes: int) -> bytearray:
             raise EOFError(f"truncated .npy member: expected {nbytes} bytes, got {got}")
         got += n
     return out
-
 
 class EventDecoder_Npz(EventDecoder):
     """Decode events from an ``.npz`` archive, streaming chunk by chunk.
@@ -144,7 +141,7 @@ class EventDecoder_Npz(EventDecoder):
         if self._is_initialized:
             return
 
-        f: Any = self._source if self._source.seekable() else io.BytesIO(self._source.read(-1))
+        f: "io.BytesIO | io.BufferedIOBase" = self._source if self._source.seekable() else io.BytesIO(self._source.read(-1))
         self._zf = zipfile.ZipFile(f)
 
         names = set(self._zf.namelist())
@@ -206,7 +203,6 @@ class EventDecoder_Npz(EventDecoder):
         if self._zf is not None:
             self._zf.close()
             self._zf = None
-
 
 class EventEncoder_Npz(EventEncoder):
     """Encode events into an ``.npz`` archive with bounded memory.

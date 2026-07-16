@@ -4,10 +4,8 @@ from evutils.torch import _try_import_torch
 torch = _try_import_torch()
     
 
-
 import numpy as np
 import os
-
 
 from .rpg_e2vid.utils.loading_utils import load_model as rpg_load_model
 from .rpg_e2vid.image_reconstructor import ImageReconstructor
@@ -15,9 +13,8 @@ from .rpg_e2vid.options.inference_options import set_inference_options as rpg_se
 from .rpg_e2vid.utils.inference_utils import events_to_voxel_grid, events_to_voxel_grid_pytorch
 from .rpg_e2vid.utils.inference_utils import CropParameters, EventPreprocessor, IntensityRescaler, ImageFilter, ImageDisplay, ImageWriter, UnsharpMaskFilter
 
-
 from types import SimpleNamespace
-from typing import Any, Dict
+from typing import Dict, Any
 from ._base import Reconstructor
 
 def set_inference_options(params: Any) -> None:
@@ -35,10 +32,6 @@ def set_inference_options(params: Any) -> None:
     """
     rpg_set_inference_options(params)
 
-
-
-
-
 class RPG_Reconstructor(Reconstructor):
     """Reconstructor using the E2VID model from RPG.
 
@@ -51,14 +44,13 @@ class RPG_Reconstructor(Reconstructor):
     args : dict, optional
         Additional arguments for the RPG E2Vid reconstructor, by default {}
 
-
     References
     ----------
     [1] High Speed and High Dynamic Range Video with an Event Camera https://github.com/uzh-rpg/rpg_e2vid
 
     """
 
-    DEFAULT_ARGS: Dict[str, Any] = {
+    DEFAULT_ARGS: "dict[str, float | str | int]" = {
         'no_recurrent': False,
         'no_normalize': False,
         'color': False,
@@ -85,10 +77,9 @@ class RPG_Reconstructor(Reconstructor):
         "model_url": "http://rpg.ifi.uzh.ch/data/E2VID/models/E2VID.pth.tar"
     }
 
-    def __init__(self, height: int, width: int, args: Any = None) -> None:
+    def __init__(self, height: int, width: int, args: "dict | None" = None) -> None:
         if args is None: args = {}
         args = {**RPG_Reconstructor.DEFAULT_ARGS, **args}
-
 
         super().__init__(height, width, args)
 
@@ -151,8 +142,7 @@ class RPG_Reconstructor(Reconstructor):
 
         print("Model downloaded successfully.")
 
-
-    def _update_reconstruction(self, event_tensor: Any) -> np.ndarray:
+    def _update_reconstruction(self, event_tensor: "torch.Tensor") -> np.ndarray:
         """Updates the reconstruction with a new event tensor.
 
         Parameters
@@ -179,7 +169,6 @@ class RPG_Reconstructor(Reconstructor):
             # Resize tensor to [1 x C x crop_size x crop_size] by applying zero padding
             events_for_each_channel = {'grayscale': self.crop.pad(events)}
             reconstructions_for_each_channel = {}
-
 
             # Reconstruct new intensity image for each channel (grayscale + RGBW if color reconstruction is enabled)
             for channel in events_for_each_channel.keys():
@@ -210,10 +199,7 @@ class RPG_Reconstructor(Reconstructor):
 
             # self.image_display(out, events)
 
-
             return np.asarray(out)
-
-
 
     def gen_frame(self, e: np.ndarray) -> np.ndarray:
         """Reconstructs a frame from the given events.
@@ -244,7 +230,6 @@ class RPG_Reconstructor(Reconstructor):
 
         
 
-
         if self.args['compute_voxel_grid_on_cpu']:
             event_tensor = events_to_voxel_grid(events,
                                                 num_bins=self.model.num_bins,
@@ -264,6 +249,4 @@ class RPG_Reconstructor(Reconstructor):
         # self.start_index += num_events_in_window
 
         return out
-
-
 

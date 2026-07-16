@@ -8,7 +8,6 @@ normalization is a time *transform*, not a filter -- see
 
 from ._masking import mask_events
 
-
 __all__ = [
     'mask_events',
 ]

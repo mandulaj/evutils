@@ -24,8 +24,6 @@ import io
 import mmap
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any
-
 
 class ByteSource(ABC):
     """Abstract raw-byte input. Knows nothing about events."""
@@ -138,9 +136,8 @@ class ByteSource(ABC):
     def __enter__(self) -> "ByteSource":
         return self
 
-    def __exit__(self, *exc: Any) -> None:
+    def __exit__(self, *exc: object) -> None:
         self.close()
-
 
 def _clamp_seek(pos: int, whence: int, cur: int, length: int) -> int:
     if whence == io.SEEK_SET:
@@ -153,7 +150,6 @@ def _clamp_seek(pos: int, whence: int, cur: int, length: int) -> int:
         raise ValueError(f"invalid whence {whence}")
     return max(0, min(new, length))
 
-
 class StreamSource(ByteSource):
     """Wrap any binary stream exposing ``read`` (BufferedReader, pipe, ...).
 
@@ -161,7 +157,7 @@ class StreamSource(ByteSource):
     read from it sequentially.
     """
 
-    def __init__(self, stream: Any, name: str | None = None, owns: bool = False) -> None:
+    def __init__(self, stream: "io.BufferedIOBase", name: str | None = None, owns: bool = False) -> None:
         if not hasattr(stream, "read"):
             raise TypeError("stream must have a read() method")
         self._s = stream
@@ -204,13 +200,12 @@ class StreamSource(ByteSource):
         if self._owns:
             self._s.close()
 
-
 class BufferSource(ByteSource):
     """Zero-copy source over an in-memory buffer (bytes / bytearray / memoryview
     / ``BytesIO.getbuffer()``).
     """
 
-    def __init__(self, data: Any, name: str | None = None) -> None:
+    def __init__(self, data: bytes, name: str | None = None) -> None:
         self._mv = memoryview(data).cast("B")  # 1-D uint8 view, no copy
         self.name = name
         self._pos = 0
@@ -240,7 +235,6 @@ class BufferSource(ByteSource):
 
     def tell(self) -> int:
         return self._pos
-
 
 class MmapSource(ByteSource):
     """Memory-mapped, read-only file source. Zero-copy: the whole file is
@@ -291,8 +285,7 @@ class MmapSource(ByteSource):
         self._mm.close()
         self._f.close()
 
-
-def make_source(inp: Any, *, mmap_files: bool = True) -> ByteSource:
+def make_source(inp: "Path | str | bytes | io.BufferedIOBase", *, mmap_files: bool = True) -> ByteSource:
     """Normalise ``inp`` into a :class:`ByteSource`.
 
     Accepts a path (str/Path), an in-memory buffer (bytes/bytearray/memoryview),

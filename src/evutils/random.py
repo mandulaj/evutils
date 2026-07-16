@@ -5,7 +5,6 @@ Create random event arrays for testing and benchmarking
 jitter to existing events (``event_jitter``, ``event_jitter_n``).
 """
 
-
 from typing import Generator
 from .types import Event_dtype
 import numpy as np 
@@ -34,7 +33,6 @@ def random_events(n_events: int, width: int = 1280, height: int = 720, start_ts:
 
     return events
 
-
 def random_events_generator(n_events: int, width: int = 1280, height: int = 720, start_ts: int = 0, end_ts: int = 10_000_000, chunk_size: int = 10000) -> Generator[np.ndarray, None, None]:
     """Generates n_events random events with x and y coordinates in the range [0, width) and [0, height) respectively.
 
@@ -59,8 +57,6 @@ def random_events_generator(n_events: int, width: int = 1280, height: int = 720,
 
     chunk_end_ts = start_ts + chunk_ts_len
 
-
-
     for chunk in range(n_chunks):
         if chunk >= n_chunks - 1:
             chunk_end_ts = end_ts
@@ -73,7 +69,6 @@ def random_events_generator(n_events: int, width: int = 1280, height: int = 720,
         chunk_end_ts += chunk_ts_len
 
         yield events
-
 
 def event_jitter_n(events: np.ndarray, mean: float = 0.0, std: float = 1.0, sort: bool = True, in_place: bool = False) -> np.ndarray:
     """Adds a random jitter to the timestamps of the events.
@@ -95,7 +90,6 @@ def event_jitter_n(events: np.ndarray, mean: float = 0.0, std: float = 1.0, sort
         events = np.sort(events, order="t")
 
     return events
-
 
 def event_jitter(events: np.ndarray, jitter: int = 1, sort: bool = True, in_place: bool = False) -> np.ndarray:
     """Adds a random jitter to the timestamps of the events.
@@ -119,5 +113,4 @@ def event_jitter(events: np.ndarray, jitter: int = 1, sort: bool = True, in_plac
         events = np.sort(events, order="t")
 
     return events
-
 

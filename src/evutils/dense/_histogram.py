@@ -1,7 +1,7 @@
 """Module for generating histogram-based representations from events."""
 
 import numpy as np
-from typing import Any
+from evutils.types import EventArray
 from ..jit import lazy_njit_unwrapped_events
 from ..types import EventArray
 
@@ -17,7 +17,7 @@ def _histogram_jit(t, x, y, p, buffer, clip):
             if buffer[yi, xi, pi_mapped] < clip:
                 buffer[yi, xi, pi_mapped] += 1
 
-def histogram(events: 'np.ndarray | EventArray', width: int = 1280, height: int = 720, fill: bool = False, dtype: Any = np.uint8) -> np.ndarray:
+def histogram(events: 'np.ndarray | EventArray', width: int = 1280, height: int = 720, fill: bool = False, dtype: np.dtype | type = np.uint8) -> np.ndarray:
     """Generate a histogram frame from the events.
 
     Parameters
@@ -64,7 +64,6 @@ def histogram(events: 'np.ndarray | EventArray', width: int = 1280, height: int 
 
     return buffer
 
-
 @lazy_njit_unwrapped_events
 def _wedge_histogram_jit(t, x, y, p, buffer):
     height, width, _ = buffer.shape
@@ -76,7 +75,7 @@ def _wedge_histogram_jit(t, x, y, p, buffer):
             pi_mapped = 0 if pi == 1 else 2
             buffer[yi, xi, pi_mapped] = 255
 
-def wedge_histogram(events: 'np.ndarray | EventArray', width: int = 1280, height: int = 720, tl: float = 30e6, dtype: Any = np.uint8) -> np.ndarray:   
+def wedge_histogram(events: 'np.ndarray | EventArray', width: int = 1280, height: int = 720, tl: float = 30e6, dtype: np.dtype | type = np.uint8) -> np.ndarray:   
     """Generate a wedge histogram frame from the events.
 
     Parameters

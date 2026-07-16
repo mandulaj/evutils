@@ -6,8 +6,7 @@ import subprocess
 import numpy as np
 from types import SimpleNamespace
 
-
-from typing import Any, Union
+from typing import Union
 def get_freer_gpu(cuda_string: bool = False) -> Union[int, str, None]:
     """Finds the GPU with the most free memory.
 
@@ -56,7 +55,7 @@ class Reconstructor():
     DEFAULT_ARGS = {
         'device': "auto"
     }
-    def __init__(self, height: int, width: int, args: Any = None) -> None:
+    def __init__(self, height: int, width: int, args: "dict | None" = None) -> None:
         if args is None: args = {}
         self.args = {**Reconstructor.DEFAULT_ARGS, **args}
         
@@ -71,7 +70,6 @@ class Reconstructor():
         self.height = height
         self.width = width
 
-
     def gen_frame(self, events: np.ndarray) -> np.ndarray:
         """Reconstruct a frame from events.
 
@@ -79,7 +77,6 @@ class Reconstructor():
         ----------
         events : np.ndarray
             Array of events in the :class:`~evutils.types.Events` format
-
 
         Returns
         -------

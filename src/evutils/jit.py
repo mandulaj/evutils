@@ -9,10 +9,9 @@ function.
 from __future__ import annotations
 
 import functools
-from typing import Any, Callable, TypeVar
+from typing import Callable, TypeVar, Any
 
 F = TypeVar("F", bound=Callable[..., Any])
-
 
 def lazy_njit(fn: F) -> F:
     """``numba.njit``, but imported and compiled on first call.
@@ -24,7 +23,7 @@ def lazy_njit(fn: F) -> F:
     compiled: Callable[..., Any] | None = None
 
     @functools.wraps(fn)
-    def wrapper(*args: Any, **kwargs: Any) -> Any:
+    def wrapper(*args: Any, **kwargs) -> Any:
         nonlocal compiled
         if compiled is None:
             import numba as nb
@@ -32,7 +31,6 @@ def lazy_njit(fn: F) -> F:
         return compiled(*args, **kwargs)
 
     return wrapper  # type: ignore[return-value]
-
 
 def lazy_njit_unwrapped_events(fn: F) -> F:
     """Decorator that unwraps SoA or AoS events into constituent arrays, 
@@ -42,7 +40,7 @@ def lazy_njit_unwrapped_events(fn: F) -> F:
     compiled: Callable[..., Any] | None = None
 
     @functools.wraps(fn)
-    def wrapper(events: Any, *args: Any, **kwargs: Any) -> Any:
+    def wrapper(events: Any, *args: Any, **kwargs) -> Any:
         nonlocal compiled
         if compiled is None:
             import numba as nb

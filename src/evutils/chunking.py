@@ -9,11 +9,9 @@ import numpy as np
 import time
 import queue
 import threading
-from typing import Iterator, Any
+from typing import Iterator
 from evutils.io.buffer import EventAccumulator
-
-
-
+from evutils.types import EventArray
 
 def window_delta_t(events: np.ndarray, delta_t: int = 10_000) -> Iterator[np.ndarray]:
     """Returns a generator that chunks the events array into windows of size delta_t.
@@ -90,7 +88,6 @@ def sliding_window(events: np.ndarray, delta_t: int = 10_000, window_size: int =
 
     while index_start < len(events):
 
-
         next_frame_index = np.searchsorted(ts[index_start:], current_ts + delta_t)
         next_window_index = np.searchsorted(ts[index_start:], current_ts + window_size)
         
@@ -105,9 +102,6 @@ def sliding_window(events: np.ndarray, delta_t: int = 10_000, window_size: int =
 
         current_ts += delta_t
         index_start += next_frame_index
-
-
-
 
 def sort_events(events: np.ndarray) -> np.ndarray:
     """Sorts the events array by timestamp.
@@ -159,7 +153,7 @@ def get_dt_events(events: np.ndarray, dt: int =10_000) -> np.ndarray:
     next_index = np.searchsorted(events['t'], last_ts)
     
     return events[:next_index]
-def stream_delta_t(raw_stream: Iterator[Any], delta_t: int) -> Iterator[Any]:
+def stream_delta_t(raw_stream: Iterator[np.ndarray | EventArray], delta_t: int) -> Iterator[np.ndarray | EventArray]:
     """A pipeline generator that turns a raw stream into perfect delta_t chunks.
     This maintains a small internal buffer for events that cross boundaries.
     """
@@ -232,8 +226,7 @@ def stream_delta_t(raw_stream: Iterator[Any], delta_t: int) -> Iterator[Any]:
         else:
             yield acc.slice_copy(len(acc), 0)[0]
 
-
-def stream_n_events(raw_stream: Iterator[Any], n_events: int) -> Iterator[Any]:
+def stream_n_events(raw_stream: Iterator[np.ndarray | EventArray], n_events: int) -> Iterator[np.ndarray | EventArray]:
     """Pipeline generator: chunks stream by event count."""
     if n_events <= 0:
         raise ValueError("n_events must be positive")
@@ -262,7 +255,7 @@ def stream_n_events(raw_stream: Iterator[Any], n_events: int) -> Iterator[Any]:
         else:
             yield acc.slice_copy(len(acc), 0)[0]
 
-def stream_skip_to_time(stream: Iterator[Any], start_ts: int) -> Iterator[Any]:
+def stream_skip_to_time(stream: Iterator[np.ndarray | EventArray], start_ts: int) -> Iterator[np.ndarray | EventArray]:
     """Pipeline generator: drops events until start_ts is reached."""
     skipping = True
     for incoming in stream:
@@ -283,9 +276,9 @@ def stream_skip_to_time(stream: Iterator[Any], start_ts: int) -> Iterator[Any]:
         else:
             yield incoming
 
-def stream_async(stream: Iterator[Any], maxsize: int = 5) -> Iterator[Any]:
+def stream_async(stream: Iterator[np.ndarray | EventArray], maxsize: int = 5) -> Iterator[np.ndarray | EventArray]:
     """Pipeline generator: runs upstream decoding in a background thread."""
-    q: queue.Queue[Any] = queue.Queue(maxsize=maxsize)
+    q: queue.Queue[np.ndarray | EventArray] = queue.Queue(maxsize=maxsize)
     
     def worker() -> None:
         try:
@@ -315,7 +308,7 @@ def stream_async(stream: Iterator[Any], maxsize: int = 5) -> Iterator[Any]:
             raise item
         yield item
 
-def stream_paced_playback(stream: Iterator[Any], playback_speed: float = 1.0) -> Iterator[Any]:
+def stream_paced_playback(stream: Iterator[np.ndarray | EventArray], playback_speed: float = 1.0) -> Iterator[np.ndarray | EventArray]:
     """Pipeline generator: spaces out yielding chunks to match wall-clock real-time."""
     start_wall = None
     start_ts = None

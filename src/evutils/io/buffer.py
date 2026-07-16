@@ -9,7 +9,6 @@ import numpy as np
 from ..types import EventArray, TriggerArray
 from ._native_core import EventSoABuffers, TriggerSoABuffers
 
-
 class EventAccumulator():
     """Reused struct-of-arrays staging buffer that native decoders fill in place.
 

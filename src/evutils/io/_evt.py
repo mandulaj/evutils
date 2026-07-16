@@ -25,7 +25,7 @@ from __future__ import annotations
 import io
 import re
 from datetime import datetime
-from typing import Any, TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING, Dict
 
 if TYPE_CHECKING:
     from ..types import TriggerArray
@@ -88,8 +88,7 @@ _SYSTEM_ID_RESOLUTION = {
     48: (1280, 720), 49: (1280, 720),
 }
 
-
-def _resolution_from_generation(gen: Any) -> tuple[int, int] | None:
+def _resolution_from_generation(gen: "int | str") -> tuple[int, int] | None:
     """Map a generation string (``"4.2"``, ``"gen31"``, ...) to a resolution."""
     if gen is None:
         return None
@@ -101,7 +100,6 @@ def _resolution_from_generation(gen: Any) -> tuple[int, int] | None:
         key = m.group(1) + ("." + m.group(2) if m.group(2) else "")
         return _GEN_RESOLUTION.get(key)
     return None
-
 
 # Per-format native backend: parser class, zero-copy input wrapper, and the
 # numpy word dtype the binary payload is viewed as.
@@ -128,7 +126,6 @@ _EVT_FORMATS: dict[str, tuple[str, str]] = {
 
 # `% evt <token>` value -> canonical name, e.g. "3.0" -> "evt3".
 _EVT_TOKEN_TO_NAME = {token: name for name, (token, _) in _EVT_FORMATS.items()}
-
 
 class EventDecoder_EVT(EventDecoder):
     """Decode Prophesee EVT2, EVT2.1, and EVT3 streams into ``EventArray`` chunks.
@@ -172,7 +169,7 @@ class EventDecoder_EVT(EventDecoder):
         super().__init__(source, chunk_size, read_external_triggers=read_external_triggers)
 
         self._format: str | None = None
-        self._header: Dict[str, Any] = {
+        self._header: "dict[str, str | int | float]" = {
              "date": datetime.now(),
              "evt": None,
              "format": None,
@@ -189,18 +186,17 @@ class EventDecoder_EVT(EventDecoder):
         }
 
         # Filled in init()
-        self._buf: Any = None            # keeps the underlying storage alive
+        self._buf: bytes | bytearray | None = None            # keeps the underlying storage alive
         self._payload_off: int = 0       # byte offset where the binary payload starts
-        self._words: Any = None          # uint16 view of the whole payload
+        self._words: "np.ndarray | None" = None          # uint16 view of the whole payload
         self._offset: int = 0            # current word offset into _words
         self._start_offset: int = 0      # word offset of the first TIME_HIGH
-        self._parser: Any = None
-
+        self._parser: "Callable | None" = None
 
     # ------------------------------------------------------------------ #
     # Header
     # ------------------------------------------------------------------ #
-    def _parse_header(self, buf: Any) -> int:
+    def _parse_header(self, buf: bytes) -> int:
         """Scan the leading ``%``-prefixed ASCII header of ``buf`` (a bytes-like).
 
         Returns the byte offset of the first non-header byte (start of payload).
@@ -632,7 +628,6 @@ class EventDecoder_EVT(EventDecoder):
         self._words = None
         self._buf = None
 
-
 # --------------------------------------------------------------------------- #
 # Encoders (EVT3 / EVT2 / EVT2.1 writers)
 #
@@ -650,7 +645,6 @@ EVT3_EVT_TIME_HIGH = 0x8000
 EVT3_EXT_TRIGGER = 0xA000
 EVT3_OTHERS = 0xE000
 EVT3_CONTINUED_12 = 0xF000
-
 
 @lazy_njit
 def get_raw_evt3_buffer(events: np.ndarray, last_lower12_ts: int, last_upper12_ts: int, last_y: int, master: bool = True) -> tuple[np.ndarray, int, int, int]:
@@ -727,7 +721,6 @@ def get_raw_evt3_buffer(events: np.ndarray, last_lower12_ts: int, last_upper12_t
 
     return buffer[:i], last_lower12_ts, last_upper12_ts, last_y
 
-
 @lazy_njit
 def get_raw_evt2_buffer(events: np.ndarray, last_ts_high: int) -> tuple[np.ndarray, int]:
     """Encode events as EVT2 (32-bit words).
@@ -770,7 +763,6 @@ def get_raw_evt2_buffer(events: np.ndarray, last_ts_high: int) -> tuple[np.ndarr
         i += 1
 
     return buffer[:i], last_ts_high
-
 
 @lazy_njit
 def get_raw_evt21_buffer(events: np.ndarray, last_ts_high: int) -> tuple[np.ndarray, int]:
@@ -818,7 +810,6 @@ def get_raw_evt21_buffer(events: np.ndarray, last_ts_high: int) -> tuple[np.ndar
 
     return buffer[:i], last_ts_high
 
-
 @lazy_njit
 def get_raw_evt4_buffer(events: np.ndarray, last_ts_high: int) -> tuple[np.ndarray, int]:
     """Encode events as EVT4 (32-bit words).
@@ -863,7 +854,6 @@ def get_raw_evt4_buffer(events: np.ndarray, last_ts_high: int) -> tuple[np.ndarr
         i += 1
 
     return buffer[:i], last_ts_high
-
 
 class EventEncoder_EVT(EventEncoder):
     """Encoder for Prophesee RAW/EVT files.

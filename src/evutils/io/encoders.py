@@ -17,7 +17,6 @@ _WRITER_MAPPING: dict[str, Type[EventEncoder]] = {}
 #: Extension -> reason it is unavailable (missing optional dependency).
 _UNAVAILABLE: dict[str, str] = {}
 
-
 from ._aedat import EventEncoder_Aedat
 _WRITER_MAPPING[".aedat"] = EventEncoder_Aedat
 
@@ -57,7 +56,6 @@ _WRITER_MAPPING[".evt3"] = EventEncoder_EVT
 from ._aer import EventEncoder_AER
 _WRITER_MAPPING[".aer"] = EventEncoder_AER
 
-
 def get_file_writer(file: Path) -> Type[EventEncoder]:
     """Get the appropriate writer for the given file.
 
@@ -81,6 +79,5 @@ def get_file_writer(file: Path) -> Type[EventEncoder]:
         f"File extension {ext} not supported, available extensions: "
         f"{sorted(_WRITER_MAPPING.keys() | _UNAVAILABLE.keys())}"
     )
-
 
 __all__ = ["EventEncoder", "EventEncoder_Aedat", "EventEncoder_Bin", "EventEncoder_Csv", "EventEncoder_Dat", "EventEncoder_HDF5", "EventEncoder_Npz", "EventEncoder_EVT", "EventEncoder_AER", "get_file_writer"]

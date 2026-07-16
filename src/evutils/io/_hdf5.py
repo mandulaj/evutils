@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import io
 from datetime import datetime
-from typing import Any
 
 import h5py
 import hdf5plugin
@@ -22,7 +21,6 @@ from .common import EventDecoder, EventEncoder
 from ._source import ByteSource
 
 _EMPTY_EVENTS = EventArray.empty()
-
 
 @lazy_njit
 def _fill_ms_to_idx(t: np.ndarray, ms_to_idx: np.ndarray, start_ms: int,
@@ -55,7 +53,6 @@ def _fill_ms_to_idx(t: np.ndarray, ms_to_idx: np.ndarray, start_ms: int,
         while idx < len(t) and t[idx] < (ms + base_ms) * 1000:
             idx += 1
         ms_to_idx[ms] = base_idx + idx
-
 
 class EventDecoder_HDF5(EventDecoder):
     """Decode events from an HDF5 file.
@@ -238,7 +235,6 @@ class EventDecoder_HDF5(EventDecoder):
         if self._h5 is not None:
             self._h5.close()
             self._h5 = None
-
 
 class EventEncoder_HDF5(EventEncoder):
     """Encode events into an HDF5 file (``events/{t,x,y,p}`` + ``ms_to_idx``).

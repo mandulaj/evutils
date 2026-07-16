@@ -7,7 +7,7 @@ CSV, h5py for HDF5) are not registered; asking for them raises an
 """
 
 from pathlib import Path
-from typing import Type, Any, cast
+from typing import Type, cast
 
 from .common import EventDecoder
 
@@ -16,7 +16,6 @@ _READER_MAPPING: dict[str, Type[EventDecoder]] = {}
 
 #: Extension -> reason it is unavailable (missing optional dependency).
 _UNAVAILABLE: dict[str, str] = {}
-
 
 from ._aedat import EventDecoder_Aedat
 _READER_MAPPING[".aedat"] = EventDecoder_Aedat
@@ -61,7 +60,6 @@ _READER_MAPPING[".evt4"] = EventDecoder_EVT
 from ._aer import EventDecoder_AER
 _READER_MAPPING[".aer"] = EventDecoder_AER
 
-
 def _lookup(ext: str) -> Type[EventDecoder]:
     """Resolve an extension to a decoder class, or raise a helpful error."""
     if ext in _READER_MAPPING:
@@ -72,7 +70,6 @@ def _lookup(ext: str) -> Type[EventDecoder]:
         f"File extension {ext} not supported, available extensions: "
         f"{sorted(_READER_MAPPING.keys() | _UNAVAILABLE.keys())}"
     )
-
 
 def get_reader_from_filename(file: Path) -> Type[EventDecoder]:
     """Get the appropriate reader for the given file.
@@ -90,14 +87,12 @@ def get_reader_from_filename(file: Path) -> Type[EventDecoder]:
     """
     return _lookup(file.suffix.lower())
 
-
 # Content sniffers: (predicate over the first bytes -> decoder class). Tried in
 # order when the filename extension is unknown or absent (streams, USB).
 def _header_lines(head: bytes) -> list[str]:
     """The ``"% ..."`` ASCII header lines at the start of ``head``."""
     text = head.decode("ascii", "ignore")
     return [ln for ln in text.split("\n") if ln.startswith("% ")]
-
 
 def _sniff_dat(head: bytes) -> bool:
     """Prophesee DAT: header carries ``% Version`` / ``% Data file containing``.
@@ -111,7 +106,6 @@ def _sniff_dat(head: bytes) -> bool:
             return True
     return False
 
-
 def _sniff_evt(head: bytes) -> bool:
     """Prophesee RAW/EVT: header carries ``% evt`` / ``% format EVT`` / ``% geometry``."""
     for ln in _header_lines(head):
@@ -122,14 +116,12 @@ def _sniff_evt(head: bytes) -> bool:
             return True
     return False
 
-
 def _sniff_prophesee(head: bytes) -> bool:
     """Fallback: any other ``"% "``-headed stream with prophesee-like metadata."""
     if not head.startswith(b"% "):
         return False
     low = head.lower()
     return b"system_id" in low or b"firmware_version" in low or b"plugin name" in low
-
 
 def _sniff_aedat(head: bytes) -> bool:
     """Check if the first bytes match an AEDAT version line.
@@ -147,7 +139,6 @@ def _sniff_aedat(head: bytes) -> bool:
     """
     return head.startswith(b"#!AER-DAT")
 
-
 _SNIFFERS = [
     (_sniff_dat, "EventDecoder_Dat"),
     (_sniff_evt, "EventDecoder_EVT"),
@@ -155,8 +146,7 @@ _SNIFFERS = [
     (_sniff_prophesee, "EventDecoder_EVT"),  # generic "% "-headed fallback
 ]
 
-
-def resolve_decoder_cls(source: Any) -> Type[EventDecoder]:
+def resolve_decoder_cls(source: "io.BufferedIOBase | str | bytes") -> Type[EventDecoder]:
     """Determine the decoder class for a :class:`ByteSource`.
 
     Tries the filename extension first (cheap, usually right), then falls back
@@ -193,6 +183,5 @@ def resolve_decoder_cls(source: Any) -> Type[EventDecoder]:
         "Could not determine the event format: unknown/absent extension "
         f"({name!r}) and no known magic bytes. Pass an explicit decoder."
     )
-
 
 __all__ = ["EventDecoder", 'EventDecoder_Aedat', 'EventDecoder_Bin', 'EventDecoder_Csv', 'EventDecoder_Dat', 'EventDecoder_HDF5', 'EventDecoder_Npz', 'EventDecoder_EVT', 'EventDecoder_AER', 'get_reader_from_filename', 'resolve_decoder_cls']

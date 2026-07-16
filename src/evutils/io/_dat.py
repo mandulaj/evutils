@@ -11,8 +11,6 @@ from __future__ import annotations
 import io
 from datetime import datetime
 
-from typing import Any
-
 import numpy as np
 
 from ..types import EventArray, TriggerArray
@@ -36,7 +34,6 @@ _EMPTY_EVENTS = EventArray.empty()
 
 DAT_EVENT_TYPE_CD = 0x0C
 DAT_EVENT_SIZE = 0x08
-
 
 class EventDecoder_Dat(EventDecoder):
     """Decode Prophesee DAT files into ``EventArray`` chunks.
@@ -63,17 +60,17 @@ class EventDecoder_Dat(EventDecoder):
 
     def __init__(self, source: ByteSource, chunk_size: int = 1_000_000):
         super().__init__(source, chunk_size)
-        self._header: dict[str, Any] = {}
-        self._buf: Any = None
+        self._header: dict[str, str | int | float] = {}
+        self._buf: bytes | bytearray | None = None
         self._payload_off: int = 0
-        self._words: Any = None       # uint32 view of the payload (2 words / event)
+        self._words: "np.ndarray | None" = None       # uint32 view of the payload (2 words / event)
         self._offset: int = 0         # current uint32-word offset
-        self._parser: Any = None
-        self._events: Any = None
-        self._triggers: Any = None
+        self._parser: "Callable | None" = None
+        self._events: "EventArray | None" = None
+        self._triggers: "TriggerArray | None" = None
 
     # ------------------------------------------------------------------ #
-    def _parse_header(self, buf: Any) -> int:
+    def _parse_header(self, buf: bytes) -> int:
         """Scan the leading ``%`` ASCII header; return the byte offset of the
         first non-header byte (the event-type byte).
         """
@@ -246,7 +243,6 @@ class EventDecoder_Dat(EventDecoder):
         """
         self._words = None
         self._buf = None
-
 
 class EventEncoder_Dat(EventEncoder):
     """Encode events into a Prophesee DAT (.dat) CD file.

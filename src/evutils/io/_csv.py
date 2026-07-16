@@ -5,12 +5,10 @@ import warnings
 from datetime import datetime
 from io import TextIOWrapper
 from pathlib import Path
-from typing import Any
 
 import numpy as np
 from ..types import Event_dtype, EventArray, TriggerArray
 from .common import EventDecoder, EventEncoder
-
 
 class EventDecoder_Csv(EventDecoder):
     """A reader for CSV files with events.
@@ -43,7 +41,6 @@ class EventDecoder_Csv(EventDecoder):
     def __init__(self, readable:io.BufferedReader,  order:list[str]|None=None, chunk_size:int=1_000_000, delimiter:str=",", engine:str='c'):
         super().__init__(readable, chunk_size)
 
-
         if order is None:
             # we infer the header from the file, or use a default header
             pass
@@ -57,8 +54,6 @@ class EventDecoder_Csv(EventDecoder):
         self._order = order
         self._delimiter = delimiter
         self._engine = engine
-
-
 
     def _check_header(self) -> None:
         have_header = False
@@ -84,7 +79,6 @@ class EventDecoder_Csv(EventDecoder):
                     warnings.warn(f"Header order {order} in file takes precedence over requested order {self._order}")
                 self._order = order
 
-
             else:
                 raise ValueError(f"Header not found or invalid: {first_line}")
         else:
@@ -94,8 +88,6 @@ class EventDecoder_Csv(EventDecoder):
         # If we still don't have a header, we use a default one
         if self._order is None:
             self._order = ['t', 'x', 'y', 'p']
-
-
 
     def init(self) -> None:
         """Initialize the CSV reader.
@@ -211,9 +203,6 @@ class EventDecoder_Csv(EventDecoder):
             self._is_initialized = False
             self.init()
 
-
-
-
 class EventEncoder_Csv(EventEncoder):
     """A writer for CSV files with events.
 
@@ -244,7 +233,6 @@ class EventEncoder_Csv(EventEncoder):
         if order is None:
             order = ['t', 'x', 'y', 'p']
 
-
         if len(order) != 4:
             raise ValueError("Order must be a list of 4 strings")
         if "t" not in order or "x" not in order or "y" not in order or "p" not in order:
@@ -267,7 +255,6 @@ class EventEncoder_Csv(EventEncoder):
             self._fd.write(header.encode('utf-8'))
 
         self._is_initialized = True
-
 
     def write(self, events: 'np.ndarray | EventArray', triggers: 'np.ndarray | TriggerArray | None' = None) -> int:
         """Write events to the CSV file."""

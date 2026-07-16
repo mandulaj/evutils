@@ -7,8 +7,6 @@ import open3d as o3d
 import numpy as np
 from matplotlib import pyplot as plt 
 
-
-
 def o3d_draw_events(events: np.ndarray) -> None:
     """Visualizes events using Open3D.
 
@@ -38,7 +36,6 @@ def o3d_draw_events(events: np.ndarray) -> None:
     # Create a color map based on the 'p'
     # p can be either 0 or 1, we use it to color the points witht eh Spectral colormap
     colors = plt.cm.Spectral(events['p'].astype(np.float32))[:, :3]  # Use only RGB channels
-
 
     pdc.colors = o3d.utility.Vector3dVector(colors)
 

@@ -5,7 +5,6 @@
     construction. The classes exist so the ``.bin`` extension is reserved in
     the reader/writer registries and the error message is explicit.
 """
-from typing import Any
 
 import numpy as np
 from ..types import EventArray, TriggerArray
@@ -16,7 +15,6 @@ _NOT_IMPLEMENTED = (
     "Convert the file to a supported format (RAW/EVT, DAT, AER, HDF5, NPZ, CSV) "
     "or pass an explicit file_decoder/file_encoder."
 )
-
 
 class EventDecoder_Bin(EventDecoder):
     """A decoder for reading events from binary files.
@@ -39,21 +37,20 @@ class EventDecoder_Bin(EventDecoder):
 
     """
 
-    def __init__(self, source: Any, **kwargs: Any):
+    def __init__(self, source: "io.BufferedIOBase | str | bytes", **kwargs):
         raise NotImplementedError(_NOT_IMPLEMENTED)
 
     def init(self) -> None:
         """Initialize the file for reading."""
         raise NotImplementedError(_NOT_IMPLEMENTED)
 
-    def read_chunk(self, delta_t_hint: int | None = None, n_events_hint: int | None = None) -> Any:
+    def read_chunk(self, delta_t_hint: int | None = None, n_events_hint: int | None = None) -> "np.ndarray | EventArray | None":
         """Read a chunk of events."""
         raise NotImplementedError(_NOT_IMPLEMENTED)
 
     def reset(self) -> None:
         """Reset the file pointer to the beginning of the file."""
         raise NotImplementedError(_NOT_IMPLEMENTED)
-
 
 class EventEncoder_Bin(EventEncoder):
     """An encoder for writing events to binary files.
@@ -76,7 +73,7 @@ class EventEncoder_Bin(EventEncoder):
 
     """
 
-    def __init__(self, writable: Any, **kwargs: Any):
+    def __init__(self, writable: "io.BufferedIOBase", **kwargs):
         raise NotImplementedError(_NOT_IMPLEMENTED)
 
     def init(self) -> None:

@@ -6,9 +6,10 @@ Bridges between evutils and PyTorch: tensor conversion, ``Dataset`` /
 
 # TODO: This module is currently a stub and needs to be implemented.
 
+from typing import Any
+
 __all__: list[str] = []
 
-from typing import Any
 def _try_import_torch(require: bool = True) -> Any:
     try:
         import torch  # noqa: F401

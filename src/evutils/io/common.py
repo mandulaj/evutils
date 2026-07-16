@@ -6,15 +6,12 @@ Defines the abstract base classes `EventDecoder` and `EventEncoder`.
 import io
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Any, Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ..types import EventArray, TriggerArray
 
 import numpy as np
-
-
-
 
 class EventDecoder(ABC):
     """ABC for reading chunks of events from a IO source object.
@@ -35,7 +32,7 @@ class EventDecoder(ABC):
 
     SUPPORTS_EXT_TRIGGERS = False
 
-    def __init__(self, source: Any, chunk_size: int = 10000, read_external_triggers: bool = False):
+    def __init__(self, source: "io.BufferedIOBase | str | bytes", chunk_size: int = 10000, read_external_triggers: bool = False):
         """Initialize the decoder.
 
         Parameters
@@ -95,7 +92,6 @@ class EventDecoder(ABC):
     def reset(self) -> None:
         """Reset the file pointer to the beginning of the file."""
         raise NotImplementedError
-
 
     def read_all(self) -> 'EventArray | tuple[EventArray, TriggerArray]':
         """Decode and return every remaining event at once.
@@ -187,7 +183,6 @@ class EventDecoder(ABC):
         """
         return int(self._fd.tell())
 
-
     def set_chunk_size(self, chunk_size:int) -> None:
         """Set the chunk size.
 
@@ -211,7 +206,6 @@ class EventDecoder(ABC):
         return self._width, self._height
         
 
-
     def __repr__(self) -> str:
             if self._is_initialized:
                 is_initialized_txt = "initialized"
@@ -230,9 +224,6 @@ class EventDecoder(ABC):
         """
         return self._eof
 
-
-
-
 class EventEncoder(ABC):
     """ABC for writing chunks of events to a io object.
 
@@ -246,7 +237,6 @@ class EventEncoder(ABC):
         Height of the frame, by default 720 (not relevant for some formats)
     dt : datetime, optional
         Timestamp of the recording (default is the current time, but information is not saved in all formats)
-
 
     Raises
     ------
@@ -280,7 +270,6 @@ class EventEncoder(ABC):
         self._width = width
         self._height = height
 
-
         self._n_written_events = 0
         self._is_initialized = False
 
@@ -302,10 +291,8 @@ class EventEncoder(ABC):
     def __len__(self) -> int:
         return self._n_written_events
 
-
     def __enter__(self) -> "EventEncoder":
         return self
-
 
     def __repr__(self) -> str:
         if self._is_initialized:

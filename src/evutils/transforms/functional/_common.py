@@ -8,12 +8,11 @@ functional only has to express its argument handling and pick a kernel.
 """
 from __future__ import annotations
 
-from typing import Any, Callable
+from typing import Callable
 
 import numpy as np
 
-
-def apply_kernel(events: Any, kernel: Callable[..., Any], *args: Any) -> Any:
+def apply_kernel(events: "EventArray", kernel: Callable[..., "EventArray"], *args: object) -> "EventArray":
     """Unwrap ``events``, run ``kernel(t, x, y, p, *args)``, repack the result.
 
     Empty inputs are returned untouched so kernels never see zero-length arrays
@@ -28,8 +27,7 @@ def apply_kernel(events: Any, kernel: Callable[..., Any], *args: Any) -> Any:
     t, x, y, p = kernel(t, x, y, p, *args)
     return repack_events(events, t, x, y, p)
 
-
-def sample_range(value: Any) -> float:
+def sample_range(value: "tuple[float, float] | list[float] | float") -> float:
     """Return ``value``, or a uniform sample in ``[lo, hi)`` if it is a 2-tuple.
 
     Mirrors the range-sampling convention used across the tonic transforms,

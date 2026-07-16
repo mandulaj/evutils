@@ -7,7 +7,7 @@ from a file or byte stream.
 import io
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional, TYPE_CHECKING
 
 import numpy as np
 
@@ -21,7 +21,6 @@ from ._native_core import (
 from ._prefetch import PrefetchIterator
 from ._source import ByteSource, make_source
 from .buffer import EventAccumulator
-
 
 class EventReader():
     """Class for reading and automatically decoding and slicing events from a file or stream.
@@ -149,7 +148,7 @@ class EventReader():
                  playback_speed: float=1.0,
                  max_gap: float | None=1.0,
                  file_decoder: ev_decoders.EventDecoder | type[ev_decoders.EventDecoder] | None = None,
-                 **kwargs: Any) -> None:
+                 **kwargs) -> None:
 
         # Remember the path (if any) for repr / reset semantics.
         self._file_name: Path | None = Path(file) if isinstance(file, (str, Path)) else None
@@ -184,11 +183,9 @@ class EventReader():
         self._current_ts = self._first_ts
         self._normalize_ts = normalize_ts # Normalize timestamps to start from zero
 
-
         # Validate the parameters
         if mode not in EventReader.READING_MODES:
             raise ValueError(f"Mode {mode} not supported. Supported modes are: {EventReader.READING_MODES}")
-
 
         self._mode = mode.lower()
 
@@ -232,7 +229,6 @@ class EventReader():
             delta_t = max_time
             n_events = max_events
 
-
         # Validate the parameters
         if delta_t is None:
             delta_t = self.DEFAULT_DELTA_T
@@ -245,13 +241,11 @@ class EventReader():
         if not isinstance(n_events, int):
             raise TypeError("n_events must be an integer")
 
-
         if delta_t <= 0:
             raise ValueError("delta_t must be positive")
 
         if n_events <= 0:
             raise ValueError("n_events must be positive")
-
 
         # delta_t and n_events to read on each call
         self._delta_t = delta_t
@@ -325,8 +319,6 @@ class EventReader():
         self._pace_anchor: tuple[float, int] | None = None  # (wall time, event ts)
 
         self._n_read_events = 0 # Number of events read (not includeing events stored in buffer)
-
-
 
     def init(self) -> None:
         """Initialize the reader, can be used explicitly or implicitly by the read method."""
@@ -418,7 +410,7 @@ class EventReader():
             self._pace(out)
         return out
 
-    def _pace(self, out: Any) -> None:
+    def _pace(self, out: "np.ndarray | EventArray") -> None:
         """Sleep until the chunk's last event timestamp aligns with wall-clock
         playback time (anchored at the first delivered chunk).
 
@@ -446,7 +438,7 @@ class EventReader():
         if delay > 0:
             time.sleep(delay)
 
-    def _read_n_events_fast(self, n_events: int) -> Any:
+    def _read_n_events_fast(self, n_events: int) -> "np.ndarray | EventArray":
         """Decode ~``n_events`` straight into a fresh output buffer and hand it
         out with no staging copy.
 
@@ -492,7 +484,7 @@ class EventReader():
             output.t -= self._first_ts - self._start_ts
         return output
 
-    def _read_n_events_readchunk(self, n_events: int) -> Any:
+    def _read_n_events_readchunk(self, n_events: int) -> "np.ndarray | EventArray":
         """Hand out one ``read_chunk(n_events)`` result directly, no accumulator.
 
         For decoders whose ``read_chunk`` already returns an *independent* array
@@ -538,7 +530,7 @@ class EventReader():
             out.grow(max(out.size + step, int(out.capacity * 1.5) + 1))
         out.c.capacity = out.size + step
 
-    def _read_delta_t_fast(self, delta_t: int) -> Any:
+    def _read_delta_t_fast(self, delta_t: int) -> "np.ndarray | EventArray":
         """One ``delta_t`` window, fast path: decode into a fresh buffer, hand out
         a zero-copy view of the window, and carry only the small overshoot
         (events past the boundary, at most one decode step) to the next call.
@@ -686,7 +678,7 @@ class EventReader():
         buf.c.capacity = buf.capacity
         return buf
 
-    def _read_delta_t_c(self, delta_t: int) -> Any:
+    def _read_delta_t_c(self, delta_t: int) -> "EventArray":
         """One delta_t window via the dedicated C parser.
 
         The C parser stops exactly when an event's timestamp reaches ``end_ts``,
@@ -777,7 +769,7 @@ class EventReader():
         # if the decoder itself hit EOF.
         self._eof = False
 
-    def _attach_sensor_size(self, out: Any) -> Any:
+    def _attach_sensor_size(self, out: "EventArray") -> "EventArray":
         """Stamp ``sensor_size=(width, height)`` onto returned events, when known.
 
         Applied at the single internal read chokepoint so every delivery path
@@ -795,11 +787,11 @@ class EventReader():
             pass
         return out
 
-    def _read(self, delta_t:int|None=None, n_events:int|None=None) -> Any:
+    def _read(self, delta_t:int|None=None, n_events:int|None=None) -> "EventArray":
         """Thin wrapper stamping sensor_size onto the decoded window."""
         return self._attach_sensor_size(self._read_impl(delta_t, n_events))
 
-    def _read_impl(self, delta_t:int|None=None, n_events:int|None=None) -> Any:
+    def _read_impl(self, delta_t:int|None=None, n_events:int|None=None) -> "EventArray":
         """Unguarded body of :meth:`read` (also driven by the prefetch worker)."""
         # If not initialized, initialize
         if not self._is_initialized:
@@ -1053,7 +1045,7 @@ class EventReader():
         self._file_decoder.close()
         self._source.close()
 
-    def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
+    def __exit__(self, exc_type: "type[BaseException] | None", exc_value: "BaseException | None", traceback: "types.TracebackType | None") -> None:
         self.close()
 
     def __repr__(self) -> str:
@@ -1067,7 +1059,7 @@ class EventReader():
     def __len__(self) -> int:
         return self._n_read_events
 
-    def __iter__(self) -> Any:
+    def __iter__(self) -> "Iterator[EventArray]":
         """Iterate over the events in the file.
 
         With ``async_read=True`` the windows are decoded ahead in a background
@@ -1092,7 +1084,7 @@ class EventReader():
         it: Any
         if self._async_read:
             self._check_no_active_prefetch()
-            kwargs: dict[str, Any] = {}
+            kwargs: dict[str, str | int | float | bool] = {}
             if self._prefetch_depth is not None:
                 kwargs["depth"] = self._prefetch_depth
             it = PrefetchIterator(
@@ -1109,7 +1101,7 @@ class EventReader():
             return self._paced_iter(it)
         return it
 
-    def _paced_iter(self, it: Any) -> Any:
+    def _paced_iter(self, it: "Iterator[EventArray]") -> "Iterator[EventArray]":
         """Wrap an iterator so each chunk is released on the playback clock."""
         try:
             for chunk in it:
@@ -1121,7 +1113,7 @@ class EventReader():
             if hasattr(it, "close"):
                 it.close()
 
-    def _iter_sync(self) -> Any:
+    def _iter_sync(self) -> "Iterator[EventArray]":
         """The plain synchronous window generator behind :meth:`__iter__`."""
         if not self._is_initialized:
             self.init()
@@ -1144,7 +1136,6 @@ class EventReader():
         else:
             return self._file_decoder.shape()
 
-
     def tell(self) -> int:
         """Get the current position in the file.
 
@@ -1157,6 +1148,4 @@ class EventReader():
         if not self._is_initialized:
             self.init()
         return self._file_decoder.tell()
-
-
 

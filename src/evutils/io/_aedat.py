@@ -39,7 +39,7 @@ from __future__ import annotations
 
 import re
 import struct
-from typing import Any, Callable
+from typing import Callable
 
 import numpy as np
 
@@ -79,7 +79,6 @@ _V2_LAYOUTS = {
     "dvs128": lambda a: (((a >> 1) & 0x7F), ((a >> 8) & 0x7F), (a & 0x1)),
 }
 
-
 # ---------------------------------------------------------------------------#
 # Minimal FlatBuffer field access (AEDAT 4.0). The two schemas involved are
 # tiny and fixed, so the offsets are walked by hand instead of depending on a
@@ -88,18 +87,14 @@ _V2_LAYOUTS = {
 def _u16(b: bytes, o: int) -> int:
     return int(struct.unpack_from("<H", b, o)[0])
 
-
 def _i32(b: bytes, o: int) -> int:
     return int(struct.unpack_from("<i", b, o)[0])
-
 
 def _u32(b: bytes, o: int) -> int:
     return int(struct.unpack_from("<I", b, o)[0])
 
-
 def _i64(b: bytes, o: int) -> int:
     return int(struct.unpack_from("<q", b, o)[0])
-
 
 def _fb_field_pos(buf: bytes, table: int, index: int) -> int | None:
     """Absolute position of field ``index`` of the table at ``table``, or None
@@ -111,7 +106,6 @@ def _fb_field_pos(buf: bytes, table: int, index: int) -> int | None:
         return None
     voffset = _u16(buf, slot)
     return table + voffset if voffset else None
-
 
 def _parse_io_header(buf: bytes) -> tuple[int, int, str]:
     """Parse the AEDAT4 ``IOHeader`` FlatBuffer.
@@ -137,7 +131,6 @@ def _parse_io_header(buf: bytes) -> tuple[int, int, str]:
         info_node = bytes(buf[str_pos + 4:str_pos + 4 + str_len]).decode("utf-8", "replace")
     return compression, data_table_position, info_node
 
-
 def _parse_event_packet(body: bytes) -> np.ndarray | None:
     """Extract the event structs from a size-prefixed ``EventPacket`` FlatBuffer.
 
@@ -157,10 +150,8 @@ def _parse_event_packet(body: bytes) -> np.ndarray | None:
         raise ValueError("truncated AEDAT4 EventPacket")
     return np.frombuffer(body, dtype=_V4_EVENT_DTYPE, count=count, offset=start)
 
-
 def _np_empty_v4() -> np.ndarray:
     return np.empty(0, dtype=_V4_EVENT_DTYPE)
-
 
 def _parse_streams_xml(xml: str) -> tuple[set[int], int | None, int | None]:
     """Extract event-stream ids and the sensor geometry from the ``IOHeader``
@@ -198,7 +189,6 @@ def _parse_streams_xml(xml: str) -> tuple[set[int], int | None, int | None]:
         return set(), None, None
     return ids, width, height
 
-
 def _decompress_lz4(body: bytes) -> bytes:
     try:
         import lz4.frame
@@ -208,7 +198,6 @@ def _decompress_lz4(body: bytes) -> bytes:
             "`evutils[aedat]` (or `pip install lz4`)."
         ) from exc
     return bytes(lz4.frame.decompress(body))
-
 
 def _decompress_zstd(body: bytes) -> bytes:
     try:
@@ -225,7 +214,6 @@ def _decompress_zstd(body: bytes) -> bytes:
         ) from exc
     return bytes(zstandard.ZstdDecompressor().decompress(body))
 
-
 #: DV CompressionType enum -> decompressor. LZ4_HIGH/ZSTD_HIGH share decoders.
 _DECOMPRESSORS: dict[int, Callable[[bytes], bytes]] = {
     0: lambda b: b,           # NONE
@@ -234,7 +222,6 @@ _DECOMPRESSORS: dict[int, Callable[[bytes], bytes]] = {
     3: _decompress_zstd,      # ZSTD
     4: _decompress_zstd,      # ZSTD_HIGH
 }
-
 
 class EventDecoder_Aedat(EventDecoder):
     """Decode AEDAT 1.0 / 2.0 / 3.1 / 4.0 files into ``EventArray`` chunks.
@@ -264,7 +251,7 @@ class EventDecoder_Aedat(EventDecoder):
             raise ValueError(f"layout must be one of {sorted(_V2_LAYOUTS)}, got {layout!r}")
         self._layout = layout
 
-        self._buf: Any = None
+        self._buf: bytes | bytearray | None = None
         self._version: int = 0          # 1, 2, 3 or 4 (x10: 31 -> 3, 40 -> 4)
         self._payload_off: int = 0      # first byte after the ASCII header
         self._cursor: int = 0           # current byte offset into _buf
@@ -525,7 +512,6 @@ class EventDecoder_Aedat(EventDecoder):
         """Release the buffer view so the source can be closed."""
         self._buf = None
 
-
 class EventEncoder_Aedat(EventEncoder):
     """An encoder for writing events to AEDAT files.
 
@@ -553,7 +539,7 @@ class EventEncoder_Aedat(EventEncoder):
         "Write a supported format instead (RAW/EVT, DAT, AER, HDF5, NPZ, CSV)."
     )
 
-    def __init__(self, writable: Any, **kwargs: Any):
+    def __init__(self, writable: "io.BufferedIOBase", **kwargs):
         raise NotImplementedError(self._NOT_IMPLEMENTED)
 
     def init(self) -> None:

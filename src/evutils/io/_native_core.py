@@ -10,7 +10,7 @@ from ctypes import (
     c_int, c_size_t, c_uint8, c_uint16, c_uint64, c_void_p,
 )
 from pathlib import Path
-from typing import cast, Any, Callable
+from typing import cast, Callable
 
 import numpy as np
 from ..types import EventArray, TriggerArray
@@ -195,7 +195,7 @@ def triggers_view(tr: TriggerSoABuffers) -> TriggerArray:
     n = tr.size
     return TriggerArray(tr.t[:n].view(np.int64), tr.p[:n], tr.id[:n])
 
-def parse_step(words: Any, offset: int, make_input: Any, parser: Any, events: Any, triggers: Any, *, tail_pad: int = 0, word_dtype: Any = None) -> tuple[int, int]:
+def parse_step(words: "np.ndarray", offset: int, make_input: "Callable", parser: "Callable", events: "EventArray", triggers: "TriggerArray", *, tail_pad: int = 0, word_dtype: "np.dtype | None" = None) -> tuple[int, int]:
     n_words = len(words)
     if offset >= n_words: return 0, n_words
     before = events.size
@@ -219,7 +219,7 @@ def parse_step(words: Any, offset: int, make_input: Any, parser: Any, events: An
         return events.size - before, n_words
     return events.size - before, offset + consumed
 
-def decode_all_soa(words: Any, start_offset: int, make_input: Any, parser: Any, *, est_events_per_word: float = 1.0, tail_pad: int = 0, word_dtype: Any = None, trigger_cap: int = 1 << 12) -> tuple[EventArray, int]:
+def decode_all_soa(words: "np.ndarray", start_offset: int, make_input: "Callable", parser: "Callable", *, est_events_per_word: float = 1.0, tail_pad: int = 0, word_dtype: "np.dtype | None" = None, trigger_cap: int = 1 << 12) -> tuple[EventArray, int]:
     n_words = len(words) if words is not None else 0
     if n_words == 0 or start_offset >= n_words: return EventArray.empty(), n_words
     remaining = n_words - start_offset

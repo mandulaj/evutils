@@ -26,7 +26,6 @@ def _drop_random_events_jit(t: np.ndarray, x: np.ndarray, y: np.ndarray, p: np.n
     mask = np.random.rand(len(t)) >= drop_rate
     return t[mask], x[mask], y[mask], p[mask]
 
-
 def drop_random_events(events, drop_rate: float = 0.1):
     """Drops a percentage of events randomly.
     
@@ -53,7 +52,6 @@ def drop_random_events(events, drop_rate: float = 0.1):
     t, x, y, p = unwrap_events(events)
     t, x, y, p = _drop_random_events_jit(t, x, y, p, drop_rate)
     return repack_events(events, t, x, y, p)
-
 
 def drop_event(events, p=0.1):
     """Randomly drop each event independently with probability ``p``.
@@ -84,7 +82,6 @@ def drop_event(events, p=0.1):
         return events
     return apply_kernel(events, _drop_random_events_jit, p)
 
-
 @lazy_njit
 def _drop_by_time_jit(t, x, y, p, duration_ratio: float):
     """Drop a single contiguous time window covering ``duration_ratio`` of the span."""
@@ -95,7 +92,6 @@ def _drop_by_time_jit(t, x, y, p, duration_ratio: float):
     drop_start = np.random.uniform(0.0, hi) if hi > 0.0 else 0.0
     keep = (t < drop_start) | (t > drop_start + drop_duration)
     return t[keep], x[keep], y[keep], p[keep]
-
 
 def drop_by_time(events, duration_ratio=0.2):
     """Drop every event inside one randomly-placed time window.

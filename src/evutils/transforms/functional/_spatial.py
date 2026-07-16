@@ -6,14 +6,12 @@ from evutils.jit import lazy_njit
 
 from ._common import apply_kernel
 
-
 @lazy_njit
 def _flip_lr_jit(t, x, y, p, width: int):
     """Mirror x about the sensor width: ``x' = width - 1 - x``."""
     # Promote through int64 so the uint16 subtraction can't wrap around.
     new_x = (np.int64(width) - 1 - x.astype(np.int64)).astype(np.uint16)
     return t, new_x, y, p
-
 
 def flip_lr(events, sensor_size):
     """Flip events horizontally: ``x' = width - 1 - x``.
@@ -31,7 +29,6 @@ def flip_lr(events, sensor_size):
         Horizontally flipped events, in their original container type.
     """
     return apply_kernel(events, _flip_lr_jit, int(sensor_size[0]))
-
 
 @lazy_njit
 def _spatial_jitter_jit(t, x, y, p, width: int, height: int,
@@ -60,7 +57,6 @@ def _spatial_jitter_jit(t, x, y, p, width: int, height: int,
         new_x, new_y = new_x[keep], new_y[keep]
 
     return t, new_x.astype(np.uint16), new_y.astype(np.uint16), p
-
 
 def spatial_jitter(events, sensor_size, var_x=1.0, var_y=1.0, sigma_xy=0.0,
                    clip_outliers=False):

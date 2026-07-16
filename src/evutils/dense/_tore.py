@@ -1,7 +1,7 @@
 """Module for generating Time-Ordered Recent Event (TORE) representations from events."""
 
 import numpy as np
-from typing import Any
+from evutils.types import EventArray
 from ..jit import lazy_njit_unwrapped_events
 from ..types import EventArray
 
@@ -20,7 +20,7 @@ def _tore_jit(t, x, y, p, tore_fifo, tore_fifo_idx, t_res, tau):
                 dt = max(0.0, float(t_res - ti))
                 tore_fifo[yi, xi, k_idx, pi] = np.exp(-dt / tau)
 
-def tore(events: 'np.ndarray | EventArray', width: int = 1280, height: int = 720, n_events: int = 4, tau: int = 10_000, dtype: Any = np.uint8) -> np.ndarray:
+def tore(events: 'np.ndarray | EventArray', width: int = 1280, height: int = 720, n_events: int = 4, tau: int = 10_000, dtype: np.dtype | type = np.uint8) -> np.ndarray:
     """Generate a TORE from the events.
 
     Parameters

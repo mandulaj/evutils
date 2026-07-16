@@ -1,4 +1,4 @@
-from typing import Iterator, Any
+from typing import Iterator
 
 from evutils.io._source import make_source
 from evutils.io.decoders import resolve_decoder_cls
@@ -8,7 +8,7 @@ class EventStreamer:
     """A low-level streamer that yields raw event blocks exactly as the parser outputs them.
     It performs ZERO slicing or logic; it purely drives the decoder.
     """
-    def __init__(self, file: Any, ext_trigger: bool = False, decoder_cls: Any = None, **kwargs: Any):
+    def __init__(self, file: "Path | str | bytes | io.BufferedIOBase", ext_trigger: bool = False, decoder_cls: "Type | None" = None, **kwargs) -> None:
         self.source = make_source(file)
         if decoder_cls is None:
             decoder_cls = resolve_decoder_cls(self.source)
@@ -20,7 +20,7 @@ class EventStreamer:
         self.decoder.read_external_triggers = ext_trigger
         self.ext_trigger = ext_trigger
 
-    def __iter__(self) -> Iterator[Any]:
+    def __iter__(self) -> "Iterator[EventArray]":
         self.decoder.init()
         while True:
             chunk = self.decoder.read_chunk()
@@ -42,5 +42,4 @@ class EventStreamer:
                 yield ev_chunk, tr_chunk
             else:
                 yield ev_chunk
-
 

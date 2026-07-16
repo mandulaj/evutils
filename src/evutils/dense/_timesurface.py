@@ -2,7 +2,7 @@
 """Module for generating time surface representations from events."""
 
 import numpy as np
-from typing import Any 
+from evutils.types import EventArray
 from ..jit import lazy_njit_unwrapped_events
 from ..types import EventArray
 
@@ -21,7 +21,7 @@ def _timesurface_jit(t, x, y, p, buffer, t_ref, tau):
                 value = -value
             buffer[yi, xi] = value
 
-def timesurface(events: 'np.ndarray | EventArray', width: int = 1280, height: int = 720, tau: int = 10_000, dtype: Any = np.float32) -> np.ndarray:
+def timesurface(events: 'np.ndarray | EventArray', width: int = 1280, height: int = 720, tau: int = 10_000, dtype: np.dtype | type = np.float32) -> np.ndarray:
     """Generate a time surface frame from the events.
 
     Parameters

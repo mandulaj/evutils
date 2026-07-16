@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import io
 from datetime import datetime
-from typing import Any
 
 import numpy as np
 
@@ -40,7 +39,6 @@ from ._native_aer import (
 from ._source import ByteSource
 
 _EMPTY_EVENTS = EventArray.empty()
-
 
 class EventDecoder_AER(EventDecoder):
     """Decode raw AER streams into ``EventArray`` chunks. Since AER is designed
@@ -66,7 +64,6 @@ class EventDecoder_AER(EventDecoder):
     ----------
     [1] Prophesee AER format: https://docs.prophesee.ai/stable/data/encoding_formats/aer.html
 
-
     """
 
     #: AER is exactly one event per uint32 word, so the parser fills an output
@@ -78,12 +75,12 @@ class EventDecoder_AER(EventDecoder):
                  timestamps: 'str | np.ndarray' = "zero",
                  t_start: int = 0, t_step: int = 1):
         super().__init__(source, chunk_size)
-        self._buf: Any = None
-        self._words: Any = None       # uint32 view of the payload (1 word / event)
+        self._buf: bytes | bytearray | None = None
+        self._words: "np.ndarray | None" = None       # uint32 view of the payload (1 word / event)
         self._offset: int = 0
-        self._parser: Any = None
-        self._events: Any = None
-        self._triggers: Any = None
+        self._parser: "Callable | None" = None
+        self._events: "EventArray | None" = None
+        self._triggers: "TriggerArray | None" = None
 
         self._custom_ts: np.ndarray | None = None
         if isinstance(timestamps, str):
@@ -244,7 +241,6 @@ class EventDecoder_AER(EventDecoder):
         self._words = None
         self._buf = None
 
-
 class EventEncoder_AER(EventEncoder):
     """Encode events into a raw AER stream. Since AER is designed for real-time
     streaming, it has no header and no timestamps.
@@ -263,7 +259,6 @@ class EventEncoder_AER(EventEncoder):
     References
     ----------
     [1] Prophesee AER format: https://docs.prophesee.ai/stable/data/encoding_formats/aer.html
-
 
     """
 

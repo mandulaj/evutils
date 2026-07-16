@@ -5,14 +5,12 @@ Defines the structured NumPy dtypes used throughout evutils — ``Events``
 together with small helpers for checking event arrays.
 """
 
-
 import ctypes
-from typing import Any, TypeVar
+from typing import TypeVar
 
 import numpy as np
 
 __all__ = ['Event_dtype', 'Trigger_dtype', 'Event', 'EventArray', 'TriggerArray', 'is_monotonically_increasing', 'EventsChecker']
-
 
 #: A structured numpy dtype for event data.
 #:
@@ -24,7 +22,6 @@ __all__ = ['Event_dtype', 'Trigger_dtype', 'Event', 'EventArray', 'TriggerArray'
 #: - `p` (np.uint8): Polarity (0: off, 1: on).
 Event_dtype = np.dtype([('t', np.int64), ('x', np.uint16), ('y', np.uint16), ('p', np.uint8)])
 
-
 #: A structured numpy dtype for trigger data.
 #:
 #: Fields:
@@ -33,7 +30,6 @@ Event_dtype = np.dtype([('t', np.int64), ('x', np.uint16), ('y', np.uint16), ('p
 #: - `p` (np.uint8):  Polarity (0: off, 1: on).
 #: - `id` (np.uint8): Identifier.
 Trigger_dtype = np.dtype([('t', np.int64), ('p', np.uint8), ('id', np.uint8)])
-
 
 class Event(ctypes.Structure):
     """Ctypes structure representing an event.
@@ -55,8 +51,6 @@ class Event(ctypes.Structure):
                 ("y", ctypes.c_uint16),
                 ("p", ctypes.c_uint8)]
 
-
-
 def is_monotonically_increasing(events: np.ndarray) -> bool:
     """Checks if the event ts is monotonically increasing.
 
@@ -73,10 +67,7 @@ def is_monotonically_increasing(events: np.ndarray) -> bool:
     """
     return bool(np.all(np.diff(events['t']) >= 0))
 
-
-
 _S = TypeVar("_S", bound="SoaArray")
-
 
 class SoaArray:
     """Abstract base class for struct-of-arrays (SoA) layout.
@@ -114,7 +105,7 @@ class SoaArray:
         self._metadata = value
 
     @property
-    def sensor_size(self) -> Any:
+    def sensor_size(self) -> "tuple[int, int] | None":
         """Convenience accessor for ``metadata['sensor_size']`` (or ``None``).
 
         By convention a ``(width, height)`` tuple, matching the ``(W, H)`` order
@@ -124,14 +115,14 @@ class SoaArray:
         return m.get('sensor_size') if m else None
 
     @sensor_size.setter
-    def sensor_size(self, value: Any) -> None:
+    def sensor_size(self, value: "tuple[int, int] | None") -> None:
         m = self.metadata
         if m is None:
             self.metadata = {'sensor_size': value}
         else:
             m['sensor_size'] = value
 
-    def __getitem__(self, key: Any) -> Any:
+    def __getitem__(self, key: "str | slice | np.ndarray") -> "np.ndarray | SoaArray":
         if isinstance(key, str):
             return getattr(self, key)
             
@@ -218,13 +209,12 @@ class SoaArray:
         """Converts the SoA array to a structured numpy array. Alias for to_aos."""
         return self.to_aos()
 
-    def __array__(self, dtype: Any = None, copy: Any = None) -> np.ndarray:
+    def __array__(self, dtype: "np.dtype | type | None" = None, copy: bool | None = None) -> np.ndarray:
         """Numpy interop: ``np.asarray(arr)`` returns the AoS structured array."""
         aos = self.to_aos()
         if dtype is not None:
             return aos.astype(dtype)
         return aos
-
 
 class EventArray(SoaArray):
     """A container for storing event data in a struct-of-arrays (SoA) layout.
@@ -262,7 +252,7 @@ class EventArray(SoaArray):
     _aos_dtype = Event_dtype
     _fields = ('t', 'x', 'y', 'p')
 
-    def __init__(self, t: Any, x: Any, y: Any, p: Any, metadata: 'dict | None' = None) -> None:
+    def __init__(self, t: "np.typing.ArrayLike", x: "np.typing.ArrayLike", y: "np.typing.ArrayLike", p: "np.typing.ArrayLike", metadata: 'dict | None' = None) -> None:
         t_arr = np.atleast_1d(np.asarray(t, dtype=np.int64))
         x_arr = np.atleast_1d(np.asarray(x, dtype=np.uint16))
         y_arr = np.atleast_1d(np.asarray(y, dtype=np.uint16))
@@ -279,7 +269,6 @@ class EventArray(SoaArray):
         self.y = y_arr
         self.p = p_arr
         self.metadata = metadata
-
 
 class TriggerArray(SoaArray):
     """A container for storing trigger data in a struct-of-arrays (SoA) layout.
@@ -300,7 +289,7 @@ class TriggerArray(SoaArray):
     _aos_dtype = Trigger_dtype
     _fields = ('t', 'p', 'id')
 
-    def __init__(self, t: Any, p: Any, id: Any, metadata: 'dict | None' = None) -> None:
+    def __init__(self, t: "np.typing.ArrayLike", p: "np.typing.ArrayLike", id: "np.typing.ArrayLike", metadata: 'dict | None' = None) -> None:
         t_arr = np.atleast_1d(np.asarray(t, dtype=np.int64))
         p_arr = np.atleast_1d(np.asarray(p, dtype=np.uint8))
         id_arr = np.atleast_1d(np.asarray(id, dtype=np.uint8))
@@ -315,7 +304,6 @@ class TriggerArray(SoaArray):
         self.p = p_arr
         self.id = id_arr
         self.metadata = metadata
-
 
 # EventsChecker validates the event types defined above; imported here (at the
 # end, after the types exist) so it is reachable as ``evutils.types.EventsChecker``

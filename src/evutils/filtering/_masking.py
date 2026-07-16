@@ -2,7 +2,6 @@
 
 import numpy as np
 
-
 def mask_events(events: np.ndarray, mask: np.ndarray) -> np.ndarray:
     """Masks events based on a given mask.
 
