@@ -11,7 +11,7 @@ from typing import Any, TypeVar
 
 import numpy as np
 
-__all__ = ['Event_dtype', 'Trigger_dtype', 'Event', 'EventArray', 'TriggerArray', 'is_monotonically_increasing']
+__all__ = ['Event_dtype', 'Trigger_dtype', 'Event', 'EventArray', 'TriggerArray', 'is_monotonically_increasing', 'EventsChecker']
 
 
 #: A structured numpy dtype for event data.
@@ -315,3 +315,9 @@ class TriggerArray(SoaArray):
         self.p = p_arr
         self.id = id_arr
         self.metadata = metadata
+
+
+# EventsChecker validates the event types defined above; imported here (at the
+# end, after the types exist) so it is reachable as ``evutils.types.EventsChecker``
+# without a circular import.
+from ._checker import EventsChecker  # noqa: E402

@@ -45,7 +45,7 @@ def timesurface(events: 'np.ndarray | EventArray', width: int = 1280, height: in
     Examples
     --------
     >>> import numpy as np
-    >>> from evutils.repr import timesurface
+    >>> from evutils.dense import timesurface
     >>> events = np.array([(10, 20, 100, 1), (15, 25, 200, 0)],
     ...                   dtype=[('x', '<u2'), ('y', '<u2'), ('t', '<i8'), ('p', 'i1')])
     >>> frame = timesurface(events, width=100, height=100)

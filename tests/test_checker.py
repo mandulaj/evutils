@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from evutils.utils._checker import EventsChecker
+from evutils.types import EventsChecker
 from evutils.types import EventArray
 
 def test_events_checker_accepts_event_array() -> None:

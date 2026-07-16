@@ -1,25 +1,18 @@
-"""Dense representations of event data.
+"""Deprecated alias for :mod:`evutils.dense`.
 
-Convert sparse event streams into dense tensors — voxel grids, time
-surfaces, event frames and other fixed-size representations for downstream
-models.
+The representations module was renamed ``repr`` -> ``dense`` (it holds dense,
+fixed-size per-pixel encodings; a sibling ``sparse`` module may follow). This
+shim re-exports everything from :mod:`evutils.dense` and will be removed in a
+future release.
 """
+import warnings
 
+warnings.warn(
+    "evutils.repr is deprecated and will be removed in a future release; "
+    "use evutils.dense instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
-from ._histogram import histogram, wedge_histogram
-from ._voxel import voxel_histogram
-from ._timesurface import timesurface
-from ._frame import frame_diff, frame_rgb, frame_gray
-from ._tore import tore
-
-
-__all__ = [
-    'histogram',
-    'wedge_histogram',
-    'voxel_histogram',
-    'timesurface',
-    'frame_diff',
-    'frame_rgb',
-    'frame_gray',
-    'tore'
-]
+from evutils.dense import *  # noqa: F401,F403,E402
+from evutils.dense import __all__  # noqa: F401,E402

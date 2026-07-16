@@ -37,7 +37,7 @@ def voxel_histogram(events: 'np.ndarray | EventArray', width: int = 1280, height
     Examples
     --------
     >>> import numpy as np
-    >>> from evutils.repr import voxel_histogram
+    >>> from evutils.dense import voxel_histogram
     >>> events = np.array([(10, 20, 100, 1), (15, 25, 200, 0), (20, 30, 10000, 1)],
     ...                   dtype=[('x', '<u2'), ('y', '<u2'), ('t', '<i8'), ('p', 'i1')])
     >>> grid = voxel_histogram(events, width=100, height=100, n_bins=10, dt=10000)

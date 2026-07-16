@@ -1,8 +1,18 @@
-"""General-purpose helpers.
+"""Deprecated alias.
 
-Miscellaneous utilities that don't belong to a specific area, including
-``EventsChecker`` for validating that an event array is well-formed —
-sorted timestamps, valid polarities, and coordinates within the sensor size.
+``EventsChecker`` moved to :mod:`evutils.types` (it validates the event types
+defined there) and the ``utils`` grab-bag was removed. This shim re-exports
+``EventsChecker`` and will be removed in a future release.
 """
+import warnings
 
-from ._checker import EventsChecker
+warnings.warn(
+    "evutils.utils is deprecated and will be removed in a future release; "
+    "import EventsChecker from evutils.types instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
+from evutils.types import EventsChecker  # noqa: F401,E402
+
+__all__ = ["EventsChecker"]

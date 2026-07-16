@@ -24,7 +24,7 @@ import cv2
 import numpy as np
 
 from evutils.io import EventReader
-from evutils.repr import histogram
+from evutils.dense import histogram
 
 
 def main(input_file: str, playback_speed: float = 1.0) -> None:

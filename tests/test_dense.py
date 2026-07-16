@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from evutils.types import Event_dtype, EventArray
-from evutils.repr import (
+from evutils.dense import (
     timesurface,
     voxel_histogram,
     histogram,

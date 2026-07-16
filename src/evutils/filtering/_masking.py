@@ -22,7 +22,7 @@ def mask_events(events: np.ndarray, mask: np.ndarray) -> np.ndarray:
     Examples
     --------
     >>> import numpy as np
-    >>> from evutils.processing import mask_events
+    >>> from evutils.filtering import mask_events
     >>> events = np.array(
     ...     [(0, 0, 100, 1), (1, 1, 200, 1), (2, 2, 300, 0)],
     ...     dtype=[('x', 'u2'), ('y', 'u2'), ('t', 'i8'), ('p', 'i1')]

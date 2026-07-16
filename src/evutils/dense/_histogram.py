@@ -41,7 +41,7 @@ def histogram(events: 'np.ndarray | EventArray', width: int = 1280, height: int 
     Examples
     --------
     >>> import numpy as np
-    >>> from evutils.repr import histogram
+    >>> from evutils.dense import histogram
     >>> events = np.array([(10, 20, 100, 1), (15, 25, 200, 0)],
     ...                   dtype=[('x', '<u2'), ('y', '<u2'), ('t', '<i8'), ('p', 'i1')])
     >>> frame = histogram(events, width=100, height=100)
@@ -100,7 +100,7 @@ def wedge_histogram(events: 'np.ndarray | EventArray', width: int = 1280, height
     Examples
     --------
     >>> import numpy as np
-    >>> from evutils.repr import wedge_histogram
+    >>> from evutils.dense import wedge_histogram
     >>> events = np.array([(10, 20, 100, 1), (15, 25, 200, 0)],
     ...                   dtype=[('x', '<u2'), ('y', '<u2'), ('t', '<i8'), ('p', 'i1')])
     >>> frame = wedge_histogram(events, width=100, height=100)

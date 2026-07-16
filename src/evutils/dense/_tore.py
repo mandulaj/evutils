@@ -46,7 +46,7 @@ def tore(events: 'np.ndarray | EventArray', width: int = 1280, height: int = 720
     Examples
     --------
     >>> import numpy as np
-    >>> from evutils.repr import tore
+    >>> from evutils.dense import tore
     >>> events = np.array([(10, 20, 100, 1), (15, 25, 200, 0)],
     ...                   dtype=[('x', '<u2'), ('y', '<u2'), ('t', '<i8'), ('p', 'i1')])
     >>> frame = tore(events, width=100, height=100, n_events=4)

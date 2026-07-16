@@ -1,9 +1,9 @@
 import pytest
 import numpy as np
 from evutils.types import EventArray, TriggerArray
-from evutils.utils._checker import EventsChecker
+from evutils.types import EventsChecker
 from evutils.chunking import window_delta_t, sliding_window, stream_n_events, stream_delta_t
-from evutils.processing import mask_events, normalize_ts
+from evutils.filtering import mask_events, normalize_ts
 from evutils.transforms import drop_random_events
 from evutils.vis.plot3d import plot_3d, plot_3d_timesurface
 

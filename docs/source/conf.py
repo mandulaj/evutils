@@ -94,6 +94,10 @@ napoleon_numpy_docstring = True
 autoapi_ignore = [
     "*/rpg_e2vid/*",
     "*/_native.py",
+    # Deprecated shim modules (renamed): keep them importable but out of the docs.
+    "*/evutils/repr/*",
+    "*/evutils/processing/*",
+    "*/evutils/utils/*",
 ]
 
 # -- Options for HTML output -------------------------------------------------

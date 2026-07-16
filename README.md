@@ -58,19 +58,23 @@ The library is divided into several discrete modules. Many can be used independe
 └── augment     - Event augmentations
 └── chunking    - Splitting event streams into fixed-size windows
 └── dataset     - Wrappers for various dataset loaders
+└── dense       - Dense representations (voxel grids, time surfaces, histograms)
+└── filtering   - Event stream filtering (masking, timestamp normalization)
 └── io          - Event reading and writing interfaces
     ├── reader 
     └── writer
-└── processing  - Event stream processing and filtering (denoising, masking)
 └── random      - Random event generation and noise injection
-└── repr        - Dense representations (voxel grids, time surfaces, histograms)
 └── torch       - PyTorch integration (requires evutils[torch])
+└── transforms  - torchvision-style augmentation transforms (+ functional)
 └── types       - Standard types for representing Events in NumPy arrays
-└── utils       - General-purpose helpers
 └── vis         - Visualization methods
     ├── histogram
     └── reconstructor
 ```
+
+A future `sparse` module will sit alongside `dense` once sparse representations
+(event graphs, sparse tensors, point clouds) land. `EventsChecker` (event-array
+validation) lives in `types`.
 
 ### Quick API overview 
 

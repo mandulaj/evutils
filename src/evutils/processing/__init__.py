@@ -1,14 +1,17 @@
-"""Event stream processing and filtering.
+"""Deprecated alias for :mod:`evutils.filtering`.
 
-Operations that transform or filter events — denoising, spatial/temporal
-cropping, downsampling and similar steps.
+The module was renamed ``processing`` -> ``filtering``. This shim re-exports
+everything from :mod:`evutils.filtering` and will be removed in a future
+release.
 """
+import warnings
 
-from ._masking import mask_events
-from ._utils import normalize_ts
+warnings.warn(
+    "evutils.processing is deprecated and will be removed in a future release; "
+    "use evutils.filtering instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
-
-__all__ = [
-    'mask_events',
-    'normalize_ts'
-]
+from evutils.filtering import *  # noqa: F401,F403,E402
+from evutils.filtering import __all__  # noqa: F401,E402

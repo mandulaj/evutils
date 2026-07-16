@@ -12,7 +12,7 @@ import numpy as np
 from evutils.io import EventReader
 import cv2
 
-from evutils.repr import histogram
+from evutils.dense import histogram
 
 def main(input_file: str) -> None:
     # Time window: 33 milliseconds per frame (~30 FPS)

@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from evutils.processing import mask_events, normalize_ts
+from evutils.filtering import mask_events, normalize_ts
 from evutils.types import Event_dtype
 
 def test_mask_events():

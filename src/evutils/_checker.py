@@ -3,8 +3,6 @@
 import numpy as np
 from typing import Any
 
-from ..types import Event_dtype
-
 
 class EventsChecker():
     """Class to check if events are valid.
@@ -17,7 +15,7 @@ class EventsChecker():
     """
     
     def __init__(self, events: 'np.ndarray | Any'):
-        from ..types import SoaArray
+        from .types import Event_dtype, SoaArray
         if isinstance(events, SoaArray):
             if events._aos_dtype != Event_dtype:
                 raise ValueError("events must be of type Events")

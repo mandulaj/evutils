@@ -40,7 +40,7 @@ def frame_gray(events: 'np.ndarray | EventArray', width: int = 1280, height: int
     Examples
     --------
     >>> import numpy as np
-    >>> from evutils.repr import frame_gray
+    >>> from evutils.dense import frame_gray
     >>> events = np.array([(10, 20, 100, 1), (15, 25, 200, 0)],
     ...                   dtype=[('x', '<u2'), ('y', '<u2'), ('t', '<i8'), ('p', 'i1')])
     >>> frame = frame_gray(events, width=100, height=100)
@@ -96,7 +96,7 @@ def frame_rgb(ev: 'np.ndarray | EventArray', width: int = 1280, height: int = 72
     Examples
     --------
     >>> import numpy as np
-    >>> from evutils.repr import frame_rgb
+    >>> from evutils.dense import frame_rgb
     >>> events = np.array([(10, 20, 100, 1), (15, 25, 200, 0)],
     ...                   dtype=[('x', '<u2'), ('y', '<u2'), ('t', '<i8'), ('p', 'i1')])
     >>> frame = frame_rgb(events, width=100, height=100)
@@ -151,7 +151,7 @@ def frame_diff(ev: 'np.ndarray | EventArray', width: int = 1280, height: int = 7
     Examples
     --------
     >>> import numpy as np
-    >>> from evutils.repr import frame_diff
+    >>> from evutils.dense import frame_diff
     >>> events = np.array([(10, 20, 100, 1), (15, 25, 200, 0)],
     ...                   dtype=[('x', '<u2'), ('y', '<u2'), ('t', '<i8'), ('p', 'i1')])
     >>> frame = frame_diff(events, width=100, height=100)
