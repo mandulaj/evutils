@@ -56,7 +56,7 @@ Classes
 Package Contents
 ----------------
 
-.. py:class:: EventReader(file: pathlib.Path | str | io.BufferedReader | bytes | evutils.io._source.ByteSource, delta_t: int | None = None, n_events: int | None = None, mode: str = 'auto', start_ts: int = 0, normalize_ts: bool = False, max_time: int = 1000000000000, max_events: int = 10000000, width: int | None = None, height: int | None = None, ext_trigger: bool = False, async_read: bool = False, prefetch_depth: int | None = None, reuse_buffers: bool = False, real_time: bool = False, playback_speed: float = 1.0, max_gap: float | None = 1.0, file_decoder: evutils.io.decoders.EventDecoder | type[evutils.io.decoders.EventDecoder] | None = None, **kwargs: Any)
+.. py:class:: EventReader(file: pathlib.Path | str | io.BufferedReader | bytes | evutils.io._source.ByteSource, delta_t: int | None = None, n_events: int | None = None, mode: str = 'auto', start_ts: int = 0, normalize_ts: bool = False, max_time: int = 1000000000000, max_events: int = 10000000, width: int | None = None, height: int | None = None, ext_trigger: bool = False, async_read: bool = False, prefetch_depth: int | None = None, reuse_buffers: bool = False, real_time: bool = False, playback_speed: float = 1.0, max_gap: float | None = 1.0, file_decoder: evutils.io.decoders.EventDecoder | type[evutils.io.decoders.EventDecoder] | None = None, **kwargs)
 
    Class for reading and automatically decoding and slicing events from a file or stream.
 
@@ -254,7 +254,7 @@ Package Contents
 
 
 
-   .. py:method:: __exit__(exc_type: Any, exc_value: Any, traceback: Any) -> None
+   .. py:method:: __exit__(exc_type: type[BaseException] | None, exc_value: BaseException | None, traceback: types.TracebackType | None) -> None
 
 
    .. py:method:: __repr__() -> str
@@ -263,7 +263,7 @@ Package Contents
    .. py:method:: __len__() -> int
 
 
-   .. py:method:: __iter__() -> Any
+   .. py:method:: __iter__() -> Iterator[EventArray]
 
       Iterate over the events in the file.
 
@@ -302,7 +302,7 @@ Package Contents
 
 
 
-.. py:class:: EventWriter(file: pathlib.Path | str | io.BufferedIOBase, width: int | None = None, height: int | None = None, dt: datetime.datetime | None = None, file_encoder: evutils.io.encoders.EventEncoder | None = None, mode: str = 'w+b', **kwargs: Any)
+.. py:class:: EventWriter(file: pathlib.Path | str | io.BufferedIOBase, width: int | None = None, height: int | None = None, dt: datetime.datetime | None = None, file_encoder: evutils.io.encoders.EventEncoder | None = None, mode: str = 'w+b', **kwargs)
 
    Base class for writing events to different file formats.
 
@@ -391,10 +391,10 @@ Package Contents
 
 
 
-   .. py:method:: __exit__(exc_type: Any, exc_value: Any, traceback: Any) -> None
+   .. py:method:: __exit__(exc_type: type[BaseException] | None, exc_value: BaseException | None, traceback: types.TracebackType | None) -> None
 
 
-.. py:class:: EventStreamer(file: Any, ext_trigger: bool = False, decoder_cls: Any = None, **kwargs: Any)
+.. py:class:: EventStreamer(file: Path | str | bytes | io.BufferedIOBase, ext_trigger: bool = False, decoder_cls: Type | None = None, **kwargs)
 
    A low-level streamer that yields raw event blocks exactly as the parser outputs them.
    It performs ZERO slicing or logic; it purely drives the decoder.
@@ -411,6 +411,6 @@ Package Contents
 
 
 
-   .. py:method:: __iter__() -> Iterator[Any]
+   .. py:method:: __iter__() -> Iterator[EventArray]
 
 

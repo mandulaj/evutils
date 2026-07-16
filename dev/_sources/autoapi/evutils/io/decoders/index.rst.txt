@@ -40,7 +40,7 @@ Functions
 Module Contents
 ---------------
 
-.. py:class:: EventDecoder(source: Any, chunk_size: int = 10000, read_external_triggers: bool = False)
+.. py:class:: EventDecoder(source: io.BufferedIOBase | str | bytes, chunk_size: int = 10000, read_external_triggers: bool = False)
 
    Bases: :py:obj:`abc.ABC`
 
@@ -221,7 +221,7 @@ Module Contents
 
 
 
-.. py:class:: EventDecoder_Bin(source: Any, **kwargs: Any)
+.. py:class:: EventDecoder_Bin(source: io.BufferedIOBase | str | bytes, **kwargs)
 
    Bases: :py:obj:`evutils.io.common.EventDecoder`
 
@@ -250,7 +250,7 @@ Module Contents
 
 
 
-   .. py:method:: read_chunk(delta_t_hint: int | None = None, n_events_hint: int | None = None) -> Any
+   .. py:method:: read_chunk(delta_t_hint: int | None = None, n_events_hint: int | None = None) -> numpy.ndarray | EventArray | None
       :abstractmethod:
 
 
@@ -616,7 +616,7 @@ Module Contents
    :rtype: EventDecoder
 
 
-.. py:function:: resolve_decoder_cls(source: Any) -> Type[evutils.io.common.EventDecoder]
+.. py:function:: resolve_decoder_cls(source: io.BufferedIOBase | str | bytes) -> Type[evutils.io.common.EventDecoder]
 
    Determine the decoder class for a :class:`ByteSource`.
 

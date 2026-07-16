@@ -14,8 +14,6 @@
        import evutils
        ...
 
-
-
    .. rubric:: Notes
 
    Anything worth calling out up front.

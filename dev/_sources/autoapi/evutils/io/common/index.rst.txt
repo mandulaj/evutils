@@ -23,7 +23,7 @@ Classes
 Module Contents
 ---------------
 
-.. py:class:: EventDecoder(source: Any, chunk_size: int = 10000, read_external_triggers: bool = False)
+.. py:class:: EventDecoder(source: io.BufferedIOBase | str | bytes, chunk_size: int = 10000, read_external_triggers: bool = False)
 
    Bases: :py:obj:`abc.ABC`
 

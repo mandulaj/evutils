@@ -106,7 +106,7 @@ Module Contents
 
 
 
-.. py:class:: EventEncoder_Aedat(writable: Any, **kwargs: Any)
+.. py:class:: EventEncoder_Aedat(writable: io.BufferedIOBase, **kwargs)
 
    Bases: :py:obj:`evutils.io.common.EventEncoder`
 
@@ -144,7 +144,7 @@ Module Contents
 
 
 
-.. py:class:: EventEncoder_Bin(writable: Any, **kwargs: Any)
+.. py:class:: EventEncoder_Bin(writable: io.BufferedIOBase, **kwargs)
 
    Bases: :py:obj:`evutils.io.common.EventEncoder`
 

@@ -492,7 +492,6 @@
 <span class="sd">jitter to existing events (``event_jitter``, ``event_jitter_n``).</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Generator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">Event_dtype</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span> 
@@ -524,7 +523,6 @@
     <span class="k">return</span> <span class="n">events</span></div>
 
 
-
 <div class="viewcode-block" id="random_events_generator">
 <a class="viewcode-back" href="../../autoapi/evutils/random/index.html#evutils.random.random_events_generator">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">random_events_generator</span><span class="p">(</span><span class="n">n_events</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1280</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">720</span><span class="p">,</span> <span class="n">start_ts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">end_ts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10_000_000</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
@@ -551,8 +549,6 @@
 
     <span class="n">chunk_end_ts</span> <span class="o">=</span> <span class="n">start_ts</span> <span class="o">+</span> <span class="n">chunk_ts_len</span>
 
-
-
     <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_chunks</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">chunk</span> <span class="o">&gt;=</span> <span class="n">n_chunks</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">chunk_end_ts</span> <span class="o">=</span> <span class="n">end_ts</span>
@@ -565,7 +561,6 @@
         <span class="n">chunk_end_ts</span> <span class="o">+=</span> <span class="n">chunk_ts_len</span>
 
         <span class="k">yield</span> <span class="n">events</span></div>
-
 
 
 <div class="viewcode-block" id="event_jitter_n">
@@ -592,7 +587,6 @@
     <span class="k">return</span> <span class="n">events</span></div>
 
 
-
 <div class="viewcode-block" id="event_jitter">
 <a class="viewcode-back" href="../../autoapi/evutils/random/index.html#evutils.random.event_jitter">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">event_jitter</span><span class="p">(</span><span class="n">events</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">jitter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sort</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">in_place</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
@@ -617,7 +611,6 @@
         <span class="n">events</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s2">&quot;t&quot;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">events</span></div>
-
 
 
 </pre></div>

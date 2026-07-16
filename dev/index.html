@@ -635,9 +635,24 @@ Wrappers for various dataset loaders -->
 </pre></div>
 </div>
 </section>
-<section id="utils">
-<h4><code class="docutils literal notranslate"><span class="pre">utils</span></code><a class="headerlink" href="#utils" title="Link to this heading">#</a></h4>
-<p>Various utility functions</p>
+<section id="dense">
+<h4><code class="docutils literal notranslate"><span class="pre">dense</span></code><a class="headerlink" href="#dense" title="Link to this heading">#</a></h4>
+<p>Dense representations — turn a sparse event stream into fixed-size per-pixel
+tensors: histograms, voxel grids, time surfaces, accumulation frames and TORE.
+(A future <code class="docutils literal notranslate"><span class="pre">sparse</span></code> module will hold event graphs, sparse tensors and point
+clouds.)</p>
+</section>
+<section id="filtering">
+<h4><code class="docutils literal notranslate"><span class="pre">filtering</span></code><a class="headerlink" href="#filtering" title="Link to this heading">#</a></h4>
+<p>Selecting and dropping events: spatial masking today, with denoising, ROI and
+downsampling to follow.</p>
+</section>
+<section id="transforms">
+<h4><code class="docutils literal notranslate"><span class="pre">transforms</span></code><a class="headerlink" href="#transforms" title="Link to this heading">#</a></h4>
+<p>torchvision/tonic-style augmentation transforms (drops, spatial flips, jitter,
+time skew/normalize, refractory filtering). Each composable <code class="docutils literal notranslate"><span class="pre">Transform</span></code> class
+pairs with a pure <code class="docutils literal notranslate"><span class="pre">functional</span></code> kernel, and <code class="docutils literal notranslate"><span class="pre">Compose</span></code> chains them with minimal
+unwrap/repack overhead.</p>
 </section>
 <section id="random">
 <h4><code class="docutils literal notranslate"><span class="pre">random</span></code><a class="headerlink" href="#random" title="Link to this heading">#</a></h4>
@@ -799,7 +814,9 @@ uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </sp
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#architecture">Architecture</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-api-overview">Quick API overview</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#io-reading-and-writing-events"><code class="docutils literal notranslate"><span class="pre">io</span></code>: Reading and Writing Events</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#utils"><code class="docutils literal notranslate"><span class="pre">utils</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#dense"><code class="docutils literal notranslate"><span class="pre">dense</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#filtering"><code class="docutils literal notranslate"><span class="pre">filtering</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#transforms"><code class="docutils literal notranslate"><span class="pre">transforms</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#random"><code class="docutils literal notranslate"><span class="pre">random</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#types"><code class="docutils literal notranslate"><span class="pre">types</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vis"><code class="docutils literal notranslate"><span class="pre">vis</span></code></a></li>

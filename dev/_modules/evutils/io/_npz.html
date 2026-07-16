@@ -509,7 +509,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">zipfile</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">IO</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">IO</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">numpy.lib</span><span class="w"> </span><span class="kn">import</span> <span class="nb">format</span> <span class="k">as</span> <span class="n">npy_format</span>
@@ -523,7 +523,6 @@
 <span class="c1">#: Column name -&gt; on-disk dtype (matches EventArray&#39;s column dtypes).</span>
 <span class="n">_COLUMNS</span> <span class="o">=</span> <span class="p">((</span><span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)),</span> <span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint16</span><span class="p">)),</span>
             <span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint16</span><span class="p">)),</span> <span class="p">(</span><span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)))</span>
-
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_read_npy_header</span><span class="p">(</span><span class="n">fp</span><span class="p">:</span> <span class="n">IO</span><span class="p">[</span><span class="nb">bytes</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Read the ``.npy`` magic + header from a stream, returning (shape, dtype).</span>
@@ -543,7 +542,6 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Fortran-ordered .npy members are not supported&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span>
 
-
 <span class="k">def</span><span class="w"> </span><span class="nf">_read_exact</span><span class="p">(</span><span class="n">fp</span><span class="p">:</span> <span class="n">IO</span><span class="p">[</span><span class="nb">bytes</span><span class="p">],</span> <span class="n">nbytes</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytearray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Read exactly ``nbytes`` from a (possibly decompressing) stream.</span>
 
@@ -558,7 +556,6 @@
             <span class="k">raise</span> <span class="ne">EOFError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;truncated .npy member: expected </span><span class="si">{</span><span class="n">nbytes</span><span class="si">}</span><span class="s2"> bytes, got </span><span class="si">{</span><span class="n">got</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">got</span> <span class="o">+=</span> <span class="n">n</span>
     <span class="k">return</span> <span class="n">out</span>
-
 
 <div class="viewcode-block" id="EventDecoder_Npz">
 <a class="viewcode-back" href="../../../autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Npz">[docs]</a>
@@ -635,7 +632,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_initialized</span><span class="p">:</span>
             <span class="k">return</span>
 
-        <span class="n">f</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source</span><span class="o">.</span><span class="n">seekable</span><span class="p">()</span> <span class="k">else</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_source</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">f</span><span class="p">:</span> <span class="s2">&quot;io.BytesIO | io.BufferedIOBase&quot;</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source</span><span class="o">.</span><span class="n">seekable</span><span class="p">()</span> <span class="k">else</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_source</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_zf</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 
         <span class="n">names</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_zf</span><span class="o">.</span><span class="n">namelist</span><span class="p">())</span>
@@ -710,7 +707,6 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_zf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_zf</span> <span class="o">=</span> <span class="kc">None</span></div>
 </div>
-
 
 
 <div class="viewcode-block" id="EventEncoder_Npz">

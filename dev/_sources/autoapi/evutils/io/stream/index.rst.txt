@@ -15,7 +15,7 @@ Classes
 Module Contents
 ---------------
 
-.. py:class:: EventStreamer(file: Any, ext_trigger: bool = False, decoder_cls: Any = None, **kwargs: Any)
+.. py:class:: EventStreamer(file: Path | str | bytes | io.BufferedIOBase, ext_trigger: bool = False, decoder_cls: Type | None = None, **kwargs)
 
    A low-level streamer that yields raw event blocks exactly as the parser outputs them.
    It performs ZERO slicing or logic; it purely drives the decoder.
@@ -32,6 +32,6 @@ Module Contents
 
 
 
-   .. py:method:: __iter__() -> Iterator[Any]
+   .. py:method:: __iter__() -> Iterator[EventArray]
 
 

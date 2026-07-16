@@ -494,7 +494,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">cast</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Type</span><span class="p">,</span> <span class="n">cast</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventDecoder</span>
 
@@ -503,7 +503,6 @@
 
 <span class="c1">#: Extension -&gt; reason it is unavailable (missing optional dependency).</span>
 <span class="n">_UNAVAILABLE</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">._aedat</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventDecoder_Aedat</span>
 <span class="n">_READER_MAPPING</span><span class="p">[</span><span class="s2">&quot;.aedat&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">EventDecoder_Aedat</span>
@@ -548,7 +547,6 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">._aer</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventDecoder_AER</span>
 <span class="n">_READER_MAPPING</span><span class="p">[</span><span class="s2">&quot;.aer&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">EventDecoder_AER</span>
 
-
 <span class="k">def</span><span class="w"> </span><span class="nf">_lookup</span><span class="p">(</span><span class="n">ext</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">[</span><span class="n">EventDecoder</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Resolve an extension to a decoder class, or raise a helpful error.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">ext</span> <span class="ow">in</span> <span class="n">_READER_MAPPING</span><span class="p">:</span>
@@ -559,7 +557,6 @@
         <span class="sa">f</span><span class="s2">&quot;File extension </span><span class="si">{</span><span class="n">ext</span><span class="si">}</span><span class="s2"> not supported, available extensions: &quot;</span>
         <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">_READER_MAPPING</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">_UNAVAILABLE</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span>
     <span class="p">)</span>
-
 
 <div class="viewcode-block" id="get_reader_from_filename">
 <a class="viewcode-back" href="../../../autoapi/evutils/io/decoders/index.html#evutils.io.decoders.get_reader_from_filename">[docs]</a>
@@ -580,14 +577,12 @@
     <span class="k">return</span> <span class="n">_lookup</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span></div>
 
 
-
 <span class="c1"># Content sniffers: (predicate over the first bytes -&gt; decoder class). Tried in</span>
 <span class="c1"># order when the filename extension is unknown or absent (streams, USB).</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">_header_lines</span><span class="p">(</span><span class="n">head</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;The ``&quot;% ...&quot;`` ASCII header lines at the start of ``head``.&quot;&quot;&quot;</span>
     <span class="n">text</span> <span class="o">=</span> <span class="n">head</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">,</span> <span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">[</span><span class="n">ln</span> <span class="k">for</span> <span class="n">ln</span> <span class="ow">in</span> <span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">ln</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;% &quot;</span><span class="p">)]</span>
-
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_sniff_dat</span><span class="p">(</span><span class="n">head</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Prophesee DAT: header carries ``% Version`` / ``% Data file containing``.</span>
@@ -601,7 +596,6 @@
             <span class="k">return</span> <span class="kc">True</span>
     <span class="k">return</span> <span class="kc">False</span>
 
-
 <span class="k">def</span><span class="w"> </span><span class="nf">_sniff_evt</span><span class="p">(</span><span class="n">head</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Prophesee RAW/EVT: header carries ``% evt`` / ``% format EVT`` / ``% geometry``.&quot;&quot;&quot;</span>
     <span class="k">for</span> <span class="n">ln</span> <span class="ow">in</span> <span class="n">_header_lines</span><span class="p">(</span><span class="n">head</span><span class="p">):</span>
@@ -612,14 +606,12 @@
             <span class="k">return</span> <span class="kc">True</span>
     <span class="k">return</span> <span class="kc">False</span>
 
-
 <span class="k">def</span><span class="w"> </span><span class="nf">_sniff_prophesee</span><span class="p">(</span><span class="n">head</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Fallback: any other ``&quot;% &quot;``-headed stream with prophesee-like metadata.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">head</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;% &quot;</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">False</span>
     <span class="n">low</span> <span class="o">=</span> <span class="n">head</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
     <span class="k">return</span> <span class="sa">b</span><span class="s2">&quot;system_id&quot;</span> <span class="ow">in</span> <span class="n">low</span> <span class="ow">or</span> <span class="sa">b</span><span class="s2">&quot;firmware_version&quot;</span> <span class="ow">in</span> <span class="n">low</span> <span class="ow">or</span> <span class="sa">b</span><span class="s2">&quot;plugin name&quot;</span> <span class="ow">in</span> <span class="n">low</span>
-
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_sniff_aedat</span><span class="p">(</span><span class="n">head</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if the first bytes match an AEDAT version line.</span>
@@ -637,7 +629,6 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">head</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;#!AER-DAT&quot;</span><span class="p">)</span>
 
-
 <span class="n">_SNIFFERS</span> <span class="o">=</span> <span class="p">[</span>
     <span class="p">(</span><span class="n">_sniff_dat</span><span class="p">,</span> <span class="s2">&quot;EventDecoder_Dat&quot;</span><span class="p">),</span>
     <span class="p">(</span><span class="n">_sniff_evt</span><span class="p">,</span> <span class="s2">&quot;EventDecoder_EVT&quot;</span><span class="p">),</span>
@@ -645,10 +636,9 @@
     <span class="p">(</span><span class="n">_sniff_prophesee</span><span class="p">,</span> <span class="s2">&quot;EventDecoder_EVT&quot;</span><span class="p">),</span>  <span class="c1"># generic &quot;% &quot;-headed fallback</span>
 <span class="p">]</span>
 
-
 <div class="viewcode-block" id="resolve_decoder_cls">
 <a class="viewcode-back" href="../../../autoapi/evutils/io/decoders/index.html#evutils.io.decoders.resolve_decoder_cls">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">resolve_decoder_cls</span><span class="p">(</span><span class="n">source</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">[</span><span class="n">EventDecoder</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">resolve_decoder_cls</span><span class="p">(</span><span class="n">source</span><span class="p">:</span> <span class="s2">&quot;io.BufferedIOBase | str | bytes&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">[</span><span class="n">EventDecoder</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Determine the decoder class for a :class:`ByteSource`.</span>
 
 <span class="sd">    Tries the filename extension first (cheap, usually right), then falls back</span>
@@ -685,7 +675,6 @@
         <span class="s2">&quot;Could not determine the event format: unknown/absent extension &quot;</span>
         <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">) and no known magic bytes. Pass an explicit decoder.&quot;</span>
     <span class="p">)</span></div>
-
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;EventDecoder&quot;</span><span class="p">,</span> <span class="s1">&#39;EventDecoder_Aedat&#39;</span><span class="p">,</span> <span class="s1">&#39;EventDecoder_Bin&#39;</span><span class="p">,</span> <span class="s1">&#39;EventDecoder_Csv&#39;</span><span class="p">,</span> <span class="s1">&#39;EventDecoder_Dat&#39;</span><span class="p">,</span> <span class="s1">&#39;EventDecoder_HDF5&#39;</span><span class="p">,</span> <span class="s1">&#39;EventDecoder_Npz&#39;</span><span class="p">,</span> <span class="s1">&#39;EventDecoder_EVT&#39;</span><span class="p">,</span> <span class="s1">&#39;EventDecoder_AER&#39;</span><span class="p">,</span> <span class="s1">&#39;get_reader_from_filename&#39;</span><span class="p">,</span> <span class="s1">&#39;resolve_decoder_cls&#39;</span><span class="p">]</span>

@@ -50,7 +50,7 @@ Module Contents
    :rtype: None
 
 
-.. py:class:: RPG_Reconstructor(height: int, width: int, args: Any = None)
+.. py:class:: RPG_Reconstructor(height: int, width: int, args: dict | None = None)
 
    Bases: :py:obj:`evutils.vis.reconstructor._base.Reconstructor`
 
@@ -73,7 +73,7 @@ Module Contents
 
 
    .. py:attribute:: DEFAULT_ARGS
-      :type:  Dict[str, Any]
+      :type:  dict[str, float | str | int]
 
 
    .. py:attribute:: model

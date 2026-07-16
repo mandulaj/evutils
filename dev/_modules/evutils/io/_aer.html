@@ -505,7 +505,6 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
@@ -527,7 +526,6 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">._source</span><span class="w"> </span><span class="kn">import</span> <span class="n">ByteSource</span>
 
 <span class="n">_EMPTY_EVENTS</span> <span class="o">=</span> <span class="n">EventArray</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
-
 
 <div class="viewcode-block" id="EventDecoder_AER">
 <a class="viewcode-back" href="../../../autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_AER">[docs]</a>
@@ -555,7 +553,6 @@
 <span class="sd">    ----------</span>
 <span class="sd">    [1] Prophesee AER format: https://docs.prophesee.ai/stable/data/encoding_formats/aer.html</span>
 
-
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1">#: AER is exactly one event per uint32 word, so the parser fills an output</span>
@@ -567,12 +564,12 @@
                  <span class="n">timestamps</span><span class="p">:</span> <span class="s1">&#39;str | np.ndarray&#39;</span> <span class="o">=</span> <span class="s2">&quot;zero&quot;</span><span class="p">,</span>
                  <span class="n">t_start</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">t_step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_buf</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_words</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>       <span class="c1"># uint32 view of the payload (1 word / event)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_buf</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="nb">bytearray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_words</span><span class="p">:</span> <span class="s2">&quot;np.ndarray | None&quot;</span> <span class="o">=</span> <span class="kc">None</span>       <span class="c1"># uint32 view of the payload (1 word / event)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_parser</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_events</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parser</span><span class="p">:</span> <span class="s2">&quot;Callable | None&quot;</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_events</span><span class="p">:</span> <span class="s2">&quot;EventArray | None&quot;</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span><span class="p">:</span> <span class="s2">&quot;TriggerArray | None&quot;</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_custom_ts</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">timestamps</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
@@ -755,7 +752,6 @@
 </div>
 
 
-
 <div class="viewcode-block" id="EventEncoder_AER">
 <a class="viewcode-back" href="../../../autoapi/evutils/io/encoders/index.html#evutils.io.decoders.EventEncoder_AER">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">EventEncoder_AER</span><span class="p">(</span><span class="n">EventEncoder</span><span class="p">):</span>
@@ -776,7 +772,6 @@
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
 <span class="sd">    [1] Prophesee AER format: https://docs.prophesee.ai/stable/data/encoding_formats/aer.html</span>
-
 
 <span class="sd">    &quot;&quot;&quot;</span>
 

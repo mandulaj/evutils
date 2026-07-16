@@ -35,7 +35,7 @@ Module Contents
 
 .. py:data:: F
 
-.. py:class:: Metavision_Reconstructor(height: int, width: int, args: Any = None)
+.. py:class:: Metavision_Reconstructor(height: int, width: int, args: dict | None = None)
 
    Bases: :py:obj:`evutils.vis.reconstructor._base.Reconstructor`
 

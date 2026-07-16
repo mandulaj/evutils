@@ -496,11 +496,9 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">queue</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">threading</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">evutils.io.buffer</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventAccumulator</span>
-
-
-
+<span class="kn">from</span><span class="w"> </span><span class="nn">evutils.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventArray</span>
 
 <div class="viewcode-block" id="window_delta_t">
 <a class="viewcode-back" href="../../autoapi/evutils/chunking/index.html#evutils.chunking.window_delta_t">[docs]</a>
@@ -582,7 +580,6 @@
 
     <span class="k">while</span> <span class="n">index_start</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">events</span><span class="p">):</span>
 
-
         <span class="n">next_frame_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">ts</span><span class="p">[</span><span class="n">index_start</span><span class="p">:],</span> <span class="n">current_ts</span> <span class="o">+</span> <span class="n">delta_t</span><span class="p">)</span>
         <span class="n">next_window_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">ts</span><span class="p">[</span><span class="n">index_start</span><span class="p">:],</span> <span class="n">current_ts</span> <span class="o">+</span> <span class="n">window_size</span><span class="p">)</span>
         
@@ -597,9 +594,6 @@
 
         <span class="n">current_ts</span> <span class="o">+=</span> <span class="n">delta_t</span>
         <span class="n">index_start</span> <span class="o">+=</span> <span class="n">next_frame_index</span></div>
-
-
-
 
 
 <div class="viewcode-block" id="sort_events">
@@ -660,7 +654,7 @@
 
 <div class="viewcode-block" id="stream_delta_t">
 <a class="viewcode-back" href="../../autoapi/evutils/chunking/index.html#evutils.chunking.stream_delta_t">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">stream_delta_t</span><span class="p">(</span><span class="n">raw_stream</span><span class="p">:</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">delta_t</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">stream_delta_t</span><span class="p">(</span><span class="n">raw_stream</span><span class="p">:</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">EventArray</span><span class="p">],</span> <span class="n">delta_t</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">EventArray</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A pipeline generator that turns a raw stream into perfect delta_t chunks.</span>
 <span class="sd">    This maintains a small internal buffer for events that cross boundaries.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -734,10 +728,9 @@
             <span class="k">yield</span> <span class="n">acc</span><span class="o">.</span><span class="n">slice_copy</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">acc</span><span class="p">),</span> <span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></div>
 
 
-
 <div class="viewcode-block" id="stream_n_events">
 <a class="viewcode-back" href="../../autoapi/evutils/chunking/index.html#evutils.chunking.stream_n_events">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">stream_n_events</span><span class="p">(</span><span class="n">raw_stream</span><span class="p">:</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">n_events</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">stream_n_events</span><span class="p">(</span><span class="n">raw_stream</span><span class="p">:</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">EventArray</span><span class="p">],</span> <span class="n">n_events</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">EventArray</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Pipeline generator: chunks stream by event count.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">n_events</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;n_events must be positive&quot;</span><span class="p">)</span>
@@ -769,7 +762,7 @@
 
 <div class="viewcode-block" id="stream_skip_to_time">
 <a class="viewcode-back" href="../../autoapi/evutils/chunking/index.html#evutils.chunking.stream_skip_to_time">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">stream_skip_to_time</span><span class="p">(</span><span class="n">stream</span><span class="p">:</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">start_ts</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">stream_skip_to_time</span><span class="p">(</span><span class="n">stream</span><span class="p">:</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">EventArray</span><span class="p">],</span> <span class="n">start_ts</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">EventArray</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Pipeline generator: drops events until start_ts is reached.&quot;&quot;&quot;</span>
     <span class="n">skipping</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="k">for</span> <span class="n">incoming</span> <span class="ow">in</span> <span class="n">stream</span><span class="p">:</span>
@@ -793,9 +786,9 @@
 
 <div class="viewcode-block" id="stream_async">
 <a class="viewcode-back" href="../../autoapi/evutils/chunking/index.html#evutils.chunking.stream_async">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">stream_async</span><span class="p">(</span><span class="n">stream</span><span class="p">:</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">maxsize</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">stream_async</span><span class="p">(</span><span class="n">stream</span><span class="p">:</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">EventArray</span><span class="p">],</span> <span class="n">maxsize</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">EventArray</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Pipeline generator: runs upstream decoding in a background thread.&quot;&quot;&quot;</span>
-    <span class="n">q</span><span class="p">:</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="n">maxsize</span><span class="p">)</span>
+    <span class="n">q</span><span class="p">:</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">EventArray</span><span class="p">]</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="n">maxsize</span><span class="p">)</span>
     
     <span class="k">def</span><span class="w"> </span><span class="nf">worker</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
@@ -828,7 +821,7 @@
 
 <div class="viewcode-block" id="stream_paced_playback">
 <a class="viewcode-back" href="../../autoapi/evutils/chunking/index.html#evutils.chunking.stream_paced_playback">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">stream_paced_playback</span><span class="p">(</span><span class="n">stream</span><span class="p">:</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">playback_speed</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">stream_paced_playback</span><span class="p">(</span><span class="n">stream</span><span class="p">:</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">EventArray</span><span class="p">],</span> <span class="n">playback_speed</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">EventArray</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Pipeline generator: spaces out yielding chunks to match wall-clock real-time.&quot;&quot;&quot;</span>
     <span class="n">start_wall</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">start_ts</span> <span class="o">=</span> <span class="kc">None</span>

@@ -494,7 +494,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">TYPE_CHECKING</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
@@ -508,7 +508,6 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">._prefetch</span><span class="w"> </span><span class="kn">import</span> <span class="n">PrefetchIterator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._source</span><span class="w"> </span><span class="kn">import</span> <span class="n">ByteSource</span><span class="p">,</span> <span class="n">make_source</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.buffer</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventAccumulator</span>
-
 
 <div class="viewcode-block" id="EventReader">
 <a class="viewcode-back" href="../../../autoapi/evutils/io/index.html#evutils.io.EventReader">[docs]</a>
@@ -638,7 +637,7 @@
                  <span class="n">playback_speed</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
                  <span class="n">max_gap</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
                  <span class="n">file_decoder</span><span class="p">:</span> <span class="n">ev_decoders</span><span class="o">.</span><span class="n">EventDecoder</span> <span class="o">|</span> <span class="nb">type</span><span class="p">[</span><span class="n">ev_decoders</span><span class="o">.</span><span class="n">EventDecoder</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-                 <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 
         <span class="c1"># Remember the path (if any) for repr / reset semantics.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_file_name</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">file</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">))</span> <span class="k">else</span> <span class="kc">None</span>
@@ -673,11 +672,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_current_ts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_first_ts</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_ts</span> <span class="o">=</span> <span class="n">normalize_ts</span> <span class="c1"># Normalize timestamps to start from zero</span>
 
-
         <span class="c1"># Validate the parameters</span>
         <span class="k">if</span> <span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">EventReader</span><span class="o">.</span><span class="n">READING_MODES</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mode </span><span class="si">{</span><span class="n">mode</span><span class="si">}</span><span class="s2"> not supported. Supported modes are: </span><span class="si">{</span><span class="n">EventReader</span><span class="o">.</span><span class="n">READING_MODES</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">=</span> <span class="n">mode</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
 
@@ -721,7 +718,6 @@
             <span class="n">delta_t</span> <span class="o">=</span> <span class="n">max_time</span>
             <span class="n">n_events</span> <span class="o">=</span> <span class="n">max_events</span>
 
-
         <span class="c1"># Validate the parameters</span>
         <span class="k">if</span> <span class="n">delta_t</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">delta_t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEFAULT_DELTA_T</span>
@@ -734,13 +730,11 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">n_events</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;n_events must be an integer&quot;</span><span class="p">)</span>
 
-
         <span class="k">if</span> <span class="n">delta_t</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;delta_t must be positive&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">n_events</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;n_events must be positive&quot;</span><span class="p">)</span>
-
 
         <span class="c1"># delta_t and n_events to read on each call</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_delta_t</span> <span class="o">=</span> <span class="n">delta_t</span>
@@ -814,8 +808,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_pace_anchor</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># (wall time, event ts)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_n_read_events</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># Number of events read (not includeing events stored in buffer)</span>
-
-
 
 <div class="viewcode-block" id="EventReader.init">
 <a class="viewcode-back" href="../../../autoapi/evutils/io/index.html#evutils.io.EventReader.init">[docs]</a>
@@ -913,7 +905,7 @@
         <span class="k">return</span> <span class="n">out</span></div>
 
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_pace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_pace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out</span><span class="p">:</span> <span class="s2">&quot;np.ndarray | EventArray&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Sleep until the chunk&#39;s last event timestamp aligns with wall-clock</span>
 <span class="sd">        playback time (anchored at the first delivered chunk).</span>
 
@@ -941,7 +933,7 @@
         <span class="k">if</span> <span class="n">delay</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">delay</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_read_n_events_fast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_events</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_read_n_events_fast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_events</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;np.ndarray | EventArray&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Decode ~``n_events`` straight into a fresh output buffer and hand it</span>
 <span class="sd">        out with no staging copy.</span>
 
@@ -987,7 +979,7 @@
             <span class="n">output</span><span class="o">.</span><span class="n">t</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_first_ts</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start_ts</span>
         <span class="k">return</span> <span class="n">output</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_read_n_events_readchunk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_events</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_read_n_events_readchunk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_events</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;np.ndarray | EventArray&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Hand out one ``read_chunk(n_events)`` result directly, no accumulator.</span>
 
 <span class="sd">        For decoders whose ``read_chunk`` already returns an *independent* array</span>
@@ -1033,7 +1025,7 @@
             <span class="n">out</span><span class="o">.</span><span class="n">grow</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">size</span> <span class="o">+</span> <span class="n">step</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">capacity</span> <span class="o">*</span> <span class="mf">1.5</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
         <span class="n">out</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">capacity</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">size</span> <span class="o">+</span> <span class="n">step</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_read_delta_t_fast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_read_delta_t_fast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;np.ndarray | EventArray&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;One ``delta_t`` window, fast path: decode into a fresh buffer, hand out</span>
 <span class="sd">        a zero-copy view of the window, and carry only the small overshoot</span>
 <span class="sd">        (events past the boundary, at most one decode step) to the next call.</span>
@@ -1181,7 +1173,7 @@
         <span class="n">buf</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">capacity</span> <span class="o">=</span> <span class="n">buf</span><span class="o">.</span><span class="n">capacity</span>
         <span class="k">return</span> <span class="n">buf</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_read_delta_t_c</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_read_delta_t_c</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;EventArray&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;One delta_t window via the dedicated C parser.</span>
 
 <span class="sd">        The C parser stops exactly when an event&#39;s timestamp reaches ``end_ts``,</span>
@@ -1272,7 +1264,7 @@
         <span class="c1"># if the decoder itself hit EOF.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_eof</span> <span class="o">=</span> <span class="kc">False</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_attach_sensor_size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_attach_sensor_size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out</span><span class="p">:</span> <span class="s2">&quot;EventArray&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;EventArray&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Stamp ``sensor_size=(width, height)`` onto returned events, when known.</span>
 
 <span class="sd">        Applied at the single internal read chokepoint so every delivery path</span>
@@ -1290,11 +1282,11 @@
             <span class="k">pass</span>
         <span class="k">return</span> <span class="n">out</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">:</span><span class="nb">int</span><span class="o">|</span><span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_events</span><span class="p">:</span><span class="nb">int</span><span class="o">|</span><span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">:</span><span class="nb">int</span><span class="o">|</span><span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_events</span><span class="p">:</span><span class="nb">int</span><span class="o">|</span><span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;EventArray&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Thin wrapper stamping sensor_size onto the decoded window.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attach_sensor_size</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_read_impl</span><span class="p">(</span><span class="n">delta_t</span><span class="p">,</span> <span class="n">n_events</span><span class="p">))</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_read_impl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">:</span><span class="nb">int</span><span class="o">|</span><span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_events</span><span class="p">:</span><span class="nb">int</span><span class="o">|</span><span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_read_impl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">:</span><span class="nb">int</span><span class="o">|</span><span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_events</span><span class="p">:</span><span class="nb">int</span><span class="o">|</span><span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;EventArray&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Unguarded body of :meth:`read` (also driven by the prefetch worker).&quot;&quot;&quot;</span>
         <span class="c1"># If not initialized, initialize</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_initialized</span><span class="p">:</span>
@@ -1565,7 +1557,7 @@
 
 <div class="viewcode-block" id="EventReader.__exit__">
 <a class="viewcode-back" href="../../../autoapi/evutils/io/index.html#evutils.io.EventReader.__exit__">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">traceback</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">:</span> <span class="s2">&quot;type[BaseException] | None&quot;</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">:</span> <span class="s2">&quot;BaseException | None&quot;</span><span class="p">,</span> <span class="n">traceback</span><span class="p">:</span> <span class="s2">&quot;types.TracebackType | None&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
 
@@ -1588,7 +1580,7 @@
 
 <div class="viewcode-block" id="EventReader.__iter__">
 <a class="viewcode-back" href="../../../autoapi/evutils/io/index.html#evutils.io.EventReader.__iter__">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Iterator[EventArray]&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Iterate over the events in the file.</span>
 
 <span class="sd">        With ``async_read=True`` the windows are decoded ahead in a background</span>
@@ -1613,7 +1605,7 @@
         <span class="n">it</span><span class="p">:</span> <span class="n">Any</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_async_read</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_check_no_active_prefetch</span><span class="p">()</span>
-            <span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefetch_depth</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;depth&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefetch_depth</span>
             <span class="n">it</span> <span class="o">=</span> <span class="n">PrefetchIterator</span><span class="p">(</span>
@@ -1631,7 +1623,7 @@
         <span class="k">return</span> <span class="n">it</span></div>
 
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_paced_iter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">it</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_paced_iter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">it</span><span class="p">:</span> <span class="s2">&quot;Iterator[EventArray]&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Iterator[EventArray]&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Wrap an iterator so each chunk is released on the playback clock.&quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">it</span><span class="p">:</span>
@@ -1643,7 +1635,7 @@
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">it</span><span class="p">,</span> <span class="s2">&quot;close&quot;</span><span class="p">):</span>
                 <span class="n">it</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_iter_sync</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_iter_sync</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Iterator[EventArray]&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;The plain synchronous window generator behind :meth:`__iter__`.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_initialized</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
@@ -1669,7 +1661,6 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span><span class="o">.</span><span class="n">shape</span><span class="p">()</span></div>
 
 
-
 <div class="viewcode-block" id="EventReader.tell">
 <a class="viewcode-back" href="../../../autoapi/evutils/io/index.html#evutils.io.EventReader.tell">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">tell</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
@@ -1685,8 +1676,6 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span></div>
 </div>
-
-
 
 
 </pre></div>

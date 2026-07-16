@@ -526,7 +526,7 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">struct</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
@@ -566,7 +566,6 @@
     <span class="s2">&quot;dvs128&quot;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">a</span><span class="p">:</span> <span class="p">(((</span><span class="n">a</span> <span class="o">&gt;&gt;</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0x7F</span><span class="p">),</span> <span class="p">((</span><span class="n">a</span> <span class="o">&gt;&gt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0x7F</span><span class="p">),</span> <span class="p">(</span><span class="n">a</span> <span class="o">&amp;</span> <span class="mh">0x1</span><span class="p">)),</span>
 <span class="p">}</span>
 
-
 <span class="c1"># ---------------------------------------------------------------------------#</span>
 <span class="c1"># Minimal FlatBuffer field access (AEDAT 4.0). The two schemas involved are</span>
 <span class="c1"># tiny and fixed, so the offsets are walked by hand instead of depending on a</span>
@@ -575,18 +574,14 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">_u16</span><span class="p">(</span><span class="n">b</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">o</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
     <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">struct</span><span class="o">.</span><span class="n">unpack_from</span><span class="p">(</span><span class="s2">&quot;&lt;H&quot;</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">o</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
 
-
 <span class="k">def</span><span class="w"> </span><span class="nf">_i32</span><span class="p">(</span><span class="n">b</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">o</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
     <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">struct</span><span class="o">.</span><span class="n">unpack_from</span><span class="p">(</span><span class="s2">&quot;&lt;i&quot;</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">o</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
-
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_u32</span><span class="p">(</span><span class="n">b</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">o</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
     <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">struct</span><span class="o">.</span><span class="n">unpack_from</span><span class="p">(</span><span class="s2">&quot;&lt;I&quot;</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">o</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
 
-
 <span class="k">def</span><span class="w"> </span><span class="nf">_i64</span><span class="p">(</span><span class="n">b</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">o</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
     <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">struct</span><span class="o">.</span><span class="n">unpack_from</span><span class="p">(</span><span class="s2">&quot;&lt;q&quot;</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">o</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
-
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_fb_field_pos</span><span class="p">(</span><span class="n">buf</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">table</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Absolute position of field ``index`` of the table at ``table``, or None</span>
@@ -598,7 +593,6 @@
         <span class="k">return</span> <span class="kc">None</span>
     <span class="n">voffset</span> <span class="o">=</span> <span class="n">_u16</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">slot</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">table</span> <span class="o">+</span> <span class="n">voffset</span> <span class="k">if</span> <span class="n">voffset</span> <span class="k">else</span> <span class="kc">None</span>
-
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_parse_io_header</span><span class="p">(</span><span class="n">buf</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse the AEDAT4 ``IOHeader`` FlatBuffer.</span>
@@ -624,7 +618,6 @@
         <span class="n">info_node</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">buf</span><span class="p">[</span><span class="n">str_pos</span> <span class="o">+</span> <span class="mi">4</span><span class="p">:</span><span class="n">str_pos</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">+</span> <span class="n">str_len</span><span class="p">])</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">,</span> <span class="s2">&quot;replace&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">compression</span><span class="p">,</span> <span class="n">data_table_position</span><span class="p">,</span> <span class="n">info_node</span>
 
-
 <span class="k">def</span><span class="w"> </span><span class="nf">_parse_event_packet</span><span class="p">(</span><span class="n">body</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Extract the event structs from a size-prefixed ``EventPacket`` FlatBuffer.</span>
 
@@ -644,10 +637,8 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;truncated AEDAT4 EventPacket&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="n">body</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">_V4_EVENT_DTYPE</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="n">count</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="n">start</span><span class="p">)</span>
 
-
 <span class="k">def</span><span class="w"> </span><span class="nf">_np_empty_v4</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">_V4_EVENT_DTYPE</span><span class="p">)</span>
-
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_parse_streams_xml</span><span class="p">(</span><span class="n">xml</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Extract event-stream ids and the sensor geometry from the ``IOHeader``</span>
@@ -685,7 +676,6 @@
         <span class="k">return</span> <span class="nb">set</span><span class="p">(),</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
     <span class="k">return</span> <span class="n">ids</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span>
 
-
 <span class="k">def</span><span class="w"> </span><span class="nf">_decompress_lz4</span><span class="p">(</span><span class="n">body</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">import</span><span class="w"> </span><span class="nn">lz4.frame</span>
@@ -695,7 +685,6 @@
             <span class="s2">&quot;`evutils[aedat]` (or `pip install lz4`).&quot;</span>
         <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
     <span class="k">return</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">lz4</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">decompress</span><span class="p">(</span><span class="n">body</span><span class="p">))</span>
-
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_decompress_zstd</span><span class="p">(</span><span class="n">body</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
     <span class="k">try</span><span class="p">:</span>
@@ -712,7 +701,6 @@
         <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
     <span class="k">return</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">zstandard</span><span class="o">.</span><span class="n">ZstdDecompressor</span><span class="p">()</span><span class="o">.</span><span class="n">decompress</span><span class="p">(</span><span class="n">body</span><span class="p">))</span>
 
-
 <span class="c1">#: DV CompressionType enum -&gt; decompressor. LZ4_HIGH/ZSTD_HIGH share decoders.</span>
 <span class="n">_DECOMPRESSORS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">bytes</span><span class="p">],</span> <span class="nb">bytes</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="mi">0</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">b</span><span class="p">:</span> <span class="n">b</span><span class="p">,</span>           <span class="c1"># NONE</span>
@@ -721,7 +709,6 @@
     <span class="mi">3</span><span class="p">:</span> <span class="n">_decompress_zstd</span><span class="p">,</span>      <span class="c1"># ZSTD</span>
     <span class="mi">4</span><span class="p">:</span> <span class="n">_decompress_zstd</span><span class="p">,</span>      <span class="c1"># ZSTD_HIGH</span>
 <span class="p">}</span>
-
 
 <div class="viewcode-block" id="EventDecoder_Aedat">
 <a class="viewcode-back" href="../../../autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Aedat">[docs]</a>
@@ -753,7 +740,7 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;layout must be one of </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">_V2_LAYOUTS</span><span class="p">)</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="n">layout</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_layout</span> <span class="o">=</span> <span class="n">layout</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_buf</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_buf</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="nb">bytearray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_version</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>          <span class="c1"># 1, 2, 3 or 4 (x10: 31 -&gt; 3, 40 -&gt; 4)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_payload_off</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>      <span class="c1"># first byte after the ASCII header</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cursor</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>           <span class="c1"># current byte offset into _buf</span>
@@ -1030,7 +1017,6 @@
 </div>
 
 
-
 <div class="viewcode-block" id="EventEncoder_Aedat">
 <a class="viewcode-back" href="../../../autoapi/evutils/io/encoders/index.html#evutils.io.decoders.EventEncoder_Aedat">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">EventEncoder_Aedat</span><span class="p">(</span><span class="n">EventEncoder</span><span class="p">):</span>
@@ -1060,7 +1046,7 @@
         <span class="s2">&quot;Write a supported format instead (RAW/EVT, DAT, AER, HDF5, NPZ, CSV).&quot;</span>
     <span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">writable</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">writable</span><span class="p">:</span> <span class="s2">&quot;io.BufferedIOBase&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_NOT_IMPLEMENTED</span><span class="p">)</span>
 
 <div class="viewcode-block" id="EventEncoder_Aedat.init">

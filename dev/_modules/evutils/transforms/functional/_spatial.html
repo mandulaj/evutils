@@ -493,14 +493,12 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">._common</span><span class="w"> </span><span class="kn">import</span> <span class="n">apply_kernel</span>
 
-
 <span class="nd">@lazy_njit</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">_flip_lr_jit</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Mirror x about the sensor width: ``x&#39; = width - 1 - x``.&quot;&quot;&quot;</span>
     <span class="c1"># Promote through int64 so the uint16 subtraction can&#39;t wrap around.</span>
     <span class="n">new_x</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">(</span><span class="n">width</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">x</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint16</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">t</span><span class="p">,</span> <span class="n">new_x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span>
-
 
 <div class="viewcode-block" id="flip_lr">
 <a class="viewcode-back" href="../../../../autoapi/evutils/transforms/functional/index.html#evutils.transforms.functional.flip_lr">[docs]</a>
@@ -520,7 +518,6 @@
 <span class="sd">        Horizontally flipped events, in their original container type.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">apply_kernel</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">_flip_lr_jit</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">sensor_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span></div>
-
 
 
 <span class="nd">@lazy_njit</span>
@@ -550,7 +547,6 @@
         <span class="n">new_x</span><span class="p">,</span> <span class="n">new_y</span> <span class="o">=</span> <span class="n">new_x</span><span class="p">[</span><span class="n">keep</span><span class="p">],</span> <span class="n">new_y</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span>
 
     <span class="k">return</span> <span class="n">t</span><span class="p">,</span> <span class="n">new_x</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint16</span><span class="p">),</span> <span class="n">new_y</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint16</span><span class="p">),</span> <span class="n">p</span>
-
 
 <div class="viewcode-block" id="spatial_jitter">
 <a class="viewcode-back" href="../../../../autoapi/evutils/transforms/functional/index.html#evutils.transforms.functional.spatial_jitter">[docs]</a>

@@ -492,7 +492,6 @@
 <span class="sd">    construction. The classes exist so the ``.bin`` extension is reserved in</span>
 <span class="sd">    the reader/writer registries and the error message is explicit.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..types</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventArray</span><span class="p">,</span> <span class="n">TriggerArray</span>
@@ -503,7 +502,6 @@
     <span class="s2">&quot;Convert the file to a supported format (RAW/EVT, DAT, AER, HDF5, NPZ, CSV) &quot;</span>
     <span class="s2">&quot;or pass an explicit file_decoder/file_encoder.&quot;</span>
 <span class="p">)</span>
-
 
 <div class="viewcode-block" id="EventDecoder_Bin">
 <a class="viewcode-back" href="../../../autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Bin">[docs]</a>
@@ -528,7 +526,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="s2">&quot;io.BufferedIOBase | str | bytes&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">_NOT_IMPLEMENTED</span><span class="p">)</span>
 
 <div class="viewcode-block" id="EventDecoder_Bin.init">
@@ -540,7 +538,7 @@
 
 <div class="viewcode-block" id="EventDecoder_Bin.read_chunk">
 <a class="viewcode-back" href="../../../autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Bin.read_chunk">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">read_chunk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta_t_hint</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">n_events_hint</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">read_chunk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta_t_hint</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">n_events_hint</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;np.ndarray | EventArray | None&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Read a chunk of events.&quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">_NOT_IMPLEMENTED</span><span class="p">)</span></div>
 
@@ -551,7 +549,6 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Reset the file pointer to the beginning of the file.&quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">_NOT_IMPLEMENTED</span><span class="p">)</span></div>
 </div>
-
 
 
 <div class="viewcode-block" id="EventEncoder_Bin">
@@ -577,7 +574,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">writable</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">writable</span><span class="p">:</span> <span class="s2">&quot;io.BufferedIOBase&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">_NOT_IMPLEMENTED</span><span class="p">)</span>
 
 <div class="viewcode-block" id="EventEncoder_Bin.init">

@@ -498,8 +498,6 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
-
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">..types</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventArray</span><span class="p">,</span> <span class="n">TriggerArray</span>
@@ -523,7 +521,6 @@
 
 <span class="n">DAT_EVENT_TYPE_CD</span> <span class="o">=</span> <span class="mh">0x0C</span>
 <span class="n">DAT_EVENT_SIZE</span> <span class="o">=</span> <span class="mh">0x08</span>
-
 
 <div class="viewcode-block" id="EventDecoder_Dat">
 <a class="viewcode-back" href="../../../autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Dat">[docs]</a>
@@ -552,17 +549,17 @@
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="n">ByteSource</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1_000_000</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_header</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_buf</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_header</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_buf</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="nb">bytearray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_payload_off</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_words</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>       <span class="c1"># uint32 view of the payload (2 words / event)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_words</span><span class="p">:</span> <span class="s2">&quot;np.ndarray | None&quot;</span> <span class="o">=</span> <span class="kc">None</span>       <span class="c1"># uint32 view of the payload (2 words / event)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>         <span class="c1"># current uint32-word offset</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_parser</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_events</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parser</span><span class="p">:</span> <span class="s2">&quot;Callable | None&quot;</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_events</span><span class="p">:</span> <span class="s2">&quot;EventArray | None&quot;</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span><span class="p">:</span> <span class="s2">&quot;TriggerArray | None&quot;</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="c1"># ------------------------------------------------------------------ #</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">_parse_header</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">buf</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_parse_header</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">buf</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Scan the leading ``%`` ASCII header; return the byte offset of the</span>
 <span class="sd">        first non-header byte (the event-type byte).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -756,7 +753,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_words</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_buf</span> <span class="o">=</span> <span class="kc">None</span></div>
 </div>
-
 
 
 <div class="viewcode-block" id="EventEncoder_Dat">

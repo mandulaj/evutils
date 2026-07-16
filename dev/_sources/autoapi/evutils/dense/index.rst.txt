@@ -31,7 +31,7 @@ Functions
 Package Contents
 ----------------
 
-.. py:function:: histogram(events: numpy.ndarray | EventArray, width: int = 1280, height: int = 720, fill: bool = False, dtype: Any = np.uint8) -> numpy.ndarray
+.. py:function:: histogram(events: numpy.ndarray | EventArray, width: int = 1280, height: int = 720, fill: bool = False, dtype: numpy.dtype | type = np.uint8) -> numpy.ndarray
 
    Generate a histogram frame from the events.
 
@@ -60,7 +60,7 @@ Package Contents
    (100, 100, 3)
 
 
-.. py:function:: wedge_histogram(events: numpy.ndarray | EventArray, width: int = 1280, height: int = 720, tl: float = 30000000.0, dtype: Any = np.uint8) -> numpy.ndarray
+.. py:function:: wedge_histogram(events: numpy.ndarray | EventArray, width: int = 1280, height: int = 720, tl: float = 30000000.0, dtype: numpy.dtype | type = np.uint8) -> numpy.ndarray
 
    Generate a wedge histogram frame from the events.
 
@@ -89,7 +89,7 @@ Package Contents
    (100, 100, 3)
 
 
-.. py:function:: voxel_histogram(events: numpy.ndarray | EventArray, width: int = 1280, height: int = 720, n_bins: int = 10, dt: int = 10000, dtype: Any = np.uint8) -> numpy.ndarray
+.. py:function:: voxel_histogram(events: numpy.ndarray | EventArray, width: int = 1280, height: int = 720, n_bins: int = 10, dt: int = 10000, dtype: numpy.dtype | type = np.uint8) -> numpy.ndarray
 
    Generate a voxel grid from the events.
 
@@ -120,7 +120,7 @@ Package Contents
    (10, 100, 100, 3)
 
 
-.. py:function:: timesurface(events: numpy.ndarray | EventArray, width: int = 1280, height: int = 720, tau: int = 10000, dtype: Any = np.float32) -> numpy.ndarray
+.. py:function:: timesurface(events: numpy.ndarray | EventArray, width: int = 1280, height: int = 720, tau: int = 10000, dtype: numpy.dtype | type = np.float32) -> numpy.ndarray
 
    Generate a time surface frame from the events.
 
@@ -151,7 +151,7 @@ Package Contents
    [1] Lagorce et al. 2016, Hots: a hierarchy of event-based time-surfaces for pattern recognition https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=7508476
 
 
-.. py:function:: frame_diff(ev: numpy.ndarray | EventArray, width: int = 1280, height: int = 720, dtype: Any = np.int8) -> numpy.ndarray
+.. py:function:: frame_diff(ev: numpy.ndarray | EventArray, width: int = 1280, height: int = 720, dtype: numpy.dtype | type = np.int8) -> numpy.ndarray
 
    Generate a differential frame from the events.
 
@@ -178,7 +178,7 @@ Package Contents
    (100, 100)
 
 
-.. py:function:: frame_rgb(ev: numpy.ndarray | EventArray, width: int = 1280, height: int = 720, bg_color: Any = None, pos_color: Any = None, neg_color: Any = None) -> numpy.ndarray
+.. py:function:: frame_rgb(ev: numpy.ndarray | EventArray, width: int = 1280, height: int = 720, bg_color: tuple[int, int, int] | None = None, pos_color: tuple[int, int, int] | None = None, neg_color: tuple[int, int, int] | None = None) -> numpy.ndarray
 
    Generate an RGB frame from the events.
 
@@ -209,7 +209,7 @@ Package Contents
    (100, 100, 3)
 
 
-.. py:function:: frame_gray(events: numpy.ndarray | EventArray, width: int = 1280, height: int = 720, dtype: Any = np.uint8) -> numpy.ndarray
+.. py:function:: frame_gray(events: numpy.ndarray | EventArray, width: int = 1280, height: int = 720, dtype: numpy.dtype | type = np.uint8) -> numpy.ndarray
 
    Generate a grayscale frame from the events.
 
@@ -236,7 +236,7 @@ Package Contents
    (100, 100)
 
 
-.. py:function:: tore(events: numpy.ndarray | EventArray, width: int = 1280, height: int = 720, n_events: int = 4, tau: int = 10000, dtype: Any = np.uint8) -> numpy.ndarray
+.. py:function:: tore(events: numpy.ndarray | EventArray, width: int = 1280, height: int = 720, n_events: int = 4, tau: int = 10000, dtype: numpy.dtype | type = np.uint8) -> numpy.ndarray
 
    Generate a TORE from the events.
 

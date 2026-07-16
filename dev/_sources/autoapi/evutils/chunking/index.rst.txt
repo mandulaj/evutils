@@ -114,28 +114,28 @@ Module Contents
    True
 
 
-.. py:function:: stream_delta_t(raw_stream: Iterator[Any], delta_t: int) -> Iterator[Any]
+.. py:function:: stream_delta_t(raw_stream: Iterator[numpy.ndarray | evutils.types.EventArray], delta_t: int) -> Iterator[numpy.ndarray | evutils.types.EventArray]
 
    A pipeline generator that turns a raw stream into perfect delta_t chunks.
    This maintains a small internal buffer for events that cross boundaries.
 
 
-.. py:function:: stream_n_events(raw_stream: Iterator[Any], n_events: int) -> Iterator[Any]
+.. py:function:: stream_n_events(raw_stream: Iterator[numpy.ndarray | evutils.types.EventArray], n_events: int) -> Iterator[numpy.ndarray | evutils.types.EventArray]
 
    Pipeline generator: chunks stream by event count.
 
 
-.. py:function:: stream_skip_to_time(stream: Iterator[Any], start_ts: int) -> Iterator[Any]
+.. py:function:: stream_skip_to_time(stream: Iterator[numpy.ndarray | evutils.types.EventArray], start_ts: int) -> Iterator[numpy.ndarray | evutils.types.EventArray]
 
    Pipeline generator: drops events until start_ts is reached.
 
 
-.. py:function:: stream_async(stream: Iterator[Any], maxsize: int = 5) -> Iterator[Any]
+.. py:function:: stream_async(stream: Iterator[numpy.ndarray | evutils.types.EventArray], maxsize: int = 5) -> Iterator[numpy.ndarray | evutils.types.EventArray]
 
    Pipeline generator: runs upstream decoding in a background thread.
 
 
-.. py:function:: stream_paced_playback(stream: Iterator[Any], playback_speed: float = 1.0) -> Iterator[Any]
+.. py:function:: stream_paced_playback(stream: Iterator[numpy.ndarray | evutils.types.EventArray], playback_speed: float = 1.0) -> Iterator[numpy.ndarray | evutils.types.EventArray]
 
    Pipeline generator: spaces out yielding chunks to match wall-clock real-time.
 
