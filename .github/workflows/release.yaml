@@ -187,6 +187,9 @@ jobs:
         # uv compiles the C extension locally and installs dependencies instantly
         run: uv pip install --system .[docs]
 
+      - name: Install Graphviz
+        run: sudo apt-get update && sudo apt-get install -y graphviz
+
       - name: Build & deploy versioned docs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
