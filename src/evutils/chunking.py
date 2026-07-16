@@ -96,13 +96,12 @@ def sliding_window(events: np.ndarray, delta_t: int = 10_000, window_size: int =
         
        
 
-        window = events[index_start:index_start + next_window_index]
-        yield window
-
-
-        # Exit if the next window index is  not full
+        # Exit if the next window index is not full
         if full_window and index_start + next_window_index >= len(events):
             break
+
+        window = events[index_start:index_start + next_window_index]
+        yield window
 
         current_ts += delta_t
         index_start += next_frame_index
