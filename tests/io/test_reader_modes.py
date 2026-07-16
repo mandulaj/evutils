@@ -155,6 +155,20 @@ def test_nonpositive_windows_rejected(uniform_file: Any) -> None:
         EventReader(p, delta_t=1.5)  # type: ignore[arg-type]
 
 
+def test_delta_t_mode_respects_n_events_param(uniform_file: Any) -> None:
+    from evutils.io import EventReader
+    p, ev = uniform_file
+    with EventReader(p, mode="delta_t", delta_t=100, n_events=50) as r:
+        assert r._n_events == 50
+
+
+def test_n_events_mode_respects_delta_t_param(uniform_file: Any) -> None:
+    from evutils.io import EventReader
+    p, ev = uniform_file
+    with EventReader(p, mode="n_events", n_events=500, delta_t=5_000) as r:
+        assert r._delta_t == 5_000
+
+
 ####################################
 # reuse_buffers (recycled delta_t window buffers)
 ####################################

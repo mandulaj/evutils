@@ -11,6 +11,7 @@ import time
 
 import numpy as np
 import pytest
+from typing import Any
 
 from evutils.types import EventArray, TriggerArray, Event_dtype
 from evutils.chunking import (
@@ -323,3 +324,40 @@ def test_event_streamer_with_triggers(tmp_path):
     got = np.concatenate(ts)
     assert np.array_equal(got, events['t'])
     assert total_tr == 0  # no trigger words in the file
+
+
+def test_stream_tuple_unwrapping_when_ext_trigger_false(tmp_path: Any) -> None:
+    from evutils.io.stream import EventStreamer
+    from evutils.io.decoders import EventDecoder
+    from evutils.types import EventArray, TriggerArray
+
+    class MockDecoder(EventDecoder):
+        def __init__(self, source: Any, **kwargs: Any) -> None:
+            self.source = source
+            self.read_external_triggers = False
+            self.called = False
+            
+        def init(self) -> None:
+            pass
+            
+        def reset(self) -> None:
+            self.called = False
+            
+        def read_chunk(self, delta_t: int | None = None, n_events_hint: int | None = None) -> Any:
+            if self.called:
+                return EventArray.empty()
+            self.called = True
+            ev = EventArray(t=[1], x=[2], y=[3], p=[0])
+            tr = TriggerArray(t=[1], p=[1], id=[0])
+            return ev, tr  # Unconditionally returns tuple!
+            
+        def is_eof(self) -> bool:
+            return self.called
+
+    p = tmp_path / "mock.raw"
+    p.touch()
+    streamer = EventStreamer(p, ext_trigger=False, decoder_cls=MockDecoder)
+    chunks = list(streamer)
+    assert len(chunks) == 1
+    assert isinstance(chunks[0], EventArray)
+    assert len(chunks[0]) == 1

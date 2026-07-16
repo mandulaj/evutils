@@ -130,4 +130,23 @@ def test_trigger_array_empty() -> None:
     assert len(empty_trig) == 0
     assert len(empty_trig.t) == 0
     assert empty_trig.to_aos().shape == (0,)
+
+
+def test_event_array_scalar_init() -> None:
+    from evutils.types import EventArray
+    ev = EventArray(t=1, x=2, y=3, p=1)
+    assert len(ev) == 1
+    assert ev.t[0] == 1
+
+
+def test_soa_array_multi_field_indexing() -> None:
+    from evutils.types import EventArray, SoaArray
+    events = EventArray(t=[1, 2], x=[10, 20], y=[30, 40], p=[1, 0])
+    sub = events[['x', 'y']]
+    assert isinstance(sub, SoaArray)
+    assert len(sub) == 2
+    assert np.array_equal(sub.x, [10, 20])
+    assert np.array_equal(sub.y, [30, 40])
+    assert not hasattr(sub, 't')
+
     
