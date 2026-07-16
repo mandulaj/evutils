@@ -1,4 +1,4 @@
-"""Temporal functional transforms (skew, jitter)."""
+"""Temporal functional transforms (skew, jitter, normalize)."""
 import numpy as np
 from evutils.jit import lazy_njit
 
@@ -71,3 +71,45 @@ def time_jitter(events, std=1.0, clip_negative=True, sort_timestamps=False):
     """
     return apply_kernel(events, _time_jitter_jit, float(std),
                         bool(clip_negative), bool(sort_timestamps))
+
+
+@lazy_njit
+def _normalize_ts_jit(t, x, y, p, start_ts: int):
+    """Shift every timestamp so the minimum lands at ``start_ts``."""
+    new_t = t - (t.min() - start_ts)
+    return new_t, x, y, p
+
+
+def normalize_ts(events, start_ts=0):
+    """Shift timestamps so the earliest event lands at ``start_ts``.
+
+    Pure and stateless: each call normalizes the batch it is handed on its own.
+    For chunk-by-chunk streams use ``EventReader(normalize_ts=True)``, which
+    latches the offset from the first chunk and applies it across the whole
+    stream (so the timeline stays continuous instead of resetting per chunk).
+
+    Parameters
+    ----------
+    events : np.ndarray or EventArray
+        Events to normalize.
+    start_ts : int, optional
+        Timestamp assigned to the earliest event. Default ``0``.
+
+    Returns
+    -------
+    np.ndarray or EventArray
+        Events with shifted timestamps, in their original container type. The
+        input is not modified.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from evutils.transforms.functional import normalize_ts
+    >>> events = np.array(
+    ...     [(0, 0, 100, 1), (1, 1, 200, 1), (2, 2, 300, 0)],
+    ...     dtype=[('x', 'u2'), ('y', 'u2'), ('t', 'i8'), ('p', 'i1')]
+    ... )
+    >>> normalize_ts(events)['t']
+    array([  0, 100, 200])
+    """
+    return apply_kernel(events, _normalize_ts_jit, int(start_ts))
