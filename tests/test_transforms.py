@@ -227,6 +227,35 @@ def test_ndarray_and_eventarray_dispatch():
     np.testing.assert_array_equal(skew(aos)["t"], skew(soa).t)
 
 
+def test_metadata_propagates_through_transforms():
+    events = EventArray(t=[0, 1, 2], x=[0, 10, 63], y=[1, 2, 3], p=[0, 1, 0],
+                        metadata={"sensor_size": (64, 48)})
+    # Single transform keeps metadata.
+    out = TimeSkew(coefficient=2.0)(events)
+    assert out.sensor_size == (64, 48)
+    # Through a Compose block too.
+    out2 = Compose([TimeSkew(coefficient=2.0), DropEvent(p=0.1)])(events)
+    assert out2.sensor_size == (64, 48)
+
+
+def test_spatial_transform_uses_events_sensor_size():
+    events = EventArray(t=[0, 1, 2], x=[0, 10, 63], y=[1, 2, 3], p=[0, 1, 0],
+                        metadata={"sensor_size": (64, 48)})
+    # No explicit sensor_size: falls back to events metadata (standalone).
+    assert list(RandomFlipLR(p=1.0)(events).x) == [63, 53, 0]
+    # And inside Compose.
+    out = Compose([RandomFlipLR(p=1.0)])(events)
+    assert list(out.x) == [63, 53, 0]
+    # Explicit sensor_size wins over metadata.
+    assert list(RandomFlipLR(sensor_size=(100, 50), p=1.0)(events).x) == [99, 89, 36]
+
+
+def test_spatial_transform_without_sensor_size_raises():
+    events = EventArray(t=[0], x=[1], y=[1], p=[0])  # no metadata
+    with pytest.raises(ValueError, match="sensor_size"):
+        RandomFlipLR(p=1.0)(events)
+
+
 def test_compose_survives_emptying_midblock():
     """A drop that empties the stream must not crash a later kernel."""
     events = _make_events(n=100)

@@ -14,7 +14,10 @@ def unwrap_events(events: Union[np.ndarray, SoaArray]):
 def repack_events(original_events: Union[np.ndarray, SoaArray], t: np.ndarray, x: np.ndarray, y: np.ndarray, p: np.ndarray) -> Union[np.ndarray, SoaArray]:
     """Repacks raw arrays back into the user's original format."""
     if isinstance(original_events, SoaArray):
-        return original_events.__class__(t=t, x=x, y=y, p=p)
+        # Carry any metadata (e.g. sensor_size) through the transform. Ops that
+        # invalidate it (spatial cropping) must update it themselves.
+        return original_events.__class__(t=t, x=x, y=y, p=p,
+                                         metadata=original_events.metadata)
     elif isinstance(original_events, np.ndarray) and original_events.dtype.names is not None:
         new_events = np.empty(len(t), dtype=original_events.dtype)
         new_events['t'] = t
@@ -65,6 +68,8 @@ class Compose:
                     # (e.g. deriving a sensor extent from x.max()) sees it.
                     if len(t) == 0:
                         break
+                    # Let the transform fall back to the container's sensor_size.
+                    transform.bind_context(events)
                     t, x, y, p = transform._forward_jit(t, x, y, p)
                     if target is not None:
                         target = transform._transform_target(target)

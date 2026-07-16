@@ -777,7 +777,29 @@ class EventReader():
         # if the decoder itself hit EOF.
         self._eof = False
 
+    def _attach_sensor_size(self, out: Any) -> Any:
+        """Stamp ``sensor_size=(width, height)`` onto returned events, when known.
+
+        Applied at the single internal read chokepoint so every delivery path
+        (``read``, ``read_all``, sync and async iteration) carries the sensor
+        geometry. Triggers are left untouched. Formats that do not expose a
+        geometry (``shape()`` returns ``None``) leave ``sensor_size`` as ``None``.
+        """
+        w, h = self._file_decoder.shape()
+        if w is None or h is None:
+            return out
+        ev = out[0] if isinstance(out, tuple) else out
+        try:
+            ev.sensor_size = (int(w), int(h))
+        except AttributeError:
+            pass
+        return out
+
     def _read(self, delta_t:int|None=None, n_events:int|None=None) -> Any:
+        """Thin wrapper stamping sensor_size onto the decoded window."""
+        return self._attach_sensor_size(self._read_impl(delta_t, n_events))
+
+    def _read_impl(self, delta_t:int|None=None, n_events:int|None=None) -> Any:
         """Unguarded body of :meth:`read` (also driven by the prefetch worker)."""
         # If not initialized, initialize
         if not self._is_initialized:
@@ -973,6 +995,7 @@ class EventReader():
 
         self._eof = True
         self._n_read_events += len(out)
+        self._attach_sensor_size(out)
 
         if self._normalize_ts and len(out) > 0:
             # Capture the shift before modifying out.t, so triggers get the

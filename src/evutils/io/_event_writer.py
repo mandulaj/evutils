@@ -21,9 +21,13 @@ class EventWriter():
     file
         Path to the data file
     width
-        Width of the frame, by default 1280 (not relevant for some formats)
+        Width of the frame. If None (default), taken from the first written
+        events' ``sensor_size`` metadata, falling back to 1280 (not relevant
+        for some formats).
     height
-        Height of the frame, by default 720 (not relevant for some formats)
+        Height of the frame. If None (default), taken from the first written
+        events' ``sensor_size`` metadata, falling back to 720 (not relevant
+        for some formats).
     dt
         Timestamp of the recording (default is the current time, but information is not saved in all formats)
     file_encoder
@@ -49,7 +53,7 @@ class EventWriter():
 
     """
 
-    def __init__(self, file: Path | str | io.BufferedIOBase, width:int=1280, height:int=720, dt: datetime|None = None,  file_encoder: ev_encoders.EventEncoder | None = None, **kwargs: Any):
+    def __init__(self, file: Path | str | io.BufferedIOBase, width:int|None=None, height:int|None=None, dt: datetime|None = None,  file_encoder: ev_encoders.EventEncoder | None = None, **kwargs: Any):
 
         self._file_name: Path | None = None
 
@@ -68,13 +72,15 @@ class EventWriter():
             raise IOError("File is not writable")
         self._file: io.BufferedIOBase = file
 
-        # Resolve the encoder: explicit instance > heuristic from extension.
-        if file_encoder is None:
-            assert self._file_name is not None
-            encoder_cls = ev_encoders.get_file_writer(self._file_name)
-            self._file_encoder = encoder_cls(self._file, width=width, height=height, dt=dt, **kwargs)
-        else:
-            self._file_encoder = file_encoder
+        # Encoder resolution is deferred: when width/height are not given
+        # explicitly we try to pick them up from the first written events'
+        # ``sensor_size`` metadata (falling back to 1280x720). An explicitly
+        # supplied encoder instance is used as-is.
+        self._explicit_width = width
+        self._explicit_height = height
+        self._raw_dt = dt                       # passed verbatim to the encoder
+        self._encoder_kwargs = kwargs
+        self._file_encoder = file_encoder       # None => built lazily
 
         self._width = width
         self._height = height
@@ -82,6 +88,33 @@ class EventWriter():
         self._is_initialized = False
         self._warned_triggers = False  # warn once about unsupported triggers
         self._dt = dt if dt is not None else datetime.now()
+
+    def _ensure_encoder(self, events: Any = None) -> None:
+        """Build the file encoder if it hasn't been resolved yet.
+
+        Dimensions are resolved in priority order: explicit ``width``/``height``
+        from the constructor, then the events' ``sensor_size`` metadata, then a
+        ``1280x720`` fallback. Formats that ignore geometry are unaffected.
+        """
+        if self._file_encoder is not None:
+            return
+        assert self._file_name is not None
+        w, h = self._explicit_width, self._explicit_height
+        if w is None or h is None:
+            ss = getattr(events, "sensor_size", None)
+            if ss is not None:
+                if w is None:
+                    w = int(ss[0])
+                if h is None:
+                    h = int(ss[1])
+        if w is None:
+            w = 1280
+        if h is None:
+            h = 720
+        self._width, self._height = w, h
+        encoder_cls = ev_encoders.get_file_writer(self._file_name)
+        self._file_encoder = encoder_cls(self._file, width=w, height=h,
+                                         dt=self._raw_dt, **self._encoder_kwargs)
 
     def _open_file(self, file_name: Path) -> io.BufferedIOBase:
         """Open the file for writing.
@@ -106,6 +139,7 @@ class EventWriter():
 
         This method can be called explicitly, but it is also called automatically when the first event is written
         """
+        self._ensure_encoder(None)
         self._file_encoder.init()
         self._is_initialized = True
 
@@ -138,6 +172,10 @@ class EventWriter():
         >>> writer.close() # doctest: +SKIP
 
         """
+        # Resolve the encoder lazily so the first batch can supply sensor_size.
+        if self._file_encoder is None:
+            self._ensure_encoder(events)
+
         if (triggers is not None and len(triggers) > 0
                 and not getattr(self._file_encoder, "SUPPORTS_WRITE_TRIGGERS", False)
                 and not self._warned_triggers):
@@ -154,7 +192,8 @@ class EventWriter():
 
     def flush(self) -> None:
         """Flush the buffer to the file."""
-        self._file_encoder.flush()
+        if self._file_encoder is not None:
+            self._file_encoder.flush()
 
     def __enter__(self) -> "EventWriter":
         return self
@@ -175,6 +214,9 @@ class EventWriter():
         Finalizes the encoder first (container formats write their archive /
         index here), then closes the underlying file.
         """
+        # A writer that was opened but never written to still gets a valid
+        # (header-only) file, matching the pre-lazy-init behaviour.
+        self._ensure_encoder(None)
         self._file_encoder.close()
         self._file.close()
 

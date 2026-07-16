@@ -93,9 +93,43 @@ class SoaArray:
           dtype=[('t', '<i8'), ('x', '<u2'), ('y', '<u2'), ('p', 'u1')])
     """
 
-    __slots__ = ()
+    __slots__ = ('_metadata',)
     _aos_dtype: np.dtype
     _fields: tuple[str, ...]
+
+    @property
+    def metadata(self) -> 'dict | None':
+        """Optional lightweight, per-array metadata (e.g. ``sensor_size``).
+
+        Defaults to ``None`` and is never part of the AoS/NumPy view. It is
+        carried through slicing and :meth:`copy` (shallow), so a sensor size
+        stamped on read survives most event processing. Transforms that change
+        the meaning of a field (e.g. spatial cropping) are responsible for
+        updating it.
+        """
+        return getattr(self, '_metadata', None)
+
+    @metadata.setter
+    def metadata(self, value: 'dict | None') -> None:
+        self._metadata = value
+
+    @property
+    def sensor_size(self) -> Any:
+        """Convenience accessor for ``metadata['sensor_size']`` (or ``None``).
+
+        By convention a ``(width, height)`` tuple, matching the ``(W, H)`` order
+        that the spatial transforms and the io layer use.
+        """
+        m = self.metadata
+        return m.get('sensor_size') if m else None
+
+    @sensor_size.setter
+    def sensor_size(self, value: Any) -> None:
+        m = self.metadata
+        if m is None:
+            self.metadata = {'sensor_size': value}
+        else:
+            m['sensor_size'] = value
 
     def __getitem__(self, key: Any) -> Any:
         if isinstance(key, str):
@@ -112,7 +146,10 @@ class SoaArray:
                 def __init__(self, **kwargs):
                     for k, v in kwargs.items():
                         setattr(self, k, v)
-            return DynamicSoaArray(**{f: getattr(self, f) for f in fields})
+            subset = DynamicSoaArray(**{f: getattr(self, f) for f in fields})
+            # x/y are preserved, so a sensor size stays valid on the subset.
+            subset.metadata = self.metadata
+            return subset
 
         # When indexing a single element, return a NumPy void record to match AoS behaviour exactly.
         if isinstance(key, (int, np.integer)):
@@ -123,7 +160,9 @@ class SoaArray:
 
         # Otherwise, slice all columns and return a new SoA array
         sliced_args = {f: getattr(self, f)[key] for f in self._fields}
-        return self.__class__(**sliced_args)
+        sliced = self.__class__(**sliced_args)
+        sliced.metadata = self.metadata
+        return sliced
 
     def __len__(self) -> int:
         return len(getattr(self, self._fields[0]))
@@ -146,19 +185,27 @@ class SoaArray:
     def copy(self: _S) -> _S:
         """Return a deep copy with independent column arrays."""
         copied_args = {f: getattr(self, f).copy() for f in self._fields}
-        return self.__class__(**copied_args)
+        new = self.__class__(**copied_args)
+        # Shallow-copy the metadata dict so mutating one array's metadata does
+        # not leak into the copy.
+        new.metadata = None if self.metadata is None else dict(self.metadata)
+        return new
 
     @classmethod
-    def empty(cls: 'type[_S]') -> _S:
+    def empty(cls: 'type[_S]', metadata: 'dict | None' = None) -> _S:
         """Return an empty SoA array with correctly-typed (zero-length) columns."""
         args = {f: np.empty(0, dtype=cls._aos_dtype[f]) for f in cls._fields}
-        return cls(**args)
+        new = cls(**args)
+        new.metadata = metadata
+        return new
 
     @classmethod
-    def from_aos(cls: 'type[_S]', aos_array: np.ndarray) -> _S:
+    def from_aos(cls: 'type[_S]', aos_array: np.ndarray, metadata: 'dict | None' = None) -> _S:
         """Constructs a SoA array from an array of structures (AoS) numpy array."""
         args = {f: np.ascontiguousarray(aos_array[f]) for f in cls._fields}
-        return cls(**args)
+        new = cls(**args)
+        new.metadata = metadata
+        return new
 
     def to_aos(self) -> np.ndarray:
         """Converts the SoA array to an array of structures (AoS) numpy array."""
@@ -215,22 +262,23 @@ class EventArray(SoaArray):
     _aos_dtype = Event_dtype
     _fields = ('t', 'x', 'y', 'p')
 
-    def __init__(self, t: Any, x: Any, y: Any, p: Any) -> None:
+    def __init__(self, t: Any, x: Any, y: Any, p: Any, metadata: 'dict | None' = None) -> None:
         t_arr = np.atleast_1d(np.asarray(t, dtype=np.int64))
         x_arr = np.atleast_1d(np.asarray(x, dtype=np.uint16))
         y_arr = np.atleast_1d(np.asarray(y, dtype=np.uint16))
         p_arr = np.atleast_1d(np.asarray(p, dtype=np.uint8))
-        
+
         if not (t_arr.ndim == 1 and x_arr.ndim == 1 and y_arr.ndim == 1 and p_arr.ndim == 1):
             t_arr, x_arr, y_arr, p_arr = t_arr.ravel(), x_arr.ravel(), y_arr.ravel(), p_arr.ravel()
-            
+
         if not (len(t_arr) == len(x_arr) == len(y_arr) == len(p_arr)):
             raise ValueError(f"Length mismatch: t({len(t_arr)}), x({len(x_arr)}), y({len(y_arr)}), p({len(p_arr)})")
-            
+
         self.t = t_arr
         self.x = x_arr
         self.y = y_arr
         self.p = p_arr
+        self.metadata = metadata
 
 
 class TriggerArray(SoaArray):
@@ -252,17 +300,18 @@ class TriggerArray(SoaArray):
     _aos_dtype = Trigger_dtype
     _fields = ('t', 'p', 'id')
 
-    def __init__(self, t: Any, p: Any, id: Any) -> None:
+    def __init__(self, t: Any, p: Any, id: Any, metadata: 'dict | None' = None) -> None:
         t_arr = np.atleast_1d(np.asarray(t, dtype=np.int64))
         p_arr = np.atleast_1d(np.asarray(p, dtype=np.uint8))
         id_arr = np.atleast_1d(np.asarray(id, dtype=np.uint8))
-        
+
         if not (t_arr.ndim == 1 and p_arr.ndim == 1 and id_arr.ndim == 1):
             t_arr, p_arr, id_arr = t_arr.ravel(), p_arr.ravel(), id_arr.ravel()
-            
+
         if not (len(t_arr) == len(p_arr) == len(id_arr)):
             raise ValueError(f"Length mismatch: t({len(t_arr)}), p({len(p_arr)}), id({len(id_arr)})")
-            
+
         self.t = t_arr
         self.p = p_arr
         self.id = id_arr
+        self.metadata = metadata

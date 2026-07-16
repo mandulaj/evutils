@@ -14,6 +14,34 @@ class Transform:
     Transforms should implement the `_forward_jit` method to allow zero-overhead
     composition inside a `Compose` pipeline.
     """
+    #: Sensor size resolved from the input container for the current call, used
+    #: as a fallback when a transform was constructed without an explicit one.
+    #: See :meth:`bind_context`.
+    _ctx_sensor_size = None
+
+    def bind_context(self, events):
+        """Capture per-call context (currently ``sensor_size``) from ``events``.
+
+        Called by :meth:`__call__` and by :class:`Compose` before ``_forward_jit``
+        so a transform can fall back to the container's ``sensor_size`` metadata
+        when it was not given one explicitly. Stored transiently, not persisted.
+        """
+        self._ctx_sensor_size = getattr(events, "sensor_size", None)
+
+    def _resolve_sensor_size(self):
+        """Return the explicit ``sensor_size`` or the one bound from the events.
+
+        Raises if neither is available.
+        """
+        ss = self.sensor_size if self.sensor_size is not None else self._ctx_sensor_size
+        if ss is None:
+            raise ValueError(
+                f"{type(self).__name__} needs a sensor_size: pass it to the "
+                f"constructor, or attach it to the events "
+                f"(events.sensor_size = (W, H))."
+            )
+        return ss
+
     def __call__(self, events: Union[np.ndarray, SoaArray], target=None):
         """Applies the transform in a standalone manner."""
         from evutils.transforms.compose import unwrap_events, repack_events
@@ -22,6 +50,7 @@ class Transform:
                 return events, target
             return events
 
+        self.bind_context(events)
         t, x, y, p = unwrap_events(events)
         t, x, y, p = self._forward_jit(t, x, y, p)
         events = repack_events(events, t, x, y, p)
@@ -104,12 +133,13 @@ class RandomFlipLR(Transform):
 
     Parameters
     ----------
-    sensor_size : tuple
-        ``(W, H, P)`` sensor size; only the width ``W`` is used.
+    sensor_size : tuple, optional
+        ``(W, H)`` (or ``(W, H, P)``) sensor size; only the width ``W`` is used.
+        If omitted, it is taken from the events' ``sensor_size`` metadata.
     p : float, optional
         Probability of performing the flip. Defaults to ``0.5``.
     """
-    def __init__(self, sensor_size: tuple, p: float = 0.5):
+    def __init__(self, sensor_size: tuple = None, p: float = 0.5):
         if not 0 <= p <= 1:
             raise ValueError("p must be in [0, 1]")
         self.sensor_size = sensor_size
@@ -118,7 +148,8 @@ class RandomFlipLR(Transform):
     def _forward_jit(self, t, x, y, pol):
         from evutils.transforms.functional import _flip_lr_jit
         if np.random.rand() <= self.p:
-            return _flip_lr_jit(t, x, y, pol, int(self.sensor_size[0]))
+            width = int(self._resolve_sensor_size()[0])
+            return _flip_lr_jit(t, x, y, pol, width)
         return t, x, y, pol
 
     def __repr__(self):
@@ -130,8 +161,10 @@ class SpatialJitter(Transform):
 
     Parameters
     ----------
-    sensor_size : tuple
-        ``(W, H, P)`` sensor size, used for clipping.
+    sensor_size : tuple, optional
+        ``(W, H)`` (or ``(W, H, P)``) sensor size, used for clipping. Only needed
+        when ``clip_outliers`` is True; if omitted, taken from the events'
+        ``sensor_size`` metadata.
     var_x, var_y : float, optional
         Variances of the jitter in x and y. Default ``1.0``.
     sigma_xy : float, optional
@@ -139,7 +172,7 @@ class SpatialJitter(Transform):
     clip_outliers : bool, optional
         Drop events jittered outside the sensor. Default ``False``.
     """
-    def __init__(self, sensor_size: tuple, var_x: float = 1.0, var_y: float = 1.0,
+    def __init__(self, sensor_size: tuple = None, var_x: float = 1.0, var_y: float = 1.0,
                  sigma_xy: float = 0.0, clip_outliers: bool = False):
         self.sensor_size = sensor_size
         self.var_x = var_x
@@ -149,8 +182,13 @@ class SpatialJitter(Transform):
 
     def _forward_jit(self, t, x, y, p):
         from evutils.transforms.functional import _spatial_jitter_jit
-        return _spatial_jitter_jit(t, x, y, p, int(self.sensor_size[0]),
-                                   int(self.sensor_size[1]), float(self.var_x),
+        # Sensor size is only consulted when clipping; avoid requiring it otherwise.
+        if self.clip_outliers:
+            ss = self._resolve_sensor_size()
+            width, height = int(ss[0]), int(ss[1])
+        else:
+            width, height = 0, 0
+        return _spatial_jitter_jit(t, x, y, p, width, height, float(self.var_x),
                                    float(self.var_y), float(self.sigma_xy),
                                    bool(self.clip_outliers))
 
