@@ -65,6 +65,9 @@ def plot_3d(events: np.ndarray,
         fig = plt.figure(figsize=(10, 7)) if fig is None else fig
         ax = fig.add_subplot(111, projection='3d')
 
+    if len(events) == 0:
+        return fig, ax
+
     # Plot as points
     ax.scatter(ts, events['x'], events['y'], c=colors, s=1, alpha=0.2)
 
@@ -186,6 +189,14 @@ def plot_3d_timesurface(events: np.ndarray,
     """
     ts = events['t'] # Convert timestamps to seconds
 
+    # Create figure/axis if not provided
+    if ax is None:
+        fig = plt.figure(figsize=(10, 7)) if fig is None else fig
+        ax = fig.add_subplot(111, projection='3d')
+
+    if len(events) == 0:
+        return fig, ax
+
     ts_ref = ts[-1]  # Reference timestamp for normalization
     
     p_sign = (events['p'].astype(np.float32) * 2 - 1)
@@ -193,11 +204,6 @@ def plot_3d_timesurface(events: np.ndarray,
     colors = np.exp(-(ts_ref - ts) / tau) * p_sign  # Normalize polarity
 
     ts = ts / 1_000  # Convert timestamps to milliseconds
-    # Create figure/axis if not provided
-    if ax is None:
-        fig = plt.figure(figsize=(10, 7)) if fig is None else fig
-        ax = fig.add_subplot(111, projection='3d')
-
     # Plot as points
     ax.scatter(ts, events['x'], events['y'], c=colors, s=1, alpha=0.2)
 

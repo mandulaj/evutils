@@ -21,6 +21,8 @@ class EventsChecker():
             if events._aos_dtype != Event_dtype:
                 raise ValueError("events must be of type Events")
         else:
+            if not hasattr(events, 'dtype'):
+                raise TypeError("events must be a NumPy array or SoaArray")
             if events.dtype != Event_dtype:
                 raise ValueError("events must be of type Events")
 

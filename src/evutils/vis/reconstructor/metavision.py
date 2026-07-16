@@ -51,6 +51,9 @@ try:
             """
             nbins = self.model.hparams.event_volume_depth
 
+            if len(e) == 0:
+                return np.zeros((self.height, self.width), dtype=np.uint8)
+
 
             events_th = event_cd_to_torch(e).to(self.device)
             start_times = torch.FloatTensor([e['t'][0]]).view(1,).to(self.device)

@@ -102,6 +102,8 @@ class SoaArray:
             return getattr(self, key)
             
         if isinstance(key, (list, tuple)) and all(isinstance(k, str) for k in key):
+            if len(key) == 0:
+                raise ValueError("Cannot index with an empty list of fields.")
             fields = tuple(key)
             class DynamicSoaArray(SoaArray):
                 __slots__ = fields
@@ -214,10 +216,21 @@ class EventArray(SoaArray):
     _fields = ('t', 'x', 'y', 'p')
 
     def __init__(self, t: Any, x: Any, y: Any, p: Any) -> None:
-        self.t = np.atleast_1d(np.asarray(t, dtype=np.int64))
-        self.x = np.atleast_1d(np.asarray(x, dtype=np.uint16))
-        self.y = np.atleast_1d(np.asarray(y, dtype=np.uint16))
-        self.p = np.atleast_1d(np.asarray(p, dtype=np.uint8))
+        t_arr = np.atleast_1d(np.asarray(t, dtype=np.int64))
+        x_arr = np.atleast_1d(np.asarray(x, dtype=np.uint16))
+        y_arr = np.atleast_1d(np.asarray(y, dtype=np.uint16))
+        p_arr = np.atleast_1d(np.asarray(p, dtype=np.uint8))
+        
+        if not (t_arr.ndim == 1 and x_arr.ndim == 1 and y_arr.ndim == 1 and p_arr.ndim == 1):
+            t_arr, x_arr, y_arr, p_arr = t_arr.ravel(), x_arr.ravel(), y_arr.ravel(), p_arr.ravel()
+            
+        if not (len(t_arr) == len(x_arr) == len(y_arr) == len(p_arr)):
+            raise ValueError(f"Length mismatch: t({len(t_arr)}), x({len(x_arr)}), y({len(y_arr)}), p({len(p_arr)})")
+            
+        self.t = t_arr
+        self.x = x_arr
+        self.y = y_arr
+        self.p = p_arr
 
 
 class TriggerArray(SoaArray):
@@ -240,6 +253,16 @@ class TriggerArray(SoaArray):
     _fields = ('t', 'p', 'id')
 
     def __init__(self, t: Any, p: Any, id: Any) -> None:
-        self.t = np.atleast_1d(np.asarray(t, dtype=np.int64))
-        self.p = np.atleast_1d(np.asarray(p, dtype=np.uint8))
-        self.id = np.atleast_1d(np.asarray(id, dtype=np.uint8))
+        t_arr = np.atleast_1d(np.asarray(t, dtype=np.int64))
+        p_arr = np.atleast_1d(np.asarray(p, dtype=np.uint8))
+        id_arr = np.atleast_1d(np.asarray(id, dtype=np.uint8))
+        
+        if not (t_arr.ndim == 1 and p_arr.ndim == 1 and id_arr.ndim == 1):
+            t_arr, p_arr, id_arr = t_arr.ravel(), p_arr.ravel(), id_arr.ravel()
+            
+        if not (len(t_arr) == len(p_arr) == len(id_arr)):
+            raise ValueError(f"Length mismatch: t({len(t_arr)}), p({len(p_arr)}), id({len(id_arr)})")
+            
+        self.t = t_arr
+        self.p = p_arr
+        self.id = id_arr
