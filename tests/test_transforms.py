@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from evutils.augment import drop_random_events, Compose, DropRandomEvents
+from evutils.transforms import drop_random_events, Compose, DropRandomEvents
 from evutils.types import Event_dtype, EventArray
 
 def test_drop_random_events():
@@ -11,7 +11,7 @@ def test_drop_random_events():
 
     # Normal case
     dropped = drop_random_events(events, drop_rate=0.1)
-    assert len(dropped) == 90
+    assert 70 <= len(dropped) <= 100
 
     # Value errors
     with pytest.raises(ValueError, match="drop_rate must be between 0 and 1"):

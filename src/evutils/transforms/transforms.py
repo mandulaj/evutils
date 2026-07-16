@@ -11,7 +11,7 @@ class Transform:
     """
     def __call__(self, events: Union[np.ndarray, SoaArray]) -> Union[np.ndarray, SoaArray]:
         """Applies the transform in a standalone manner."""
-        from .compose import unwrap_events, repack_events
+        from evutils.transforms.compose import unwrap_events, repack_events
         if len(events) == 0:
             return events
             
@@ -37,8 +37,8 @@ class DropRandomEvents(Transform):
         self.drop_rate = drop_rate
 
     def _forward_jit(self, t, x, y, p):
-        from .functional import drop_random_events_jit
-        return drop_random_events_jit(t, x, y, p, self.drop_rate)
+        from evutils.transforms.functional import _drop_random_events_jit
+        return _drop_random_events_jit(t, x, y, p, self.drop_rate)
         
     def __repr__(self):
         return f"{self.__class__.__name__}(drop_rate={self.drop_rate})"

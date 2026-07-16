@@ -6,15 +6,17 @@ added noise.
 """
 
 
-from ._drop import drop_random_events
 from .compose import Compose
 from .transforms import Transform, DropRandomEvents
-from .functional import drop_random_events_jit
+import evutils.transforms.functional as functional
+
+# Keep backward compatibility for users who imported drop_random_events directly
+drop_random_events = functional.drop_random_events
 
 __all__ = [
-    "drop_random_events",
     "Compose",
     "Transform",
     "DropRandomEvents",
-    "drop_random_events_jit"
+    "functional",
+    "drop_random_events"
 ]
