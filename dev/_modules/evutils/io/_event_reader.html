@@ -704,11 +704,13 @@
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;delta_t&quot;</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">delta_t</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;delta_t must be specified&quot;</span><span class="p">)</span>
-            <span class="n">n_events</span> <span class="o">=</span> <span class="n">max_events</span>
+            <span class="k">if</span> <span class="n">n_events</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">n_events</span> <span class="o">=</span> <span class="n">max_events</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;n_events&quot;</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">n_events</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;n_events must be specified&quot;</span><span class="p">)</span>
-            <span class="n">delta_t</span> <span class="o">=</span> <span class="n">max_time</span>
+            <span class="k">if</span> <span class="n">delta_t</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">delta_t</span> <span class="o">=</span> <span class="n">max_time</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;mixed&quot;</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">delta_t</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">delta_t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEFAULT_DELTA_T</span>

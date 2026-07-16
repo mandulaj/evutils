@@ -24,7 +24,7 @@ Classes
 Package Contents
 ----------------
 
-.. py:class:: EventsChecker(events: numpy.ndarray)
+.. py:class:: EventsChecker(events: numpy.ndarray | Any)
 
    Class to check if events are valid.
 
@@ -95,7 +95,7 @@ Package Contents
 
       Return string representation of the EventsChecker.
 
-      :returns: String representation indicating if events are valid.
+      :returns: String representation indicating the EventsChecker and number of events.
       :rtype: str
 
 

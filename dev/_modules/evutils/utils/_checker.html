@@ -504,9 +504,16 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
     
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">events</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">events</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="n">Event_dtype</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;events must be of type Events&quot;</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">events</span><span class="p">:</span> <span class="s1">&#39;np.ndarray | Any&#39;</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..types</span><span class="w"> </span><span class="kn">import</span> <span class="n">SoaArray</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">SoaArray</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">events</span><span class="o">.</span><span class="n">_aos_dtype</span> <span class="o">!=</span> <span class="n">Event_dtype</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;events must be of type Events&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="s1">&#39;dtype&#39;</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;events must be a NumPy array or SoaArray&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">events</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="n">Event_dtype</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;events must be of type Events&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">events</span> <span class="o">=</span> <span class="n">events</span>
 
@@ -605,10 +612,10 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        str</span>
-<span class="sd">            String representation indicating if events are valid.</span>
+<span class="sd">            String representation indicating the EventsChecker and number of events.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;EventsChecker(events=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">is_valid</span><span class="p">()</span><span class="si">}</span><span class="s2">)&quot;</span></div>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;EventsChecker(events=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span></div>
 </div>
 
 </pre></div>
