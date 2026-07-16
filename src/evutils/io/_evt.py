@@ -30,7 +30,7 @@ from typing import Any, TYPE_CHECKING, Dict
 if TYPE_CHECKING:
     from ..types import TriggerArray
 
-from .._jit import lazy_njit
+from ..jit import lazy_njit
 import numpy as np
 
 from ..types import EventArray

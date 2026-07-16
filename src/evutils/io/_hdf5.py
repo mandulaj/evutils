@@ -16,7 +16,7 @@ import h5py
 import hdf5plugin
 import numpy as np
 
-from .._jit import lazy_njit
+from ..jit import lazy_njit
 from ..types import EventArray, TriggerArray
 from .common import EventDecoder, EventEncoder
 from ._source import ByteSource

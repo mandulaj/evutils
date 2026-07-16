@@ -9,7 +9,9 @@ import numpy as np
 
 
 from typing import Any
-def voxel_histogram(events: np.ndarray, width: int = 1280, height: int = 720, n_bins: int = 10, dt: int = 10_000, dtype: Any = np.uint8) -> np.ndarray:
+from ..types import EventArray
+
+def voxel_histogram(events: 'np.ndarray | EventArray', width: int = 1280, height: int = 720, n_bins: int = 10, dt: int = 10_000, dtype: Any = np.uint8) -> np.ndarray:
     """Generate a voxel grid from the events.
 
     Parameters
@@ -48,7 +50,8 @@ def voxel_histogram(events: np.ndarray, width: int = 1280, height: int = 720, n_
     if len(events) <= 2:
         return buffer
 
-    assert events[-1]['t'] - events[0]['t'] <= dt # Ensure that the events are within the specified time delta
+    if events['t'][-1] - events['t'][0] > dt:
+        raise ValueError(f"Events span a duration greater than dt ({dt}).")
 
     bin_dt = dt // n_bins  # Time per bin in microseconds
 

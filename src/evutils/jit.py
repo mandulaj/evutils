@@ -34,7 +34,7 @@ def lazy_njit(fn: F) -> F:
     return wrapper  # type: ignore[return-value]
 
 
-def lazy_njit_unwrapped(fn: F) -> F:
+def lazy_njit_unwrapped_events(fn: F) -> F:
     """Decorator that unwraps SoA or AoS events into constituent arrays, 
     then calls a lazily compiled numba function. Numba handles the 
     specialization for strided vs contiguous memory.
