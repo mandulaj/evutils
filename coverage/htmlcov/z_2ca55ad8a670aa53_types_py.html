@@ -54,18 +54,18 @@
             </div>
         </aside>
         <h2>
-            <span class="text">132 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">129<span class="text"> run</span></button>
+            <span class="text">133 statements &nbsp;</span>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">130<span class="text"> run</span></button>
             <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">3<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
             <a id="prevFileLink" class="nav" href="z_8114fdd0c9021b1d_transforms_py.html">&#xab; prev</a> &nbsp; &nbsp;
             <a id="indexLink" class="nav" href="index.html">&Hat; index</a> &nbsp; &nbsp;
-            <a id="nextFileLink" class="nav" href="z_c4e79f080e73b7e4___init___py.html">&#xbb; next</a>
+            <a id="nextFileLink" class="nav" href="z_844f84a11b3283d3___init___py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.15.1">coverage.py v7.15.1</a>,
-            created at 2026-07-16 17:39 +0000
+            created at 2026-07-16 18:52 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -93,7 +93,7 @@
     <p class="pln"><span class="n"><a id="t11" href="#t11">11</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t12" href="#t12">12</a></span><span class="t"><span class="key">import</span> <span class="nam">numpy</span> <span class="key">as</span> <span class="nam">np</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t13" href="#t13">13</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t14" href="#t14">14</a></span><span class="t"><span class="nam">__all__</span> <span class="op">=</span> <span class="op">[</span><span class="str">'Event_dtype'</span><span class="op">,</span> <span class="str">'Trigger_dtype'</span><span class="op">,</span> <span class="str">'Event'</span><span class="op">,</span> <span class="str">'EventArray'</span><span class="op">,</span> <span class="str">'TriggerArray'</span><span class="op">,</span> <span class="str">'is_monotonically_increasing'</span><span class="op">]</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t14" href="#t14">14</a></span><span class="t"><span class="nam">__all__</span> <span class="op">=</span> <span class="op">[</span><span class="str">'Event_dtype'</span><span class="op">,</span> <span class="str">'Trigger_dtype'</span><span class="op">,</span> <span class="str">'Event'</span><span class="op">,</span> <span class="str">'EventArray'</span><span class="op">,</span> <span class="str">'TriggerArray'</span><span class="op">,</span> <span class="str">'is_monotonically_increasing'</span><span class="op">,</span> <span class="str">'EventsChecker'</span><span class="op">]</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t15" href="#t15">15</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t16" href="#t16">16</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t17" href="#t17">17</a></span><span class="t"><span class="com">#: A structured numpy dtype for event data.</span>&nbsp;</span><span class="r"></span></p>
@@ -397,16 +397,22 @@
     <p class="run"><span class="n"><a id="t315" href="#t315">315</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">p</span> <span class="op">=</span> <span class="nam">p_arr</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t316" href="#t316">316</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">id</span> <span class="op">=</span> <span class="nam">id_arr</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t317" href="#t317">317</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">metadata</span> <span class="op">=</span> <span class="nam">metadata</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t318" href="#t318">318</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t319" href="#t319">319</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t320" href="#t320">320</a></span><span class="t"><span class="com"># EventsChecker validates the event types defined above; imported here (at the</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t321" href="#t321">321</a></span><span class="t"><span class="com"># end, after the types exist) so it is reachable as ``evutils.types.EventsChecker``</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t322" href="#t322">322</a></span><span class="t"><span class="com"># without a circular import.</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t323" href="#t323">323</a></span><span class="t"><span class="key">from</span> <span class="op">.</span><span class="nam">_checker</span> <span class="key">import</span> <span class="nam">EventsChecker</span>  <span class="com"># noqa: E402</span>&nbsp;</span><span class="r"></span></p>
 </main>
 <footer>
     <div class="content">
         <p>
             <a class="nav" href="z_8114fdd0c9021b1d_transforms_py.html">&#xab; prev</a> &nbsp; &nbsp;
             <a class="nav" href="index.html">&Hat; index</a> &nbsp; &nbsp;
-            <a class="nav" href="z_c4e79f080e73b7e4___init___py.html">&#xbb; next</a>
+            <a class="nav" href="z_844f84a11b3283d3___init___py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.15.1">coverage.py v7.15.1</a>,
-            created at 2026-07-16 17:39 +0000
+            created at 2026-07-16 18:52 +0000
         </p>
     </div>
 </footer>

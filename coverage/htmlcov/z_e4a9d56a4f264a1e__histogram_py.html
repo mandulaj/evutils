@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Coverage for src/evutils/repr/_histogram.py: 94%</title>
+    <title>Coverage for src/evutils/dense/_histogram.py: 94%</title>
     <link rel="icon" sizes="32x32" href="favicon_32_cb_c827f16f.png">
     <link rel="stylesheet" href="style_cb_4667309f.css" type="text/css">
     <script src="coverage_html_cb_dd2e7eb5.js" defer></script>
@@ -11,7 +11,7 @@
 <header>
     <div class="content">
         <h1>
-            <span class="text">Coverage for </span><b>src<span class="sep">/</span>evutils<span class="sep">/</span>repr<span class="sep">/</span>_histogram.py</b>:
+            <span class="text">Coverage for </span><b>src<span class="sep">/</span>evutils<span class="sep">/</span>dense<span class="sep">/</span>_histogram.py</b>:
             <span class="pc_cov">94%</span>
         </h1>
         <aside id="help_panel_wrapper">
@@ -60,12 +60,12 @@
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
-            <a id="prevFileLink" class="nav" href="z_3aad7a81646fb1ac__frame_py.html">&#xab; prev</a> &nbsp; &nbsp;
+            <a id="prevFileLink" class="nav" href="z_e4a9d56a4f264a1e__frame_py.html">&#xab; prev</a> &nbsp; &nbsp;
             <a id="indexLink" class="nav" href="index.html">&Hat; index</a> &nbsp; &nbsp;
-            <a id="nextFileLink" class="nav" href="z_3aad7a81646fb1ac__timesurface_py.html">&#xbb; next</a>
+            <a id="nextFileLink" class="nav" href="z_e4a9d56a4f264a1e__timesurface_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.15.1">coverage.py v7.15.1</a>,
-            created at 2026-07-16 17:39 +0000
+            created at 2026-07-16 18:52 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -123,7 +123,7 @@
     <p class="pln"><span class="n"><a id="t41" href="#t41">41</a></span><span class="t"><span class="str">    Examples</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t42" href="#t42">42</a></span><span class="t"><span class="str">    --------</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t43" href="#t43">43</a></span><span class="t"><span class="str">    >>> import numpy as np</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t44" href="#t44">44</a></span><span class="t"><span class="str">    >>> from evutils.repr import histogram</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t44" href="#t44">44</a></span><span class="t"><span class="str">    >>> from evutils.dense import histogram</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t45" href="#t45">45</a></span><span class="t"><span class="str">    >>> events = np.array([(10, 20, 100, 1), (15, 25, 200, 0)],</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t46" href="#t46">46</a></span><span class="t"><span class="str">    ...                   dtype=[('x', '&lt;u2'), ('y', '&lt;u2'), ('t', '&lt;i8'), ('p', 'i1')])</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t47" href="#t47">47</a></span><span class="t"><span class="str">    >>> frame = histogram(events, width=100, height=100)</span>&nbsp;</span><span class="r"></span></p>
@@ -182,7 +182,7 @@
     <p class="pln"><span class="n"><a id="t100" href="#t100">100</a></span><span class="t"><span class="str">    Examples</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t101" href="#t101">101</a></span><span class="t"><span class="str">    --------</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t102" href="#t102">102</a></span><span class="t"><span class="str">    >>> import numpy as np</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t103" href="#t103">103</a></span><span class="t"><span class="str">    >>> from evutils.repr import wedge_histogram</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t103" href="#t103">103</a></span><span class="t"><span class="str">    >>> from evutils.dense import wedge_histogram</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t104" href="#t104">104</a></span><span class="t"><span class="str">    >>> events = np.array([(10, 20, 100, 1), (15, 25, 200, 0)],</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t105" href="#t105">105</a></span><span class="t"><span class="str">    ...                   dtype=[('x', '&lt;u2'), ('y', '&lt;u2'), ('t', '&lt;i8'), ('p', 'i1')])</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t106" href="#t106">106</a></span><span class="t"><span class="str">    >>> frame = wedge_histogram(events, width=100, height=100)</span>&nbsp;</span><span class="r"></span></p>
@@ -205,12 +205,12 @@
 <footer>
     <div class="content">
         <p>
-            <a class="nav" href="z_3aad7a81646fb1ac__frame_py.html">&#xab; prev</a> &nbsp; &nbsp;
+            <a class="nav" href="z_e4a9d56a4f264a1e__frame_py.html">&#xab; prev</a> &nbsp; &nbsp;
             <a class="nav" href="index.html">&Hat; index</a> &nbsp; &nbsp;
-            <a class="nav" href="z_3aad7a81646fb1ac__timesurface_py.html">&#xbb; next</a>
+            <a class="nav" href="z_e4a9d56a4f264a1e__timesurface_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.15.1">coverage.py v7.15.1</a>,
-            created at 2026-07-16 17:39 +0000
+            created at 2026-07-16 18:52 +0000
         </p>
     </div>
 </footer>
