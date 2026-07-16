@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Coverage for src/evutils/io/_evt.py: 90%</title>
+    <title>Coverage for src/evutils/io/_evt.py: 91%</title>
     <link rel="icon" sizes="32x32" href="favicon_32_cb_c827f16f.png">
     <link rel="stylesheet" href="style_cb_4667309f.css" type="text/css">
     <script src="coverage_html_cb_dd2e7eb5.js" defer></script>
@@ -12,7 +12,7 @@
     <div class="content">
         <h1>
             <span class="text">Coverage for </span><b>src<span class="sep">/</span>evutils<span class="sep">/</span>io<span class="sep">/</span>_evt.py</b>:
-            <span class="pc_cov">90%</span>
+            <span class="pc_cov">91%</span>
         </h1>
         <aside id="help_panel_wrapper">
             <input id="help_panel_state" type="checkbox">
@@ -55,8 +55,8 @@
         </aside>
         <h2>
             <span class="text">424 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">380<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">44<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">384<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">40<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">2<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_c37a3357b71699fa__hdf5_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.15.1">coverage.py v7.15.1</a>,
-            created at 2026-07-16 17:24 +0000
+            created at 2026-07-16 17:39 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -250,7 +250,7 @@
     <p class="pln"><span class="n"><a id="t168" href="#t168">168</a></span><span class="t">        <span class="com"># events) below the buffer capacity; a smaller chunk would make the</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t169" href="#t169">169</a></span><span class="t">        <span class="com"># reserved offset 0 and the parser could never emit anything.</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t170" href="#t170">170</a></span><span class="t">        <span class="key">if</span> <span class="nam">chunk_size</span> <span class="op">&lt;</span> <span class="num">128</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t171" href="#t171">171</a></span><span class="t">            <span class="key">raise</span> <span class="nam">ValueError</span><span class="op">(</span><span class="fst">f"</span><span class="fst">chunk_size must be >= 128 (got </span><span class="op">{</span><span class="nam">chunk_size</span><span class="op">}</span><span class="fst">)</span><span class="fst">"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t171" href="#t171">171</a></span><span class="t">            <span class="key">raise</span> <span class="nam">ValueError</span><span class="op">(</span><span class="fst">f"</span><span class="fst">chunk_size must be >= 128 (got </span><span class="op">{</span><span class="nam">chunk_size</span><span class="op">}</span><span class="fst">)</span><span class="fst">"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t172" href="#t172">172</a></span><span class="t">        <span class="nam">super</span><span class="op">(</span><span class="op">)</span><span class="op">.</span><span class="nam">__init__</span><span class="op">(</span><span class="nam">source</span><span class="op">,</span> <span class="nam">chunk_size</span><span class="op">,</span> <span class="nam">read_external_triggers</span><span class="op">=</span><span class="nam">read_external_triggers</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t173" href="#t173">173</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t174" href="#t174">174</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">_format</span><span class="op">:</span> <span class="nam">str</span> <span class="op">|</span> <span class="key">None</span> <span class="op">=</span> <span class="key">None</span>&nbsp;</span><span class="r"></span></p>
@@ -362,10 +362,10 @@
     <p class="run"><span class="n"><a id="t280" href="#t280">280</a></span><span class="t">        <span class="key">if</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_format</span> <span class="op">==</span> <span class="str">"evt21"</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t281" href="#t281">281</a></span><span class="t">            <span class="nam">endianness</span> <span class="op">=</span> <span class="nam">str</span><span class="op">(</span><span class="nam">self</span><span class="op">.</span><span class="nam">_header</span><span class="op">.</span><span class="nam">get</span><span class="op">(</span><span class="str">"endianness"</span><span class="op">,</span> <span class="str">"legacy"</span><span class="op">)</span><span class="op">)</span><span class="op">.</span><span class="nam">lower</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t282" href="#t282">282</a></span><span class="t">            <span class="key">if</span> <span class="nam">endianness</span> <span class="op">!=</span> <span class="str">"legacy"</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t283" href="#t283">283</a></span><span class="t">                <span class="key">raise</span> <span class="nam">NotImplementedError</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t284" href="#t284">284</a></span><span class="t">                    <span class="fst">f"</span><span class="fst">EVT2.1 with '% endianness </span><span class="op">{</span><span class="nam">endianness</span><span class="op">}</span><span class="fst">' is not supported </span><span class="fst">"</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t285" href="#t285">285</a></span><span class="t">                    <span class="fst">f"</span><span class="fst">(only the 'legacy' swapped-halves layout is implemented)</span><span class="fst">"</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t286" href="#t286">286</a></span><span class="t">                <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t283" href="#t283">283</a></span><span class="t">                <span class="key">raise</span> <span class="nam">NotImplementedError</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t284" href="#t284">284</a></span><span class="t">                    <span class="fst">f"</span><span class="fst">EVT2.1 with '% endianness </span><span class="op">{</span><span class="nam">endianness</span><span class="op">}</span><span class="fst">' is not supported </span><span class="fst">"</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t285" href="#t285">285</a></span><span class="t">                    <span class="fst">f"</span><span class="fst">(only the 'legacy' swapped-halves layout is implemented)</span><span class="fst">"</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t286" href="#t286">286</a></span><span class="t">                <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t287" href="#t287">287</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t288" href="#t288">288</a></span><span class="t">        <span class="com"># Geometry not stated explicitly (older EVT2 RAWs): infer it from the</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t289" href="#t289">289</a></span><span class="t">        <span class="com"># sensor identity, the way the Metavision SDK does.</span>&nbsp;</span><span class="r"></span></p>
@@ -568,8 +568,8 @@
     <p class="mis show_mis"><span class="n"><a id="t486" href="#t486">486</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">init</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t487" href="#t487">487</a></span><span class="t">        <span class="nam">words</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_words</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t488" href="#t488">488</a></span><span class="t">        <span class="key">if</span> <span class="nam">words</span> <span class="key">is</span> <span class="key">None</span> <span class="key">or</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_offset</span> <span class="op">>=</span> <span class="nam">len</span><span class="op">(</span><span class="nam">words</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t489" href="#t489">489</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">_eof</span> <span class="op">=</span> <span class="key">True</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t490" href="#t490">490</a></span><span class="t">            <span class="key">return</span> <span class="num">0</span><span class="op">,</span> <span class="nam">EVUTILS_PARSE_WINDOW_DONE</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t489" href="#t489">489</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">_eof</span> <span class="op">=</span> <span class="key">True</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t490" href="#t490">490</a></span><span class="t">            <span class="key">return</span> <span class="num">0</span><span class="op">,</span> <span class="nam">EVUTILS_PARSE_WINDOW_DONE</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t491" href="#t491">491</a></span><span class="t">        <span class="nam">before</span> <span class="op">=</span> <span class="nam">events</span><span class="op">.</span><span class="nam">size</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t492" href="#t492">492</a></span><span class="t">        <span class="nam">inp</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_input_cls</span><span class="op">(</span><span class="nam">words</span><span class="op">[</span><span class="nam">self</span><span class="op">.</span><span class="nam">_offset</span><span class="op">:</span><span class="op">]</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t493" href="#t493">493</a></span><span class="t">        <span class="nam">res</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_parser</span><span class="op">.</span><span class="nam">parse_delta_t_soa</span><span class="op">(</span><span class="nam">inp</span><span class="op">,</span> <span class="nam">events</span><span class="op">,</span> <span class="nam">triggers</span><span class="op">,</span> <span class="nam">end_ts</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
@@ -1075,7 +1075,7 @@
             <a class="nav" href="z_c37a3357b71699fa__hdf5_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.15.1">coverage.py v7.15.1</a>,
-            created at 2026-07-16 17:24 +0000
+            created at 2026-07-16 17:39 +0000
         </p>
     </div>
 </footer>
