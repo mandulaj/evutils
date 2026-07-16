@@ -23,6 +23,9 @@ def o3d_draw_events(events: np.ndarray) -> None:
     None
 
     """
+    if len(events) == 0:
+        return
+
     # Draw X, Y, T as a pointcloud 
     pdc = o3d.geometry.PointCloud()
 

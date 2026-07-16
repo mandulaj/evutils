@@ -34,6 +34,8 @@ def window_delta_t(events: np.ndarray, delta_t: int = 10_000) -> Iterator[np.nda
     >>> len(chunks) > 0
     True
     """
+    if delta_t <= 0:
+        raise ValueError("delta_t must be positive")
     if len(events) == 0:
         return
 
@@ -76,6 +78,8 @@ def sliding_window(events: np.ndarray, delta_t: int = 10_000, window_size: int =
     >>> len(chunks) > 0
     True
     """
+    if delta_t <= 0 or window_size <= 0:
+        raise ValueError("delta_t and window_size must be positive")
     if len(events) == 0:
         return
 
@@ -160,6 +164,8 @@ def stream_delta_t(raw_stream: Iterator[Any], delta_t: int) -> Iterator[Any]:
     """A pipeline generator that turns a raw stream into perfect delta_t chunks.
     This maintains a small internal buffer for events that cross boundaries.
     """
+    if delta_t <= 0:
+        raise ValueError("delta_t must be positive")
     acc = EventAccumulator(capacity=100_000_000)
     current_ts = None
     has_triggers = False  # set from the stream's items: tuple => (events, triggers)
@@ -173,30 +179,43 @@ def stream_delta_t(raw_stream: Iterator[Any], delta_t: int) -> Iterator[Any]:
         else:
             acc.append(incoming, None)
 
-        if len(acc) == 0:
+        if len(acc) == 0 and (not has_triggers or (acc._tr.size - acc._tr_start) == 0):
             continue
 
-        # Initialize our absolute time anchor from the very first event
+        # Initialize our absolute time anchor from the very first event or trigger
         if current_ts is None:
-            current_ts = int(acc.t_window()[0])
+            if len(acc) > 0:
+                current_ts = int(acc.t_window()[0])
+            elif has_triggers and (acc._tr.size - acc._tr_start) > 0:
+                current_ts = int(acc.t_window_tr()[0])
+            else:
+                continue
 
         # Yield as many full windows as we have accumulated
         while True:
             end_ts = current_ts + delta_t
             t = acc.t_window()
+            
+            max_ts = -1
+            if len(t) > 0:
+                max_ts = t[-1]
+            if has_triggers:
+                tr_t = acc.t_window_tr()
+                if len(tr_t) > 0 and tr_t[-1] > max_ts:
+                    max_ts = tr_t[-1]
 
-            if len(t) == 0 or t[-1] < end_ts:
+            if max_ts < end_ts:
                 # Not enough data for a full window yet; fetch more chunks
                 break
 
             # Find boundary
-            idx = int(np.searchsorted(t, end_ts, side='left'))
+            idx = int(np.searchsorted(t, end_ts, side='left')) if len(t) > 0 else 0
 
             # Slice and yield. Mirror the input shape: only a trigger-carrying
             # stream ((events, triggers) tuples) yields tuples back.
             if has_triggers:
                 tr_t = acc.t_window_tr()
-                tr_idx = int(np.searchsorted(tr_t, end_ts, side='left'))
+                tr_idx = int(np.searchsorted(tr_t, end_ts, side='left')) if len(tr_t) > 0 else 0
                 chunk_ev, chunk_tr = acc.slice_copy(idx, tr_idx)
                 yield chunk_ev, chunk_tr
             else:
@@ -215,6 +234,8 @@ def stream_delta_t(raw_stream: Iterator[Any], delta_t: int) -> Iterator[Any]:
 
 def stream_n_events(raw_stream: Iterator[Any], n_events: int) -> Iterator[Any]:
     """Pipeline generator: chunks stream by event count."""
+    if n_events <= 0:
+        raise ValueError("n_events must be positive")
     acc = EventAccumulator(capacity=max(1_000_000, n_events * 2))
     has_triggers = False  # set from the stream's items: tuple => (events, triggers)
     for incoming in raw_stream:

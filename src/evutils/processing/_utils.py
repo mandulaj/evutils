@@ -34,6 +34,13 @@ def normalize_ts(events: np.ndarray, start_ts: int = 0) -> np.ndarray:
     if len(events) == 0:
         return events
 
+    if not (hasattr(events, 'dtype') and events.dtype.names and 't' in events.dtype.names):
+        if not hasattr(events, 't'):
+            raise ValueError("events must be a structured array or object with a 't' field")
+
+    if hasattr(events, 'flags') and not events.flags.writeable:
+        events = events.copy()
+
     min_ts = events['t'].min()
     events['t'] -= min_ts - start_ts
 
