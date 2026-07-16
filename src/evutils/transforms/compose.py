@@ -37,6 +37,7 @@ class Compose:
     """
 
     def __init__(self, transforms: Iterable[Callable]):
+        import inspect
         self.transforms = list(transforms)
         self._execution_plan = []
         
@@ -47,16 +48,22 @@ class Compose:
                 current_jit_block.append(t)
             else:
                 if current_jit_block:
-                    self._execution_plan.append(("jit", current_jit_block))
+                    self._execution_plan.append(("jit", current_jit_block, False))
                     current_jit_block = []
-                self._execution_plan.append(("standard", t))
+                    
+                try:
+                    sig = inspect.signature(t)
+                    accepts_target = len(sig.parameters) > 1
+                except ValueError:
+                    accepts_target = False
+                    
+                self._execution_plan.append(("standard", t, accepts_target))
                 
         if current_jit_block:
-             self._execution_plan.append(("jit", current_jit_block))
+             self._execution_plan.append(("jit", current_jit_block, False))
 
     def __call__(self, events, target=None):
-        import inspect
-        for step_type, block in self._execution_plan:
+        for step_type, block, accepts_target in self._execution_plan:
             if len(events) == 0:
                 break
                 
@@ -76,9 +83,7 @@ class Compose:
                 events = repack_events(events, t, x, y, p)
             else:
                 if target is not None:
-                    # Check if standard block accepts a target
-                    sig = inspect.signature(block)
-                    if len(sig.parameters) > 1:
+                    if accepts_target:
                         res = block(events, target)
                         if isinstance(res, tuple) and len(res) == 2:
                             events, target = res
