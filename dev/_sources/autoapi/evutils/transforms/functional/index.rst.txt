@@ -1,0 +1,30 @@
+:py:mod:`evutils.transforms.functional`
+=======================================
+
+.. py:module:: evutils.transforms.functional
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   evutils.transforms.functional.drop_random_events
+
+
+Package Contents
+----------------
+
+.. py:function:: drop_random_events(events, drop_rate: float = 0.1)
+
+   Drops a percentage of events randomly.
+
+   :param events: Array of events to drop from.
+   :type events: np.ndarray or EventArray
+   :param drop_rate: Percentage of events to drop, by default 0.1 (10%).
+   :type drop_rate: float, optional
+
+   :returns: Array of events with the specified percentage dropped.
+   :rtype: np.ndarray or EventArray
+
+

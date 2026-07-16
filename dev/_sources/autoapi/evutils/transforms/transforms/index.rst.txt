@@ -1,0 +1,54 @@
+:py:mod:`evutils.transforms.transforms`
+=======================================
+
+.. py:module:: evutils.transforms.transforms
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   evutils.transforms.transforms.Transform
+   evutils.transforms.transforms.DropRandomEvents
+
+
+Module Contents
+---------------
+
+.. py:class:: Transform
+
+   Base class for all evutils transforms.
+
+   Transforms should implement the `_forward_jit` method to allow zero-overhead
+   composition inside a `Compose` pipeline.
+
+
+   .. py:method:: __call__(events: Union[numpy.ndarray, evutils.types.SoaArray], target=None)
+
+      Applies the transform in a standalone manner.
+
+
+
+.. py:class:: DropRandomEvents(drop_rate: float = 0.1)
+
+   Bases: :py:obj:`Transform`
+
+   .. autoapi-inheritance-diagram:: evutils.transforms.transforms.DropRandomEvents
+      :parts: 1
+
+
+   Drops a percentage of events randomly.
+
+   :param drop_rate: Percentage of events to drop, by default 0.1 (10%).
+   :type drop_rate: float, optional
+
+
+   .. py:attribute:: drop_rate
+      :value: 0.1
+
+
+
+   .. py:method:: __repr__()
+
+

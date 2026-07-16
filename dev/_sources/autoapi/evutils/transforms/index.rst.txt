@@ -1,0 +1,114 @@
+:py:mod:`evutils.transforms`
+============================
+
+.. py:module:: evutils.transforms
+
+.. autoapi-nested-parse::
+
+   Data augmentation transforms for events.
+
+   Random and deterministic transformations for augmenting event streams
+   during training, such as spatial flips, time reversal, event dropout and
+   added noise.
+
+
+
+Submodules
+----------
+
+.. toctree::
+   :hidden:
+   :maxdepth: 1
+
+   /autoapi/evutils/transforms/compose/index
+   /autoapi/evutils/transforms/functional/index
+   /autoapi/evutils/transforms/transforms/index
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 0
+
+   * - :py:mod:`compose <evutils.transforms.compose>`
+     - 
+   * - :py:mod:`functional <evutils.transforms.functional>`
+     - 
+   * - :py:mod:`transforms <evutils.transforms.transforms>`
+     - 
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   evutils.transforms.drop_random_events
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   evutils.transforms.Compose
+   evutils.transforms.Transform
+   evutils.transforms.DropRandomEvents
+
+
+Package Contents
+----------------
+
+.. py:class:: Compose(transforms: Iterable[Callable])
+
+   Composes several transforms together.
+
+   Groups contiguous blocks of evutils `Transform` objects to execute them purely in
+   C-space via Numba JIT without intermediate unpacking/repacking overhead.
+   Freely accepts standard Callables (e.g. PyTorch/Tonic transforms).
+
+
+   .. py:attribute:: transforms
+
+
+   .. py:method:: __call__(events, target=None)
+
+
+   .. py:method:: __repr__()
+
+
+.. py:class:: Transform
+
+   Base class for all evutils transforms.
+
+   Transforms should implement the `_forward_jit` method to allow zero-overhead
+   composition inside a `Compose` pipeline.
+
+
+   .. py:method:: __call__(events: Union[numpy.ndarray, evutils.types.SoaArray], target=None)
+
+      Applies the transform in a standalone manner.
+
+
+
+.. py:class:: DropRandomEvents(drop_rate: float = 0.1)
+
+   Bases: :py:obj:`Transform`
+
+   .. autoapi-inheritance-diagram:: evutils.transforms.DropRandomEvents
+      :parts: 1
+
+
+   Drops a percentage of events randomly.
+
+   :param drop_rate: Percentage of events to drop, by default 0.1 (10%).
+   :type drop_rate: float, optional
+
+
+   .. py:attribute:: drop_rate
+      :value: 0.1
+
+
+
+   .. py:method:: __repr__()
+
+
+.. py:data:: drop_random_events
+

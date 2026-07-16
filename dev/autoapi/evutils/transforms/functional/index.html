@@ -2,13 +2,13 @@
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="../../" >
+<html lang="en" data-content_root="../../../../" >
 
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>evutils &#8212; evutils v0.3.17 documentation</title>
+    <title>evutils.transforms.functional &#8212; evutils v0.3.17 documentation</title>
   
   
   
@@ -27,22 +27,22 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
-<link href="../../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+  <link href="../../../../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../../../../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
-    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
   
   <!-- So that users can add custom icons -->
-  <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <script defer src="../../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
-<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+  <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../_static/documentation_options.js?v=ffd5bf7f"></script>
-    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
-    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'autoapi/evutils/index';</script>
+    <script src="../../../../_static/documentation_options.js?v=ffd5bf7f"></script>
+    <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'autoapi/evutils/transforms/functional/index';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://mandulaj.github.io/evutils/switcher.json';
@@ -51,20 +51,20 @@
             false;
         </script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
-    <script defer="defer" src="../../_static/pypi-icon.js?v=6c11050f"></script>
-    <link rel="icon" href="../../_static/event_hexagon_broken.webp"/>
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="evutils.chunking" href="chunking/index.html" />
-    <link rel="prev" title="API Reference" href="../index.html" />
+    <script defer="defer" src="../../../../_static/pypi-icon.js?v=6c11050f"></script>
+    <link rel="icon" href="../../../../_static/event_hexagon_broken.webp"/>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="evutils.transforms.transforms" href="../transforms/index.html" />
+    <link rel="prev" title="evutils.transforms.compose" href="../compose/index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
   
     
-    <script src="../../_static/searchtools.js"></script>
-    <script src="../../_static/language_data.js"></script>
-    <script src="../../searchindex.js"></script>
+    <script src="../../../../_static/searchtools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../searchindex.js"></script>
   
   </head>
   <body data-default-mode="">
@@ -84,7 +84,7 @@
   <dialog id="pst-search-dialog">
     
 <form class="bd-search d-flex align-items-center"
-      action="../../search.html"
+      action="../../../../search.html"
       method="get">
   <i class="fa-solid fa-magnifying-glass"></i>
   <input type="search"
@@ -120,7 +120,7 @@
     
   
 
-<a class="navbar-brand logo" href="../../index.html">
+<a class="navbar-brand logo" href="../../../../index.html">
   
   
   
@@ -131,8 +131,8 @@
       
     
     
-    <img src="../../_static/event_hexagon_broken.webp" class="logo__image only-light" alt=""/>
-    <img src="../../_static/event_hexagon_broken.webp" class="logo__image only-dark pst-js-only" alt=""/>
+    <img src="../../../../_static/event_hexagon_broken.webp" class="logo__image only-light" alt=""/>
+    <img src="../../../../_static/event_hexagon_broken.webp" class="logo__image only-dark pst-js-only" alt=""/>
   
   
     <p class="title logo__title">EV-Utils</p>
@@ -150,21 +150,21 @@
   <ul class="bd-navbar-elements navbar-nav">
     
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../formats.html">
+  <a class="nav-link nav-internal" href="../../../../formats.html">
     Supported Formats
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../benchmarks/README.html">
+  <a class="nav-link nav-internal" href="../../../../benchmarks/README.html">
     Benchmarks
   </a>
 </li>
 
 
 <li class="nav-item current active">
-  <a class="nav-link nav-internal" href="../index.html">
+  <a class="nav-link nav-internal" href="../../../index.html">
     API Reference
   </a>
 </li>
@@ -318,21 +318,21 @@
   <ul class="bd-navbar-elements navbar-nav">
     
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../formats.html">
+  <a class="nav-link nav-internal" href="../../../../formats.html">
     Supported Formats
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../benchmarks/README.html">
+  <a class="nav-link nav-internal" href="../../../../benchmarks/README.html">
     Benchmarks
   </a>
 </li>
 
 
 <li class="nav-item current active">
-  <a class="nav-link nav-internal" href="../index.html">
+  <a class="nav-link nav-internal" href="../../../index.html">
     API Reference
   </a>
 </li>
@@ -448,36 +448,36 @@
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active has-children"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils</span></code></a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="chunking/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.chunking</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="dataset/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.dataset</span></code></a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="io/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.io</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="io/buffer/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.io.buffer</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="io/common/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.io.common</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="io/decoders/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.io.decoders</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="io/encoders/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.io.encoders</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="io/stream/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.io.stream</span></code></a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils</span></code></a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../chunking/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.chunking</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../dataset/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.dataset</span></code></a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../io/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.io</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../io/buffer/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.io.buffer</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../io/common/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.io.common</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../io/decoders/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.io.decoders</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../io/encoders/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.io.encoders</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../io/stream/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.io.stream</span></code></a></li>
 </ul>
 </details></li>
-<li class="toctree-l2"><a class="reference internal" href="jit/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.jit</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="processing/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.processing</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="random/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.random</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="repr/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.repr</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="torch/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.torch</span></code></a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="transforms/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.transforms</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="transforms/compose/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.transforms.compose</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="transforms/functional/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.transforms.functional</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="transforms/transforms/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.transforms.transforms</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../jit/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.jit</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../processing/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.processing</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../random/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.random</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../repr/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.repr</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../torch/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.torch</span></code></a></li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.transforms</span></code></a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../compose/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.transforms.compose</span></code></a></li>
+<li class="toctree-l3 current active"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.transforms.functional</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../transforms/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.transforms.transforms</span></code></a></li>
 </ul>
 </details></li>
-<li class="toctree-l2"><a class="reference internal" href="types/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.types</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="utils/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.utils</span></code></a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="vis/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.vis</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="vis/open3d/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.vis.open3d</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vis/plot3d/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.vis.plot3d</span></code></a></li>
-<li class="toctree-l3 has-children"><a class="reference internal" href="vis/reconstructor/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.vis.reconstructor</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l4"><a class="reference internal" href="vis/reconstructor/metavision/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.vis.reconstructor.metavision</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vis/reconstructor/rpg/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.vis.reconstructor.rpg</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../types/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.types</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utils/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.utils</span></code></a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../vis/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.vis</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../vis/open3d/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.vis.open3d</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../vis/plot3d/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.vis.plot3d</span></code></a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../vis/reconstructor/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.vis.reconstructor</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../vis/reconstructor/metavision/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.vis.reconstructor.metavision</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../vis/reconstructor/rpg/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.vis.reconstructor.rpg</span></code></a></li>
 </ul>
 </details></li>
 </ul>
@@ -520,14 +520,20 @@
   <ul class="bd-breadcrumbs">
     
     <li class="breadcrumb-item breadcrumb-home">
-      <a href="../../index.html" class="nav-link" aria-label="Home">
+      <a href="../../../../index.html" class="nav-link" aria-label="Home">
         <i class="fa-solid fa-home"></i>
       </a>
     </li>
     
-    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">API Reference</a></li>
+    <li class="breadcrumb-item"><a href="../../../index.html" class="nav-link">API Reference</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils</span></code></span></li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils</span></code></a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.transforms</span></code></a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.transforms.functional</span></code></span></li>
   </ul>
 </nav>
 </div>
@@ -544,73 +550,14 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="module-evutils">
-<span id="evutils"></span><h1><a class="reference internal" href="#module-evutils" title="evutils"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils</span></code></a><a class="headerlink" href="#module-evutils" title="Link to this heading">#</a></h1>
-<p>evutils: utilities for event-based data.</p>
-<p>Event-based data processing and visualization utilities.</p>
-<p>To get started:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">evutils</span>
-<span class="o">...</span>
-</pre></div>
-</div>
-<p class="rubric">Notes</p>
-<p>Anything worth calling out up front.</p>
-<section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">#</a></h2>
-<div class="toctree-wrapper compound">
-</div>
-<div class="pst-scrollable-table-container"><table class="table">
-<colgroup>
-<col style="width: 30.0%" />
-<col style="width: 70.0%" />
-</colgroup>
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="chunking/index.html#module-evutils.chunking" title="evutils.chunking"><code class="xref py py-mod docutils literal notranslate"><span class="pre">chunking</span></code></a></p></td>
-<td><p>Splitting event streams into chunks.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="dataset/index.html#module-evutils.dataset" title="evutils.dataset"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dataset</span></code></a></p></td>
-<td><p>Dataset loading and management.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="io/index.html#module-evutils.io" title="evutils.io"><code class="xref py py-mod docutils literal notranslate"><span class="pre">io</span></code></a></p></td>
-<td><p>Reading and writing events in various file formats.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="jit/index.html#module-evutils.jit" title="evutils.jit"><code class="xref py py-mod docutils literal notranslate"><span class="pre">jit</span></code></a></p></td>
-<td><p>Lazy numba compilation helper.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="processing/index.html#module-evutils.processing" title="evutils.processing"><code class="xref py py-mod docutils literal notranslate"><span class="pre">processing</span></code></a></p></td>
-<td><p>Event stream processing and filtering.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="random/index.html#module-evutils.random" title="evutils.random"><code class="xref py py-mod docutils literal notranslate"><span class="pre">random</span></code></a></p></td>
-<td><p>Generation and perturbation of synthetic events.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="repr/index.html#module-evutils.repr" title="evutils.repr"><code class="xref py py-mod docutils literal notranslate"><span class="pre">repr</span></code></a></p></td>
-<td><p>Dense representations of event data.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="torch/index.html#module-evutils.torch" title="evutils.torch"><code class="xref py py-mod docutils literal notranslate"><span class="pre">torch</span></code></a></p></td>
-<td><p>PyTorch integration.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="transforms/index.html#module-evutils.transforms" title="evutils.transforms"><code class="xref py py-mod docutils literal notranslate"><span class="pre">transforms</span></code></a></p></td>
-<td><p>Data augmentation transforms for events.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="types/index.html#module-evutils.types" title="evutils.types"><code class="xref py py-mod docutils literal notranslate"><span class="pre">types</span></code></a></p></td>
-<td><p>Core data types for event streams.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="utils/index.html#module-evutils.utils" title="evutils.utils"><code class="xref py py-mod docutils literal notranslate"><span class="pre">utils</span></code></a></p></td>
-<td><p>General-purpose helpers.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="vis/index.html#module-evutils.vis" title="evutils.vis"><code class="xref py py-mod docutils literal notranslate"><span class="pre">vis</span></code></a></p></td>
-<td><p>Visualization tools for event camera data.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-</section>
-<section id="attributes">
-<h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">#</a></h2>
+  <section id="module-evutils.transforms.functional">
+<span id="evutils-transforms-functional"></span><h1><a class="reference internal" href="#module-evutils.transforms.functional" title="evutils.transforms.functional"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.transforms.functional</span></code></a><a class="headerlink" href="#module-evutils.transforms.functional" title="Link to this heading">#</a></h1>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#evutils.__version__" title="evutils.__version__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__version__</span></code></a></p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#evutils.transforms.functional.drop_random_events" title="evutils.transforms.functional.drop_random_events"><code class="xref py py-obj docutils literal notranslate"><span class="pre">drop_random_events</span></code></a>(events[, drop_rate])</p></td>
+<td><p>Drops a percentage of events randomly.</p></td>
 </tr>
 </tbody>
 </table>
@@ -618,10 +565,25 @@
 </section>
 <section id="package-contents">
 <h2>Package Contents<a class="headerlink" href="#package-contents" title="Link to this heading">#</a></h2>
-<dl class="py data">
-<dt class="sig sig-object py" id="evutils.__version__">
-<span class="sig-prename descclassname"><span class="pre">evutils.</span></span><span class="sig-name descname"><span class="pre">__version__</span></span><a class="headerlink" href="#evutils.__version__" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="evutils.transforms.functional.drop_random_events">
+<span class="sig-prename descclassname"><span class="pre">evutils.transforms.functional.</span></span><span class="sig-name descname"><span class="pre">drop_random_events</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">events</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drop_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/evutils/transforms/functional/_drop.html#drop_random_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.transforms.functional.drop_random_events" title="Link to this definition">#</a></dt>
+<dd><p>Drops a percentage of events randomly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>events</strong> (<em>np.ndarray</em><em> or </em><a class="reference internal" href="../../types/index.html#evutils.types.EventArray" title="evutils.types.EventArray"><em>EventArray</em></a>) – Array of events to drop from.</p></li>
+<li><p><strong>drop_rate</strong> (<em>float</em><em>, </em><em>optional</em>) – Percentage of events to drop, by default 0.1 (10%).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Array of events with the specified percentage dropped.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray or <a class="reference internal" href="../../types/index.html#evutils.types.EventArray" title="evutils.types.EventArray">EventArray</a></p>
+</dd>
+</dl>
+</dd></dl>
 
 </section>
 </section>
@@ -637,20 +599,20 @@
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="../index.html"
+       href="../compose/index.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">API Reference</p>
+        <p class="prev-next-title"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.transforms.compose</span></code></p>
       </div>
     </a>
     <a class="right-next"
-       href="chunking/index.html"
+       href="../transforms/index.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.chunking</span></code></p>
+        <p class="prev-next-title"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evutils.transforms.transforms</span></code></p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -673,10 +635,9 @@
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submodules">Submodules</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#attributes">Attributes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#package-contents">Package Contents</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.__version__"><code class="docutils literal notranslate"><span class="pre">__version__</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.transforms.functional.drop_random_events"><code class="docutils literal notranslate"><span class="pre">drop_random_events()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -685,7 +646,7 @@
   <div class="sidebar-secondary-item">
 
   <div class="tocsection sourcelink">
-    <a href="../../_sources/autoapi/evutils/index.rst.txt">
+    <a href="../../../../_sources/autoapi/evutils/transforms/functional/index.rst.txt">
       <i class="fa-solid fa-file-lines"></i> Show Source
     </a>
   </div>
@@ -704,8 +665,8 @@
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
-<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+  <script defer src="../../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">

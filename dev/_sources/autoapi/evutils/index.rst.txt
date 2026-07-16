@@ -29,7 +29,6 @@ Submodules
    :hidden:
    :maxdepth: 1
 
-   /autoapi/evutils/augment/index
    /autoapi/evutils/chunking/index
    /autoapi/evutils/dataset/index
    /autoapi/evutils/io/index
@@ -38,6 +37,7 @@ Submodules
    /autoapi/evutils/random/index
    /autoapi/evutils/repr/index
    /autoapi/evutils/torch/index
+   /autoapi/evutils/transforms/index
    /autoapi/evutils/types/index
    /autoapi/evutils/utils/index
    /autoapi/evutils/vis/index
@@ -46,8 +46,6 @@ Submodules
    :widths: 30 70
    :header-rows: 0
 
-   * - :py:mod:`augment <evutils.augment>`
-     - Data augmentation transforms for events.
    * - :py:mod:`chunking <evutils.chunking>`
      - Splitting event streams into chunks.
    * - :py:mod:`dataset <evutils.dataset>`
@@ -64,6 +62,8 @@ Submodules
      - Dense representations of event data.
    * - :py:mod:`torch <evutils.torch>`
      - PyTorch integration.
+   * - :py:mod:`transforms <evutils.transforms>`
+     - Data augmentation transforms for events.
    * - :py:mod:`types <evutils.types>`
      - Core data types for event streams.
    * - :py:mod:`utils <evutils.utils>`
