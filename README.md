@@ -24,6 +24,7 @@ EV-Utils (`evutils`) is a performant collection of utilities for working with ev
 This project draws inspiration from several excellent libraries in the event-based vision ecosystem and attempts to fill in their shortcomings:
 
 * [Tonic](https://github.com/neuromorphs/tonic)
+* [Faery](https://github.com/aestream/faery)
 * [event_utils](https://github.com/TimoStoff/event_utils)
 * [evlib](https://github.com/tallamjr/evlib)
 * [expelliarmus](https://github.com/open-neuromorphic/expelliarmus)
