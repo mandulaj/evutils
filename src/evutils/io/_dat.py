@@ -64,6 +64,10 @@ class EventDecoder_Dat(EventDecoder):
     #: the 32-bit field (~71 min); a wrapped recording would seek approximately.
     SUPPORTS_SEEK = True
 
+    #: init() slurps the whole payload into memory (or mmaps it), so seek works
+    #: even over a non-seekable source (e.g. a compressed stream).
+    _buffers_in_memory = True
+
     def __init__(self, source: ByteSource, chunk_size: int = 1_000_000):
         super().__init__(source, chunk_size)
         self._header: dict[str, str | int | float] = {}

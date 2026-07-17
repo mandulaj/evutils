@@ -154,6 +154,10 @@ class EventDecoder_EVT(EventDecoder):
     #: event gaps -- the built index is exact there).
     SUPPORTS_SEEK = True
 
+    #: init() slurps the whole payload into memory (or mmaps it), so seek works
+    #: even over a non-seekable source (e.g. a compressed stream).
+    _buffers_in_memory = True
+
     # Per-format TIME_HIGH record descriptor: (type-field right-shift, type code).
     # Used to skip leading records until the first TIME_HIGH establishes a valid
     # time base -- events before it carry an undefined timestamp (a stream sliced

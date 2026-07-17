@@ -71,6 +71,9 @@ class EventDecoder_AER(EventDecoder):
     #: n_events fast path (via parse_step).
     _exact_window = True
 
+    #: init() slurps the whole payload into memory (or mmaps it).
+    _buffers_in_memory = True
+
     def __init__(self, source: ByteSource, chunk_size: int = 1_000_000,
                  timestamps: 'str | np.ndarray' = "zero",
                  t_start: int = 0, t_step: int = 1):

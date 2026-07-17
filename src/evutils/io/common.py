@@ -69,6 +69,13 @@ class EventDecoder(ABC):
     #: reader can hand them straight through without re-accumulating (NPZ/HDF5).
     _independent_windows = False
 
+    #: The decoder buffers the entire payload in memory at init (slurping the
+    #: whole stream), so its :meth:`seek` works even when the underlying
+    #: ByteSource is not itself seekable -- e.g. reading over a compressed
+    #: stream. The EventReader uses this to allow the decoder's fast-path seek
+    #: instead of a linear scan. True only for decoders that genuinely slurp.
+    _buffers_in_memory = False
+
     #: A dedicated C delta_t parser exists (one GIL-free call decodes a whole
     #: time window). EVT3 overrides this as a property.
     _has_delta_t_parser = False

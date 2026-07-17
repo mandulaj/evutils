@@ -103,7 +103,13 @@ class EventDecoder_HDF5(EventDecoder):
         if self._is_initialized:
             return
 
-        self._h5 = h5py.File(self._source, "r")
+        # h5py needs a seekable file-like. A non-seekable source (pipe,
+        # compressed stream) is slurped into an in-memory buffer (mirrors the
+        # NPZ/CSV decoders).
+        h5_source: "ByteSource | io.BytesIO" = self._source
+        if not self._source.seekable():
+            h5_source = io.BytesIO(self._source.read(-1))
+        self._h5 = h5py.File(h5_source, "r")
         node = None
         if "events" in self._h5:
             node = self._h5["events"]

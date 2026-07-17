@@ -225,6 +225,9 @@ _DECOMPRESSORS: dict[int, Callable[[bytes], bytes]] = {
 
 class EventDecoder_Aedat(EventDecoder):
     SUPPORTS_EXT_TRIGGERS = True
+
+    #: init() slurps the whole payload into memory (or mmaps it).
+    _buffers_in_memory = True
     """Decode AEDAT 1.0 / 2.0 / 3.1 / 4.0 files into ``EventArray`` chunks.
 
     The version is detected from the ``#!AER-DATx.y`` header line (a file
