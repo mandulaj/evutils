@@ -21,6 +21,7 @@ from ._native_core import (EVUTILS_PARSE_OUTPUT_FULL,
 from ._prefetch import PrefetchIterator
 from ._source import ByteSource, make_source
 from .buffer import EventAccumulator
+from .common import SeekResult
 
 
 class EventReader():
@@ -108,8 +109,11 @@ class EventReader():
         ``False`` all build an exact in-memory index lazily on the first seek
         (``False`` additionally never touches a sidecar). ``"metavision"`` reads
         a Metavision ``.tmp_index`` sidecar instead -- fast, but approximate near
-        large event gaps. Only EVT formats use an index; others seek by record
-        math or ``searchsorted``.
+        large event gaps. ``"persist"`` builds evutils' own exact index on the
+        first seek and writes it to a ``<raw>.evidx`` sidecar, then loads that
+        sidecar on subsequent opens instead of rebuilding (exact and reused
+        across runs). Only EVT formats use an index; others seek by record math
+        or ``searchsorted``.
     strict: bool, default=False
         Corrupt-packet policy. When False (default), a malformed packet is
         skipped with a :class:`UserWarning` and decoding resumes -- a robust
@@ -337,6 +341,7 @@ class EventReader():
         self._pace_anchor: tuple[float, int] | None = None  # (wall time, event ts)
 
         self._n_read_events = 0 # Number of events read (not includeing events stored in buffer)
+        self._last_seek: "SeekResult | None" = None  # result of the most recent seek()
 
         # Seeking (see seek()). ``_anchored`` decouples the "first timestamp"
         # anchoring from ``_n_read_events == 0`` so a post-seek read keeps the
@@ -349,7 +354,12 @@ class EventReader():
         #   "metavision"      -> read a Metavision `.tmp_index` sidecar when
         #                        present (fast, but approximate near large event
         #                        gaps), else fall back to the built index.
+        #   "persist"         -> build evutils' own exact index on the first
+        #                        seek() and save it to a `<raw>.evidx` sidecar;
+        #                        on open, load a fresh sidecar instead of
+        #                        rebuilding (exact, and reused across runs).
         self._file_decoder._use_sidecar = (index == "metavision")
+        self._file_decoder._persist_index = (index == "persist")
         if self._file_name is not None:
             self._file_decoder._raw_path = str(self._file_name)
 
@@ -570,6 +580,40 @@ class EventReader():
             out.grow(max(out.size + step, int(out.capacity * 1.5) + 1))
         out.c.capacity = out.size + step
 
+    def _finalize_delta_t_window(self, out: EventSoABuffers, delta_t: int,
+                                 count_cut: bool, resume_ts: int | None = None
+                                 ) -> "EventArray":
+        """Shared bookkeeping after a delta_t window's events are staged in ``out``.
+
+        Both delta_t fast paths (the generic ``searchsorted`` one and the
+        dedicated C one) end identically: advance the window clock -- or, on a
+        count cutoff, stay in / resume the same time window -- refresh the
+        window-size estimate and the event counter, then hand out a normalized,
+        zero-copy view of the window. ``out.c.size`` must already be the window's
+        final event count, and ``self._eof`` must already be set by the caller
+        (it differs: the carry-based path also requires an empty overshoot).
+
+        ``count_cut`` marks a window cut short by the ``n_events`` safety cap.
+        ``resume_ts`` (fast path only) is the timestamp to resume mid-window from
+        on such a cut; ``None`` leaves the clock untouched (C path) or, on a
+        normal window, advances it by ``delta_t``.
+        """
+        size = out.size
+        # Track the largest window seen so the next buffer is pre-sized for it.
+        self._dt_est = max(self._dt_est, size)
+        if count_cut:
+            # Count cutoff: continue the same time window on the next call.
+            if resume_ts is not None:
+                self._current_ts = resume_ts
+        else:
+            self._current_ts += delta_t
+        self._n_read_events += size
+
+        output = events_view(out)
+        if self._normalize_ts:
+            output.t -= self._first_ts - self._start_ts
+        return output
+
     def _read_delta_t_fast(self, delta_t: int) -> "np.ndarray | EventArray":
         """One ``delta_t`` window, fast path: decode into a fresh buffer, hand out
         a zero-copy view of the window, and carry only the small overshoot
@@ -655,21 +699,12 @@ class EventReader():
             self._dt_carry = c
 
         out.c.size = idx
-        # Track the largest window seen so the next buffer is pre-sized for it.
-        self._dt_est = max(self._dt_est, idx)
-        if count_cut:
-            self._current_ts = int(t[idx])  # count cutoff: resume mid-window
-        else:
-            self._current_ts += delta_t
-        self._n_read_events += idx
         # EOF only once the stream is drained *and* no overshoot remains, else the
         # final carried events would never be emitted (is_eof() stops iteration).
         self._eof = dec.is_eof() and self._dt_carry is None
-
-        output = events_view(out)
-        if self._normalize_ts:
-            output.t -= self._first_ts - self._start_ts
-        return output
+        return self._finalize_delta_t_window(
+            out, delta_t, count_cut,
+            resume_ts=int(t[idx]) if count_cut else None)
 
     def _peek_first_ts(self) -> int | None:
         """Timestamp of the stream's first event, without disturbing later reads.
@@ -776,20 +811,10 @@ class EventReader():
                 out.c.capacity = new_cap   # parser-visible cap (recycled slots)
             # else EVUTILS_PARSE_OK: input drained this call; loop (tail -> EOF).
 
-        size = out.size
-        out.c.size = size
-        self._dt_est = max(self._dt_est, size)
         # On a normal window advance the clock; on a count-cut stay in the same
         # time window so the next call continues it (matches the accumulator path).
-        if not count_cut:
-            self._current_ts += delta_t
-        self._n_read_events += size
         self._eof = dec.is_eof()
-
-        output = events_view(out)
-        if self._normalize_ts:
-            output.t -= self._first_ts - self._start_ts
-        return output
+        return self._finalize_delta_t_window(out, delta_t, count_cut)
 
     def _flush_dt_carry(self) -> None:
         """Fold a pending delta_t fast-path overshoot into the accumulator.
@@ -1068,8 +1093,21 @@ class EventReader():
             self._buffer.reset()
         self._file_decoder.reset()
 
+    @property
+    def last_seek(self) -> "SeekResult | None":
+        """The :class:`~evutils.io.common.SeekResult` of the most recent
+        :meth:`seek`, or ``None`` if no seek has been performed."""
+        return self._last_seek
+
+    @property
+    def event_index(self) -> int:
+        """Current 0-based event index: the number of events already read (and,
+        after a :meth:`seek`, the index the cursor landed on). Complements
+        :meth:`tell` (byte position) with an unambiguous event-coordinate."""
+        return self._n_read_events
+
     def seek(self, t: int | None = None, n: int | None = None,
-             relative: bool = False) -> int:
+             relative: bool = False) -> SeekResult:
         """Reposition the read cursor by timestamp or event index.
 
         Random access in *event coordinates*: give exactly one of ``t``
@@ -1094,8 +1132,12 @@ class EventReader():
 
         Returns
         -------
-        int
-            The absolute timestamp of the first event that will be read next.
+        SeekResult
+            A named tuple ``(ts, index, eof)``: the absolute timestamp of the
+            first event that will be read next (``ts``, also the tuple's first
+            field for backward compatibility), the 0-based event index it landed
+            on (``index``), and whether the seek ran off the end of the stream
+            (``eof``). Also stored on :attr:`last_seek`.
 
         Raises
         ------
@@ -1170,7 +1212,11 @@ class EventReader():
         self._n_read_events = res.index if res.index >= 0 else (int(n) if n is not None else 0)
         self._current_ts = res.ts
         self._anchored = True
-        return res.ts
+        # Store the full result and hand it back. SeekResult is a NamedTuple with
+        # ``ts`` first, so ``== ts``-style int comparisons still need ``.ts`` but
+        # positional / ``.ts`` access stays source-compatible.
+        self._last_seek = SeekResult(ts=res.ts, index=self._n_read_events, eof=res.eof)
+        return self._last_seek
 
     def _peek_stream_first_ts(self) -> int | None:
         """Timestamp of the stream's very first event, leaving the decoder

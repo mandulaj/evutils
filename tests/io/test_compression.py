@@ -186,7 +186,7 @@ def test_seek_over_compressed_evt(tmp_path: Any) -> None:
     with EventReader(p) as r:
         landed = r.seek(n=1000)
         chunk = np.asarray(r.read(n_events=5))
-    assert landed == ev["t"][1000]
+    assert landed.ts == ev["t"][1000]
     assert chunk["t"][0] == ev["t"][1000]
 
 

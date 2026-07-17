@@ -13,6 +13,7 @@ Each test pins one confirmed bug so the fix stays in place:
 """
 import os
 import tempfile
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -377,7 +378,7 @@ def test_metavision_sidecar_index_is_used(tmp_path):
         used = r._file_decoder._index
         assert isinstance(used, StaticSeekIndex)
         assert r._file_decoder._index_is_ours is False
-    assert landed == int(ev["t"][exp])
+    assert landed.ts == int(ev["t"][exp])
     assert int(c.t[0]) == int(ev["t"][exp])
 
 
@@ -400,7 +401,7 @@ def test_seek_multi_bookmark_exact(tmp_path, fmt):
             exp = int(np.searchsorted(ev["t"], T))
             landed = r.seek(t=T)
             c = r.read()
-            assert landed == int(ev["t"][exp]), f"t={T}"
+            assert landed.ts == int(ev["t"][exp]), f"t={T}"
             assert int(c.t[0]) == int(ev["t"][exp])
         # index seek across bookmarks too
         r.seek(n=150_000)
@@ -428,3 +429,99 @@ def test_seek_then_read_normalize_ts_matches_read_then_seek(tmp_path):
         b = r.read()
 
     assert int(a.t[0]) == int(b.t[0]) == T - 100_000
+
+
+# --------------------------------------------------------------------------- #
+# delta_t window dedup (_finalize_delta_t_window): the C path (EVT3) and the
+# generic searchsorted path (DAT/EVT2) must still produce identical windows.
+# --------------------------------------------------------------------------- #
+
+def _delta_t_windows(path, dt, **kw):
+    """Read one recording in delta_t mode, returning per-window (count, first,
+    last) plus the concatenated timestamps."""
+    counts, bounds, parts = [], [], []
+    with EventReader(str(path), delta_t=dt, **kw) as r:
+        while True:
+            c = r.read()
+            if len(c) == 0:
+                break
+            t = np.asarray(c.t)
+            counts.append(len(c))
+            bounds.append((int(t[0]), int(t[-1])))
+            parts.append(t.copy())
+    ts = np.concatenate(parts) if parts else np.empty(0, dtype=np.int64)
+    return counts, bounds, ts
+
+
+@pytest.mark.parametrize("fmt", ["evt3", "evt2", "dat"])
+def test_delta_t_windows_lossless_and_bounded(tmp_path, fmt):
+    """Concatenated delta_t windows equal a full read, and every window (bar a
+    count-cut one) spans strictly less than delta_t. Exercises both the C
+    (evt3) and generic (evt2/dat) window producers behind the shared finalize."""
+    n, dt_step = 60_000, 137
+    ev = _ramp(n, dt_step)
+    if fmt == "dat":
+        p = tmp_path / "win.dat"
+        with EventWriter(str(p), width=1280, height=720) as w:
+            w.write(ev)
+    else:
+        p = tmp_path / f"win_{fmt}.raw"
+        with EventWriter(str(p), format=fmt) as w:
+            w.write(ev)
+
+    with EventReader(str(p), mode="all") as r:
+        ref = np.asarray(r.read_all().t)
+
+    dt = 200_000
+    counts, bounds, ts = _delta_t_windows(p, dt)
+    assert np.array_equal(ts, ref)
+    assert sum(counts) == len(ref)
+    assert all(hi < lo + dt for lo, hi in bounds)
+
+
+@pytest.mark.parametrize("fmt", ["evt3", "dat"])
+def test_delta_t_count_cut_lossless(tmp_path, fmt):
+    """A tight n_events cap forces count-cut resumes; no events are lost and the
+    output still equals a full read (count-cut resume path in the shared
+    finalize)."""
+    n, dt_step = 60_000, 137
+    ev = _ramp(n, dt_step)
+    if fmt == "dat":
+        p = tmp_path / "cut.dat"
+        with EventWriter(str(p), width=1280, height=720) as w:
+            w.write(ev)
+    else:
+        p = tmp_path / f"cut_{fmt}.raw"
+        with EventWriter(str(p), format=fmt) as w:
+            w.write(ev)
+
+    with EventReader(str(p), mode="all") as r:
+        ref = np.asarray(r.read_all().t)
+
+    _, _, ts = _delta_t_windows(p, 200_000, n_events=1500)
+    assert np.array_equal(ts, ref)
+
+
+_FAN = Path(__file__).resolve().parents[2] / "data" / "fan"
+
+
+@pytest.mark.skipif(not (_FAN / "evt3_fan.raw").is_file(),
+                    reason="data/fan/evt3_fan.raw fixture not present")
+def test_delta_t_dedup_real_evt3():
+    p = _FAN / "evt3_fan.raw"
+    with EventReader(str(p)) as r:
+        ref = np.asarray(r.read_all().t)
+    counts, bounds, ts = _delta_t_windows(p, 20_000)
+    assert np.array_equal(ts, ref)
+    assert all(hi < lo + 20_000 for lo, hi in bounds)
+
+
+@pytest.mark.skipif(not (_FAN / "dat_fan.dat").is_file(),
+                    reason="data/fan/dat_fan.dat fixture not present")
+def test_delta_t_dedup_real_dat():
+    p = _FAN / "dat_fan.dat"
+    with EventReader(str(p)) as r:
+        ref = np.asarray(r.read_all().t)
+    counts, bounds, ts = _delta_t_windows(p, 20_000)
+    assert np.array_equal(ts, ref)
+    assert all(hi < lo + 20_000 for lo, hi in bounds)

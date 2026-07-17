@@ -44,6 +44,7 @@ from ._native_core import (
     EVUTILS_PARSE_OUTPUT_FULL,
     EVUTILS_PARSE_WARNING,
     NativeError,
+    _handle_parse_warning,
 )
 from ._native_evt import (
     Evt2Input,
@@ -223,6 +224,10 @@ class EventDecoder_EVT(EventDecoder):
         #: the exact in-memory index is built lazily on the first seek instead.
         self._raw_path: "str | None" = None
         self._use_sidecar: bool = False
+        #: Persist evutils' own exact index to a ``<raw>.evidx`` sidecar (built
+        #: on the first seek, loaded on open when fresh). Set by EventReader from
+        #: ``index="persist"``.
+        self._persist_index: bool = False
 
     # ------------------------------------------------------------------ #
     # Header
@@ -535,10 +540,7 @@ class EventDecoder_EVT(EventDecoder):
             res = self._parser.parse_delta_t_soa(inp, events, triggers, raw_end_ts)
             consumed = inp.consumed(res)
             if res.status == EVUTILS_PARSE_WARNING:
-                if self._strict:
-                    raise NativeError(f"{self._format} malformed packet near word {self._offset + consumed} (strict mode)")
-                import warnings
-                warnings.warn(f"{self._format} malformed packets ignored near word {self._offset + consumed}")
+                _handle_parse_warning(self._offset + consumed, self._strict, fmt=self._format)
                 if consumed > 0:
                     self._offset += consumed
                     inp = self._input_cls(words[self._offset:])
@@ -681,8 +683,11 @@ class EventDecoder_EVT(EventDecoder):
         """
         from ._index import (
             IncrementalSeekIndex,
+            evutils_index_path,
+            load_seek_index,
             metavision_index_path,
             read_metavision_index,
+            save_seek_index,
         )
 
         if self._index is not None and not (need_counts and not self._index_is_ours):
@@ -690,14 +695,23 @@ class EventDecoder_EVT(EventDecoder):
 
         word_size = np.dtype(self._word_dtype).itemsize
         idx = None
-        if self._use_sidecar and self._raw_path is not None and not need_counts:
+        # Persist mode: load our own exact `.evidx` sidecar if one is present and
+        # fresh (it carries evutils cumulative counts, so it satisfies both time
+        # and event-index seeks).
+        if self._persist_index and self._raw_path is not None:
+            idx = load_seek_index(
+                evutils_index_path(self._raw_path), self._raw_path)
+            if idx is not None:
+                self._index_is_ours = True
+        if (idx is None and self._use_sidecar and self._raw_path is not None
+                and not need_counts):
             idx = read_metavision_index(
                 metavision_index_path(self._raw_path), self._raw_path,
                 self._payload_off, word_size,
             )
             self._index_is_ours = False
         if idx is None:
-            idx = IncrementalSeekIndex(
+            built = IncrementalSeekIndex(
                 words=self._words, start_offset=self._start_offset,
                 input_cls=self._input_cls, parser_cls=type(self._parser),
                 tail_pad=self._tail_pad, word_dtype=self._word_dtype,
@@ -707,6 +721,18 @@ class EventDecoder_EVT(EventDecoder):
                 time_high=self._TIME_HIGH_TYPE.get(self._format or ""),
             )
             self._index_is_ours = True
+            if self._persist_index and self._raw_path is not None:
+                # Build the whole exact index now and write the sidecar for next
+                # time. A failed write (read-only dir, ...) is non-fatal: fall
+                # back to the freshly built index.
+                idx = built.to_static()
+                try:
+                    save_seek_index(
+                        idx, evutils_index_path(self._raw_path), self._raw_path)
+                except OSError:
+                    pass
+            else:
+                idx = built
         self._index = idx
         return idx
 

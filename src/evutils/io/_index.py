@@ -25,6 +25,7 @@ timestamp decoded after the jump.
 """
 from __future__ import annotations
 
+import struct
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -252,6 +253,25 @@ class IncrementalSeekIndex:
         i = max(i, 0)
         return int(self._off_arr[i]), int(self._cum_arr[i]), int(self._ts_arr[i])
 
+    def build_all(self) -> None:
+        """Force the index to build every bookmark, all the way to EOF."""
+        # A target no real count can reach drives _build_until to the end of the
+        # stream (it stops on EOF, not on the target).
+        self._build_until(target_n=1 << 62)
+        self._update_arrs()
+
+    def to_static(self) -> "StaticSeekIndex":
+        """Fully build, then snapshot into an immutable :class:`StaticSeekIndex`
+        (with exact evutils cumulative counts) -- the form persisted to a
+        ``.evidx`` sidecar."""
+        self.build_all()
+        return StaticSeekIndex(
+            ts=self._ts_arr.copy(),
+            word_offset=self._off_arr.copy(),
+            cum_count=self._cum_arr.copy(),
+            n_events=int(self._cum),
+        )
+
 
 # --------------------------------------------------------------------------- #
 # Metavision / OpenEB `<file>.raw.tmp_index` sidecar
@@ -342,4 +362,104 @@ def read_metavision_index(index_path: "str | Path", raw_path: "str | Path",
         word_offset=word_offset,
         cum_count=cum_count,
         n_events=int(cum_count[-1] + recs["count"][-1]),
+    )
+
+
+# --------------------------------------------------------------------------- #
+# evutils own exact index `<file>.evidx` sidecar (persist across runs)
+# --------------------------------------------------------------------------- #
+
+#: Magic + version + freshness header for the `.evidx` sidecar. The header
+#: stores the raw file's byte size AND mtime; a mismatch on either means the
+#: sidecar is stale and is ignored (rebuilt), mirroring the Metavision reader's
+#: size check but a touch stricter.
+_EVIDX_MAGIC = b"EVUTLIDX"
+_EVIDX_VERSION = 1
+#: magic(8) + version(u32) + raw_size(i64) + raw_mtime_ns(i64) + n_events(i64)
+#: + n_bookmarks(i64), little-endian.
+_EVIDX_HEADER = struct.Struct("<8sIqqqq")
+
+
+def evutils_index_path(raw_path: "str | Path") -> Path:
+    """Sidecar path for evutils' own exact index: ``<file>.evidx``.
+
+    Distinct from the Metavision ``.tmp_index`` sidecar so the two never
+    collide -- this one holds evutils' TIME_HIGH-aligned bookmarks with exact
+    (evutils-counted) cumulative counts.
+    """
+    p = Path(raw_path)
+    return p.with_name(p.name + ".evidx")
+
+
+def save_seek_index(index: "SeekIndex", index_path: "str | Path",
+                    raw_path: "str | Path") -> None:
+    """Serialize a fully-built seek index to a ``.evidx`` sidecar.
+
+    ``index`` may be an :class:`IncrementalSeekIndex` (fully built and snapshot
+    first) or an already-static :class:`StaticSeekIndex`. The raw file's current
+    size and mtime are stored in the header for the load-time freshness check.
+    """
+    if isinstance(index, IncrementalSeekIndex):
+        index = index.to_static()
+    if not isinstance(index, StaticSeekIndex):
+        raise TypeError("save_seek_index requires a Static/IncrementalSeekIndex")
+
+    raw = Path(raw_path)
+    st = raw.stat()
+    ts = np.ascontiguousarray(index.ts, dtype="<i8")
+    off = np.ascontiguousarray(index.word_offset, dtype="<i8")
+    cum = np.ascontiguousarray(index.cum_count, dtype="<i8")
+    n_bm = len(ts)
+
+    header = _EVIDX_HEADER.pack(
+        _EVIDX_MAGIC, _EVIDX_VERSION, int(st.st_size), int(st.st_mtime_ns),
+        int(index.n_events), int(n_bm),
+    )
+    # Write to a temp file then atomically replace, so a crash mid-write never
+    # leaves a truncated sidecar that would later read back as corrupt.
+    tmp = Path(index_path).with_name(Path(index_path).name + ".tmp")
+    with open(tmp, "wb") as f:
+        f.write(header)
+        f.write(ts.tobytes())
+        f.write(off.tobytes())
+        f.write(cum.tobytes())
+    tmp.replace(index_path)
+
+
+def load_seek_index(index_path: "str | Path",
+                    raw_path: "str | Path") -> "StaticSeekIndex | None":
+    """Load a ``.evidx`` sidecar into a :class:`StaticSeekIndex`.
+
+    Returns ``None`` if the sidecar is missing, unreadable, has the wrong magic
+    / version, is truncated, or is stale (its stored raw-file size or mtime no
+    longer matches the raw file) -- in every case the caller rebuilds.
+    """
+    index_path = Path(index_path)
+    raw_path = Path(raw_path)
+    if not index_path.is_file() or not raw_path.is_file():
+        return None
+
+    data = index_path.read_bytes()
+    if len(data) < _EVIDX_HEADER.size:
+        return None
+    magic, version, raw_size, raw_mtime, n_events, n_bm = _EVIDX_HEADER.unpack_from(data, 0)
+    if magic != _EVIDX_MAGIC or version != _EVIDX_VERSION:
+        return None
+
+    # Freshness: the raw file must be byte-for-byte the one this index was built
+    # from (size AND mtime). Any change => stale => rebuild.
+    st = raw_path.stat()
+    if raw_size != st.st_size or raw_mtime != st.st_mtime_ns:
+        return None
+
+    if n_bm < 0 or n_events < 0:
+        return None
+    body = np.frombuffer(data, dtype="<i8", offset=_EVIDX_HEADER.size)
+    if len(body) != 3 * n_bm:
+        return None
+    ts = np.ascontiguousarray(body[:n_bm], dtype=np.int64)
+    word_offset = np.ascontiguousarray(body[n_bm:2 * n_bm], dtype=np.int64)
+    cum_count = np.ascontiguousarray(body[2 * n_bm:], dtype=np.int64)
+    return StaticSeekIndex(
+        ts=ts, word_offset=word_offset, cum_count=cum_count, n_events=int(n_events),
     )

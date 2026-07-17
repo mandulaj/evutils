@@ -64,7 +64,7 @@ def test_seek_by_time(recording):
     with EventReader(p, n_events=3000) as r:
         landed = r.seek(t=T)
         c = r.read()
-    assert landed == int(ev["t"][exp])
+    assert landed.ts == int(ev["t"][exp])
     assert int(c.t[0]) == int(ev["t"][exp])
     assert int(c.t[0]) >= T
 
@@ -75,7 +75,7 @@ def test_seek_by_event_index(recording):
     with EventReader(p, n_events=3000) as r:
         landed = r.seek(n=n)
         c = r.read()
-    assert landed == int(ev["t"][n])
+    assert landed.ts == int(ev["t"][n])
     assert int(c.t[0]) == int(ev["t"][n])
     assert int(c.x[0]) == int(ev["x"][n])
     assert int(c.y[0]) == int(ev["y"][n])
@@ -97,7 +97,7 @@ def test_seek_relative(recording):
         landed = r.seek(t=5_000_000, relative=True)  # -> 10_000_000
         c = r.read()
     exp = int(np.searchsorted(ev["t"], 10_000_000))
-    assert landed == int(ev["t"][exp])
+    assert landed.ts == int(ev["t"][exp])
     assert int(c.t[0]) == int(ev["t"][exp])
 
 
@@ -137,7 +137,7 @@ def test_seek_index_disabled_matches(recording):
         a = r.seek(t=T)
     with EventReader(p, n_events=3000) as r:
         b = r.seek(t=T)
-    assert a == b == int(ev["t"][int(np.searchsorted(ev["t"], T))])
+    assert a.ts == b.ts == int(ev["t"][int(np.searchsorted(ev["t"], T))])
 
 
 def test_seek_out_of_range(recording):
@@ -202,7 +202,7 @@ def test_seek_linear_fallback_non_seekable(tmp_path):
                      file_decoder=EventDecoder_Csv) as r:
         landed = r.seek(t=T)
         c = r.read()
-    assert landed == int(ev["t"][exp])
+    assert landed.ts == int(ev["t"][exp])
     assert int(c.t[0]) == int(ev["t"][exp])
 
 
@@ -240,7 +240,7 @@ def test_metavision_index_matches_built_index():
         lb = r.seek(t=T)
         cb = r.read()
 
-    assert la == lb
+    assert la.ts == lb.ts
     assert int(ca.t[0]) == int(cb.t[0]) >= T
     assert int(ca.x[0]) == int(cb.x[0])
     assert int(ca.y[0]) == int(cb.y[0])
@@ -261,7 +261,7 @@ def test_seek_with_normalize_ts(tmp_path):
         c = r.read()
     
     # EventReader.seek() expects/returns absolute timestamps
-    assert landed == T
+    assert landed.ts == T
     # EventReader.read() yields normalized timestamps (T - 100_000)
     assert int(c.t[0]) >= T - 100_000
 
@@ -290,4 +290,141 @@ def test_seek_past_eof(tmp_path):
         r.seek(t=100_000_000) # Far past end
         c = r.read()
     assert len(c) == 0
+
+
+# --------------------------------------------------------------------------- #
+# SeekResult return unification + event_index / last_seek
+# --------------------------------------------------------------------------- #
+
+def test_seek_returns_seekresult(recording):
+    """seek() returns a SeekResult exposing .ts / .index / .eof (and stores it
+    on .last_seek); .event_index tracks the landing index."""
+    from evutils.io.common import SeekResult
+
+    p, ev = recording
+    n = 7000
+    with EventReader(p, n_events=3000) as r:
+        res = r.seek(n=n)
+        assert isinstance(res, SeekResult)
+        assert res.ts == int(ev["t"][n])
+        assert res.index == n
+        assert res.eof is False
+        assert res.ts == res[0]           # ts is the first positional field
+        assert r.last_seek == res         # stored on the reader
+        assert r.event_index == n         # event-coordinate cursor
+
+        far = r.seek(t=10**15)            # past the end
+        assert far.eof is True
+        assert r.last_seek == far
+
+
+def test_seek_result_index_matches_read(recording):
+    """The reported .index is the true 0-based index of the first event read.
+
+    CSV time-axis seeks use a byte-offset binary search that does not know the
+    event index, so they report ``index == 0`` (only the landing is asserted).
+    """
+    p, ev = recording
+    T = 9_000_000
+    exp = int(np.searchsorted(ev["t"], T))
+    with EventReader(p, n_events=1000) as r:
+        res = r.seek(t=T)
+        c = r.read()
+    if p.suffix != ".csv":
+        assert res.index == exp
+    assert int(c.t[0]) == int(ev["t"][exp])
+
+
+# --------------------------------------------------------------------------- #
+# evutils own `.evidx` persistable sidecar (index="persist")
+# --------------------------------------------------------------------------- #
+
+@pytest.mark.parametrize("fmt", ["evt3", "evt2"])
+def test_evidx_persist_roundtrip(tmp_path, fmt):
+    """index='persist' builds the exact index on the first seek and writes a
+    `.evidx` sidecar; a re-open loads it (StaticSeekIndex) and lands identically."""
+    from evutils.io._index import evutils_index_path, StaticSeekIndex
+
+    n, dt = 200_000, 100
+    ev = _ramp(n, dt)
+    p = tmp_path / f"persist_{fmt}.raw"
+    with EventWriter(str(p), format=fmt) as w:
+        w.write(ev)
+    side = evutils_index_path(str(p))
+    assert not side.exists()
+
+    T = 12_345_000
+    exp = int(np.searchsorted(ev["t"], T))
+
+    # First open: sidecar is created on the first seek, built exactly.
+    with EventReader(str(p), n_events=3000, index="persist") as r:
+        a = r.seek(t=T)
+        ca = r.read()
+        assert r._file_decoder._index_is_ours is True
+    assert side.exists()
+    assert a.ts == int(ev["t"][exp])
+    assert int(ca.t[0]) == int(ev["t"][exp])
+
+    # Second open: the sidecar is loaded instead of rebuilt.
+    with EventReader(str(p), n_events=3000, index="persist") as r:
+        b = r.seek(t=T)
+        cb = r.read()
+        assert isinstance(r._file_decoder._index, StaticSeekIndex)
+    assert b.ts == a.ts
+    assert int(cb.t[0]) == int(ca.t[0])
+
+    # Event-index seek works from the loaded (count-carrying) sidecar too.
+    with EventReader(str(p), n_events=2000, index="persist") as r:
+        r.seek(n=150_000)
+        cc = r.read()
+    assert int(cc.t[0]) == int(ev["t"][150_000])
+
+
+def test_evidx_persist_matches_built_index(tmp_path):
+    """A persisted-index seek lands identically to the default built index."""
+    ev = _ramp(200_000, 100)
+    p = tmp_path / "persist_match.raw"
+    with EventWriter(str(p), format="evt3") as w:
+        w.write(ev)
+
+    T = 7_654_000
+    with EventReader(str(p), n_events=1000, index="persist") as r:
+        a = r.seek(t=T)          # builds + saves
+    with EventReader(str(p), n_events=1000, index="persist") as r:
+        b = r.seek(t=T)          # loads sidecar
+    with EventReader(str(p), n_events=1000, index=False) as r:
+        c = r.seek(t=T)          # exact built, no sidecar
+    assert a.ts == b.ts == c.ts
+
+
+def test_evidx_stale_sidecar_ignored(tmp_path):
+    """A `.evidx` whose stored raw size no longer matches is ignored (rebuilt)."""
+    import struct
+    from evutils.io._index import evutils_index_path, load_seek_index
+
+    ev = _ramp(50_000, 200)
+    p = tmp_path / "stale.raw"
+    with EventWriter(str(p), format="evt3") as w:
+        w.write(ev)
+    side = evutils_index_path(str(p))
+
+    with EventReader(str(p), n_events=1000, index="persist") as r:
+        r.seek(t=3_000_000)
+    assert side.exists()
+    assert load_seek_index(side, str(p)) is not None   # fresh -> loads
+
+    # Corrupt the stored raw size (header offset 12) -> stale.
+    b = bytearray(side.read_bytes())
+    struct.pack_into("<q", b, 12, 424242)
+    side.write_bytes(bytes(b))
+    assert load_seek_index(side, str(p)) is None        # stale -> ignored
+
+    # A persist re-open silently rebuilds and still lands correctly.
+    T = 3_000_000
+    exp = int(np.searchsorted(ev["t"], T))
+    with EventReader(str(p), n_events=1000, index="persist") as r:
+        res = r.seek(t=T)
+        c = r.read()
+    assert res.ts == int(ev["t"][exp])
+    assert int(c.t[0]) == int(ev["t"][exp])
 

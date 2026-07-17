@@ -82,7 +82,10 @@ class EventDecoder(ABC):
 
     #: Seek-index wiring, injected by EventReader from its ``index=`` option.
     #: Only EVT consults them; harmless defaults for every other decoder.
+    #: ``_use_sidecar`` reads a Metavision ``.tmp_index``; ``_persist_index``
+    #: saves/loads evutils' own exact index to a ``.evidx`` sidecar.
     _use_sidecar = False
+    _persist_index = False
     _raw_path: "str | None" = None
 
     def __init__(self, source: "io.BufferedIOBase | str | bytes", chunk_size: int = 10000, read_external_triggers: bool = False):
