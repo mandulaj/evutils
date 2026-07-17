@@ -18,7 +18,10 @@ typedef enum {
     /* A delta_t parser reached the requested time window (an event's timestamp
      * hit end_ts): the window is complete and the parser stopped at that exact
      * boundary. */
-    EVUTILS_PARSE_WINDOW_DONE = 5
+    EVUTILS_PARSE_WINDOW_DONE = 5,
+    /* Parser encountered an invalid packet, dropped it, and stopped.
+     * The caller may log a warning and resume parsing from the returned pointer. */
+    EVUTILS_PARSE_WARNING = 6
 } parse_status_t;
 
 

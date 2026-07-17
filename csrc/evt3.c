@@ -25,10 +25,10 @@ enum EVT3_PacketType {
 
 
 typedef struct evt3_state_s {
-    uint32_t ts_high_high;
-    uint32_t ts_high;
-    uint32_t ts_low;
-    uint32_t ts;
+    uint64_t ts_high_high;
+    uint64_t ts_high;
+    uint64_t ts_low;
+    uint64_t ts;
 
     uint16_t y;
     uint16_t vecbase_x;
@@ -54,9 +54,15 @@ size_t EVT3_state_size(void) {
 } while (0)
 
 
+#ifdef _MSC_VER
+typedef uint16_t unaligned_uint16_t;
+#else
+typedef uint16_t unaligned_uint16_t __attribute__((aligned(1)));
+#endif
+
 __attribute__((always_inline))
-static inline const uint16_t * EVT3_parse_vector_12_12_8_soa(
-    const uint16_t * __restrict__ current,
+static inline const unaligned_uint16_t * EVT3_parse_vector_12_12_8_soa(
+    const unaligned_uint16_t * __restrict__ current,
     evt3_state_t * __restrict__ state,
     timestamp_t* __restrict__ out_ts, uint16_t* __restrict__ out_x,
     uint16_t* __restrict__ out_y,  uint8_t* __restrict__ out_p,
@@ -107,8 +113,8 @@ parser_result_t EVT3_parse_chunk_soa(
     trigger_buffer_soa_t *trigger_buffer) {
 
     // Hoist variables for better optimization
-    const uint16_t *restrict current = input_buffer->begin;
-    const uint16_t * end_offset = input_buffer->end - EVT3_INPUT_PADDING;
+    const unaligned_uint16_t *restrict current = (const unaligned_uint16_t *)input_buffer->begin;
+    const unaligned_uint16_t * end_offset = (const unaligned_uint16_t *)(input_buffer->end - EVT3_INPUT_PADDING);
 
     // Event output buffers
     const size_t events_capacity = event_buffer->capacity;
@@ -209,9 +215,9 @@ parser_result_t EVT3_parse_chunk_soa(
             case EVT3_VECT_8:
             case EVT3_EVT_ADDR_X:
             case EVT3_VECT_BASE_X:
-                // printf("Unexpected packet type %d in vector parsing\n", packet_type);
-                __builtin_unreachable();
-                break;
+                status = EVUTILS_PARSE_WARNING;
+                current++;
+                goto parse_end;
             case EVT3_OTHERS:
             case EVT3_CONTINUED_12:
             case EVT3_CONTINUED_4:
@@ -220,15 +226,17 @@ parser_result_t EVT3_parse_chunk_soa(
         }
         current++;
     }
-
+parse_end:
     *state = local_state;
 
     event_buffer->size = n_events_read;
     trigger_buffer->size = n_triggers_read;
 
     /* Report why parsing stopped: output space exhausted vs input drained. */
-    if (n_events_read >= events_capacity_offset || n_triggers_read >= triggers_capacity) {
-        status = EVUTILS_PARSE_OUTPUT_FULL;
+    if (status != EVUTILS_PARSE_WARNING) {
+        if (n_events_read >= events_capacity_offset || n_triggers_read >= triggers_capacity) {
+            status = EVUTILS_PARSE_OUTPUT_FULL;
+        }
     }
 
     return (parser_result_t){
@@ -258,8 +266,9 @@ parser_result_t EVT3_parse_delta_t_soa(
     trigger_buffer_soa_t *trigger_buffer,
     timestamp_t end_ts) {
 
-    const uint16_t *restrict current = input_buffer->begin;
-    const uint16_t * end_offset = input_buffer->end - EVT3_INPUT_PADDING;
+    parse_status_t status = EVUTILS_PARSE_OK;
+    const unaligned_uint16_t *restrict current = (const unaligned_uint16_t *)input_buffer->begin;
+    const unaligned_uint16_t * end_offset = (const unaligned_uint16_t *)(input_buffer->end - EVT3_INPUT_PADDING);
 
     const size_t events_capacity = event_buffer->capacity;
     const size_t events_capacity_offset = events_capacity > 64 ? events_capacity - 64 : 0;
@@ -349,8 +358,9 @@ parser_result_t EVT3_parse_delta_t_soa(
             case EVT3_VECT_8:
             case EVT3_EVT_ADDR_X:
             case EVT3_VECT_BASE_X:
-                __builtin_unreachable();
-                break;
+                status = EVUTILS_PARSE_WARNING;
+                current++;
+                goto parse_end_delta;
             case EVT3_OTHERS:
             case EVT3_CONTINUED_12:
             case EVT3_CONTINUED_4:
@@ -360,17 +370,19 @@ parser_result_t EVT3_parse_delta_t_soa(
         current++;
     }
 
+parse_end_delta:
     *state = local_state;
     event_buffer->size = n_events_read;
     trigger_buffer->size = n_triggers_read;
 
-    parse_status_t status;
-    if (local_state.ts >= end_ts) {
-        status = EVUTILS_PARSE_WINDOW_DONE;
-    } else if (n_events_read >= events_capacity_offset || n_triggers_read >= triggers_capacity) {
-        status = EVUTILS_PARSE_OUTPUT_FULL;
-    } else {
-        status = EVUTILS_PARSE_OK;  /* input drained for this call */
+    if (status != EVUTILS_PARSE_WARNING) {
+        if (local_state.ts >= end_ts) {
+            status = EVUTILS_PARSE_WINDOW_DONE;
+        } else if (n_events_read >= events_capacity_offset || n_triggers_read >= triggers_capacity) {
+            status = EVUTILS_PARSE_OUTPUT_FULL;
+        } else {
+            status = EVUTILS_PARSE_OK;  /* input drained for this call */
+        }
     }
 
     return (parser_result_t){

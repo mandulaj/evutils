@@ -23,7 +23,7 @@ __all__ = [
     "events_view", "triggers_view",
     "parse_step", "decode_all_soa",
     "EVUTILS_PARSE_OK", "EVUTILS_PARSE_INPUT_EMPTY", "EVUTILS_PARSE_OUTPUT_FULL",
-    "EVUTILS_PARSE_ERROR", "EVUTILS_PARSE_INCOMPLETE", "EVUTILS_PARSE_WINDOW_DONE",
+    "EVUTILS_PARSE_ERROR", "EVUTILS_PARSE_INCOMPLETE", "EVUTILS_PARSE_WINDOW_DONE", "EVUTILS_PARSE_WARNING",
     "_T_DTYPE", "_X_DTYPE", "_Y_DTYPE", "_P_DTYPE", "_ID_DTYPE"
 ]
 
@@ -58,6 +58,7 @@ EVUTILS_PARSE_OUTPUT_FULL = 2
 EVUTILS_PARSE_ERROR = 3
 EVUTILS_PARSE_INCOMPLETE = 4
 EVUTILS_PARSE_WINDOW_DONE = 5
+EVUTILS_PARSE_WARNING = 6
 
 class ParserResult(Structure):
     _fields_ = [("current", POINTER(c_uint16)), ("status", c_int)]
@@ -200,9 +201,19 @@ def parse_step(words: "np.ndarray", offset: int, make_input: "Callable", parser:
     if offset >= n_words: return 0, n_words
     before = events.size
     inp = make_input(words[offset:])
-    res = parser.parse_chunk_soa(inp, events, triggers)
-    if res.status == EVUTILS_PARSE_ERROR: raise RuntimeError(f"parse error near word {offset}")
-    consumed = inp.consumed(res)
+    while True:
+        res = parser.parse_chunk_soa(inp, events, triggers)
+        consumed = inp.consumed(res)
+        if res.status == EVUTILS_PARSE_WARNING:
+            import warnings
+            warnings.warn(f"Malformed packets ignored near word {offset + consumed}")
+            if consumed > 0:
+                offset += consumed
+                inp = make_input(words[offset:])
+            continue
+        elif res.status == EVUTILS_PARSE_ERROR:
+            raise RuntimeError(f"parse error near word {offset + consumed}")
+        break
     if consumed == 0:
         # Distinguish WHY nothing was consumed. A full output buffer means the
         # input is intact and the caller must drain/grow and retry -- flushing
@@ -243,9 +254,19 @@ def decode_all_soa(words: "np.ndarray", start_offset: int, make_input: "Callable
             ev.grow(max(projected, ev.capacity + (1 << 16)))
         if tr.capacity - tr.size < 64: tr.grow(tr.capacity * 2 + 64)
         inp = make_input(words[offset:])
-        res = parser.parse_chunk_soa(inp, ev, tr)
-        if res.status == EVUTILS_PARSE_ERROR: raise RuntimeError(f"parse error near word {offset}")
-        consumed = inp.consumed(res)
+        while True:
+            res = parser.parse_chunk_soa(inp, ev, tr)
+            consumed = inp.consumed(res)
+            if res.status == EVUTILS_PARSE_WARNING:
+                import warnings
+                warnings.warn(f"Malformed packets ignored near word {offset + consumed}")
+                if consumed > 0:
+                    offset += consumed
+                    inp = make_input(words[offset:])
+                continue
+            elif res.status == EVUTILS_PARSE_ERROR:
+                raise RuntimeError(f"parse error near word {offset + consumed}")
+            break
         if consumed == 0:
             if tail_pad and word_dtype is not None:
                 tail = words[offset:]

@@ -45,6 +45,7 @@ from ._native_core import (
     EVUTILS_PARSE_ERROR,
     EVUTILS_PARSE_WINDOW_DONE,
     EVUTILS_PARSE_OUTPUT_FULL,
+    EVUTILS_PARSE_WARNING,
     NativeError,
 )
 from ._native_evt import (
@@ -532,10 +533,19 @@ class EventDecoder_EVT(EventDecoder):
             return 0, EVUTILS_PARSE_WINDOW_DONE
         before = events.size
         inp = self._input_cls(words[self._offset:])
-        res = self._parser.parse_delta_t_soa(inp, events, triggers, end_ts)
-        if res.status == EVUTILS_PARSE_ERROR:
-            raise NativeError(f"{self._format} delta_t parse error at word {self._offset}")
-        consumed = inp.consumed(res)
+        while True:
+            res = self._parser.parse_delta_t_soa(inp, events, triggers, end_ts)
+            consumed = inp.consumed(res)
+            if res.status == EVUTILS_PARSE_WARNING:
+                import warnings
+                warnings.warn(f"{self._format} malformed packets ignored near word {self._offset + consumed}")
+                if consumed > 0:
+                    self._offset += consumed
+                    inp = self._input_cls(words[self._offset:])
+                continue
+            elif res.status == EVUTILS_PARSE_ERROR:
+                raise NativeError(f"{self._format} delta_t parse error at word {self._offset + consumed}")
+            break
         status = int(res.status)
         # Input drained with no progress => only the sub-PADDING tail remains;
         # flush it (incomplete final group) and mark EOF, as parse_step does.
