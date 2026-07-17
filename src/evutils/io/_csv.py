@@ -128,10 +128,10 @@ class EventDecoder_Csv(EventDecoder):
         if n_events_hint is not None:
             chunk_size = n_events_hint
 
-        t_arr = np.empty(chunk_size, dtype=np.int64)
-        x_arr = np.empty(chunk_size, dtype=np.uint16)
-        y_arr = np.empty(chunk_size, dtype=np.uint16)
-        p_arr = np.empty(chunk_size, dtype=np.uint8)
+        t_arr = np.zeros(chunk_size, dtype=np.int64)
+        x_arr = np.zeros(chunk_size, dtype=np.uint16)
+        y_arr = np.zeros(chunk_size, dtype=np.uint16)
+        p_arr = np.zeros(chunk_size, dtype=np.uint8)
 
         array_types = (ctypes.c_int * 4)(8, 2, 2, 1)
         col_mapping = (ctypes.c_int * len(self._col_mapping))(*self._col_mapping)
