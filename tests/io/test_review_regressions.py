@@ -259,3 +259,172 @@ def test_seek_by_event_index_past_eof(tmp_path):
     with EventReader(str(p), n_events=100) as r:
         r.seek(n=10_000_000)
         assert len(r.read()) == 0
+
+
+# --------------------------------------------------------------------------- #
+# Bug 5 (round 3): the dedicated delta_t C parser must honour the post-seek
+# TIME_HIGH wrap correction -- corrected end_ts in, corrected timestamps out.
+# --------------------------------------------------------------------------- #
+def test_parse_step_delta_t_applies_seek_correction(tmp_path):
+    """After a seek whose bookmark lies past the EVT3 wrap (2**24 µs), the
+    parser is reset and decodes in the raw (low) timeline; parse_step applies
+    ``_seek_correction`` on the way out, and parse_step_delta_t must do the
+    same -- translating the caller's absolute ``end_ts`` into the raw timeline
+    for the C call and shifting the decoded slice back. Before the fix the
+    window boundary was never reached and the emitted timestamps were low by
+    one wrap period.
+    """
+    from evutils.io._evt import EventDecoder_EVT
+    from evutils.io._native_core import (
+        EVUTILS_PARSE_WINDOW_DONE, EventSoABuffers, TriggerSoABuffers,
+        events_view,
+    )
+    from evutils.io._source import make_source
+
+    n, dt = 200_000, 100                     # ts 0 .. 20_000_000 > 2**24
+    ev = _ramp(n, dt)
+    p = tmp_path / "wrap_dt.raw"
+    with EventWriter(str(p), format="evt3") as w:
+        w.write(ev)
+
+    d = EventDecoder_EVT(make_source(str(p)), chunk_size=2048)
+    d.init()
+    T = 19_800_000                           # bookmark for this target sits past the wrap
+    res, rem, _ = d.seek(t=T)
+    assert d._seek_correction == 1 << 24     # one lost wrap to restore
+    assert int(res.ts) == T
+
+    # First event still in the stream (right after the returned remainder).
+    next_ts = int(rem.t[-1]) + dt
+    end_ts = next_ts + 50_000
+    out = EventSoABuffers(65_536)
+    tr = TriggerSoABuffers(1024)
+    while True:
+        out.c.capacity = out.capacity
+        appended, status = d.parse_step_delta_t(out, tr, end_ts)
+        if status == EVUTILS_PARSE_WINDOW_DONE or d.is_eof():
+            break
+    d.close()
+
+    t = events_view(out).t
+    assert len(t) == 500                     # exactly one 50 ms window of the ramp
+    assert int(t[0]) == next_ts              # absolute (corrected) timeline
+    assert int(t[-1]) < end_ts               # boundary honoured in that timeline
+    assert bool(np.all(np.diff(t) == dt))
+
+
+# --------------------------------------------------------------------------- #
+# Bug 6 (round 3): index="metavision" must actually use the sidecar -- the
+# normalize_ts pre-anchor used to force-build an in-memory index over it.
+# --------------------------------------------------------------------------- #
+def _write_mv_sidecar(raw_path):
+    """Synthesize a Metavision ``.tmp_index`` sidecar for an EVT3 file, with
+    bookmarks taken from a real decode pass (exact offsets/counts)."""
+    from pathlib import Path
+
+    from evutils.io._evt import EventDecoder_EVT
+    from evutils.io._index import IncrementalSeekIndex, metavision_index_path
+    from evutils.io._source import make_source
+
+    d = EventDecoder_EVT(make_source(str(raw_path)))
+    d.init()
+    idx = IncrementalSeekIndex(
+        words=d._words, start_offset=d._start_offset,
+        input_cls=d._input_cls, parser_cls=type(d._parser),
+        tail_pad=d._tail_pad, word_dtype=d._word_dtype, chunk_cap=2048,
+        time_high=d._TIME_HIGH_TYPE[d._format], stride_words=512,
+    )
+    idx._build_until(target_t=2**62)         # build to EOF
+    ts = np.asarray(idx._ts_list, dtype=np.int64)
+    off = np.asarray(idx._off_list, dtype=np.int64)
+    cum = np.asarray(idx._cum_list, dtype=np.int64)
+    counts = np.diff(np.append(cum, idx._cum))
+    word_size = np.dtype(d._word_dtype).itemsize
+    byte_off = d._payload_off + off * word_size
+    d.close()
+
+    rec_dtype = np.dtype([("ts", "<i8"), ("byte_offset", "<u8"), ("count", "<u4")])
+    recs = np.zeros(len(ts) + 1, dtype=rec_dtype)
+    recs["ts"][:-1] = ts
+    recs["byte_offset"][:-1] = byte_off
+    recs["count"][:-1] = counts
+    recs[-1] = (0x4D414749, 0, 0)            # trailing completeness marker (dropped)
+
+    sidecar = metavision_index_path(str(raw_path))
+    size = Path(raw_path).stat().st_size
+    with open(sidecar, "wb") as f:
+        f.write(f"% size {size}\n% ts_shift_us 0\n% end\n".encode())
+        f.write(recs.tobytes())
+
+
+def test_metavision_sidecar_index_is_used(tmp_path):
+    """With index="metavision" a fresh sidecar must be the index actually
+    consulted (StaticSeekIndex, not the in-memory build), and the seek must
+    land exactly."""
+    from evutils.io._index import StaticSeekIndex
+
+    ev = _ramp()
+    p = tmp_path / "sidecar.raw"
+    with EventWriter(str(p), format="evt3") as w:
+        w.write(ev)
+    _write_mv_sidecar(p)
+
+    T = 12_345_000
+    exp = int(np.searchsorted(ev["t"], T))
+    with EventReader(str(p), n_events=1000, index="metavision") as r:
+        landed = r.seek(t=T)
+        c = r.read()
+        used = r._file_decoder._index
+        assert isinstance(used, StaticSeekIndex)
+        assert r._file_decoder._index_is_ours is False
+    assert landed == int(ev["t"][exp])
+    assert int(c.t[0]) == int(ev["t"][exp])
+
+
+@pytest.mark.parametrize("fmt", ["evt3", "evt2"])
+def test_seek_multi_bookmark_exact(tmp_path, fmt):
+    """Built-index seeks must land exactly on files large enough for MANY
+    bookmarks. Regression for the bookmark-alignment bug: bookmarks recorded at
+    arbitrary parse-step boundaries leave a reset parser without a time base
+    (raw ts = low bits only), so the wrap-correction snap rounded to a whole
+    spurious wrap period. Bookmarks are now TIME_HIGH-aligned.
+    """
+    n, dt = 200_000, 100                     # ~10 bookmarks at the default stride
+    ev = _ramp(n, dt)
+    p = tmp_path / f"multi_bm.{fmt}.raw"
+    with EventWriter(str(p), format=fmt) as w:
+        w.write(ev)
+
+    with EventReader(str(p), n_events=2000) as r:
+        for T in (3_000_000, 12_345_000, 19_800_000):
+            exp = int(np.searchsorted(ev["t"], T))
+            landed = r.seek(t=T)
+            c = r.read()
+            assert landed == int(ev["t"][exp]), f"t={T}"
+            assert int(c.t[0]) == int(ev["t"][exp])
+        # index seek across bookmarks too
+        r.seek(n=150_000)
+        c = r.read()
+        assert int(c.t[0]) == int(ev["t"][150_000])
+
+
+def test_seek_then_read_normalize_ts_matches_read_then_seek(tmp_path):
+    """normalize_ts must be call-order independent: seeking before the first
+    read must normalize against the stream's first event, not against the
+    landing point (or 0)."""
+    ev = _ramp()
+    ev["t"] += 100_000                        # stream starts at 100 ms
+    p = tmp_path / "norm_order.raw"
+    with EventWriter(str(p), format="evt3") as w:
+        w.write(ev)
+
+    T = 5_000_000
+    with EventReader(str(p), n_events=3000, normalize_ts=True) as r:
+        r.seek(t=T)                           # seek FIRST, no prior read
+        a = r.read()
+    with EventReader(str(p), n_events=3000, normalize_ts=True) as r:
+        r.read()                              # anchor by reading first
+        r.seek(t=T)
+        b = r.read()
+
+    assert int(a.t[0]) == int(b.t[0]) == T - 100_000
