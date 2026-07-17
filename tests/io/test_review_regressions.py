@@ -198,3 +198,64 @@ def test_corrupt_packet_raises_in_strict_mode(tmp_path):
     with pytest.raises(Exception, match="(?i)malformed|strict"):
         with EventReader(raw, file_decoder=EventDecoder_EVT, strict=True) as r:
             r.read_all()
+
+
+# --------------------------------------------------------------------------- #
+# Seek gaps: seek must not break trigger decoding; seek(n=) past EOF is empty
+# --------------------------------------------------------------------------- #
+def _evt3_trigger_words(t, tid, value):
+    return np.array([
+        0x8000 | ((t >> 12) & 0xFFF),          # TIME_HIGH
+        0x6000 | (t & 0xFFF),                  # TIME_LOW
+        0xA000 | ((tid & 0xF) << 8) | (value & 1),
+    ], dtype=np.uint16)
+
+
+def test_seek_preserves_triggers_evt3(tmp_path):
+    """A time seek with ext_trigger=True must still decode the external triggers
+    that follow the landing point (seek x triggers path)."""
+    ev = np.zeros(100, dtype=Event_dtype)
+    ev["t"] = np.arange(100, dtype=np.int64) * 100    # 0 .. 9900 µs
+    ev["x"] = np.arange(100) % 1280
+    ev["y"] = np.arange(100) % 720
+    ev["p"] = np.arange(100) % 2
+    triggers = [(10_000, 3, 1), (10_064, 3, 0), (20_000, 7, 1)]
+
+    p = tmp_path / "seek_trig.raw"
+    with EventWriter(str(p), format="evt3") as w:
+        w.write(ev)
+    words = np.concatenate([_evt3_trigger_words(t, i, v) for t, i, v in triggers])
+    with open(p, "ab") as f:                          # append crafted trigger words
+        f.write(words.tobytes())
+
+    T = 5_000
+    exp = int(np.searchsorted(ev["t"], T))
+    ev_got, tr_got = [], []
+    with EventReader(str(p), n_events=40, ext_trigger=True) as r:
+        r.seek(t=T)
+        while True:
+            e, tr = r.read()
+            if len(e) == 0 and len(tr) == 0:
+                break
+            if len(e):
+                ev_got.append(np.asarray(e.t).copy())
+            if len(tr):
+                tr_got.append(np.asarray(tr.t).copy())
+
+    ev_all = np.concatenate(ev_got)
+    tr_all = np.concatenate(tr_got)
+    assert int(ev_all[0]) == int(ev["t"][exp])        # events start at the target
+    assert np.array_equal(np.sort(tr_all), [10_000, 10_064, 20_000])
+
+
+def test_seek_by_event_index_past_eof(tmp_path):
+    """seek(n=) beyond the last event lands at EOF and the next read is empty."""
+    ev = np.zeros(1000, dtype=Event_dtype)
+    ev["t"] = np.arange(1000, dtype=np.int64) * 1_000
+    p = tmp_path / "seek_n_eof.raw"
+    with EventWriter(str(p), format="evt3") as w:
+        w.write(ev)
+
+    with EventReader(str(p), n_events=100) as r:
+        r.seek(n=10_000_000)
+        assert len(r.read()) == 0
