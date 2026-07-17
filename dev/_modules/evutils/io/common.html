@@ -561,6 +561,13 @@
     <span class="c1">#: reader can hand them straight through without re-accumulating (NPZ/HDF5).</span>
     <span class="n">_independent_windows</span> <span class="o">=</span> <span class="kc">False</span>
 
+    <span class="c1">#: The decoder buffers the entire payload in memory at init (slurping the</span>
+    <span class="c1">#: whole stream), so its :meth:`seek` works even when the underlying</span>
+    <span class="c1">#: ByteSource is not itself seekable -- e.g. reading over a compressed</span>
+    <span class="c1">#: stream. The EventReader uses this to allow the decoder&#39;s fast-path seek</span>
+    <span class="c1">#: instead of a linear scan. True only for decoders that genuinely slurp.</span>
+    <span class="n">_buffers_in_memory</span> <span class="o">=</span> <span class="kc">False</span>
+
     <span class="c1">#: A dedicated C delta_t parser exists (one GIL-free call decodes a whole</span>
     <span class="c1">#: time window). EVT3 overrides this as a property.</span>
     <span class="n">_has_delta_t_parser</span> <span class="o">=</span> <span class="kc">False</span>

@@ -13,6 +13,15 @@
    backend from the file extension. Backends that need optional dependencies
    degrade gracefully and only raise on use.
 
+   Compression is transparent: a path ending in ``.gz`` / ``.zst`` / ``.xz`` /
+   ``.bz2`` (e.g. ``foo.raw.zst``) is auto-opened through the matching
+   (de)compressing stream on both read and write -- the *inner* extension selects
+   the event format. You may also hand :class:`EventReader` an already-open
+   compressed file object (``gzip.GzipFile``, ``lzma.LZMAFile``,
+   ``compression.zstd.ZstdFile``, ...). Writing to a bare stream (as opposed to a
+   path) still requires an explicit ``file_encoder``. ``.zst`` needs Python 3.14+
+   (stdlib ``compression.zstd``) or the ``zstandard`` / ``pyzstd`` package.
+
 
 
 Submodules
@@ -63,7 +72,12 @@ Package Contents
    The reader supports different modes of operation, including reading a fixed number of events, reading events within a time window, or a combination of both.
    The file_decoder is chosen automatically based on the file format or can be supplied explicitly.
 
-   :param file: Path to the data file or a readable stream or bytes or a ByteSource
+   :param file: Path to the data file or a readable stream or bytes or a ByteSource.
+                Compressed paths (``.gz`` / ``.zst`` / ``.xz`` / ``.bz2``, e.g.
+                ``foo.raw.zst``) are decompressed transparently; the inner extension
+                selects the format. An already-open compressed file object
+                (``gzip.GzipFile`` / ``lzma.LZMAFile`` / ``compression.zstd.ZstdFile``)
+                may also be passed directly.
    :type file: Path or str or io.BufferedReader or bytes or ByteSource
    :param delta_t: Time window in microseconds, by default None
    :type delta_t: int or optional
@@ -345,7 +359,10 @@ Package Contents
 
    Base class for writing events to different file formats.
 
-   :param file: Path to the data file
+   :param file: Path to the data file (or a writable binary stream). Compressed paths
+                (``.gz`` / ``.zst`` / ``.xz`` / ``.bz2``, e.g. ``foo.raw.zst``) are
+                compressed transparently; the inner extension selects the format.
+                Writing to a bare stream still requires an explicit ``file_encoder``.
    :param width: Width of the frame. If None (default), taken from the first written
                  events' ``sensor_size`` metadata, falling back to 1280 (not relevant
                  for some formats).

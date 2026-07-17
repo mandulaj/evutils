@@ -10,6 +10,10 @@
    This module provides functions to plot event streams, 3D histograms,
    and time surfaces using matplotlib's 3D plotting capabilities.
 
+   ``cv2`` and ``matplotlib`` are imported lazily, inside the functions that
+   use them, so ``import evutils.vis`` (and importing this module) stays cheap
+   and does not drag in OpenCV / the full matplotlib stack.
+
 
 
 Functions

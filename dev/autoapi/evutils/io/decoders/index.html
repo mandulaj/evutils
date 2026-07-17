@@ -834,23 +834,7 @@ size=&quot;8.0, 12.0&quot;;
 <dl class="py attribute">
 <dt class="sig sig-object py" id="evutils.io.decoders.EventDecoder_Aedat.SUPPORTS_EXT_TRIGGERS">
 <span class="sig-name descname"><span class="pre">SUPPORTS_EXT_TRIGGERS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#evutils.io.decoders.EventDecoder_Aedat.SUPPORTS_EXT_TRIGGERS" title="Link to this definition">#</a></dt>
-<dd><p>Decode AEDAT 1.0 / 2.0 / 3.1 / 4.0 files into <code class="docutils literal notranslate"><span class="pre">EventArray</span></code> chunks.</p>
-<p>The version is detected from the <code class="docutils literal notranslate"><span class="pre">#!AER-DATx.y</span></code> header line (a file
-with a bare <code class="docutils literal notranslate"><span class="pre">#</span></code> header, or none at all, is treated as AEDAT 1.0, per
-the jAER convention).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>source</strong> – Byte source to read from.</p></li>
-<li><p><strong>chunk_size</strong> – Maximum number of events produced per <a class="reference internal" href="#evutils.io.decoders.EventDecoder_Aedat.read_chunk" title="evutils.io.decoders.EventDecoder_Aedat.read_chunk"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read_chunk()</span></code></a> call
-(AEDAT 3.1/4.0 packets are never split, so a chunk can exceed this
-by at most one packet’s worth).</p></li>
-<li><p><strong>layout</strong> (<em>{&quot;davis&quot;</em><em>, </em><em>&quot;dvs128&quot;}</em><em>, </em><em>default &quot;davis&quot;</em>) – AEDAT 2.0 address layout (the 2.0 container does not name the
-camera). Ignored for the other versions.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="evutils.io.decoders.EventDecoder_Aedat.init">

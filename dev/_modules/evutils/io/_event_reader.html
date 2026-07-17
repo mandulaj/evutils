@@ -521,7 +521,12 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    file: Path or str or io.BufferedReader or bytes or ByteSource</span>
-<span class="sd">        Path to the data file or a readable stream or bytes or a ByteSource</span>
+<span class="sd">        Path to the data file or a readable stream or bytes or a ByteSource.</span>
+<span class="sd">        Compressed paths (``.gz`` / ``.zst`` / ``.xz`` / ``.bz2``, e.g.</span>
+<span class="sd">        ``foo.raw.zst``) are decompressed transparently; the inner extension</span>
+<span class="sd">        selects the format. An already-open compressed file object</span>
+<span class="sd">        (``gzip.GzipFile`` / ``lzma.LZMAFile`` / ``compression.zstd.ZstdFile``)</span>
+<span class="sd">        may also be passed directly.</span>
 <span class="sd">    delta_t: int or optional</span>
 <span class="sd">        Time window in microseconds, by default None</span>
 <span class="sd">    n_events: int or None</span>
@@ -1635,7 +1640,11 @@
         <span class="c1"># landing point below.</span>
         <span class="n">first_ts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">seekable</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_source</span><span class="p">,</span> <span class="s2">&quot;seekable&quot;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="kc">True</span><span class="p">)()</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_anchored</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_ts</span> <span class="ow">and</span> <span class="n">seekable</span><span class="p">:</span>
+        <span class="c1"># Slurp-based decoders (EVT/DAT/...) buffer the whole payload in memory,</span>
+        <span class="c1"># so their seek() -- and the pre-seek first-ts peek -- work even when the</span>
+        <span class="c1"># underlying source is not itself seekable (e.g. a compressed stream).</span>
+        <span class="n">can_fast_seek</span> <span class="o">=</span> <span class="n">seekable</span> <span class="ow">or</span> <span class="n">dec</span><span class="o">.</span><span class="n">_buffers_in_memory</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_anchored</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_ts</span> <span class="ow">and</span> <span class="n">can_fast_seek</span><span class="p">:</span>
             <span class="n">first_ts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_peek_stream_first_ts</span><span class="p">()</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_eof</span> <span class="o">=</span> <span class="kc">False</span>
@@ -1646,7 +1655,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 
-        <span class="k">if</span> <span class="n">seekable</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">can_fast_seek</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">res</span><span class="p">,</span> <span class="n">rem_ev</span><span class="p">,</span> <span class="n">rem_tr</span> <span class="o">=</span> <span class="n">dec</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
             <span class="k">except</span> <span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">UnsupportedOperation</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">):</span>

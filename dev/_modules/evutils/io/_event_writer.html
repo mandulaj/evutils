@@ -497,6 +497,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">encoders</span> <span class="k">as</span> <span class="n">ev_encoders</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._compression</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_compressed_path</span><span class="p">,</span> <span class="n">open_compressed</span>
 
 <div class="viewcode-block" id="EventWriter">
 <a class="viewcode-back" href="../../../autoapi/evutils/io/index.html#evutils.io.EventWriter">[docs]</a>
@@ -506,7 +507,10 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    file</span>
-<span class="sd">        Path to the data file</span>
+<span class="sd">        Path to the data file (or a writable binary stream). Compressed paths</span>
+<span class="sd">        (``.gz`` / ``.zst`` / ``.xz`` / ``.bz2``, e.g. ``foo.raw.zst``) are</span>
+<span class="sd">        compressed transparently; the inner extension selects the format.</span>
+<span class="sd">        Writing to a bare stream still requires an explicit ``file_encoder``.</span>
 <span class="sd">    width</span>
 <span class="sd">        Width of the frame. If None (default), taken from the first written</span>
 <span class="sd">        events&#39; ``sensor_size`` metadata, falling back to 1280 (not relevant</span>
@@ -618,6 +622,10 @@
 <span class="sd">            The opened file object.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Compressed paths (foo.raw.zst) auto-open through a compressing stream;</span>
+        <span class="c1"># the inner extension (resolved by get_file_writer) selects the encoder.</span>
+        <span class="k">if</span> <span class="n">is_compressed_path</span><span class="p">(</span><span class="n">file_name</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">open_compressed</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span>
         <span class="c1"># default &#39;w+b&#39; (not &#39;wb&#39;): container encoders (HDF5) need the stream to be</span>
         <span class="c1"># readable and seekable, and it costs nothing for the append-only ones.</span>
         <span class="k">return</span> <span class="nb">open</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">file_name</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span><span class="p">)</span>

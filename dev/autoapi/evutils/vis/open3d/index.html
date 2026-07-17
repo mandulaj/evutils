@@ -554,6 +554,8 @@
 <p>Open3D visualization utilities for event camera data.</p>
 <p>This module provides functions to visualize event streams in 3D (x, y, time)
 using Open3D.</p>
+<p><code class="docutils literal notranslate"><span class="pre">open3d</span></code> and <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code> are imported lazily, inside the functions that
+use them, so importing this module stays cheap.</p>
 <section id="functions">
 <h2>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
@@ -569,7 +571,7 @@ using Open3D.</p>
 <h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="evutils.vis.open3d.o3d_draw_events">
-<span class="sig-prename descclassname"><span class="pre">evutils.vis.open3d.</span></span><span class="sig-name descname"><span class="pre">o3d_draw_events</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">events</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#evutils.vis.open3d.o3d_draw_events" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">evutils.vis.open3d.</span></span><span class="sig-name descname"><span class="pre">o3d_draw_events</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">events</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../../_modules/evutils/vis/open3d.html#o3d_draw_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.vis.open3d.o3d_draw_events" title="Link to this definition">#</a></dt>
 <dd><p>Visualizes events using Open3D.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>

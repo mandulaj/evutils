@@ -10,6 +10,9 @@
    This module provides functions to visualize event streams in 3D (x, y, time)
    using Open3D.
 
+   ``open3d`` and ``matplotlib`` are imported lazily, inside the functions that
+   use them, so importing this module stays cheap.
+
 
 
 Functions

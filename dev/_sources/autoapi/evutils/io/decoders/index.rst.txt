@@ -201,20 +201,6 @@ Module Contents
       :value: True
 
 
-      Decode AEDAT 1.0 / 2.0 / 3.1 / 4.0 files into ``EventArray`` chunks.
-
-      The version is detected from the ``#!AER-DATx.y`` header line (a file
-      with a bare ``#`` header, or none at all, is treated as AEDAT 1.0, per
-      the jAER convention).
-
-      :param source: Byte source to read from.
-      :param chunk_size: Maximum number of events produced per :meth:`read_chunk` call
-                         (AEDAT 3.1/4.0 packets are never split, so a chunk can exceed this
-                         by at most one packet's worth).
-      :param layout: AEDAT 2.0 address layout (the 2.0 container does not name the
-                     camera). Ignored for the other versions.
-      :type layout: {"davis", "dvs128"}, default "davis"
-
 
    .. py:method:: init() -> None
 

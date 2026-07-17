@@ -714,6 +714,9 @@
 <a class="viewcode-back" href="../../../autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_Aedat">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">EventDecoder_Aedat</span><span class="p">(</span><span class="n">EventDecoder</span><span class="p">):</span>
     <span class="n">SUPPORTS_EXT_TRIGGERS</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="c1">#: init() slurps the whole payload into memory (or mmaps it).</span>
+    <span class="n">_buffers_in_memory</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Decode AEDAT 1.0 / 2.0 / 3.1 / 4.0 files into ``EventArray`` chunks.</span>
 
 <span class="sd">    The version is detected from the ``#!AER-DATx.y`` header line (a file</span>

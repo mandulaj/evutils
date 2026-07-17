@@ -643,6 +643,10 @@
     <span class="c1">#: event gaps -- the built index is exact there).</span>
     <span class="n">SUPPORTS_SEEK</span> <span class="o">=</span> <span class="kc">True</span>
 
+    <span class="c1">#: init() slurps the whole payload into memory (or mmaps it), so seek works</span>
+    <span class="c1">#: even over a non-seekable source (e.g. a compressed stream).</span>
+    <span class="n">_buffers_in_memory</span> <span class="o">=</span> <span class="kc">True</span>
+
     <span class="c1"># Per-format TIME_HIGH record descriptor: (type-field right-shift, type code).</span>
     <span class="c1"># Used to skip leading records until the first TIME_HIGH establishes a valid</span>
     <span class="c1"># time base -- events before it carry an undefined timestamp (a stream sliced</span>

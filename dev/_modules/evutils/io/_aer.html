@@ -560,6 +560,9 @@
     <span class="c1">#: n_events fast path (via parse_step).</span>
     <span class="n">_exact_window</span> <span class="o">=</span> <span class="kc">True</span>
 
+    <span class="c1">#: init() slurps the whole payload into memory (or mmaps it).</span>
+    <span class="n">_buffers_in_memory</span> <span class="o">=</span> <span class="kc">True</span>
+
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="n">ByteSource</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1_000_000</span><span class="p">,</span>
                  <span class="n">timestamps</span><span class="p">:</span> <span class="s1">&#39;str | np.ndarray&#39;</span> <span class="o">=</span> <span class="s2">&quot;zero&quot;</span><span class="p">,</span>
                  <span class="n">t_start</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">t_step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>

@@ -554,6 +554,14 @@
 interface, plus <code class="docutils literal notranslate"><span class="pre">EventReader_Any</span></code> / <code class="docutils literal notranslate"><span class="pre">EventWriter_Any</span></code> which pick the
 backend from the file extension. Backends that need optional dependencies
 degrade gracefully and only raise on use.</p>
+<p>Compression is transparent: a path ending in <code class="docutils literal notranslate"><span class="pre">.gz</span></code> / <code class="docutils literal notranslate"><span class="pre">.zst</span></code> / <code class="docutils literal notranslate"><span class="pre">.xz</span></code> /
+<code class="docutils literal notranslate"><span class="pre">.bz2</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">foo.raw.zst</span></code>) is auto-opened through the matching
+(de)compressing stream on both read and write – the <em>inner</em> extension selects
+the event format. You may also hand <a class="reference internal" href="#evutils.io.EventReader" title="evutils.io.EventReader"><code class="xref py py-class docutils literal notranslate"><span class="pre">EventReader</span></code></a> an already-open
+compressed file object (<code class="docutils literal notranslate"><span class="pre">gzip.GzipFile</span></code>, <code class="docutils literal notranslate"><span class="pre">lzma.LZMAFile</span></code>,
+<code class="docutils literal notranslate"><span class="pre">compression.zstd.ZstdFile</span></code>, …). Writing to a bare stream (as opposed to a
+path) still requires an explicit <code class="docutils literal notranslate"><span class="pre">file_encoder</span></code>. <code class="docutils literal notranslate"><span class="pre">.zst</span></code> needs Python 3.14+
+(stdlib <code class="docutils literal notranslate"><span class="pre">compression.zstd</span></code>) or the <code class="docutils literal notranslate"><span class="pre">zstandard</span></code> / <code class="docutils literal notranslate"><span class="pre">pyzstd</span></code> package.</p>
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">#</a></h2>
 <div class="toctree-wrapper compound">
@@ -611,7 +619,12 @@ The file_decoder is chosen automatically based on the file format or can be supp
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>file</strong> (<em>Path</em><em> or </em><em>str</em><em> or </em><em>io.BufferedReader</em><em> or </em><em>bytes</em><em> or </em><em>ByteSource</em>) – Path to the data file or a readable stream or bytes or a ByteSource</p></li>
+<li><p><strong>file</strong> (<em>Path</em><em> or </em><em>str</em><em> or </em><em>io.BufferedReader</em><em> or </em><em>bytes</em><em> or </em><em>ByteSource</em>) – Path to the data file or a readable stream or bytes or a ByteSource.
+Compressed paths (<code class="docutils literal notranslate"><span class="pre">.gz</span></code> / <code class="docutils literal notranslate"><span class="pre">.zst</span></code> / <code class="docutils literal notranslate"><span class="pre">.xz</span></code> / <code class="docutils literal notranslate"><span class="pre">.bz2</span></code>, e.g.
+<code class="docutils literal notranslate"><span class="pre">foo.raw.zst</span></code>) are decompressed transparently; the inner extension
+selects the format. An already-open compressed file object
+(<code class="docutils literal notranslate"><span class="pre">gzip.GzipFile</span></code> / <code class="docutils literal notranslate"><span class="pre">lzma.LZMAFile</span></code> / <code class="docutils literal notranslate"><span class="pre">compression.zstd.ZstdFile</span></code>)
+may also be passed directly.</p></li>
 <li><p><strong>delta_t</strong> (<em>int</em><em> or </em><em>optional</em>) – Time window in microseconds, by default None</p></li>
 <li><p><strong>n_events</strong> (<em>int</em><em> or </em><em>None</em>) – Number of events to read in a chunk, by default None</p></li>
 <li><p><strong>max_events</strong> (<em>int</em><em>, </em><em>default=10_000_000</em>) – Maximum number of events to read at once</p></li>
@@ -969,7 +982,10 @@ until it is exhausted or closed.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>file</strong> (<em>pathlib.Path</em><em> | </em><em>str</em><em> | </em><em>io.BufferedIOBase</em>) – Path to the data file</p></li>
+<li><p><strong>file</strong> (<em>pathlib.Path</em><em> | </em><em>str</em><em> | </em><em>io.BufferedIOBase</em>) – Path to the data file (or a writable binary stream). Compressed paths
+(<code class="docutils literal notranslate"><span class="pre">.gz</span></code> / <code class="docutils literal notranslate"><span class="pre">.zst</span></code> / <code class="docutils literal notranslate"><span class="pre">.xz</span></code> / <code class="docutils literal notranslate"><span class="pre">.bz2</span></code>, e.g. <code class="docutils literal notranslate"><span class="pre">foo.raw.zst</span></code>) are
+compressed transparently; the inner extension selects the format.
+Writing to a bare stream still requires an explicit <code class="docutils literal notranslate"><span class="pre">file_encoder</span></code>.</p></li>
 <li><p><strong>width</strong> (<em>int</em><em> | </em><em>None</em>) – Width of the frame. If None (default), taken from the first written
 events’ <code class="docutils literal notranslate"><span class="pre">sensor_size</span></code> metadata, falling back to 1280 (not relevant
 for some formats).</p></li>
