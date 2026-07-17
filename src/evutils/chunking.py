@@ -261,15 +261,17 @@ def stream_skip_to_time(stream: Iterator[np.ndarray | EventArray], start_ts: int
     for incoming in stream:
         ev = incoming[0] if isinstance(incoming, tuple) else incoming
         if skipping:
-            if len(ev) == 0 or ev.t[-1] < start_ts:
+            # ["t"] works for both EventArray and plain structured ndarrays
+            # (attribute access .t does not exist on the latter).
+            if len(ev) == 0 or ev["t"][-1] < start_ts:
                 continue  # Drop whole chunk
-            
+
             # Found the boundary! Slice the chunk and stop skipping
-            idx = int(np.searchsorted(ev.t, start_ts))
+            idx = int(np.searchsorted(ev["t"], start_ts))
             skipping = False
-            
+
             if isinstance(incoming, tuple):
-                tr_idx = int(np.searchsorted(incoming[1].t, start_ts))
+                tr_idx = int(np.searchsorted(incoming[1]["t"], start_ts))
                 yield incoming[0][idx:], incoming[1][tr_idx:]
             else:
                 yield incoming[idx:]
@@ -293,7 +295,13 @@ def stream_skip_to_event(stream: Iterator[np.ndarray | EventArray], n: int) -> I
             idx = n - seen
             skipping = False
             if isinstance(incoming, tuple):
-                yield incoming[0][idx:], incoming[1]
+                # Slice triggers at the first kept event's timestamp, mirroring
+                # stream_skip_to_time (triggers before the target are dropped).
+                if len(incoming[1]) > 0 and idx < len(ev):
+                    tr_idx = int(np.searchsorted(incoming[1]["t"], ev["t"][idx]))
+                else:
+                    tr_idx = 0
+                yield incoming[0][idx:], incoming[1][tr_idx:]
             else:
                 yield incoming[idx:]
         else:
@@ -343,11 +351,11 @@ def stream_paced_playback(stream: Iterator[np.ndarray | EventArray], playback_sp
             continue
             
         if start_ts is None:
-            start_ts = ev.t[0]
+            start_ts = ev["t"][0]
             start_wall = time.perf_counter()
-            
+
         # How far into the stream is this chunk's end?
-        stream_elapsed_us = ev.t[-1] - start_ts
+        stream_elapsed_us = ev["t"][-1] - start_ts
         expected_wall_elapsed = (stream_elapsed_us / 1_000_000) / playback_speed
         
         target_wall = start_wall + expected_wall_elapsed
