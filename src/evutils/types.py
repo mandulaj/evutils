@@ -5,12 +5,11 @@ Defines the structured NumPy dtypes used throughout evutils — ``Events``
 together with small helpers for checking event arrays.
 """
 
-import ctypes
 from typing import TypeVar
 
 import numpy as np
 
-__all__ = ['Event_dtype', 'Trigger_dtype', 'Event', 'EventArray', 'TriggerArray', 'DataBatch', 'is_monotonically_increasing', 'EventsChecker']
+__all__ = ['Event_dtype', 'Trigger_dtype', 'EventArray', 'TriggerArray', 'DataBatch', 'is_monotonically_increasing', 'EventsChecker']
 
 from dataclasses import dataclass
 
@@ -32,26 +31,6 @@ Event_dtype = np.dtype([('t', np.int64), ('x', np.uint16), ('y', np.uint16), ('p
 #: - `p` (np.uint8):  Polarity (0: off, 1: on).
 #: - `id` (np.uint8): Identifier.
 Trigger_dtype = np.dtype([('t', np.int64), ('p', np.uint8), ('id', np.uint8)])
-
-class Event(ctypes.Structure):
-    """Ctypes structure representing an event.
-
-    Fields
-    ------
-    t : ctypes.c_int64
-        Timestamp of the event (us).
-    x : ctypes.c_uint16
-        X-coordinate.
-    y : ctypes.c_uint16
-        Y-coordinate.
-    p : ctypes.c_uint8
-        Polarity (0: off, 1: on).
-    """
-
-    _fields_ = [("t", ctypes.c_int64),
-                ("x", ctypes.c_uint16),
-                ("y", ctypes.c_uint16),
-                ("p", ctypes.c_uint8)]
 
 def is_monotonically_increasing(events: np.ndarray) -> bool:
     """Checks if the event ts is monotonically increasing.

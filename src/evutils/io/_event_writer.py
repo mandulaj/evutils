@@ -151,10 +151,10 @@ class EventWriter():
             Buffer of events to write (structured array or EventArray)
         triggers
             Buffer of triggers to write (structured array or TriggerArray). Optional.
-            Interleaved with the events by timestamp for formats that carry
-            triggers in-stream (EVT); ignored (with a warning from the encoder)
-            by formats that cannot represent them. To write a trigger-only
-            batch, pass ``EventArray.empty()`` as ``events``.
+            Written only by encoders that support trigger encoding (currently
+            AEDAT4, as separate trigger packets); all other formats ignore
+            them with a warning. To write a trigger-only batch, pass
+            ``EventArray.empty()`` as ``events``.
 
         Returns
         -------

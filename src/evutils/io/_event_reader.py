@@ -131,15 +131,6 @@ class EventReader():
     ...     x, y, p, t = events.x, events.y, events.p, events.t
     ...     print(f"Processed {len(events)} events")
     Processed 0 events
-
-    TODO:
-    Architectural Refactor Roadmap:
-    Decouple `EventReader`'s monolithic design by extracting the core byte-to-array decoding into
-    a native `EventStreamer`. The slicing logic (`mode="delta_t"`, `mode="n_events"`, etc.) should
-    be moved to composable pipeline generators in `evutils.chunking`. `EventReader` will then
-    become a simple Façade that dynamically assembles these pipeline generators to maintain
-    this exact backward-compatible API, while allowing power-users to compose custom pipelines
-    (e.g., slicing by external trigger boundaries).
     """
 
     READING_MODES = ["delta_t", "n_events", "mixed", "all", "auto"]

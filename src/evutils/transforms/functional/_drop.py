@@ -74,6 +74,9 @@ def drop_event(events, p=0.1, seed: int | None = None):
     p : float or tuple of float, optional
         Drop probability in ``[0, 1)``. A ``(lo, hi)`` tuple is sampled uniformly
         per call. Defaults to ``0.1``.
+    seed : int, optional
+        Seed for the kernel's random number generator (numba's per-thread
+        legacy ``np.random`` state). ``None`` leaves the state unseeded.
 
     Returns
     -------
@@ -85,7 +88,8 @@ def drop_event(events, p=0.1, seed: int | None = None):
         raise ValueError("p must be in [0, 1)")
     if p == 0:
         return events
-    return apply_kernel(events, _drop_random_events_jit, p)
+    return apply_kernel(events, _drop_random_events_jit, p,
+                        seed if seed is not None else -1)
 
 @lazy_njit
 def _drop_by_time_jit(t, x, y, p, duration_ratio: float, seed: int):

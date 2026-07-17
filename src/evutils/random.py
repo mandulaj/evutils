@@ -107,7 +107,9 @@ def event_jitter(events: np.ndarray, jitter: int = 1, sort: bool = True, in_plac
     
     if not in_place:
         events = events.copy()
-    events["t"] += np.random.randint(-jitter, jitter, len(events))
+    # +1: randint's high bound is exclusive -- without it the jitter is
+    # asymmetric ([-j, j-1]) and jitter=0 raises ValueError.
+    events["t"] += np.random.randint(-jitter, jitter + 1, len(events))
 
     if sort:
         events = np.sort(events, order="t")

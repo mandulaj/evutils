@@ -17,16 +17,14 @@ class EventDecoder_Csv(EventDecoder):
 
     Parameters
     ----------
-    file
-        Path to the data file
+    source
+        Byte source to read from.
     order
         Order of the columns in the CSV file, by default ['t', 'x', 'y', 'p']
     chunk_size
-        Size of the chunk to read, by default 10_000
+        Maximum number of events per chunk, by default 1_000_000
     delimiter
         Delimiter for the CSV file, by default ","
-    engine
-        Engine to use to read the CSV file, by default 'c'
 
     Raises
     ------
@@ -44,8 +42,9 @@ class EventDecoder_Csv(EventDecoder):
     #: newline count (event index). Requires a seekable source.
     SUPPORTS_SEEK = True
 
-    def __init__(self, readable:io.BufferedReader,  order:list[str]|None=None, chunk_size:int=1_000_000, delimiter:str=",", engine:str='c'):
-        super().__init__(readable, chunk_size)
+    def __init__(self, source: io.BufferedReader, order: list[str] | None = None,
+                 chunk_size: int = 1_000_000, delimiter: str = ","):
+        super().__init__(source, chunk_size)
 
         if order is None:
             # we infer the header from the file, or use a default header
@@ -59,7 +58,6 @@ class EventDecoder_Csv(EventDecoder):
 
         self._order = order
         self._delimiter = delimiter
-        self._engine = engine
 
     def _check_header(self) -> None:
         have_header = False
