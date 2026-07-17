@@ -132,14 +132,11 @@ class EventDecoder(ABC):
                     tr_chunk = TriggerArray.empty()
             else:
                 ev_chunk = _chunk # type: ignore
-            if len(ev_chunk) == 0:
-                # The final chunk can carry triggers with no events (trigger
-                # packets after the last CD event): keep them before stopping.
-                if self.read_external_triggers and len(tr_chunk) > 0:
-                    trigger_chunks.append(tr_chunk.copy())
+            if len(ev_chunk) == 0 and (not self.read_external_triggers or len(tr_chunk) == 0):
                 break
-            chunks.append(ev_chunk.copy())
-            if self.read_external_triggers:
+            if len(ev_chunk) > 0:
+                chunks.append(ev_chunk.copy())
+            if self.read_external_triggers and len(tr_chunk) > 0:
                 trigger_chunks.append(tr_chunk.copy())
 
         if not chunks:

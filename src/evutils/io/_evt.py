@@ -27,13 +27,10 @@ import re
 from datetime import datetime
 from typing import TYPE_CHECKING, Dict
 
-if TYPE_CHECKING:
-    from ..types import TriggerArray
-
 from ..jit import lazy_njit
 import numpy as np
 
-from ..types import EventArray
+from ..types import EventArray, TriggerArray
 from .common import EventDecoder, EventEncoder
 from ._native_core import (
     EventSoABuffers,
@@ -576,7 +573,6 @@ class EventDecoder_EVT(EventDecoder):
             out = self._pending
             self._pending = None
             if self.read_external_triggers:
-                from ..types import TriggerArray
                 return out, TriggerArray.empty()
             return out
 
@@ -584,7 +580,6 @@ class EventDecoder_EVT(EventDecoder):
         if self._words is None or self._offset >= len(self._words):
             self._eof = True
             if self.read_external_triggers:
-                from ..types import TriggerArray
                 return _EMPTY_EVENTS, TriggerArray.empty()
             return _EMPTY_EVENTS
 
@@ -613,7 +608,6 @@ class EventDecoder_EVT(EventDecoder):
         # The seek wrap-correction is applied inside parse_step (above), so it is
         # already reflected in ev_view -- do not add it again here.
         if self.read_external_triggers:
-            from ..types import TriggerArray
             tr_view = triggers_view(tr) if tr.size > 0 else TriggerArray.empty()
             return ev_view, tr_view
         return ev_view
@@ -710,15 +704,14 @@ class EventDecoder_EVT(EventDecoder):
         self._index = idx
         return idx
 
-    def _decode_events_step(self) -> "EventArray":
-        """One events-only decode step from the current offset (no correction).
-
-        Returns an empty array at EOF. Triggers are discarded (seek scans over a
-        region that will be skipped).
+    def _decode_step(self) -> tuple[EventArray, 'TriggerArray']:
+        """One decode step from the current offset (no correction).
+        Returns a tuple of EventArray and TriggerArray views.
         """
         if self._words is None or self._offset >= len(self._words):
             self._eof = True
-            return _EMPTY_EVENTS
+            return _EMPTY_EVENTS, TriggerArray.empty()
+            
         ev, tr = self._events, self._triggers
         ev.reset()
         tr.reset()
@@ -729,7 +722,9 @@ class EventDecoder_EVT(EventDecoder):
             appended = self.parse_step(ev, tr)
             if appended == 0 and self._offset == before_off:
                 break
-        return events_view(ev) if ev.size > 0 else _EMPTY_EVENTS
+                
+        return (events_view(ev) if ev.size > 0 else _EMPTY_EVENTS,
+                triggers_view(tr) if tr.size > 0 else TriggerArray.empty())
 
     def seek(self, t: int | None = None, n: int | None = None) -> int:
         """Seek to an absolute timestamp (µs) or event index. See base class.
@@ -760,35 +755,53 @@ class EventDecoder_EVT(EventDecoder):
 
         correction: int | None = None
         while True:
-            raw = self._decode_events_step()
-            if len(raw) == 0:
+            raw_ev, raw_tr = self._decode_step()
+            if len(raw_ev) == 0 and len(raw_tr) == 0:
                 # Target is at/after the end of the stream.
                 self._seek_correction = correction or 0
                 self._eof = True
                 return val
             if correction is None:
-                # Wrap accumulation lost by parser.reset(): the bookmark stores
-                # the absolute ts near its first event; the reset parser decodes
-                # it low. Their difference is a multiple of the wrap period (the
-                # bookmark ts may be a coarse bucket boundary, so snap to the
-                # nearest multiple to absorb the sub-bucket offset).
-                period = self._WRAP_PERIOD.get(self._format or "", 1 << 24)
-                correction = int(round((base_ts - int(raw.t[0])) / period)) * period
-            t_corr = raw.t + correction
+                if len(raw_ev) > 0:
+                    period = self._WRAP_PERIOD.get(self._format or "", 1 << 24)
+                    correction = int(round((base_ts - int(raw_ev.t[0])) / period)) * period
+                else:
+                    correction = 0 # Cannot compute correction without events
+            
+            # Apply correction
+            t_corr = raw_ev.t + correction
+            tr_t_corr = raw_tr.t + correction
+            
             if axis == "t":
-                k = int(np.searchsorted(t_corr, val, side="left"))
-                hit = k < len(raw)
+                if len(raw_ev) > 0:
+                    k = int(np.searchsorted(t_corr, val, side="left"))
+                    hit = k < len(raw_ev)
+                else:
+                    hit = False
             else:
-                k = max(0, min(val - seen, len(raw)))
-                hit = val < seen + len(raw)
+                k = max(0, min(val - seen, len(raw_ev)))
+                hit = val < seen + len(raw_ev)
+                
             if hit:
                 self._seek_correction = correction
-                self._pending = EventArray(
-                    t_corr[k:].copy(), raw.x[k:].copy(),
-                    raw.y[k:].copy(), raw.p[k:].copy(),
+                # Filter triggers >= val (assuming timestamp axis search, or just passing them through)
+                if axis == "t":
+                    tr_k = int(np.searchsorted(tr_t_corr, val, side="left"))
+                else:
+                    # Best effort for event index: keep all triggers from this chunk
+                    tr_k = 0
+                
+                self._pending = (
+                    EventArray(
+                        t_corr[k:].copy(), raw_ev.x[k:].copy(),
+                        raw_ev.y[k:].copy(), raw_ev.p[k:].copy(),
+                    ),
+                    TriggerArray(
+                        tr_t_corr[tr_k:].copy(), raw_tr.p[tr_k:].copy(), raw_tr.id[tr_k:].copy()
+                    ) if len(raw_tr) > 0 else TriggerArray.empty()
                 )
-                return int(t_corr[k]) if k < len(raw) else val
-            seen += len(raw)
+                return int(t_corr[k]) if k < len(raw_ev) else val
+            seen += len(raw_ev)
 
     def tell(self) -> int:
         """Get the current byte offset.
@@ -1160,6 +1173,6 @@ f"""% camera_integrator_name Prophesee
 
         self._n_written_events += len(events)
 
-        buffer.tofile(self._fd)
+        self._fd.write(buffer.tobytes())
 
         return len(events)
