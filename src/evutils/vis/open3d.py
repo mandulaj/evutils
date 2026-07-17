@@ -2,10 +2,11 @@
 
 This module provides functions to visualize event streams in 3D (x, y, time)
 using Open3D.
+
+``open3d`` and ``matplotlib`` are imported lazily, inside the functions that
+use them, so importing this module stays cheap.
 """
-import open3d as o3d
 import numpy as np
-from matplotlib import pyplot as plt 
 
 def o3d_draw_events(events: np.ndarray) -> None:
     """Visualizes events using Open3D.
@@ -21,10 +22,13 @@ def o3d_draw_events(events: np.ndarray) -> None:
     None
 
     """
+    import open3d as o3d
+    from matplotlib import pyplot as plt
+
     if len(events) == 0:
         return
 
-    # Draw X, Y, T as a pointcloud 
+    # Draw X, Y, T as a pointcloud
     pdc = o3d.geometry.PointCloud()
 
     time_diff = np.max(events['t']) - np.min(events['t'])

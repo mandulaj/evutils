@@ -2,16 +2,21 @@
 
 This module provides functions to plot event streams, 3D histograms,
 and time surfaces using matplotlib's 3D plotting capabilities.
+
+``cv2`` and ``matplotlib`` are imported lazily, inside the functions that
+use them, so ``import evutils.vis`` (and importing this module) stays cheap
+and does not drag in OpenCV / the full matplotlib stack.
 """
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Optional, Union
 
 import numpy as np
-import cv2
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 
-from typing import Union, Optional
-from matplotlib.colors import Colormap
-from matplotlib.figure import Figure
+if TYPE_CHECKING:
+    from matplotlib.colors import Colormap
+    from matplotlib.figure import Figure
+    from mpl_toolkits.mplot3d import Axes3D
 
 def plot_3d(events: np.ndarray, 
             width: int =1280, 
@@ -49,6 +54,9 @@ def plot_3d(events: np.ndarray,
         If the colormap is not found or invalid.
     
     """
+    import matplotlib.pyplot as plt
+    from mpl_toolkits.mplot3d import Axes3D  # noqa: F401  (registers the '3d' projection)
+
     ts = events['t'] / time_scale
 
     # Create color map: red for polarity=0, blue for polarity=1
@@ -106,6 +114,10 @@ def plot_3d_histogram(histogram: np.ndarray,
         A tuple containing the figure and axis objects.
 
     """
+    import cv2
+    import matplotlib.pyplot as plt
+    from mpl_toolkits.mplot3d import Axes3D  # noqa: F401  (registers the '3d' projection)
+
     # Create figure/axis if not provided
     if ax is None:
         fig = plt.figure(figsize=(10, 7)) if fig is None else fig
@@ -181,6 +193,9 @@ def plot_3d_timesurface(events: np.ndarray,
         A tuple containing the figure and axis objects.
 
     """
+    import matplotlib.pyplot as plt
+    from mpl_toolkits.mplot3d import Axes3D  # noqa: F401  (registers the '3d' projection)
+
     ts = events['t'] # Convert timestamps to seconds
 
     # Create figure/axis if not provided
