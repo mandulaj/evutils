@@ -220,7 +220,7 @@ def stream_delta_t(raw_stream: Iterator[np.ndarray | EventArray], delta_t: int) 
             current_ts += delta_t
 
     # Stream finished! Yield whatever is leftover in the buffer
-    if len(acc) > 0:
+    if len(acc) > 0 or (has_triggers and acc._tr.size - acc._tr_start > 0):
         if has_triggers:
             yield acc.slice_copy(len(acc), acc._tr.size - acc._tr_start)
         else:
@@ -249,7 +249,7 @@ def stream_n_events(raw_stream: Iterator[np.ndarray | EventArray], n_events: int
             else:
                 yield acc.slice_copy(n_events, 0)[0]
 
-    if len(acc) > 0:
+    if len(acc) > 0 or (has_triggers and acc._tr.size - acc._tr_start > 0):
         if has_triggers:
             yield acc.slice_copy(len(acc), acc._tr.size - acc._tr_start)
         else:
