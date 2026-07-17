@@ -35,7 +35,7 @@ class EventsChecker():
             True if events are sorted in non-decreasing order of timestamps.
 
         """
-        return bool(np.all(self.events['t'][1:] >= self.events['t'][:-1]))
+        return bool(np.all(np.diff(self.events['t']) >= 0))
 
     def has_valid_polarity(self) -> bool:
         """Check if events have valid polarity (0 or 1).
@@ -46,7 +46,7 @@ class EventsChecker():
             True if all events have polarity 0 or 1.
 
         """
-        return bool(np.all((self.events['p'] == 0) | (self.events['p'] == 1)))
+        return bool(np.all((self.events['p'] <= 1) & (self.events['p'] >= 0)))
     
     def has_valid_x(self, width: int) -> bool:
         """Check if events have valid x coordinates.
