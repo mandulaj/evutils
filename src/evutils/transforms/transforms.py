@@ -82,21 +82,22 @@ class DropEvent(Transform):
         Drop probability in ``[0, 1)``. A ``(lo, hi)`` tuple is sampled uniformly
         per call. Defaults to ``0.1``.
     """
-    def __init__(self, p: Union[float, tuple] = 0.1):
+    def __init__(self, p: Union[float, tuple] = 0.1, seed: int | None = None):
         if not isinstance(p, (tuple, list)):
             if math.isnan(p) or p < 0 or p >= 1:
                 raise ValueError("p must be in [0, 1)")
         self.p = p
+        self.seed = seed
 
     def _forward_jit(self, t, x, y, pol):
         from evutils.transforms.functional import _drop_random_events_jit
         prob = sample_range(self.p)
         if prob <= 0:
             return t, x, y, pol
-        return _drop_random_events_jit(t, x, y, pol, prob)
+        return _drop_random_events_jit(t, x, y, pol, prob, self.seed if self.seed is not None else -1)
 
     def __repr__(self):
-        return f"{self.__class__.__name__}(p={self.p})"
+        return f"{self.__class__.__name__}(p={self.p}, seed={self.seed})"
 
 # Backwards-compatible alias for the pre-rename class name.
 DropRandomEvents = DropEvent
@@ -110,18 +111,19 @@ class DropEventByTime(Transform):
         Window length as a fraction of the recording span, in ``[0, 1)``. A
         ``(lo, hi)`` tuple is sampled uniformly per call. Defaults to ``0.2``.
     """
-    def __init__(self, duration_ratio: Union[float, tuple] = 0.2):
+    def __init__(self, duration_ratio: Union[float, tuple] = 0.2, seed: int | None = None):
         self.duration_ratio = duration_ratio
+        self.seed = seed
 
     def _forward_jit(self, t, x, y, p):
         from evutils.transforms.functional import _drop_by_time_jit
         ratio = sample_range(self.duration_ratio)
         if ratio <= 0:
             return t, x, y, p
-        return _drop_by_time_jit(t, x, y, p, ratio)
+        return _drop_by_time_jit(t, x, y, p, ratio, self.seed if self.seed is not None else -1)
 
     def __repr__(self):
-        return f"{self.__class__.__name__}(duration_ratio={self.duration_ratio})"
+        return f"{self.__class__.__name__}(duration_ratio={self.duration_ratio}, seed={self.seed})"
 
 class RandomFlipLR(Transform):
     """Flips events horizontally (``x' = width - 1 - x``) with probability ``p``.
