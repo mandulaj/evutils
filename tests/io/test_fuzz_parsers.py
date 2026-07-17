@@ -19,6 +19,7 @@ def _write_valid_file(path, fmt):
             w.write(ev)
 
 @pytest.mark.parametrize("fmt,ext", FORMATS)
+@pytest.mark.filterwarnings("ignore:Malformed packets ignored near word:UserWarning")
 def test_fuzz_parser_garbage(tmp_path, fmt, ext):
     """Feed random bytes after a valid header to ensure parsers don't segfault."""
     p = tmp_path / f"fuzz_{fmt}.{ext}"
