@@ -375,6 +375,6 @@ class EventEncoder_Dat(EventEncoder):
             | ((y.astype(np.uint32) & np.uint32(0x3FFF)) << np.uint32(14))
             | ((p.astype(np.uint32) & np.uint32(0x1)) << np.uint32(28))
         )
-        out.tofile(self._fd)
+        self._fd.write(out.tobytes())
         self._n_written_events += n
         return n

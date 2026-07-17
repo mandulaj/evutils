@@ -302,6 +302,6 @@ class EventEncoder_AER(EventEncoder):
             | ((x.astype(np.uint32) & np.uint32(0x1FF)) << np.uint32(9))
             | ((p.astype(np.uint32) & np.uint32(0x1)) << np.uint32(18))
         )
-        out.astype(np.uint32).tofile(self._fd)
+        self._fd.write(out.astype(np.uint32).tobytes())
         self._n_written_events += len(out)
         return len(out)
