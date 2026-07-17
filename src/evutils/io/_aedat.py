@@ -224,6 +224,7 @@ _DECOMPRESSORS: dict[int, Callable[[bytes], bytes]] = {
 }
 
 class EventDecoder_Aedat(EventDecoder):
+    SUPPORTS_EXT_TRIGGERS = True
     """Decode AEDAT 1.0 / 2.0 / 3.1 / 4.0 files into ``EventArray`` chunks.
 
     The version is detected from the ``#!AER-DATx.y`` header line (a file
@@ -373,8 +374,9 @@ class EventDecoder_Aedat(EventDecoder):
         self._last_raw_ts = int(t[-1])
         return t + (wraps << np.int64(32))
 
-    def _batch_v1_v2(self) -> EventArray | None:
+    def _batch_v1_v2(self) -> tuple[EventArray, TriggerArray] | None:
         """Decode the next ``chunk_size`` fixed-size records (AEDAT 1.0/2.0)."""
+        from ..types import TriggerArray
         dtype = _V1_DTYPE if self._version == 1 else _V2_DTYPE
         remaining = (len(self._buf) - self._cursor) // dtype.itemsize
         if remaining <= 0:
@@ -389,17 +391,32 @@ class EventDecoder_Aedat(EventDecoder):
             x = (a >> 1) & np.uint16(0x7F)
             y = (a >> 8) & np.uint16(0x7F)
             p = (a & np.uint16(0x1)).astype(np.uint8)
+            events = EventArray(t, x.astype(np.uint16), y.astype(np.uint16), p)
+            triggers = TriggerArray.empty()
         else:
             # Skip non-DVS words (APS samples / IMU, flagged by bit 31).
             dvs = (a >> np.uint32(31)) == 0
             if not dvs.all():
                 a, t = a[dvs], t[dvs]
-            x, y, p = _V2_LAYOUTS[self._layout](a)
-            p = p.astype(np.uint8)
-        return EventArray(t, x.astype(np.uint16), y.astype(np.uint16), p)
+            
+            # Bits 11-10: 00=OFF, 10=ON, 01/11=External Event
+            subtype = (a >> np.uint32(10)) & np.uint32(0x3)
+            is_trigger = (subtype == 1) | (subtype == 3)
+            is_event = ~is_trigger
 
-    def _batch_v3(self) -> EventArray | None:
-        """Decode the next AEDAT 3.1 packet holding polarity events."""
+            a_ev, t_ev = a[is_event], t[is_event]
+            x, y, p = _V2_LAYOUTS[self._layout](a_ev)
+            events = EventArray(t_ev, x.astype(np.uint16), y.astype(np.uint16), p.astype(np.uint8))
+
+            a_tr, t_tr = a[is_trigger], t[is_trigger]
+            tr_p = ((a_tr >> np.uint32(11)) & np.uint32(0x1)).astype(np.uint8)
+            triggers = TriggerArray(t_tr, tr_p, np.zeros_like(tr_p))
+
+        return events, triggers
+
+    def _batch_v3(self) -> tuple[EventArray, TriggerArray] | None:
+        """Decode the next AEDAT 3.1 packet holding polarity or trigger events."""
+        from ..types import TriggerArray
         buf = self._buf
         n = len(buf)
         while self._cursor + _V3_HEADER.size <= n:
@@ -408,37 +425,48 @@ class EventDecoder_Aedat(EventDecoder):
             body_start = self._cursor + _V3_HEADER.size
             body_end = body_start + capacity * ev_size
             if ev_size <= 0 or body_end > n:
-                # Corrupt/truncated trailing packet: stop cleanly.
                 self._cursor = n
                 return None
             self._cursor = body_end
 
-            if ev_type != _V3_POLARITY_EVENT or number == 0:
-                continue  # frame / IMU / trigger packet: skip
+            if number == 0:
+                continue
 
-            if ev_size != _V3_EVENT_DTYPE.itemsize or ts_offset != 4:
-                raise ValueError(
-                    f"unsupported AEDAT3 polarity event layout "
-                    f"(eventSize={ev_size}, tsOffset={ts_offset})"
-                )
-            rec = np.frombuffer(buf, dtype=_V3_EVENT_DTYPE, count=number, offset=body_start)
-            d = rec["d"]
-            valid = (d & np.uint32(0x1)) != 0
-            if not valid.all():
-                rec, d = rec[valid], d[valid]
-                if len(rec) == 0:
-                    continue
-            # 31-bit in-packet timestamp + 64-bit overflow counter.
-            t = rec["t"].astype(np.int64) + (np.int64(ts_overflow) << np.int64(31))
-            x = ((d >> np.uint32(17)) & np.uint32(0x7FFF)).astype(np.uint16)
-            y = ((d >> np.uint32(2)) & np.uint32(0x7FFF)).astype(np.uint16)
-            p = ((d >> np.uint32(1)) & np.uint32(0x1)).astype(np.uint8)
-            return EventArray(t, x, y, p)
+            if ev_type == _V3_POLARITY_EVENT:
+                if ev_size != _V3_EVENT_DTYPE.itemsize or ts_offset != 4:
+                    raise ValueError(f"unsupported AEDAT3 polarity event layout (eventSize={ev_size})")
+                rec = np.frombuffer(buf, dtype=_V3_EVENT_DTYPE, count=number, offset=body_start)
+                d = rec["d"]
+                valid = (d & np.uint32(0x1)) != 0
+                if not valid.all():
+                    rec, d = rec[valid], d[valid]
+                    if len(rec) == 0:
+                        continue
+                t = rec["t"].astype(np.int64) + (np.int64(ts_overflow) << np.int64(31))
+                x = ((d >> np.uint32(17)) & np.uint32(0x7FFF)).astype(np.uint16)
+                y = ((d >> np.uint32(2)) & np.uint32(0x7FFF)).astype(np.uint16)
+                p = ((d >> np.uint32(1)) & np.uint32(0x1)).astype(np.uint8)
+                return EventArray(t, x, y, p), TriggerArray.empty()
+
+            elif ev_type == 0:  # SPECIAL_EVENT
+                rec = np.frombuffer(buf, dtype=_V3_EVENT_DTYPE, count=number, offset=body_start)
+                d = rec["d"]
+                valid = (d & np.uint32(0x1)) != 0
+                if not valid.all():
+                    rec, d = rec[valid], d[valid]
+                type_id = (d >> np.uint32(1)) & np.uint32(0x7F)
+                is_ext = (type_id >= 2) & (type_id <= 13)
+                if is_ext.any():
+                    tr_rec, tr_d, tr_type = rec[is_ext], d[is_ext], type_id[is_ext]
+                    tr_t = tr_rec["t"].astype(np.int64) + (np.int64(ts_overflow) << np.int64(31))
+                    tr_p = (tr_type % 2 == 0).astype(np.uint8) # Even types are rising (1), odd are falling (0)
+                    return _EMPTY_EVENTS, TriggerArray(tr_t, tr_p, np.zeros_like(tr_p))
         self._cursor = n
         return None
 
-    def _batch_v4(self) -> EventArray | None:
-        """Decode the next AEDAT4 packet carrying events."""
+    def _batch_v4(self) -> tuple[EventArray, TriggerArray] | None:
+        """Decode the next AEDAT4 packet carrying events or triggers."""
+        from ..types import TriggerArray
         buf = self._buf
         end = self._v4_region_end
         decompress = _DECOMPRESSORS[self._v4_compression]
@@ -448,25 +476,40 @@ class EventDecoder_Aedat(EventDecoder):
             body_start = self._cursor + 8
             body_end = body_start + size
             if size < 0 or body_end > end:
-                # Truncated trailing packet (or we ran into the data table).
                 self._cursor = end
                 return None
             self._cursor = body_end
 
-            # When the header named the event streams, filter cheaply by id;
-            # otherwise decompress and check the FlatBuffer identifier.
-            if self._v4_stream_ids and stream_id not in self._v4_stream_ids:
-                continue
+            # Unconditionally decompress if we're reading triggers (don't skip non-EVTS streams just yet)
             body = decompress(bytes(buf[body_start:body_end]))
-            rec = _parse_event_packet(body)
-            if rec is None or len(rec) == 0:
-                continue
-            return EventArray(
-                rec["t"],
-                rec["x"].astype(np.uint16),
-                rec["y"].astype(np.uint16),
-                rec["p"].astype(np.uint8),
-            )
+            
+            if len(body) >= 12 and body[8:12] == b"EVTS":
+                rec = _parse_event_packet(body)
+                if rec is not None and len(rec) > 0:
+                    return EventArray(
+                        rec["t"],
+                        rec["x"].astype(np.uint16),
+                        rec["y"].astype(np.uint16),
+                        rec["p"].astype(np.uint8),
+                    ), TriggerArray.empty()
+            elif len(body) >= 12 and body[8:12] == b"TRIG":
+                # Trigger packet parsing:
+                # Trigger struct: int64 t, int8 type, 7 pad bytes = 16 bytes.
+                # Types: 0=TIMESTAMP_RESET, 1=EXTERNAL_INPUT_RISING_EDGE, 2=EXTERNAL_INPUT_FALLING_EDGE, 3=EXTERNAL_INPUT_PULSE, etc.
+                root = 4 + _u32(body, 4)
+                pos = _fb_field_pos(body, root, 0)
+                if pos is not None:
+                    vector = pos + _u32(body, pos)
+                    count = _u32(body, vector)
+                    start = vector + 4
+                    if start + count * 16 <= len(body):
+                        tr_rec = np.frombuffer(body, dtype=np.dtype([("t", "<i8"), ("type", "i1"), ("pad", "V7")]), count=count, offset=start)
+                        t = tr_rec["t"]
+                        type_id = tr_rec["type"]
+                        # Rising edge is typically 1 (odd), falling edge is 2 (even).
+                        # Let's map it simply:
+                        tr_p = (type_id % 2 != 0).astype(np.uint8)
+                        return _EMPTY_EVENTS, TriggerArray(t, tr_p, np.zeros_like(tr_p))
         self._cursor = end
         return None
 
@@ -474,7 +517,8 @@ class EventDecoder_Aedat(EventDecoder):
     # EventDecoder interface
     # ------------------------------------------------------------------ #
     def read_chunk(self, delta_t_hint: int | None = None,
-                   n_events_hint: int | None = None) -> EventArray:
+                   n_events_hint: int | None = None) -> 'EventArray | tuple[EventArray, TriggerArray]':
+        from ..types import TriggerArray
         if not self._is_initialized:
             self.init()
 
@@ -487,8 +531,14 @@ class EventDecoder_Aedat(EventDecoder):
 
         if batch is None:
             self._eof = True
+            if self.read_external_triggers:
+                return _EMPTY_EVENTS, TriggerArray.empty()
             return _EMPTY_EVENTS
-        return batch
+        
+        events, triggers = batch
+        if self.read_external_triggers:
+            return events, triggers
+        return events
 
     def reset(self) -> None:
         """Reset the reader to the first event."""
@@ -512,40 +562,95 @@ class EventDecoder_Aedat(EventDecoder):
         """Release the buffer view so the source can be closed."""
         self._buf = None
 
+def _fb_io_header(compression: int, data_table_pos: int, info_node: bytes) -> bytes:
+    """Hand-built IOHeader FlatBuffer (not size-prefixed)."""
+    import struct
+    buf = bytearray()
+    buf += struct.pack("<I", 16)                       # root table offset
+    buf += struct.pack("<HHHHH", 10, 20, 4, 8, 16)     # vtable @4: 3 fields
+    buf += b"\x00\x00"                                 # pad, table at 16
+    buf += struct.pack("<i", 12)                       # soffset: table(16) - vtable(4)
+    buf += struct.pack("<i", compression)              # field 0 @20 (voffset 4)
+    buf += struct.pack("<q", data_table_pos)           # field 1 @24 (voffset 8)
+    buf += struct.pack("<I", 36 - 32)                  # field 2 @32: string @36
+    buf += struct.pack("<I", len(info_node)) + info_node + b"\x00"
+    return bytes(buf)
+
+def _fb_event_packet(events: 'EventArray') -> bytes:
+    """Hand-built size-prefixed EventPacket FlatBuffer (identifier EVTS)."""
+    import struct
+    n = len(events)
+    # AEDAT 4.0 event struct layout: int64 t, int16 x, int16 y, uint8 p, 3 pad bytes
+    rec = np.zeros(n, dtype=_V4_EVENT_DTYPE)
+    rec["t"] = events["t"]
+    rec["x"] = events["x"]
+    rec["y"] = events["y"]
+    rec["p"] = events["p"]
+    events_bytes = rec.tobytes()
+    
+    buf = bytearray()
+    buf += struct.pack("<I", 0)                    # size prefix (patched below)
+    buf += struct.pack("<I", 16)                   # root table offset, relative to pos 4
+    buf += b"EVTS"
+    buf += struct.pack("<HHH", 6, 8, 4)            # vtable: size 6, table size 8, field0 @4
+    buf += b"\x00\x00"                             # pad to 4-aligned table at 20
+    buf += struct.pack("<i", 8)                    # soffset: table(20) - vtable(12)
+    buf += struct.pack("<I", 4)                    # field0: vector offset rel to pos 24
+    buf += struct.pack("<I", n)                    # vector length
+    buf += events_bytes
+    struct.pack_into("<I", buf, 0, len(buf) - 4)
+    return bytes(buf)
+
 class EventEncoder_Aedat(EventEncoder):
-    """An encoder for writing events to AEDAT files.
+    """Encoder for AEDAT 4.0 files."""
+    
+    SUPPORTS_WRITE_TRIGGERS = False
 
-    .. note::
-        Not implemented yet -- constructing this class raises
-        :class:`NotImplementedError`. (Reading AEDAT 1.0--4.0 is supported
-        via :class:`EventDecoder_Aedat`.)
-
-    Parameters
-    ----------
-    writable : io.BufferedIOBase
-        Destination for writing events.
-    **kwargs
-        Additional encoder arguments (``width``, ``height``, ``dt``, ...).
-
-    Raises
-    ------
-    NotImplementedError
-        Always, until the format is implemented.
-
-    """
-
-    _NOT_IMPLEMENTED = (
-        "Writing AEDAT files is not implemented yet. "
-        "Write a supported format instead (RAW/EVT, DAT, AER, HDF5, NPZ, CSV)."
-    )
-
-    def __init__(self, writable: "io.BufferedIOBase", **kwargs):
-        raise NotImplementedError(self._NOT_IMPLEMENTED)
+    def __init__(self, writable, width:int = 1280, height:int = 720, dt=None, compression: int = 0, **kwargs):
+        super().__init__(writable, width, height, dt)
+        self._compression = compression  # 0=NONE, 1=LZ4, 2=LZ4_HIGH, 3=ZSTD, 4=ZSTD_HIGH
 
     def init(self) -> None:
-        """Initialize the file for writing."""
-        raise NotImplementedError(self._NOT_IMPLEMENTED)
+        if self._is_initialized:
+            return
+            
+        import struct
+        
+        # Version line
+        self._fd.write(b"#!AER-DAT4.0\r\n")
+        
+        # IOHeader XML Config
+        info_xml = f'<?xml version="1.0" encoding="UTF-8"?><node name="info"><node name="0"><attr key="typeIdentifier" type="string">EVTS</attr><attr key="sizeX" type="int">{self._width}</attr><attr key="sizeY" type="int">{self._height}</attr></node></node>'.encode("utf-8")
+        
+        io_header = _fb_io_header(self._compression, -1, info_xml)
+        self._fd.write(struct.pack("<I", len(io_header)) + io_header)
+        
+        self._is_initialized = True
 
-    def write(self, events: 'np.ndarray | EventArray', triggers: 'np.ndarray | TriggerArray | None' = None) -> int:
-        """Write a chunk of events."""
-        raise NotImplementedError(self._NOT_IMPLEMENTED)
+    def write(self, events, triggers = None) -> int:
+        if not self._is_initialized:
+            self.init()
+            
+        if triggers is not None and len(triggers) > 0:
+            raise NotImplementedError("Writing triggers to AEDAT 4.0 is not yet supported.")
+            
+        if len(events) == 0:
+            return 0
+            
+        import struct
+        
+        body = _fb_event_packet(events)
+        
+        if self._compression in (1, 2):
+            import lz4.frame
+            body = lz4.frame.compress(body)
+        elif self._compression in (3, 4):
+            import zstandard
+            ctx = zstandard.ZstdCompressor(level=3 if self._compression == 3 else 10)
+            body = ctx.compress(body)
+            
+        # Write Packet header: StreamID (0), Size, Body
+        self._fd.write(struct.pack("<iI", 0, len(body)) + body)
+        
+        self._n_written_events += len(events)
+        return len(events)

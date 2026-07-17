@@ -160,3 +160,27 @@ def test_AEDAT_truncated_payload(tmp_path: Any) -> None:
     with EventReader(f) as r:
         out = r.read_all()
         assert len(out) == 0
+
+def test_aedat4_encoder_roundtrip(tmp_path: Any) -> None:
+    from evutils.io import EventWriter
+    from evutils.types import EventArray
+    events = EventArray(
+        t=np.array([1000, 2000, 3000], dtype=np.int64),
+        x=np.array([10, 20, 30], dtype=np.uint16),
+        y=np.array([15, 25, 35], dtype=np.uint16),
+        p=np.array([1, 0, 1], dtype=np.uint8)
+    )
+
+    fpath = tmp_path / "test.aedat4"
+    with EventWriter(fpath, format="aedat") as w:
+        w.write(events)
+
+    with EventReader(fpath) as r:
+        out = r.read_all()
+        if isinstance(out, tuple):
+            out = out[0]
+        assert np.array_equal(out.t, events.t)
+        assert np.array_equal(out.x, events.x)
+        assert np.array_equal(out.y, events.y)
+        assert np.array_equal(out.p, events.p)
+

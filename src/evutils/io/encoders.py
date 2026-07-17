@@ -19,6 +19,7 @@ _UNAVAILABLE: dict[str, str] = {}
 
 from ._aedat import EventEncoder_Aedat
 _WRITER_MAPPING[".aedat"] = EventEncoder_Aedat
+_WRITER_MAPPING[".aedat4"] = EventEncoder_Aedat
 
 from ._bin import EventEncoder_Bin
 _WRITER_MAPPING[".bin"] = EventEncoder_Bin
