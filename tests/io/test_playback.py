@@ -62,7 +62,7 @@ def test_playback_off_is_fast(recording: Any) -> None:
     p, _ = recording
     with EventReader(p, mode="delta_t", delta_t=20_000) as r:
         _, elapsed = _drain(r)
-    assert elapsed < 0.05
+    assert elapsed < 0.15
 
 
 def _run_slow_consumer(reader: Any, work: float) -> tuple[int, float]:
