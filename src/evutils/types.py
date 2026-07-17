@@ -10,7 +10,9 @@ from typing import TypeVar
 
 import numpy as np
 
-__all__ = ['Event_dtype', 'Trigger_dtype', 'Event', 'EventArray', 'TriggerArray', 'is_monotonically_increasing', 'EventsChecker']
+__all__ = ['Event_dtype', 'Trigger_dtype', 'Event', 'EventArray', 'TriggerArray', 'DataBatch', 'is_monotonically_increasing', 'EventsChecker']
+
+from dataclasses import dataclass
 
 #: A structured numpy dtype for event data.
 #:
@@ -304,6 +306,16 @@ class TriggerArray(SoaArray):
         self.p = p_arr
         self.id = id_arr
         self.metadata = metadata
+
+@dataclass
+class DataBatch:
+    """A single batch of multiplexed data containing events, triggers, and potentially other modalities."""
+    events: EventArray
+    triggers: TriggerArray
+    
+    # We leave room for future modalities here
+    # imu: ImuArray | None = None
+    # frames: FrameArray | None = None
 
 # EventsChecker validates the event types defined above; imported here (at the
 # end, after the types exist) so it is reachable as ``evutils.types.EventsChecker``

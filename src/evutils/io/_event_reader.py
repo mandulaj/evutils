@@ -1,31 +1,30 @@
 """Event reader module.
 
-Provides the `EventReader` class for reading and decoding event data 
+Provides the `EventReader` class for reading and decoding event data
 from a file or byte stream.
 """
 
 import io
 import time
 from pathlib import Path
-from typing import Any, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Optional
 
 import numpy as np
 
 from ..types import EventArray, TriggerArray
-
 from . import decoders as ev_decoders
-from ._native_core import (
-    EventSoABuffers, TriggerSoABuffers, events_view,
-    EVUTILS_PARSE_WINDOW_DONE, EVUTILS_PARSE_OUTPUT_FULL,
-)
+from ._native_core import (EVUTILS_PARSE_OUTPUT_FULL,
+                           EVUTILS_PARSE_WINDOW_DONE, EventSoABuffers,
+                           TriggerSoABuffers, events_view)
 from ._prefetch import PrefetchIterator
 from ._source import ByteSource, make_source
 from .buffer import EventAccumulator
 
+
 class EventReader():
     """Class for reading and automatically decoding and slicing events from a file or stream.
 
-    The reader supports different modes of operation, including reading a fixed number of events, reading events within a time window, or a combination of both. 
+    The reader supports different modes of operation, including reading a fixed number of events, reading events within a time window, or a combination of both.
     The file_decoder is chosen automatically based on the file format or can be supplied explicitly.
 
     Parameters
@@ -120,11 +119,11 @@ class EventReader():
 
     TODO:
     Architectural Refactor Roadmap:
-    Decouple `EventReader`'s monolithic design by extracting the core byte-to-array decoding into 
-    a native `EventStreamer`. The slicing logic (`mode="delta_t"`, `mode="n_events"`, etc.) should 
-    be moved to composable pipeline generators in `evutils.chunking`. `EventReader` will then 
-    become a simple Façade that dynamically assembles these pipeline generators to maintain 
-    this exact backward-compatible API, while allowing power-users to compose custom pipelines 
+    Decouple `EventReader`'s monolithic design by extracting the core byte-to-array decoding into
+    a native `EventStreamer`. The slicing logic (`mode="delta_t"`, `mode="n_events"`, etc.) should
+    be moved to composable pipeline generators in `evutils.chunking`. `EventReader` will then
+    become a simple Façade that dynamically assembles these pipeline generators to maintain
+    this exact backward-compatible API, while allowing power-users to compose custom pipelines
     (e.g., slicing by external trigger boundaries).
     """
 
@@ -148,12 +147,14 @@ class EventReader():
                  playback_speed: float=1.0,
                  max_gap: float | None=1.0,
                  index: "str | bool" = "auto",
+                 batch_mode: bool=False,
                  file_decoder: ev_decoders.EventDecoder | type[ev_decoders.EventDecoder] | None = None,
                  **kwargs) -> None:
 
         # Remember the path (if any) for repr / reset semantics.
         self._file_name: Path | None = Path(file) if isinstance(file, (str, Path)) else None
         self._read_external_triggers = ext_trigger
+        self._batch_mode = batch_mode
 
         # 1. Normalise the input into a ByteSource (path | stream | bytes |
         #    BytesIO | ByteSource -> ByteSource). Regular files are memory-mapped.
@@ -361,7 +362,7 @@ class EventReader():
         (0 => end of stream). Native decoders decode straight into the
         accumulator's storage (no copy); others have their ``read_chunk`` output
         appended.
-        
+
         Parameters
         ----------
         acc : EventAccumulator
@@ -437,6 +438,12 @@ class EventReader():
         out = self._read(delta_t, n_events)
         if self._real_time:
             self._pace(out)
+        if self._batch_mode:
+            from ..types import DataBatch, TriggerArray
+            if isinstance(out, tuple):
+                return DataBatch(events=out[0], triggers=out[1])
+            else:
+                return DataBatch(events=out, triggers=TriggerArray.empty())
         return out
 
     def _pace(self, out: "np.ndarray | EventArray") -> None:
@@ -944,7 +951,7 @@ class EventReader():
             output.t -= self._first_ts - self._start_ts
             if len(output_tr) > 0:
                 output_tr.t -= self._first_ts - self._start_ts
-                
+
         if self._read_external_triggers:
             return output, output_tr
         return output
@@ -1008,7 +1015,7 @@ class EventReader():
                     np.concatenate([buffered.y, out.y]),
                     np.concatenate([buffered.p, out.p]),
                 )
-                
+
             if self._read_external_triggers:
                 if len(out_tr) == 0:
                     out_tr = buffered_tr
@@ -1032,6 +1039,11 @@ class EventReader():
             if self._read_external_triggers and len(out_tr) > 0:
                 out_tr.t -= shift
 
+        if self._batch_mode:
+            from ..types import DataBatch, TriggerArray
+            if self._read_external_triggers:
+                return DataBatch(events=out, triggers=out_tr)
+            return DataBatch(events=out, triggers=TriggerArray.empty())
         if self._read_external_triggers:
             return out, out_tr
         return out
@@ -1273,13 +1285,20 @@ class EventReader():
             if hasattr(it, "close"):
                 it.close()
 
-    def _iter_sync(self) -> "Iterator[EventArray]":
+    def _iter_sync(self) -> "Iterator[Any]":
         """The plain synchronous window generator behind :meth:`__iter__`."""
         if not self._is_initialized:
             self.init()
         while not self.is_eof():
-            yield self._read()
-
+            res = self._read()
+            if self._batch_mode:
+                from ..types import DataBatch, TriggerArray
+                if isinstance(res, tuple):
+                    yield DataBatch(events=res[0], triggers=res[1])
+                else:
+                    yield DataBatch(events=res, triggers=TriggerArray.empty())
+            else:
+                yield res
     def shape(self) -> tuple[int|None, int|None]:
         """Get the shape of the frame.
 

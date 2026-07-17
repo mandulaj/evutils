@@ -215,3 +215,31 @@ def test_reuse_buffers_async_matches_default(tmp_path: Any, fmt: str) -> None:
     assert len(ref) == len(got)
     for a, b in zip(ref, got):
         assert np.array_equal(a, b)
+
+def test_batch_mode(tmp_path: Any) -> None:
+    from evutils.io import EventWriter, EventReader
+    from evutils.types import DataBatch
+    ev = _uniform_events(50, dt=13)
+    p = tmp_path / "batch_mode.aedat4"
+    with EventWriter(p, format="aedat") as w:
+        w.write(ev)
+
+    # test iter
+    with EventReader(p, batch_mode=True, n_events=10) as r:
+        batches = list(r)
+        assert len(batches) == 5
+        assert all(isinstance(b, DataBatch) for b in batches)
+        assert sum(len(b.events) for b in batches) == 50
+
+    # test read
+    with EventReader(p, batch_mode=True) as r:
+        b = r.read()
+        assert isinstance(b, DataBatch)
+        assert len(b.events) == 50
+
+    # test read_all
+    with EventReader(p, batch_mode=True) as r:
+        b = r.read_all()
+        assert isinstance(b, DataBatch)
+        assert len(b.events) == 50
+
