@@ -404,10 +404,10 @@ class EventReader():
             chunk, triggers = chunk
         else:
             triggers = None
-        if len(chunk) == 0:
+        if len(chunk) == 0 and (triggers is None or len(triggers) == 0):
             return 0
         acc.append(chunk, triggers)
-        return int(len(chunk))
+        return int(len(chunk)) if len(chunk) > 0 else 1
 
     def read(self, delta_t:int|None=None, n_events:int|None=None) -> 'EventArray | tuple[EventArray, TriggerArray]':
         """Read events on the files based on the mode and the parameters.

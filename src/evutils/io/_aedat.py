@@ -601,10 +601,39 @@ def _fb_event_packet(events: 'EventArray') -> bytes:
     struct.pack_into("<I", buf, 0, len(buf) - 4)
     return bytes(buf)
 
+def _fb_trigger_packet(triggers: 'TriggerArray') -> bytes:
+    """Hand-built size-prefixed TriggerPacket FlatBuffer (identifier TRIG)."""
+    import struct
+    n = len(triggers)
+    _V4_TRIGGER_DTYPE = np.dtype({
+        "names": ["t", "type"],
+        "formats": ["<i8", "i1"],
+        "offsets": [0, 8],
+        "itemsize": 16,
+    })
+    rec = np.zeros(n, dtype=_V4_TRIGGER_DTYPE)
+    rec["t"] = triggers["t"]
+    # 1=EXTERNAL_INPUT_RISING_EDGE, 2=EXTERNAL_INPUT_FALLING_EDGE
+    rec["type"] = np.where(triggers["p"], 1, 2)
+    triggers_bytes = rec.tobytes()
+    
+    buf = bytearray()
+    buf += struct.pack("<I", 0)                    # size prefix (patched below)
+    buf += struct.pack("<I", 16)                   # root table offset, relative to pos 4
+    buf += b"TRIG"
+    buf += struct.pack("<HHH", 6, 8, 4)            # vtable: size 6, table size 8, field0 @4
+    buf += b"\x00\x00"                             # pad to 4-aligned table at 20
+    buf += struct.pack("<i", 8)                    # soffset: table(20) - vtable(12)
+    buf += struct.pack("<I", 4)                    # field0: vector offset rel to pos 24
+    buf += struct.pack("<I", n)                    # vector length
+    buf += triggers_bytes
+    struct.pack_into("<I", buf, 0, len(buf) - 4)
+    return bytes(buf)
+
 class EventEncoder_Aedat(EventEncoder):
     """Encoder for AEDAT 4.0 files."""
     
-    SUPPORTS_WRITE_TRIGGERS = False
+    SUPPORTS_WRITE_TRIGGERS = True
 
     def __init__(self, writable, width:int = 1280, height:int = 720, dt=None, compression: int = 0, **kwargs):
         super().__init__(writable, width, height, dt)
@@ -620,7 +649,7 @@ class EventEncoder_Aedat(EventEncoder):
         self._fd.write(b"#!AER-DAT4.0\r\n")
         
         # IOHeader XML Config
-        info_xml = f'<?xml version="1.0" encoding="UTF-8"?><node name="info"><node name="0"><attr key="typeIdentifier" type="string">EVTS</attr><attr key="sizeX" type="int">{self._width}</attr><attr key="sizeY" type="int">{self._height}</attr></node></node>'.encode("utf-8")
+        info_xml = f'<?xml version="1.0" encoding="UTF-8"?><node name="info"><node name="0"><attr key="typeIdentifier" type="string">EVTS</attr><attr key="sizeX" type="int">{self._width}</attr><attr key="sizeY" type="int">{self._height}</attr></node><node name="1"><attr key="typeIdentifier" type="string">TRIG</attr></node></node>'.encode("utf-8")
         
         io_header = _fb_io_header(self._compression, -1, info_xml)
         self._fd.write(struct.pack("<I", len(io_header)) + io_header)
@@ -631,26 +660,34 @@ class EventEncoder_Aedat(EventEncoder):
         if not self._is_initialized:
             self.init()
             
-        if triggers is not None and len(triggers) > 0:
-            raise NotImplementedError("Writing triggers to AEDAT 4.0 is not yet supported.")
-            
-        if len(events) == 0:
+        if len(events) == 0 and (triggers is None or len(triggers) == 0):
             return 0
             
         import struct
         
-        body = _fb_event_packet(events)
+        if len(events) > 0:
+            body = _fb_event_packet(events)
+            if self._compression in (1, 2):
+                import lz4.frame
+                body = lz4.frame.compress(body)
+            elif self._compression in (3, 4):
+                import zstandard
+                ctx = zstandard.ZstdCompressor(level=3 if self._compression == 3 else 10)
+                body = ctx.compress(body)
+                
+            # Write Packet header: StreamID (0), Size, Body
+            self._fd.write(struct.pack("<iI", 0, len(body)) + body)
+            self._n_written_events += len(events)
         
-        if self._compression in (1, 2):
-            import lz4.frame
-            body = lz4.frame.compress(body)
-        elif self._compression in (3, 4):
-            import zstandard
-            ctx = zstandard.ZstdCompressor(level=3 if self._compression == 3 else 10)
-            body = ctx.compress(body)
-            
-        # Write Packet header: StreamID (0), Size, Body
-        self._fd.write(struct.pack("<iI", 0, len(body)) + body)
+        if triggers is not None and len(triggers) > 0:
+            tr_body = _fb_trigger_packet(triggers)
+            if self._compression in (1, 2):
+                import lz4.frame
+                tr_body = lz4.frame.compress(tr_body)
+            elif self._compression in (3, 4):
+                import zstandard
+                ctx = zstandard.ZstdCompressor(level=3 if self._compression == 3 else 10)
+                tr_body = ctx.compress(tr_body)
+            self._fd.write(struct.pack("<iI", 1, len(tr_body)) + tr_body)
         
-        self._n_written_events += len(events)
         return len(events)
