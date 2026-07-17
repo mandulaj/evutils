@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Type
 
 from .common import EventEncoder
+from ._compression import strip_compression_suffix
 
 #: Extension -> encoder class, for available backends only.
 _WRITER_MAPPING: dict[str, Type[EventEncoder]] = {}
@@ -85,7 +86,9 @@ def get_file_writer(file: Path) -> Type[EventEncoder]:
         Writer object for the file
 
     """
-    ext = file.suffix.lower()
+    # A compression suffix (foo.raw.zst) is transparent to format choice: the
+    # *inner* extension selects the encoder.
+    ext = Path(strip_compression_suffix(str(file))).suffix.lower()
     if ext in _WRITER_MAPPING:
         return _WRITER_MAPPING[ext]
     if ext in _UNAVAILABLE:

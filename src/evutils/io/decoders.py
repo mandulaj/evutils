@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Type, cast
 
 from .common import EventDecoder
+from ._compression import strip_compression_suffix
 
 #: Extension -> decoder class, for available backends only.
 _READER_MAPPING: dict[str, Type[EventDecoder]] = {}
@@ -166,6 +167,9 @@ def resolve_decoder_cls(source: "io.BufferedIOBase | str | bytes") -> Type[Event
     """
     name = getattr(source, "name", None)
     if name:
+        # A compression suffix (foo.raw.zst) is transparent to format choice:
+        # strip it so the *inner* extension selects the decoder.
+        name = strip_compression_suffix(name)
         ext = Path(name).suffix.lower()
         if ext in _READER_MAPPING or ext in _UNAVAILABLE:
             return _lookup(ext)

@@ -25,6 +25,8 @@ import mmap
 from abc import ABC, abstractmethod
 from pathlib import Path
 
+from ._compression import is_compressed_path, open_compressed
+
 class ByteSource(ABC):
     """Abstract raw-byte input. Knows nothing about events."""
 
@@ -301,6 +303,11 @@ def make_source(inp: "Path | str | bytes | io.BufferedIOBase", *, mmap_files: bo
         p = Path(inp)
         if not p.is_file():
             raise FileNotFoundError(f"File {p} does not exist")
+        if is_compressed_path(p):
+            # A compressed file cannot be mmap'd; wrap the decompressing stream.
+            # Keep the full name (incl. the compression suffix) so format
+            # detection can strip it back to the inner extension.
+            return StreamSource(open_compressed(p, "rb"), name=p.name, owns=True)
         if mmap_files and p.stat().st_size > 0:
             try:
                 return MmapSource(p)

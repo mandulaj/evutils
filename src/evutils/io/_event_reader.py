@@ -32,7 +32,12 @@ class EventReader():
     Parameters
     ----------
     file: Path or str or io.BufferedReader or bytes or ByteSource
-        Path to the data file or a readable stream or bytes or a ByteSource
+        Path to the data file or a readable stream or bytes or a ByteSource.
+        Compressed paths (``.gz`` / ``.zst`` / ``.xz`` / ``.bz2``, e.g.
+        ``foo.raw.zst``) are decompressed transparently; the inner extension
+        selects the format. An already-open compressed file object
+        (``gzip.GzipFile`` / ``lzma.LZMAFile`` / ``compression.zstd.ZstdFile``)
+        may also be passed directly.
     delta_t: int or optional
         Time window in microseconds, by default None
     n_events: int or None
@@ -1132,7 +1137,11 @@ class EventReader():
         # landing point below.
         first_ts: int | None = None
         seekable = getattr(self._source, "seekable", lambda: True)()
-        if not self._anchored and self._normalize_ts and seekable:
+        # Slurp-based decoders (EVT/DAT/...) buffer the whole payload in memory,
+        # so their seek() -- and the pre-seek first-ts peek -- work even when the
+        # underlying source is not itself seekable (e.g. a compressed stream).
+        can_fast_seek = seekable or dec._buffers_in_memory
+        if not self._anchored and self._normalize_ts and can_fast_seek:
             first_ts = self._peek_stream_first_ts()
 
         self._eof = False
@@ -1143,7 +1152,7 @@ class EventReader():
         if self._buffer is not None:
             self._buffer.reset()
 
-        if seekable:
+        if can_fast_seek:
             try:
                 res, rem_ev, rem_tr = dec.seek(t=t, n=n)
             except (io.UnsupportedOperation, OSError):

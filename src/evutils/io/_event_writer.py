@@ -10,6 +10,7 @@ from pathlib import Path
 import numpy as np
 
 from . import encoders as ev_encoders
+from ._compression import is_compressed_path, open_compressed
 
 class EventWriter():
     """Base class for writing events to different file formats.
@@ -17,7 +18,10 @@ class EventWriter():
     Parameters
     ----------
     file
-        Path to the data file
+        Path to the data file (or a writable binary stream). Compressed paths
+        (``.gz`` / ``.zst`` / ``.xz`` / ``.bz2``, e.g. ``foo.raw.zst``) are
+        compressed transparently; the inner extension selects the format.
+        Writing to a bare stream still requires an explicit ``file_encoder``.
     width
         Width of the frame. If None (default), taken from the first written
         events' ``sensor_size`` metadata, falling back to 1280 (not relevant
@@ -129,6 +133,10 @@ class EventWriter():
             The opened file object.
 
         """
+        # Compressed paths (foo.raw.zst) auto-open through a compressing stream;
+        # the inner extension (resolved by get_file_writer) selects the encoder.
+        if is_compressed_path(file_name):
+            return open_compressed(file_name, "wb")
         # default 'w+b' (not 'wb'): container encoders (HDF5) need the stream to be
         # readable and seekable, and it costs nothing for the append-only ones.
         return open(str(file_name), self._mode)

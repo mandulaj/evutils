@@ -62,8 +62,9 @@ class EventDecoder_Csv(EventDecoder):
     def _check_header(self) -> None:
         have_header = False
 
-        # Check first line to see if it is a header
-        # TODO: Need to deal with non-seekable files
+        # Check the first line to see if it is a header, then rewind. A
+        # non-seekable source has already been slurped into a seekable BytesIO
+        # by init() (self._fd), so readline()/seek(0) here are always valid.
         first_line: str = self._fd.readline().decode('utf-8').strip()
 
         # Check if the first line is a header
@@ -102,6 +103,12 @@ class EventDecoder_Csv(EventDecoder):
         None
 
         """
+        # Header handling and byte-offset seeking need a seekable source. A
+        # non-seekable source (pipe, compressed stream) is slurped into an
+        # in-memory buffer first (mirrors the NPZ decoder).
+        if not self._source.seekable():
+            self._fd = io.BytesIO(self._source.read(-1))
+
         self._check_header()
         assert self._order is not None  # set by _check_header
 
