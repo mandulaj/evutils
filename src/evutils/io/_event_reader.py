@@ -385,9 +385,14 @@ class EventReader():
         take_pending = getattr(dec, "take_pending", None)
         if take_pending is not None:
             pend = take_pending()
-            if pend is not None and len(pend) > 0:
-                acc.append(pend, None)
-                return int(len(pend))
+            if pend is not None:
+                if isinstance(pend, tuple):
+                    pend_ev, pend_tr = pend
+                else:
+                    pend_ev, pend_tr = pend, None
+                if len(pend_ev) > 0 or (pend_tr is not None and len(pend_tr) > 0):
+                    acc.append(pend_ev, pend_tr)
+                    return int(len(pend_ev)) if len(pend_ev) > 0 else 1
         if self._native_fill:
             while True:
                 if dec.is_eof():
