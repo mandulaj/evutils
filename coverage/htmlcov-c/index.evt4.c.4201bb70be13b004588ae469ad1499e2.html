@@ -350,7 +350,7 @@
         <td class="lineno"><a id="l35" href="#l35">35</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">41</td>
+        <td class="linecount coveredLine show_coveredLine">32</td>
         <td class="src  coveredLine show_coveredLine"><span class="n">parser_result_t</span><span class="w"> </span><span class="n">EVT4_parse_chunk_soa</span><span class="p">(</span></td>
       </tr>
       <tr class="source-line">
@@ -392,14 +392,14 @@
         <td class="lineno"><a id="l41" href="#l41">41</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">41</td>
+        <td class="linecount coveredLine show_coveredLine">32</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="o">*</span><span class="kr">restrict</span><span class="w"> </span><span class="n">current</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">input_buffer</span><span class="o">-&gt;</span><span class="n">begin</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l42" href="#l42">42</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">41</td>
+        <td class="linecount coveredLine show_coveredLine">32</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="o">*</span><span class="kr">restrict</span><span class="w"> </span><span class="n">end</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">input_buffer</span><span class="o">-&gt;</span><span class="n">end</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
@@ -434,14 +434,14 @@
         <td class="lineno"><a id="l47" href="#l47">47</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">41</td>
+        <td class="linecount coveredLine show_coveredLine">32</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">n_events_read</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">event_buffer</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l48" href="#l48">48</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">41</td>
+        <td class="linecount coveredLine show_coveredLine">32</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">events_capacity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">event_buffer</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
@@ -455,7 +455,7 @@
         <td class="lineno"><a id="l50" href="#l50">50</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">41</td>
+        <td class="linecount coveredLine show_coveredLine">32</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">events_capacity_offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">events_capacity</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">32</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="n">events_capacity</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">32</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
@@ -469,28 +469,28 @@
         <td class="lineno"><a id="l52" href="#l52">52</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">41</td>
+        <td class="linecount coveredLine show_coveredLine">32</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="n">timestamp_t</span><span class="o">*</span><span class="w"> </span><span class="kr">restrict</span><span class="w"> </span><span class="n">out_ts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">event_buffer</span><span class="o">-&gt;</span><span class="n">t</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l53" href="#l53">53</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">41</td>
+        <td class="linecount coveredLine show_coveredLine">32</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="kt">uint16_t</span><span class="o">*</span><span class="w"> </span><span class="kr">restrict</span><span class="w"> </span><span class="n">out_x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">event_buffer</span><span class="o">-&gt;</span><span class="n">x</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l54" href="#l54">54</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">41</td>
+        <td class="linecount coveredLine show_coveredLine">32</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="kt">uint16_t</span><span class="o">*</span><span class="w"> </span><span class="kr">restrict</span><span class="w"> </span><span class="n">out_y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">event_buffer</span><span class="o">-&gt;</span><span class="n">y</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l55" href="#l55">55</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">41</td>
+        <td class="linecount coveredLine show_coveredLine">32</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="kt">uint8_t</span><span class="o">*</span><span class="w"> </span><span class="kr">restrict</span><span class="w"> </span><span class="n">out_p</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">event_buffer</span><span class="o">-&gt;</span><span class="n">p</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
@@ -511,21 +511,21 @@
         <td class="lineno"><a id="l58" href="#l58">58</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">41</td>
+        <td class="linecount coveredLine show_coveredLine">32</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="n">timestamp_t</span><span class="o">*</span><span class="w"> </span><span class="kr">restrict</span><span class="w"> </span><span class="n">trigger_ts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">trigger_buffer</span><span class="o">-&gt;</span><span class="n">t</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l59" href="#l59">59</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">41</td>
+        <td class="linecount coveredLine show_coveredLine">32</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="kt">uint8_t</span><span class="o">*</span><span class="w"> </span><span class="kr">restrict</span><span class="w"> </span><span class="n">trigger_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">trigger_buffer</span><span class="o">-&gt;</span><span class="n">id</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l60" href="#l60">60</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">41</td>
+        <td class="linecount coveredLine show_coveredLine">32</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="kt">uint8_t</span><span class="o">*</span><span class="w"> </span><span class="kr">restrict</span><span class="w"> </span><span class="n">trigger_p</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">trigger_buffer</span><span class="o">-&gt;</span><span class="n">p</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
@@ -539,14 +539,14 @@
         <td class="lineno"><a id="l62" href="#l62">62</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">41</td>
+        <td class="linecount coveredLine show_coveredLine">32</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">n_triggers_read</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">trigger_buffer</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l63" href="#l63">63</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">41</td>
+        <td class="linecount coveredLine show_coveredLine">32</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">triggers_capacity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">trigger_buffer</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
@@ -567,14 +567,14 @@
         <td class="lineno"><a id="l66" href="#l66">66</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">41</td>
+        <td class="linecount coveredLine show_coveredLine">32</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">last_ts_high</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">state</span><span class="o">-&gt;</span><span class="n">last_ts_high</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l67" href="#l67">67</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">41</td>
+        <td class="linecount coveredLine show_coveredLine">32</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">ts_high_high</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">state</span><span class="o">-&gt;</span><span class="n">ts_high_high</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
@@ -588,7 +588,7 @@
         <td class="lineno"><a id="l69" href="#l69">69</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">41</td>
+        <td class="linecount coveredLine show_coveredLine">32</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="n">parse_status_t</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">EVUTILS_PARSE_OK</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
@@ -602,21 +602,21 @@
         <td class="lineno"><a id="l71" href="#l71">71</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">41</td>
+        <td class="linecount coveredLine show_coveredLine">32</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="k">while</span><span class="p">(</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l72" href="#l72">72</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">1186271</td>
+        <td class="linecount coveredLine show_coveredLine">826271</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">        </span><span class="n">current</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">end</span><span class="w"> </span><span class="o">&amp;&amp;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l73" href="#l73">73</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">2372583</td>
+        <td class="linecount coveredLine show_coveredLine">1652574</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">        </span><span class="n">n_events_read</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">events_capacity_offset</span><span class="w"> </span><span class="o">&amp;&amp;</span></td>
       </tr>
       <tr class="source-line">
@@ -644,14 +644,14 @@
         <td class="lineno"><a id="l77" href="#l77">77</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">1186271</td>
+        <td class="linecount coveredLine show_coveredLine">826271</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">        </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">packet_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">current</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mh">0xF0000000</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="mi">28</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l78" href="#l78">78</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">1186271</td>
+        <td class="linecount coveredLine show_coveredLine">826271</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">        </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">packet_data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">*</span><span class="n">current</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mh">0x0FFFFFFF</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
@@ -665,14 +665,14 @@
         <td class="lineno"><a id="l80" href="#l80">80</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">1186271</td>
+        <td class="linecount coveredLine show_coveredLine">826271</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">        </span><span class="k">switch</span><span class="p">(</span><span class="n">packet_type</span><span class="p">){</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l81" href="#l81">81</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">586042</td>
+        <td class="linecount coveredLine show_coveredLine">406042</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">            </span><span class="k">case</span><span class="w"> </span><span class="no">EVT4_CD_OFF</span><span class="p">:</span></td>
       </tr>
       <tr class="source-line">
@@ -693,42 +693,42 @@
         <td class="lineno"><a id="l84" href="#l84">84</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">586042</td>
+        <td class="linecount coveredLine show_coveredLine">406042</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">                </span><span class="n">out_ts</span><span class="p">[</span><span class="n">n_events_read</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ts_high_high</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">last_ts_high</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="p">((</span><span class="n">packet_data</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="mi">22</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mh">0x3F</span><span class="p">);</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l85" href="#l85">85</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">586042</td>
+        <td class="linecount coveredLine show_coveredLine">406042</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">                </span><span class="n">out_x</span><span class="p">[</span><span class="n">n_events_read</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">packet_data</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="mi">11</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mh">0x7FF</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l86" href="#l86">86</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">586042</td>
+        <td class="linecount coveredLine show_coveredLine">406042</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">                </span><span class="n">out_y</span><span class="p">[</span><span class="n">n_events_read</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">packet_data</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mh">0x7FF</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l87" href="#l87">87</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">586042</td>
+        <td class="linecount coveredLine show_coveredLine">406042</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">                </span><span class="n">out_p</span><span class="p">[</span><span class="n">n_events_read</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">packet_type</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w">   </span><span class="c1">// CD_ON (0xB) -&gt; 1</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l88" href="#l88">88</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">586042</td>
+        <td class="linecount coveredLine show_coveredLine">406042</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">                </span><span class="n">n_events_read</span><span class="o">++</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l89" href="#l89">89</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">586042</td>
+        <td class="linecount coveredLine show_coveredLine">406042</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">                </span><span class="k">break</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
@@ -938,7 +938,7 @@
         <td class="lineno"><a id="l119" href="#l119">119</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">582200</td>
+        <td class="linecount coveredLine show_coveredLine">402200</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">            </span><span class="k">case</span><span class="w"> </span><span class="no">EVT4_EVT_TIME_HIGH</span><span class="p">:</span></td>
       </tr>
       <tr class="source-line">
@@ -959,14 +959,14 @@
         <td class="lineno"><a id="l122" href="#l122">122</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">582200</td>
+        <td class="linecount coveredLine show_coveredLine">402200</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">                    </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">new_ts_high</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">uint64_t</span><span class="p">)</span><span class="n">packet_data</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">6</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l123" href="#l123">123</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">582200</td>
+        <td class="linecount coveredLine show_coveredLine">402200</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">                    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">new_ts_high</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">last_ts_high</span><span class="p">)</span><span class="w"> </span><span class="p">{</span></td>
       </tr>
       <tr class="source-line">
@@ -987,7 +987,7 @@
         <td class="lineno"><a id="l126" href="#l126">126</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">582200</td>
+        <td class="linecount coveredLine show_coveredLine">402200</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">                    </span><span class="n">last_ts_high</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">new_ts_high</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
@@ -1001,7 +1001,7 @@
         <td class="lineno"><a id="l128" href="#l128">128</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">582200</td>
+        <td class="linecount coveredLine show_coveredLine">402200</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">                </span><span class="k">break</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
@@ -1099,7 +1099,7 @@
         <td class="lineno"><a id="l142" href="#l142">142</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">1186271</td>
+        <td class="linecount coveredLine show_coveredLine">826271</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">        </span><span class="n">current</span><span class="o">++</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
@@ -1120,35 +1120,35 @@
         <td class="lineno"><a id="l145" href="#l145">145</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">41</td>
+        <td class="linecount coveredLine show_coveredLine">32</td>
         <td class="src  coveredLine show_coveredLine"><span class="nl">done</span><span class="p">:</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l146" href="#l146">146</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">41</td>
+        <td class="linecount coveredLine show_coveredLine">32</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="n">event_buffer</span><span class="o">-&gt;</span><span class="n">size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">n_events_read</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l147" href="#l147">147</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">41</td>
+        <td class="linecount coveredLine show_coveredLine">32</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="n">trigger_buffer</span><span class="o">-&gt;</span><span class="n">size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">n_triggers_read</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l148" href="#l148">148</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">41</td>
+        <td class="linecount coveredLine show_coveredLine">32</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="n">state</span><span class="o">-&gt;</span><span class="n">last_ts_high</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">last_ts_high</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
         <td class="lineno"><a id="l149" href="#l149">149</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">41</td>
+        <td class="linecount coveredLine show_coveredLine">32</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="n">state</span><span class="o">-&gt;</span><span class="n">ts_high_high</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ts_high_high</span><span class="p">;</span></td>
       </tr>
       <tr class="source-line">
@@ -1169,7 +1169,7 @@
         <td class="lineno"><a id="l152" href="#l152">152</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">41</td>
+        <td class="linecount coveredLine show_coveredLine">32</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">n_events_read</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="n">events_capacity_offset</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">n_triggers_read</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="n">triggers_capacity</span><span class="p">)</span><span class="w"> </span><span class="p">{</span></td>
       </tr>
       <tr class="source-line">
@@ -1197,7 +1197,7 @@
         <td class="lineno"><a id="l156" href="#l156">156</a></td>
         <td class="linebranch">
         </td>
-        <td class="linecount coveredLine show_coveredLine">41</td>
+        <td class="linecount coveredLine show_coveredLine">32</td>
         <td class="src  coveredLine show_coveredLine"><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="p">(</span><span class="n">parser_result_t</span><span class="p">){</span></td>
       </tr>
       <tr class="source-line">
@@ -1242,7 +1242,7 @@
         <hr class="block-separator"/>
         <footer class="text-center">
           Created using <a href="http://gcovr.com/en/8.6">GCOVR (Version 8.6)</a>
-          at 2026-07-17 13:50:40
+          at 2026-07-17 15:38:30
         </footer>
       </div>
     </div>
