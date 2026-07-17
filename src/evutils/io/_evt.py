@@ -483,6 +483,7 @@ class EventDecoder_EVT(EventDecoder):
         appended, self._offset = parse_step(
             self._words, self._offset, self._input_cls, self._parser,
             events, triggers, tail_pad=self._tail_pad, word_dtype=self._word_dtype,
+            strict=self._strict,
         )
         if appended and self._seek_correction:
             # Restore the TIME_HIGH wrap accumulation lost by the post-seek
@@ -534,6 +535,8 @@ class EventDecoder_EVT(EventDecoder):
             res = self._parser.parse_delta_t_soa(inp, events, triggers, end_ts)
             consumed = inp.consumed(res)
             if res.status == EVUTILS_PARSE_WARNING:
+                if self._strict:
+                    raise NativeError(f"{self._format} malformed packet near word {self._offset + consumed} (strict mode)")
                 import warnings
                 warnings.warn(f"{self._format} malformed packets ignored near word {self._offset + consumed}")
                 if consumed > 0:
@@ -647,6 +650,7 @@ class EventDecoder_EVT(EventDecoder):
             self._words, self._offset, self._input_cls, self._parser,
             est_events_per_word=self._READ_ALL_EST.get(self._format, 1.0),
             tail_pad=self._tail_pad, word_dtype=self._word_dtype,
+            strict=self._strict,
         )
         if len(out) and self._seek_correction:
             out.t += self._seek_correction

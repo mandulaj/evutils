@@ -96,6 +96,12 @@ class EventReader():
         dead air and resumes immediately instead of blocking on one long
         sleep. ``None`` disables the skip (strict real time). Ignored when
         ``real_time=False``.
+    strict: bool, default=False
+        Corrupt-packet policy. When False (default), a malformed packet is
+        skipped with a :class:`UserWarning` and decoding resumes -- a robust
+        decoder (like Metavision's UNRELIABLE mode). When True, a malformed
+        packet raises instead (a SAFE decoder). Warnings can be captured with
+        :func:`warnings.catch_warnings`.
     file_decoder: ev_decoders.EventDecoder or type[ev_decoders.EventDecoder] or None, default=None
         File decoder to use, by default None - automatic
     **kwargs
@@ -147,6 +153,7 @@ class EventReader():
                  playback_speed: float=1.0,
                  max_gap: float | None=1.0,
                  index: "str | bool" = "auto",
+                 strict: bool=False,
                  batch_mode: bool=False,
                  file_decoder: ev_decoders.EventDecoder | type[ev_decoders.EventDecoder] | None = None,
                  **kwargs) -> None:
@@ -170,6 +177,10 @@ class EventReader():
             self._file_decoder = decoder_cls(self._source, **kwargs)
 
         self._file_decoder.read_external_triggers = self._read_external_triggers
+        # Corrupt-packet policy: strict=True re-raises the decoder's WARNING
+        # (a malformed packet) instead of skipping it. Default is robust
+        # (warn + skip + resume), like Metavision's UNRELIABLE decoder.
+        self._file_decoder._strict = strict
         if self._read_external_triggers and not getattr(self._file_decoder, 'SUPPORTS_EXT_TRIGGERS', False):
             import warnings
             warnings.warn(f"{self._file_decoder.__class__.__name__} does not support reading external triggers.")

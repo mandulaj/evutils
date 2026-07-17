@@ -196,7 +196,7 @@ def triggers_view(tr: TriggerSoABuffers) -> TriggerArray:
     n = tr.size
     return TriggerArray(tr.t[:n].view(np.int64), tr.p[:n], tr.id[:n])
 
-def parse_step(words: "np.ndarray", offset: int, make_input: "Callable", parser: "Callable", events: "EventArray", triggers: "TriggerArray", *, tail_pad: int = 0, word_dtype: "np.dtype | None" = None) -> tuple[int, int]:
+def parse_step(words: "np.ndarray", offset: int, make_input: "Callable", parser: "Callable", events: "EventArray", triggers: "TriggerArray", *, tail_pad: int = 0, word_dtype: "np.dtype | None" = None, strict: bool = False) -> tuple[int, int]:
     n_words = len(words)
     if offset >= n_words: return 0, n_words
     before = events.size
@@ -205,6 +205,8 @@ def parse_step(words: "np.ndarray", offset: int, make_input: "Callable", parser:
         res = parser.parse_chunk_soa(inp, events, triggers)
         consumed = inp.consumed(res)
         if res.status == EVUTILS_PARSE_WARNING:
+            if strict:
+                raise RuntimeError(f"malformed packet near word {offset + consumed} (strict mode)")
             import warnings
             warnings.warn(f"Malformed packets ignored near word {offset + consumed}")
             if consumed > 0:
@@ -230,7 +232,7 @@ def parse_step(words: "np.ndarray", offset: int, make_input: "Callable", parser:
         return events.size - before, n_words
     return events.size - before, offset + consumed
 
-def decode_all_soa(words: "np.ndarray", start_offset: int, make_input: "Callable", parser: "Callable", *, est_events_per_word: float = 1.0, tail_pad: int = 0, word_dtype: "np.dtype | None" = None, trigger_cap: int = 1 << 12) -> tuple[EventArray, int]:
+def decode_all_soa(words: "np.ndarray", start_offset: int, make_input: "Callable", parser: "Callable", *, est_events_per_word: float = 1.0, tail_pad: int = 0, word_dtype: "np.dtype | None" = None, trigger_cap: int = 1 << 12, strict: bool = False) -> tuple[EventArray, int]:
     n_words = len(words) if words is not None else 0
     if n_words == 0 or start_offset >= n_words: return EventArray.empty(), n_words
     remaining = n_words - start_offset
@@ -258,6 +260,8 @@ def decode_all_soa(words: "np.ndarray", start_offset: int, make_input: "Callable
             res = parser.parse_chunk_soa(inp, ev, tr)
             consumed = inp.consumed(res)
             if res.status == EVUTILS_PARSE_WARNING:
+                if strict:
+                    raise RuntimeError(f"malformed packet near word {offset + consumed} (strict mode)")
                 import warnings
                 warnings.warn(f"Malformed packets ignored near word {offset + consumed}")
                 if consumed > 0:

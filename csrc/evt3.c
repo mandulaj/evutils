@@ -76,7 +76,7 @@ static inline const unaligned_uint16_t * EVT3_parse_vector_12_12_8_soa(
             current++;
         }
     }
-    const uint32_t ts = state->ts;
+    const timestamp_t ts = state->ts;
     const uint16_t y  = state->y;
     const uint8_t  p  = state->vecbase_p;
     const uint16_t bx = state->vecbase_x;
@@ -209,10 +209,11 @@ parser_result_t EVT3_parse_chunk_soa(
                 continue;
                 break;
             case EVT3_VECT_8:
-                status = EVUTILS_PARSE_ERROR;
-                goto parse_end;
             case EVT3_EVT_ADDR_X:
             case EVT3_VECT_BASE_X:
+                // Unexpected packet in this position (corrupt/out-of-order
+                // stream): skip the offending word and stop so the caller can
+                // warn and resume. strict mode turns the warning into an error.
                 status = EVUTILS_PARSE_WARNING;
                 current++;
                 goto parse_end;
@@ -354,10 +355,11 @@ parser_result_t EVT3_parse_delta_t_soa(
                 continue;
                 break;
             case EVT3_VECT_8:
-                status = EVUTILS_PARSE_ERROR;
-                goto parse_end_delta;
             case EVT3_EVT_ADDR_X:
             case EVT3_VECT_BASE_X:
+                // Unexpected packet in this position (corrupt/out-of-order
+                // stream): skip the offending word and stop so the caller can
+                // warn and resume. strict mode turns the warning into an error.
                 status = EVUTILS_PARSE_WARNING;
                 current++;
                 goto parse_end_delta;

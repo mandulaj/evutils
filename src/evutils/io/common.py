@@ -62,6 +62,10 @@ class EventDecoder(ABC):
 
         self._eof = False
 
+        # Corrupt-packet policy (see EventReader(strict=...)): when True, a
+        # malformed packet raises instead of being skipped with a warning.
+        self._strict: bool = False
+
         self._width: int | None = None
         self._height: int | None = None
 
