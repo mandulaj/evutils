@@ -131,11 +131,11 @@ def bench_csv(payload: bytes, chunk: int, repeats: int, warmup: int) -> int:
         total = 0
         while off < total_len:
             ptr = ctypes.cast(base + off, ctypes.c_char_p)
-            lib().evutils_read_csv(ptr, total_len - off, b","[0], outs, types, cmap, 4,
-                                   chunk, ctypes.byref(bc), ctypes.byref(ep))
+            res = lib().evutils_read_csv(ptr, total_len - off, b","[0], outs, types, cmap, 4,
+                                   chunk, ctypes.byref(ep))
             if ep.value == 0:
                 break
-            off += bc.value
+            off += (res.current - ctypes.cast(ptr, ctypes.c_void_p).value) if res.current is not None else 0
             total += ep.value
         return total
 
