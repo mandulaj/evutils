@@ -60,15 +60,15 @@ We are aiming for universal event format support with the highest possible perfo
 - [x] Full Read/Write parity where possible
 - [x] Chunked & Streaming access
 - [x] External trigger data decoding
-- [ ] Random access / Indexing (`ms_to_idx` implemented for HDF5, big TODO for `.raw` streams)
-- [ ] Arbitrary inputs (file-like objects, `io.BytesIO`, memory-mapped files)
+- [x] Random access / Indexing (`EventReader.seek(t=/n=)` for RAW/DAT/CSV/NPZ/HDF5; optional Metavision `.tmp_index` sidecar via `index="metavision"`)
+- [x] Arbitrary inputs (file-like objects, `io.BytesIO`, memory-mapped files)
 - [ ] Compression wrappers (e.g., passing streams through `zstd` transparently)
 
 ## Format Matrix
 
 | Format                      | Extensions              |   Read    |   Write   | Backend   | Notes                                                      |
 | --------------------------- | ----------------------- | :-------: | :-------: | --------- | ---------------------------------------------------------- |
-| EVT4 (Prophesee RAW)        | `.raw`, `.evt`, `.evt4` |     🚧     |     🚧     | C         | external triggers; vectorized events                       |
+| EVT4 (Prophesee RAW)        | `.raw`, `.evt`, `.evt4` |     ✅     |     ✅     | C         | external triggers; vectorized events (decode); scalar CD on write |
 | EVT3 (Prophesee RAW)        | `.raw`, `.evt`, `.evt3` |     ✅     |     ✅     | C         | external triggers; vectorized events                       |
 | EVT2.1 (Prophesee RAW)      | `.raw`, `.evt21`        |     ✅     |     ✅     | C         | write is one event per word (valid, not vectorized)        |
 | EVT2 (Prophesee RAW)        | `.raw`, `.evt2`         |     ✅     |     ✅     | C         |                                                            |
@@ -87,7 +87,7 @@ opt-in that materialises a whole recording.
 
 ## Format overview
 
-# Prophesee Event Format Comparison
+## Prophesee Event Format Comparison
 
 A side-by-side reference for Prophesee's event stream encodings (AER, EVT2.0, EVT2.1, EVT3.0, EVT4)
 and the decoded file formats (DAT, CSV).

@@ -56,20 +56,19 @@ Note: You can also install specific optional dependency groups like `uv add evut
 The library is divided into several discrete modules. Many can be used independently without installing the full suite of dependencies:
 
 ```
-└── augment     - Event augmentations
 └── chunking    - Splitting event streams into fixed-size windows
-└── dataset     - Wrappers for various dataset loaders
+└── dataset     - Wrappers for various dataset loaders (planned, stub)
 └── dense       - Dense representations (voxel grids, time surfaces, histograms)
-└── filtering   - Event stream filtering (masking, timestamp normalization)
+└── filtering   - Event stream filtering (masking)
 └── io          - Event reading and writing interfaces
     ├── reader 
     └── writer
 └── random      - Random event generation and noise injection
-└── torch       - PyTorch integration (requires evutils[torch])
+└── torch       - PyTorch integration (planned, stub; requires evutils[torch])
 └── transforms  - torchvision-style augmentation transforms (+ functional)
 └── types       - Standard types for representing Events in NumPy arrays
 └── vis         - Visualization methods
-    ├── histogram
+    ├── plot3d
     └── reconstructor
 ```
 
@@ -96,9 +95,10 @@ Supported formats (see the [formats documentation](https://mandulaj.github.io/ev
 | Format | Extensions | Read | Write | Notes |
 |---|---|:---:|:---:|---|
 | EVT3 / EVT2.1 / EVT2 (Prophesee RAW) | `.raw`, `.evt*` | ✅ | ✅ | native C decoder, external triggers |
+| EVT4 (evutils variant) | `.raw`, `.evt4` | ✅ | ✅ | EVT2-style layout + vectorized CD; evutils' own `% evt 4.0` header convention |
 | DAT (Prophesee) | `.dat` | ✅ | ✅ | native C decoder |
 | AER (Prophesee) | `.aer` | ✅ | ✅ | timestamp generation selectable |
-| AEDAT 1.0 / 2.0 / 3.1 / 4.0 | `.aedat`, `.aedat4` | ✅ | 🚧 | AEDAT4 compression: `evutils[aedat]` |
+| AEDAT 1.0 / 2.0 / 3.1 / 4.0 | `.aedat`, `.aedat4` | ✅ | ✅ (4.0) | AEDAT4 write incl. triggers; 1.0/2.0/3.1 write 🚧; compression: `evutils[aedat]` |
 | HDF5 (DSEC/RVT layout) | `.h5`, `.hdf5` | ✅ | ✅ | `evutils[hdf5]`, ms-index random access |
 | HDF5 (Prophesee layout) | `.h5`, `.hdf5` | ✅ | 🚧 | ECF-compressed files need the ECF plugin |
 | NPZ | `.npz` | ✅ | ✅ | streaming, `np.load`-compatible |
@@ -213,7 +213,7 @@ The benchmark downloads a real Prophesee recording on first use, decodes a cappe
 
 
 
-## & Roadmap
+## Goals & Roadmap
 We aim for universal event format support, prioritizing blazing fast read/write speeds, completeness, and extensibility. 
 - [x] Universal format support (`.raw`, `.evt2`, `.dat`, `.aedat4`, `.hdf5`, `.npz`, `.csv`, etc.)
 - [x] Full Read/Write parity where possible
@@ -222,7 +222,7 @@ We aim for universal event format support, prioritizing blazing fast read/write 
 - [x] **Random access / Timestamp indexing** (`EventReader.seek(t=/n=)` — by time or event index, forward/backward)
 - [x] **Arbitrary input sources:** memory-mapped IO, pure in-memory streams (HTTP streams pending)
 - [ ] **On-the-fly Compression wrappers:** passing file handles through `zstd` or `lz4` compression transparently before decoding
-- [ ] **EventStreamer Pipeline Refactor:** Decouple `EventReader`'s monolithic chunking logic into composable functional generators in `chunking.py`, exposing a native `EventStreamer` for power-users while turning `EventReader` into a clean Façade. *(`EventStreamer` and generators complete; `EventReader` Facade pending).*
+- [ ] **EventStreamer Pipeline Refactor:** Decouple `EventReader`'s monolithic chunking logic into composable functional generators in `chunking.py`, exposing a native `EventStreamer` for power-users while turning `EventReader` into a clean Façade. *(`EventStreamer` and `stream_*` generators exist but `EventReader` does not use them yet; unification pending — see TODO.md.)*
 
 
 ## Acknowledgements
