@@ -27,7 +27,6 @@ Classes
 
 .. autoapisummary::
 
-   evutils.types.Event
    evutils.types.EventArray
    evutils.types.TriggerArray
    evutils.types.DataBatch
@@ -47,28 +46,6 @@ Module Contents
 .. py:data:: Event_dtype
 
 .. py:data:: Trigger_dtype
-
-.. py:class:: Event
-
-   Bases: :py:obj:`ctypes.Structure`
-
-   .. autoapi-inheritance-diagram:: evutils.types.Event
-      :parts: 1
-
-
-   Ctypes structure representing an event.
-
-   Fields
-   ------
-   t : ctypes.c_int64
-       Timestamp of the event (us).
-   x : ctypes.c_uint16
-       X-coordinate.
-   y : ctypes.c_uint16
-       Y-coordinate.
-   p : ctypes.c_uint8
-       Polarity (0: off, 1: on).
-
 
 .. py:function:: is_monotonically_increasing(events: numpy.ndarray) -> bool
 

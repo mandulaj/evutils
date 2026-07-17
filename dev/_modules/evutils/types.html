@@ -492,12 +492,11 @@
 <span class="sd">together with small helpers for checking event arrays.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">ctypes</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TypeVar</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Event_dtype&#39;</span><span class="p">,</span> <span class="s1">&#39;Trigger_dtype&#39;</span><span class="p">,</span> <span class="s1">&#39;Event&#39;</span><span class="p">,</span> <span class="s1">&#39;EventArray&#39;</span><span class="p">,</span> <span class="s1">&#39;TriggerArray&#39;</span><span class="p">,</span> <span class="s1">&#39;DataBatch&#39;</span><span class="p">,</span> <span class="s1">&#39;is_monotonically_increasing&#39;</span><span class="p">,</span> <span class="s1">&#39;EventsChecker&#39;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Event_dtype&#39;</span><span class="p">,</span> <span class="s1">&#39;Trigger_dtype&#39;</span><span class="p">,</span> <span class="s1">&#39;EventArray&#39;</span><span class="p">,</span> <span class="s1">&#39;TriggerArray&#39;</span><span class="p">,</span> <span class="s1">&#39;DataBatch&#39;</span><span class="p">,</span> <span class="s1">&#39;is_monotonically_increasing&#39;</span><span class="p">,</span> <span class="s1">&#39;EventsChecker&#39;</span><span class="p">]</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 
@@ -519,29 +518,6 @@
 <span class="c1">#: - `p` (np.uint8):  Polarity (0: off, 1: on).</span>
 <span class="c1">#: - `id` (np.uint8): Identifier.</span>
 <span class="n">Trigger_dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">([(</span><span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;p&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)])</span>
-
-<div class="viewcode-block" id="Event">
-<a class="viewcode-back" href="../../autoapi/evutils/types/index.html#evutils.Event">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">Event</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">Structure</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ctypes structure representing an event.</span>
-
-<span class="sd">    Fields</span>
-<span class="sd">    ------</span>
-<span class="sd">    t : ctypes.c_int64</span>
-<span class="sd">        Timestamp of the event (us).</span>
-<span class="sd">    x : ctypes.c_uint16</span>
-<span class="sd">        X-coordinate.</span>
-<span class="sd">    y : ctypes.c_uint16</span>
-<span class="sd">        Y-coordinate.</span>
-<span class="sd">    p : ctypes.c_uint8</span>
-<span class="sd">        Polarity (0: off, 1: on).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">_fields_</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int64</span><span class="p">),</span>
-                <span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint16</span><span class="p">),</span>
-                <span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint16</span><span class="p">),</span>
-                <span class="p">(</span><span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">)]</span></div>
-
 
 <div class="viewcode-block" id="is_monotonically_increasing">
 <a class="viewcode-back" href="../../autoapi/evutils/types/index.html#evutils.is_monotonically_increasing">[docs]</a>

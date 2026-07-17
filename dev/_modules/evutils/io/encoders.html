@@ -537,9 +537,23 @@
 <span class="n">_WRITER_MAPPING</span><span class="p">[</span><span class="s2">&quot;.npz&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">EventEncoder_Npz</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">._evt</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventEncoder_EVT</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_evt_encoder_for</span><span class="p">(</span><span class="n">fmt</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">[</span><span class="n">EventEncoder</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;EventEncoder_EVT preconfigured for ``fmt``; an explicit ``format=``</span>
+<span class="sd">    kwarg from the caller still wins.&quot;&quot;&quot;</span>
+    <span class="k">class</span><span class="w"> </span><span class="nc">_Encoder</span><span class="p">(</span><span class="n">EventEncoder_EVT</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="nb">format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">fmt</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># noqa: A002</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="nb">format</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">_Encoder</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;EventEncoder_EVT_</span><span class="si">{</span><span class="n">fmt</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">_Encoder</span><span class="o">.</span><span class="vm">__qualname__</span> <span class="o">=</span> <span class="n">_Encoder</span><span class="o">.</span><span class="vm">__name__</span>
+    <span class="k">return</span> <span class="n">_Encoder</span>
+
 <span class="n">_WRITER_MAPPING</span><span class="p">[</span><span class="s2">&quot;.raw&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">EventEncoder_EVT</span>
 <span class="n">_WRITER_MAPPING</span><span class="p">[</span><span class="s2">&quot;.evt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">EventEncoder_EVT</span>
 <span class="n">_WRITER_MAPPING</span><span class="p">[</span><span class="s2">&quot;.evt3&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">EventEncoder_EVT</span>
+<span class="n">_WRITER_MAPPING</span><span class="p">[</span><span class="s2">&quot;.evt2&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_evt_encoder_for</span><span class="p">(</span><span class="s2">&quot;evt2&quot;</span><span class="p">)</span>
+<span class="n">_WRITER_MAPPING</span><span class="p">[</span><span class="s2">&quot;.evt21&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_evt_encoder_for</span><span class="p">(</span><span class="s2">&quot;evt21&quot;</span><span class="p">)</span>
+<span class="n">_WRITER_MAPPING</span><span class="p">[</span><span class="s2">&quot;.evt4&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_evt_encoder_for</span><span class="p">(</span><span class="s2">&quot;evt4&quot;</span><span class="p">)</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">._aer</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventEncoder_AER</span>
 <span class="n">_WRITER_MAPPING</span><span class="p">[</span><span class="s2">&quot;.aer&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">EventEncoder_AER</span>

@@ -525,20 +525,19 @@ uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </s
 <section id="architecture">
 <h2>Architecture<a class="headerlink" href="#architecture" title="Link to this heading">#</a></h2>
 <p>The library is divided into several discrete modules. Many can be used independently without installing the full suite of dependencies:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>└── augment     - Event augmentations
-└── chunking    - Splitting event streams into fixed-size windows
-└── dataset     - Wrappers for various dataset loaders
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>└── chunking    - Splitting event streams into fixed-size windows
+└── dataset     - Wrappers for various dataset loaders (planned, stub)
 └── dense       - Dense representations (voxel grids, time surfaces, histograms)
-└── filtering   - Event stream filtering (masking, timestamp normalization)
+└── filtering   - Event stream filtering (masking)
 └── io          - Event reading and writing interfaces
     ├── reader 
     └── writer
 └── random      - Random event generation and noise injection
-└── torch       - PyTorch integration (requires evutils[torch])
+└── torch       - PyTorch integration (planned, stub; requires evutils[torch])
 └── transforms  - torchvision-style augmentation transforms (+ functional)
 └── types       - Standard types for representing Events in NumPy arrays
 └── vis         - Visualization methods
-    ├── histogram
+    ├── plot3d
     └── reconstructor
 </pre></div>
 </div>
@@ -574,49 +573,55 @@ Wrappers for various dataset loaders -->
 <td class="text-center"><p>✅</p></td>
 <td><p>native C decoder, external triggers</p></td>
 </tr>
-<tr class="row-odd"><td><p>DAT (Prophesee)</p></td>
+<tr class="row-odd"><td><p>EVT4 (evutils variant)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.raw</span></code>, <code class="docutils literal notranslate"><span class="pre">.evt4</span></code></p></td>
+<td class="text-center"><p>✅</p></td>
+<td class="text-center"><p>✅</p></td>
+<td><p>EVT2-style layout + vectorized CD; evutils’ own <code class="docutils literal notranslate"><span class="pre">%</span> <span class="pre">evt</span> <span class="pre">4.0</span></code> header convention</p></td>
+</tr>
+<tr class="row-even"><td><p>DAT (Prophesee)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.dat</span></code></p></td>
 <td class="text-center"><p>✅</p></td>
 <td class="text-center"><p>✅</p></td>
 <td><p>native C decoder</p></td>
 </tr>
-<tr class="row-even"><td><p>AER (Prophesee)</p></td>
+<tr class="row-odd"><td><p>AER (Prophesee)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.aer</span></code></p></td>
 <td class="text-center"><p>✅</p></td>
 <td class="text-center"><p>✅</p></td>
 <td><p>timestamp generation selectable</p></td>
 </tr>
-<tr class="row-odd"><td><p>AEDAT 1.0 / 2.0 / 3.1 / 4.0</p></td>
+<tr class="row-even"><td><p>AEDAT 1.0 / 2.0 / 3.1 / 4.0</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.aedat</span></code>, <code class="docutils literal notranslate"><span class="pre">.aedat4</span></code></p></td>
 <td class="text-center"><p>✅</p></td>
-<td class="text-center"><p>🚧</p></td>
-<td><p>AEDAT4 compression: <code class="docutils literal notranslate"><span class="pre">evutils[aedat]</span></code></p></td>
+<td class="text-center"><p>✅ (4.0)</p></td>
+<td><p>AEDAT4 write incl. triggers; 1.0/2.0/3.1 write 🚧; compression: <code class="docutils literal notranslate"><span class="pre">evutils[aedat]</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p>HDF5 (DSEC/RVT layout)</p></td>
+<tr class="row-odd"><td><p>HDF5 (DSEC/RVT layout)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.h5</span></code>, <code class="docutils literal notranslate"><span class="pre">.hdf5</span></code></p></td>
 <td class="text-center"><p>✅</p></td>
 <td class="text-center"><p>✅</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">evutils[hdf5]</span></code>, ms-index random access</p></td>
 </tr>
-<tr class="row-odd"><td><p>HDF5 (Prophesee layout)</p></td>
+<tr class="row-even"><td><p>HDF5 (Prophesee layout)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.h5</span></code>, <code class="docutils literal notranslate"><span class="pre">.hdf5</span></code></p></td>
 <td class="text-center"><p>✅</p></td>
 <td class="text-center"><p>🚧</p></td>
 <td><p>ECF-compressed files need the ECF plugin</p></td>
 </tr>
-<tr class="row-even"><td><p>NPZ</p></td>
+<tr class="row-odd"><td><p>NPZ</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.npz</span></code></p></td>
 <td class="text-center"><p>✅</p></td>
 <td class="text-center"><p>✅</p></td>
 <td><p>streaming, <code class="docutils literal notranslate"><span class="pre">np.load</span></code>-compatible</p></td>
 </tr>
-<tr class="row-odd"><td><p>CSV / TXT</p></td>
+<tr class="row-even"><td><p>CSV / TXT</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.csv</span></code>, <code class="docutils literal notranslate"><span class="pre">.txt</span></code></p></td>
 <td class="text-center"><p>✅</p></td>
 <td class="text-center"><p>✅</p></td>
 <td><p>native C parser</p></td>
 </tr>
-<tr class="row-even"><td><p>BIN</p></td>
+<tr class="row-odd"><td><p>BIN</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.bin</span></code></p></td>
 <td class="text-center"><p>🚧</p></td>
 <td class="text-center"><p>🚧</p></td>
@@ -726,8 +731,8 @@ uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </sp
 </div>
 <p>The benchmark downloads a real Prophesee recording on first use, decodes a capped in-RAM payload, and measures every format on a RAM disk (<code class="docutils literal notranslate"><span class="pre">/dev/shm</span></code>). Optional cross-library comparisons (expelliarmus, evlib, evt3) light up automatically once installed (<code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">&quot;.[compare]&quot;</span></code>); OpenEB/Metavision is compared via the Docker image in <code class="docutils literal notranslate"><span class="pre">benchmarks/docker/</span></code>. See <a class="reference internal" href="benchmarks/README.html"><span class="std std-doc"><code class="docutils literal notranslate"><span class="pre">benchmarks/README.md</span></code></span></a> for details.</p>
 </section>
-<section id="roadmap">
-<h2>&amp; Roadmap<a class="headerlink" href="#roadmap" title="Link to this heading">#</a></h2>
+<section id="goals-roadmap">
+<h2>Goals &amp; Roadmap<a class="headerlink" href="#goals-roadmap" title="Link to this heading">#</a></h2>
 <p>We aim for universal event format support, prioritizing blazing fast read/write speeds, completeness, and extensibility.</p>
 <ul class="simple">
 <li><p>[x] Universal format support (<code class="docutils literal notranslate"><span class="pre">.raw</span></code>, <code class="docutils literal notranslate"><span class="pre">.evt2</span></code>, <code class="docutils literal notranslate"><span class="pre">.dat</span></code>, <code class="docutils literal notranslate"><span class="pre">.aedat4</span></code>, <code class="docutils literal notranslate"><span class="pre">.hdf5</span></code>, <code class="docutils literal notranslate"><span class="pre">.npz</span></code>, <code class="docutils literal notranslate"><span class="pre">.csv</span></code>, etc.)</p></li>
@@ -737,7 +742,7 @@ uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </sp
 <li><p>[x] <strong>Random access / Timestamp indexing</strong> (<code class="docutils literal notranslate"><span class="pre">EventReader.seek(t=/n=)</span></code> — by time or event index, forward/backward)</p></li>
 <li><p>[x] <strong>Arbitrary input sources:</strong> memory-mapped IO, pure in-memory streams (HTTP streams pending)</p></li>
 <li><p>[ ] <strong>On-the-fly Compression wrappers:</strong> passing file handles through <code class="docutils literal notranslate"><span class="pre">zstd</span></code> or <code class="docutils literal notranslate"><span class="pre">lz4</span></code> compression transparently before decoding</p></li>
-<li><p>[ ] <strong>EventStreamer Pipeline Refactor:</strong> Decouple <code class="docutils literal notranslate"><span class="pre">EventReader</span></code>’s monolithic chunking logic into composable functional generators in <code class="docutils literal notranslate"><span class="pre">chunking.py</span></code>, exposing a native <code class="docutils literal notranslate"><span class="pre">EventStreamer</span></code> for power-users while turning <code class="docutils literal notranslate"><span class="pre">EventReader</span></code> into a clean Façade. <em>(<code class="docutils literal notranslate"><span class="pre">EventStreamer</span></code> and generators complete; <code class="docutils literal notranslate"><span class="pre">EventReader</span></code> Facade pending).</em></p></li>
+<li><p>[ ] <strong>EventStreamer Pipeline Refactor:</strong> Decouple <code class="docutils literal notranslate"><span class="pre">EventReader</span></code>’s monolithic chunking logic into composable functional generators in <code class="docutils literal notranslate"><span class="pre">chunking.py</span></code>, exposing a native <code class="docutils literal notranslate"><span class="pre">EventStreamer</span></code> for power-users while turning <code class="docutils literal notranslate"><span class="pre">EventReader</span></code> into a clean Façade. <em>(<code class="docutils literal notranslate"><span class="pre">EventStreamer</span></code> and <code class="docutils literal notranslate"><span class="pre">stream_*</span></code> generators exist but <code class="docutils literal notranslate"><span class="pre">EventReader</span></code> does not use them yet; unification pending — see TODO.md.)</em></p></li>
 </ul>
 </section>
 <section id="acknowledgements">
@@ -841,7 +846,7 @@ uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </sp
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#benchmarks"><span class="xref myst">Benchmarks</span></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#roadmap">&amp; Roadmap</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#goals-roadmap">Goals &amp; Roadmap</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#acknowledgements">Acknowledgements</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cite">Cite</a></li>
 </ul>

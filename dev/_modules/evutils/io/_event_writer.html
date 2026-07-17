@@ -645,10 +645,10 @@
 <span class="sd">            Buffer of events to write (structured array or EventArray)</span>
 <span class="sd">        triggers</span>
 <span class="sd">            Buffer of triggers to write (structured array or TriggerArray). Optional.</span>
-<span class="sd">            Interleaved with the events by timestamp for formats that carry</span>
-<span class="sd">            triggers in-stream (EVT); ignored (with a warning from the encoder)</span>
-<span class="sd">            by formats that cannot represent them. To write a trigger-only</span>
-<span class="sd">            batch, pass ``EventArray.empty()`` as ``events``.</span>
+<span class="sd">            Written only by encoders that support trigger encoding (currently</span>
+<span class="sd">            AEDAT4, as separate trigger packets); all other formats ignore</span>
+<span class="sd">            them with a warning. To write a trigger-only batch, pass</span>
+<span class="sd">            ``EventArray.empty()`` as ``events``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>

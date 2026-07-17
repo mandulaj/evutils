@@ -52,6 +52,9 @@ Package Contents
    :param p: Drop probability in ``[0, 1)``. A ``(lo, hi)`` tuple is sampled uniformly
              per call. Defaults to ``0.1``.
    :type p: float or tuple of float, optional
+   :param seed: Seed for the kernel's random number generator (numba's per-thread
+                legacy ``np.random`` state). ``None`` leaves the state unseeded.
+   :type seed: int, optional
 
    :returns: Events that survived the drop, in their original container type.
    :rtype: np.ndarray or EventArray

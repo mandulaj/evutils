@@ -160,15 +160,6 @@ Package Contents
    ...     print(f"Processed {len(events)} events")
    Processed 0 events
 
-   TODO:
-   Architectural Refactor Roadmap:
-   Decouple `EventReader`'s monolithic design by extracting the core byte-to-array decoding into
-   a native `EventStreamer`. The slicing logic (`mode="delta_t"`, `mode="n_events"`, etc.) should
-   be moved to composable pipeline generators in `evutils.chunking`. `EventReader` will then
-   become a simple Façade that dynamically assembles these pipeline generators to maintain
-   this exact backward-compatible API, while allowing power-users to compose custom pipelines
-   (e.g., slicing by external trigger boundaries).
-
 
    .. py:attribute:: READING_MODES
       :value: ['delta_t', 'n_events', 'mixed', 'all', 'auto']
@@ -396,10 +387,10 @@ Package Contents
 
       :param events: Buffer of events to write (structured array or EventArray)
       :param triggers: Buffer of triggers to write (structured array or TriggerArray). Optional.
-                       Interleaved with the events by timestamp for formats that carry
-                       triggers in-stream (EVT); ignored (with a warning from the encoder)
-                       by formats that cannot represent them. To write a trigger-only
-                       batch, pass ``EventArray.empty()`` as ``events``.
+                       Written only by encoders that support trigger encoding (currently
+                       AEDAT4, as separate trigger packets); all other formats ignore
+                       them with a warning. To write a trigger-only batch, pass
+                       ``EventArray.empty()`` as ``events``.
 
       :returns: Number of events written
       :rtype: int

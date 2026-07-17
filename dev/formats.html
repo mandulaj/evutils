@@ -563,8 +563,8 @@ carries geometry.</p>
 <li><p>[x] Full Read/Write parity where possible</p></li>
 <li><p>[x] Chunked &amp; Streaming access</p></li>
 <li><p>[x] External trigger data decoding</p></li>
-<li><p>[ ] Random access / Indexing (<code class="docutils literal notranslate"><span class="pre">ms_to_idx</span></code> implemented for HDF5, big TODO for <code class="docutils literal notranslate"><span class="pre">.raw</span></code> streams)</p></li>
-<li><p>[ ] Arbitrary inputs (file-like objects, <code class="docutils literal notranslate"><span class="pre">io.BytesIO</span></code>, memory-mapped files)</p></li>
+<li><p>[x] Random access / Indexing (<code class="docutils literal notranslate"><span class="pre">EventReader.seek(t=/n=)</span></code> for RAW/DAT/CSV/NPZ/HDF5; optional Metavision <code class="docutils literal notranslate"><span class="pre">.tmp_index</span></code> sidecar via <code class="docutils literal notranslate"><span class="pre">index=&quot;metavision&quot;</span></code>)</p></li>
+<li><p>[x] Arbitrary inputs (file-like objects, <code class="docutils literal notranslate"><span class="pre">io.BytesIO</span></code>, memory-mapped files)</p></li>
 <li><p>[ ] Compression wrappers (e.g., passing streams through <code class="docutils literal notranslate"><span class="pre">zstd</span></code> transparently)</p></li>
 </ul>
 </section>
@@ -583,10 +583,10 @@ carries geometry.</p>
 <tbody>
 <tr class="row-even"><td><p>EVT4 (Prophesee RAW)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.raw</span></code>, <code class="docutils literal notranslate"><span class="pre">.evt</span></code>, <code class="docutils literal notranslate"><span class="pre">.evt4</span></code></p></td>
-<td class="text-center"><p>🚧</p></td>
-<td class="text-center"><p>🚧</p></td>
+<td class="text-center"><p>✅</p></td>
+<td class="text-center"><p>✅</p></td>
 <td><p>C</p></td>
-<td><p>external triggers; vectorized events</p></td>
+<td><p>external triggers; vectorized events (decode); scalar CD on write</p></td>
 </tr>
 <tr class="row-odd"><td><p>EVT3 (Prophesee RAW)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.raw</span></code>, <code class="docutils literal notranslate"><span class="pre">.evt</span></code>, <code class="docutils literal notranslate"><span class="pre">.evt3</span></code></p></td>
@@ -675,9 +675,8 @@ opt-in that materialises a whole recording.</p>
 <section id="format-overview">
 <h2>Format overview<a class="headerlink" href="#format-overview" title="Link to this heading">#</a></h2>
 </section>
-</section>
 <section id="prophesee-event-format-comparison">
-<h1>Prophesee Event Format Comparison<a class="headerlink" href="#prophesee-event-format-comparison" title="Link to this heading">#</a></h1>
+<h2>Prophesee Event Format Comparison<a class="headerlink" href="#prophesee-event-format-comparison" title="Link to this heading">#</a></h2>
 <p>A side-by-side reference for Prophesee’s event stream encodings (AER, EVT2.0, EVT2.1, EVT3.0, EVT4)
 and the decoded file formats (DAT, CSV).</p>
 <div class="pst-scrollable-table-container"><table class="table">
@@ -768,6 +767,7 @@ and the decoded file formats (DAT, CSV).</p>
 </tbody>
 </table>
 </div>
+</section>
 <section id="caveats">
 <h2>Caveats<a class="headerlink" href="#caveats" title="Link to this heading">#</a></h2>
 <p>The columns are not strictly apples-to-apples:</p>
@@ -933,7 +933,6 @@ AEDAT (all versions), Prophesee HDF5 and DSEC HDF5 are still to be added.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Supported Formats</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-eventarray-representation">The <code class="docutils literal notranslate"><span class="pre">EventArray</span></code> representation</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#array-of-structs-is-supported-too">Array-of-structs is supported too</a></li>
 </ul>
@@ -941,9 +940,7 @@ AEDAT (all versions), Prophesee HDF5 and DSEC HDF5 are still to be added.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#io-roadmap-goals">IO Roadmap &amp; Goals</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#format-matrix">Format Matrix</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#format-overview">Format overview</a></li>
-</ul>
-</li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#prophesee-event-format-comparison">Prophesee Event Format Comparison</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prophesee-event-format-comparison">Prophesee Event Format Comparison</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#caveats">Caveats</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sources">Sources</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prophesee-raw-evt">Prophesee RAW / EVT</a></li>
@@ -958,9 +955,6 @@ AEDAT (all versions), Prophesee HDF5 and DSEC HDF5 are still to be added.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#csv-txt">CSV / TXT</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#testing-status">Testing status</a></li>
 </ul>
-</li>
-</ul>
-
   </nav></div>
 
   <div class="sidebar-secondary-item">

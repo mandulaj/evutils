@@ -620,15 +620,6 @@
 <span class="sd">    ...     x, y, p, t = events.x, events.y, events.p, events.t</span>
 <span class="sd">    ...     print(f&quot;Processed {len(events)} events&quot;)</span>
 <span class="sd">    Processed 0 events</span>
-
-<span class="sd">    TODO:</span>
-<span class="sd">    Architectural Refactor Roadmap:</span>
-<span class="sd">    Decouple `EventReader`&#39;s monolithic design by extracting the core byte-to-array decoding into</span>
-<span class="sd">    a native `EventStreamer`. The slicing logic (`mode=&quot;delta_t&quot;`, `mode=&quot;n_events&quot;`, etc.) should</span>
-<span class="sd">    be moved to composable pipeline generators in `evutils.chunking`. `EventReader` will then</span>
-<span class="sd">    become a simple Façade that dynamically assembles these pipeline generators to maintain</span>
-<span class="sd">    this exact backward-compatible API, while allowing power-users to compose custom pipelines</span>
-<span class="sd">    (e.g., slicing by external trigger boundaries).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">READING_MODES</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;delta_t&quot;</span><span class="p">,</span> <span class="s2">&quot;n_events&quot;</span><span class="p">,</span> <span class="s2">&quot;mixed&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="s2">&quot;auto&quot;</span><span class="p">]</span>

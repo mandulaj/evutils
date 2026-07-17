@@ -692,14 +692,6 @@ packet raises instead (a SAFE decoder). Warnings can be captured with
 <span class="go">Processed 0 events</span>
 </pre></div>
 </div>
-<p>TODO:
-Architectural Refactor Roadmap:
-Decouple <cite>EventReader</cite>’s monolithic design by extracting the core byte-to-array decoding into
-a native <cite>EventStreamer</cite>. The slicing logic (<cite>mode=”delta_t”</cite>, <cite>mode=”n_events”</cite>, etc.) should
-be moved to composable pipeline generators in <cite>evutils.chunking</cite>. <cite>EventReader</cite> will then
-become a simple Façade that dynamically assembles these pipeline generators to maintain
-this exact backward-compatible API, while allowing power-users to compose custom pipelines
-(e.g., slicing by external trigger boundaries).</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="evutils.io.EventReader.READING_MODES">
 <span class="sig-name descname"><span class="pre">READING_MODES</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['delta_t',</span> <span class="pre">'n_events',</span> <span class="pre">'mixed',</span> <span class="pre">'all',</span> <span class="pre">'auto']</span></span><a class="headerlink" href="#evutils.io.EventReader.READING_MODES" title="Link to this definition">#</a></dt>
@@ -1027,10 +1019,10 @@ for some formats).</p></li>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>events</strong> (<em>numpy.ndarray</em>) – Buffer of events to write (structured array or EventArray)</p></li>
 <li><p><strong>triggers</strong> (<em>numpy.ndarray</em><em> | </em><em>None</em>) – Buffer of triggers to write (structured array or TriggerArray). Optional.
-Interleaved with the events by timestamp for formats that carry
-triggers in-stream (EVT); ignored (with a warning from the encoder)
-by formats that cannot represent them. To write a trigger-only
-batch, pass <code class="docutils literal notranslate"><span class="pre">EventArray.empty()</span></code> as <code class="docutils literal notranslate"><span class="pre">events</span></code>.</p></li>
+Written only by encoders that support trigger encoding (currently
+AEDAT4, as separate trigger packets); all other formats ignore
+them with a warning. To write a trigger-only batch, pass
+<code class="docutils literal notranslate"><span class="pre">EventArray.empty()</span></code> as <code class="docutils literal notranslate"><span class="pre">events</span></code>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
