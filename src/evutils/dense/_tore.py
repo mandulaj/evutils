@@ -1,7 +1,6 @@
 """Module for generating Time-Ordered Recent Event (TORE) representations from events."""
 
 import numpy as np
-from evutils.types import EventArray
 from ..jit import lazy_njit_unwrapped_events
 from ..types import EventArray
 

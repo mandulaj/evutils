@@ -9,8 +9,9 @@ from datetime import datetime
 from typing import Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ..types import EventArray, TriggerArray
+    from typing import Any
 
+from ..types import EventArray, TriggerArray
 import numpy as np
 
 from typing import NamedTuple
@@ -155,8 +156,6 @@ class EventDecoder(ABC):
             All remaining events.
 
         """
-        from ..types import EventArray
-
         if not self._is_initialized:
             self.init()
 
@@ -171,7 +170,6 @@ class EventDecoder(ABC):
                     ev_chunk, tr_chunk = _chunk
                 else:
                     ev_chunk = _chunk
-                    from ..types import TriggerArray
                     tr_chunk = TriggerArray.empty()
             else:
                 ev_chunk = _chunk # type: ignore
@@ -196,12 +194,10 @@ class EventDecoder(ABC):
             
         if self.read_external_triggers:
             if not trigger_chunks:
-                from ..types import TriggerArray
                 res_tr = TriggerArray.empty()
             elif len(trigger_chunks) == 1:
                 res_tr = trigger_chunks[0]
             else:
-                from ..types import TriggerArray
                 res_tr = TriggerArray(
                     np.concatenate([c.t for c in trigger_chunks]),
                     np.concatenate([c.p for c in trigger_chunks]),

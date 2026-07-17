@@ -2,7 +2,6 @@
 """Module for generating time surface representations from events."""
 
 import numpy as np
-from evutils.types import EventArray
 from ..jit import lazy_njit_unwrapped_events
 from ..types import EventArray
 
