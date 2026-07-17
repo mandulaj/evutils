@@ -217,7 +217,8 @@ class EventWriter():
         # (header-only) file, matching the pre-lazy-init behaviour.
         self._ensure_encoder(None)
         self._file_encoder.close()
-        self._file.close()
+        if self._file_name is not None:
+            self._file.close()
 
     def __exit__(self, exc_type: "type[BaseException] | None", exc_value: "BaseException | None", traceback: "types.TracebackType | None") -> None:
         self.close()
