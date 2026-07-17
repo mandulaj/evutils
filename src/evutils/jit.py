@@ -60,6 +60,7 @@ def lazy_njit_unwrapped_events(fn: F) -> F:
             if set(events.dtype.names).issuperset({"t", "x", "y", "p"}):
                 arrays = tuple(events[f] for f in ("t", "x", "y", "p"))
             else:
+                # Fallback, but warn if we're sending less/other than txyp to a kernel
                 arrays = tuple(events[f] for f in events.dtype.names)
         else:
             raise TypeError(f"Unsupported event format: {type(events)}")
