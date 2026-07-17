@@ -1636,22 +1636,16 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_read_events</span> <span class="o">+</span> <span class="n">n</span>
 
-        <span class="c1"># Make normalize_ts evaluate _first_ts from the very start of the stream before seeking</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_anchored</span><span class="p">:</span>
-            <span class="n">seekable</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_source</span><span class="p">,</span> <span class="s2">&quot;seekable&quot;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="kc">True</span><span class="p">)()</span>
-            <span class="k">if</span> <span class="n">seekable</span><span class="p">:</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">res</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">dec</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_first_ts</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">ts</span>
-                <span class="k">except</span> <span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">UnsupportedOperation</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">):</span>
-                    <span class="k">pass</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_first_ts&quot;</span><span class="p">):</span>
-                <span class="n">dec</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-                <span class="n">chunk</span> <span class="o">=</span> <span class="n">dec</span><span class="o">.</span><span class="n">read_chunk</span><span class="p">()</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
-                    <span class="n">chunk</span> <span class="o">=</span> <span class="n">chunk</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_first_ts</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">chunk</span><span class="o">.</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
-                <span class="n">dec</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="c1"># Anchor the normalization origin (_first_ts) on the stream&#39;s *first*</span>
+        <span class="c1"># event before the cursor moves, so normalize_ts is call-order</span>
+        <span class="c1"># independent (seek-then-read == read-then-seek). Peeking rewinds the</span>
+        <span class="c1"># decoder, so it is skipped on non-seekable sources (and when</span>
+        <span class="c1"># normalization is off) -- there the origin falls back to the seek</span>
+        <span class="c1"># landing point below.</span>
+        <span class="n">first_ts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">seekable</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_source</span><span class="p">,</span> <span class="s2">&quot;seekable&quot;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="kc">True</span><span class="p">)()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_anchored</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_ts</span> <span class="ow">and</span> <span class="n">seekable</span><span class="p">:</span>
+            <span class="n">first_ts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_peek_stream_first_ts</span><span class="p">()</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_eof</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_pace_anchor</span> <span class="o">=</span> <span class="kc">None</span>
@@ -1661,8 +1655,6 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 
-        <span class="n">seekable</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_source</span><span class="p">,</span> <span class="s2">&quot;seekable&quot;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="kc">True</span><span class="p">)()</span>
-        
         <span class="k">if</span> <span class="n">seekable</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">res</span><span class="p">,</span> <span class="n">rem_ev</span><span class="p">,</span> <span class="n">rem_tr</span> <span class="o">=</span> <span class="n">dec</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
@@ -1676,11 +1668,35 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span> <span class="o">=</span> <span class="n">EventAccumulator</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_acc_capacity</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rem_ev</span><span class="p">,</span> <span class="n">rem_tr</span><span class="p">)</span>
 
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_anchored</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_first_ts</span> <span class="o">=</span> <span class="n">first_ts</span> <span class="k">if</span> <span class="n">first_ts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">res</span><span class="o">.</span><span class="n">ts</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_n_read_events</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">index</span> <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">index</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="k">else</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">if</span> <span class="n">n</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_current_ts</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">ts</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_anchored</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">return</span> <span class="n">res</span><span class="o">.</span><span class="n">ts</span></div>
 
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_peek_stream_first_ts</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Timestamp of the stream&#39;s very first event, leaving the decoder</span>
+<span class="sd">        rewound to the start.</span>
+
+<span class="sd">        Used to anchor the ``normalize_ts`` origin before a seek moves the</span>
+<span class="sd">        cursor. Only called before any read on a seekable source (rewinding a</span>
+<span class="sd">        non-seekable decoder would lose data). Returns ``None`` for an empty</span>
+<span class="sd">        stream.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span>
+        <span class="n">dec</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="n">first</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_native_fill</span><span class="p">:</span>
+            <span class="n">first</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_peek_first_ts</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">chunk</span> <span class="o">=</span> <span class="n">dec</span><span class="o">.</span><span class="n">read_chunk</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                <span class="n">chunk</span> <span class="o">=</span> <span class="n">chunk</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">first</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">chunk</span><span class="o">.</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">dec</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">first</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_seek_linear</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="s2">&quot;SeekResult&quot;</span><span class="p">,</span> <span class="s2">&quot;EventArray&quot;</span><span class="p">,</span> <span class="s2">&quot;TriggerArray | None&quot;</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Fallback seek for non-seekable sources: iterate and drop to target.&quot;&quot;&quot;</span>

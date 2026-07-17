@@ -703,7 +703,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">=</span> <span class="kc">None</span>                       <span class="c1"># SeekIndex, lazily obtained</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_index_is_ours</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>        <span class="c1"># built in-memory (exact counts)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_seek_correction</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>           <span class="c1"># TIME_HIGH wrap correction, added to decoded ts</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_pending</span><span class="p">:</span> <span class="s2">&quot;EventArray | None&quot;</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># remainder of the boundary chunk after a seek</span>
         <span class="c1">#: Full path to the raw file and whether to try a Metavision sidecar</span>
         <span class="c1">#: index (set by EventReader from its ``index=`` option). Off by default:</span>
         <span class="c1">#: the exact in-memory index is built lazily on the first seek instead.</span>
@@ -1017,9 +1016,16 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_eof</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="k">return</span> <span class="mi">0</span><span class="p">,</span> <span class="n">EVUTILS_PARSE_WINDOW_DONE</span>
         <span class="n">before</span> <span class="o">=</span> <span class="n">events</span><span class="o">.</span><span class="n">size</span>
+        <span class="c1"># A post-seek parser.reset() loses the TIME_HIGH wrap accumulation: the</span>
+        <span class="c1"># C parser decodes in the raw (low) timeline while the caller&#39;s end_ts</span>
+        <span class="c1"># lives in the corrected absolute one. Translate the boundary into the</span>
+        <span class="c1"># raw timeline for the C call, then shift the decoded slice back</span>
+        <span class="c1"># (mirrors parse_step&#39;s correction).</span>
+        <span class="n">corr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seek_correction</span>
+        <span class="n">raw_end_ts</span> <span class="o">=</span> <span class="n">end_ts</span> <span class="o">-</span> <span class="n">corr</span>
         <span class="n">inp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_cls</span><span class="p">(</span><span class="n">words</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_offset</span><span class="p">:])</span>
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-            <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parser</span><span class="o">.</span><span class="n">parse_delta_t_soa</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">events</span><span class="p">,</span> <span class="n">triggers</span><span class="p">,</span> <span class="n">end_ts</span><span class="p">)</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parser</span><span class="o">.</span><span class="n">parse_delta_t_soa</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">events</span><span class="p">,</span> <span class="n">triggers</span><span class="p">,</span> <span class="n">raw_end_ts</span><span class="p">)</span>
             <span class="n">consumed</span> <span class="o">=</span> <span class="n">inp</span><span class="o">.</span><span class="n">consumed</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">EVUTILS_PARSE_WARNING</span><span class="p">:</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_strict</span><span class="p">:</span>
@@ -1043,15 +1049,24 @@
                     <span class="n">scratch</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tail</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tail_pad</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_word_dtype</span><span class="p">)</span>
                     <span class="n">scratch</span><span class="p">[:</span> <span class="nb">len</span><span class="p">(</span><span class="n">tail</span><span class="p">)]</span> <span class="o">=</span> <span class="n">tail</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_parser</span><span class="o">.</span><span class="n">parse_delta_t_soa</span><span class="p">(</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_input_cls</span><span class="p">(</span><span class="n">scratch</span><span class="p">),</span> <span class="n">events</span><span class="p">,</span> <span class="n">triggers</span><span class="p">,</span> <span class="n">end_ts</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_input_cls</span><span class="p">(</span><span class="n">scratch</span><span class="p">),</span> <span class="n">events</span><span class="p">,</span> <span class="n">triggers</span><span class="p">,</span> <span class="n">raw_end_ts</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_eof</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="k">return</span> <span class="n">events</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="n">before</span><span class="p">,</span> <span class="n">status</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_dt_correction</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">before</span><span class="p">,</span> <span class="n">corr</span><span class="p">),</span> <span class="n">status</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span> <span class="o">+=</span> <span class="n">consumed</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_eof</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="k">return</span> <span class="n">events</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="n">before</span><span class="p">,</span> <span class="n">status</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_dt_correction</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">before</span><span class="p">,</span> <span class="n">corr</span><span class="p">),</span> <span class="n">status</span></div>
 
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_apply_dt_correction</span><span class="p">(</span><span class="n">events</span><span class="p">:</span> <span class="n">EventSoABuffers</span><span class="p">,</span> <span class="n">before</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">corr</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Shift the slice appended since ``before`` by the seek wrap correction</span>
+<span class="sd">        and return the appended count.&quot;&quot;&quot;</span>
+        <span class="n">appended</span> <span class="o">=</span> <span class="n">events</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="n">before</span>
+        <span class="k">if</span> <span class="n">appended</span> <span class="ow">and</span> <span class="n">corr</span><span class="p">:</span>
+            <span class="n">events_view</span><span class="p">(</span><span class="n">events</span><span class="p">)</span><span class="o">.</span><span class="n">t</span><span class="p">[</span><span class="n">before</span><span class="p">:</span><span class="n">before</span> <span class="o">+</span> <span class="n">appended</span><span class="p">]</span> <span class="o">+=</span> <span class="n">corr</span>
+        <span class="k">return</span> <span class="n">appended</span>
 
 <div class="viewcode-block" id="EventDecoder_EVT.read_chunk">
 <a class="viewcode-back" href="../../../autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_EVT.read_chunk">[docs]</a>
@@ -1059,15 +1074,6 @@
                    <span class="n">n_events_hint</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;EventArray | tuple[EventArray, TriggerArray]&#39;</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_initialized</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
-
-        <span class="c1"># A prior seek() may have left the remainder of the boundary chunk (the</span>
-        <span class="c1"># events from the exact target onward) staged here; hand it out first.</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pending</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pending</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_pending</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_external_triggers</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">out</span><span class="p">,</span> <span class="n">TriggerArray</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
-            <span class="k">return</span> <span class="n">out</span>
 
         <span class="c1"># Nothing left: signal EOF with an empty array (never a stale buffer).</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_words</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_words</span><span class="p">):</span>
@@ -1128,10 +1134,9 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
 
         <span class="c1"># decode_all_soa is an events-only fast path; with external triggers</span>
-        <span class="c1"># requested, or with a staged post-seek remainder, fall back to the</span>
-        <span class="c1"># chunked base implementation (which carries triggers / the pending</span>
-        <span class="c1"># chunk and applies the seek correction via read_chunk).</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_external_triggers</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pending</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># requested, fall back to the chunked base implementation (which</span>
+        <span class="c1"># carries triggers and applies the seek correction via read_chunk).</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_external_triggers</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">read_all</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_words</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_words</span><span class="p">):</span>
@@ -1199,6 +1204,10 @@
                 <span class="n">words</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_words</span><span class="p">,</span> <span class="n">start_offset</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_start_offset</span><span class="p">,</span>
                 <span class="n">input_cls</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_input_cls</span><span class="p">,</span> <span class="n">parser_cls</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parser</span><span class="p">),</span>
                 <span class="n">tail_pad</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_tail_pad</span><span class="p">,</span> <span class="n">word_dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_word_dtype</span><span class="p">,</span>
+                <span class="c1"># TIME_HIGH-aligned bookmarks: a reset parser at a bookmark must</span>
+                <span class="c1"># re-establish its time base before its first event, else the</span>
+                <span class="c1"># seek-time wrap-correction snap is invalid (see _index.py).</span>
+                <span class="n">time_high</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_TIME_HIGH_TYPE</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_format</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
             <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_index_is_ours</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">=</span> <span class="n">idx</span>
@@ -1233,7 +1242,7 @@
 
 <span class="sd">        Jumps to the nearest index bookmark at/before the target, restores the</span>
 <span class="sd">        TIME_HIGH wrap accumulation, then decodes forward to land exactly on the</span>
-<span class="sd">        target (staging the boundary chunk&#39;s remainder for the next read).</span>
+<span class="sd">        target (returning the boundary chunk&#39;s remainder to the caller).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">SeekResult</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_initialized</span><span class="p">:</span>

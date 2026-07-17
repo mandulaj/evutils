@@ -1415,7 +1415,7 @@ iterate with <a class="reference internal" href="#evutils.io.decoders.EventDecod
 <dd><p>Seek to an absolute timestamp (µs) or event index. See base class.</p>
 <p>Jumps to the nearest index bookmark at/before the target, restores the
 TIME_HIGH wrap accumulation, then decodes forward to land exactly on the
-target (staging the boundary chunk’s remainder for the next read).</p>
+target (returning the boundary chunk’s remainder to the caller).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">

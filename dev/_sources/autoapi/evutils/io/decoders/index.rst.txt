@@ -584,7 +584,7 @@ Module Contents
 
       Jumps to the nearest index bookmark at/before the target, restores the
       TIME_HIGH wrap accumulation, then decodes forward to land exactly on the
-      target (staging the boundary chunk's remainder for the next read).
+      target (returning the boundary chunk's remainder to the caller).
 
 
 
