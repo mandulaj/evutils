@@ -60,7 +60,14 @@ def lazy_njit_unwrapped_events(fn: F) -> F:
             if set(events.dtype.names).issuperset({"t", "x", "y", "p"}):
                 arrays = tuple(events[f] for f in ("t", "x", "y", "p"))
             else:
-                # Fallback, but warn if we're sending less/other than txyp to a kernel
+                # Not a (t, x, y, p) event array: pass fields through in dtype
+                # order, but warn -- these kernels expect (t, x, y, p).
+                import warnings
+                warnings.warn(
+                    f"array with fields {events.dtype.names} does not provide "
+                    "(t, x, y, p); passing fields positionally to the kernel",
+                    stacklevel=2,
+                )
                 arrays = tuple(events[f] for f in events.dtype.names)
         else:
             raise TypeError(f"Unsupported event format: {type(events)}")
