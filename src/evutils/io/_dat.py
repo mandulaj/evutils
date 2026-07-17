@@ -230,8 +230,24 @@ class EventDecoder_Dat(EventDecoder):
         n_events = 0 if self._words is None else len(self._words) // 2
         ts_view = (self._words[0::2] if n_events
                    else np.empty(0, dtype=np.uint32))
+        
+        if not hasattr(self, "_wrap_indices"):
+            if n_events > 0:
+                wraps = np.where(ts_view[1:] < ts_view[:-1])[0] + 1
+                self._wrap_indices = np.concatenate(([0], wraps, [n_events]))
+            else:
+                self._wrap_indices = np.array([0, 0])
+
         if axis == "t":
-            idx = int(np.searchsorted(ts_view, val, side="left"))
+            bucket = int(val >> 32)
+            val_rem = int(val & 0xFFFFFFFF)
+            
+            if bucket >= len(self._wrap_indices) - 1:
+                idx = n_events
+            else:
+                start_idx = self._wrap_indices[bucket]
+                end_idx = self._wrap_indices[bucket + 1]
+                idx = start_idx + int(np.searchsorted(ts_view[start_idx:end_idx], val_rem, side="left"))
         else:
             idx = val
         idx = max(0, min(idx, n_events))
@@ -239,8 +255,13 @@ class EventDecoder_Dat(EventDecoder):
         self._offset = idx * 2
         self._eof = idx >= n_events
         if self._parser is not None:
-            self._parser.reset()
-        return int(ts_view[idx]) if idx < n_events else val
+            wrap_count = max(0, int(np.searchsorted(self._wrap_indices, idx, side="right")) - 1)
+            wrap_offset = wrap_count * (1 << 32)
+            self._parser.reset(wrap_offset)
+        else:
+            wrap_offset = max(0, int(np.searchsorted(self._wrap_indices, idx, side="right")) - 1) * (1 << 32)
+            
+        return int(ts_view[idx]) + wrap_offset if idx < n_events else val
 
     def reset(self) -> None:
         """Reset the DAT reader to the beginning.

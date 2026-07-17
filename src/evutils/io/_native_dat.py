@@ -43,8 +43,11 @@ class DatParser:
     def __init__(self) -> None:
         self._buf = (c_char * int(lib().DAT_state_size()))()
         self._state = c_cast(self._buf, c_void_p)
-    def reset(self) -> None:
+    def reset(self, wrap_offset: int = 0) -> None:
         ctypes.memset(self._buf, 0, len(self._buf))
+        if wrap_offset > 0:
+            import struct
+            struct.pack_into("=Q", self._buf, 0, wrap_offset)
     def parse_chunk_soa(self, inp: DatInput, events: EventSoABuffers, triggers: TriggerSoABuffers) -> ParserResult:
         return cast(ParserResult, lib().DAT_parse_chunk_soa(self._state, byref(inp.c), byref(events.c), byref(triggers.c)))
     def __enter__(self) -> "DatParser": return self
