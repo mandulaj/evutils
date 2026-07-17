@@ -13,6 +13,8 @@
  *   max_csv_cols    length of col_mapping
  *   max_events      stop after this many rows
  *   events_parsed   (out) rows parsed
+ *   malformed       (out, optional) rows that were short a mapped column and
+ *                   had to be zero-filled; NULL to ignore
  *
  * Strategy: locate each line end with memchr (SIMD-accelerated in glibc), then
  * parse the *complete* line with no per-byte bounds checks -- the newline is a
@@ -28,11 +30,13 @@ parser_result_t evutils_read_csv(
     int *col_mapping,
     int max_csv_cols,
     size_t max_events,
-    size_t *events_parsed
+    size_t *events_parsed,
+    size_t *malformed
 ) {
     const char *cursor = buffer;
     const char *buffer_end = buffer + buffer_len;
     size_t n_parsed = 0;
+    size_t n_malformed = 0;
 
     while (cursor < buffer_end && n_parsed < max_events) {
         /* Skip blank lines (bare CR/LF). */
@@ -88,10 +92,14 @@ parser_result_t evutils_read_csv(
             break;
         }
 
-        // Zero-fill any missing columns for short rows to prevent stale data leaks
+        // Zero-fill any missing columns for short rows to prevent stale data
+        // leaks. A row missing a *mapped* column is malformed (counted below);
+        // the zero-fill keeps the existing lenient behaviour regardless.
+        int missing_mapped = 0;
         while (csv_col < max_csv_cols) {
             int dest_col = col_mapping[csv_col];
             if (dest_col != -1) {
+                missing_mapped = 1;
                 void *dest = out_arrays[dest_col];
                 switch (array_types[dest_col]) {
                     case 2: ((uint16_t *)dest)[n_parsed] = 0; break;
@@ -101,12 +109,14 @@ parser_result_t evutils_read_csv(
             }
             csv_col++;
         }
+        if (missing_mapped) n_malformed++;
 
         cursor = line_end + 1;  /* past the '\n'; a trailing '\r' sits before it */
         n_parsed++;
     }
 
     *events_parsed = n_parsed;
+    if (malformed) *malformed = n_malformed;
     parser_result_t res;
     res.current = cursor;
     if (cursor == buffer_end) {

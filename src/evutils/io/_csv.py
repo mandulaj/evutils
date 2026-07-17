@@ -146,6 +146,7 @@ class EventDecoder_Csv(EventDecoder):
         delimiter = self._delimiter.encode('utf-8')[0]
 
         events_parsed_total = 0
+        malformed_total = 0
 
         while events_parsed_total < chunk_size:
             if not self._eof and len(self._buffer) < 1024 * 1024:
@@ -160,6 +161,7 @@ class EventDecoder_Csv(EventDecoder):
                 break
 
             events_parsed = ctypes.c_size_t(0)
+            malformed = ctypes.c_size_t(0)
 
             cur_out_ptrs = (ctypes.c_void_p * 4)(
                 t_arr.ctypes.data + events_parsed_total * 8,
@@ -173,14 +175,15 @@ class EventDecoder_Csv(EventDecoder):
             res = lib().evutils_read_csv(
                 c_buf, len(self._buffer), delimiter, cur_out_ptrs, array_types,
                 col_mapping, len(self._col_mapping), chunk_size - events_parsed_total,
-                ctypes.byref(events_parsed)
+                ctypes.byref(events_parsed), ctypes.byref(malformed)
             )
-            
+
             consumed = (res.current - ctypes.addressof(c_buf)) if res.current is not None else 0
-            
+
             del c_buf # Release memory view so buffer can be resized
 
             parsed = events_parsed.value
+            malformed_total += malformed.value
 
             if consumed == 0:
                 if self._eof:
@@ -201,6 +204,13 @@ class EventDecoder_Csv(EventDecoder):
 
         if events_parsed_total < chunk_size:
             self._eof = True
+
+        # Rows missing a mapped column were zero-filled (lenient default). Surface
+        # them the same way the binary parsers surface malformed packets: raise in
+        # strict mode, else warn once for the chunk.
+        if malformed_total:
+            from ._native_core import _handle_parse_warning
+            _handle_parse_warning(f"in {malformed_total} CSV row(s)", self._strict)
 
         return EventArray(
             t_arr[:events_parsed_total],

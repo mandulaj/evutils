@@ -21,7 +21,7 @@ __all__ = [
     "ParserResult", "EventSoABuffers", "TriggerSoABuffers",
     "EVENT_DTYPE", "TRIGGER_DTYPE",
     "events_view", "triggers_view",
-    "parse_step", "decode_all_soa",
+    "parse_step", "decode_all_soa", "_handle_parse_warning",
     "EVUTILS_PARSE_OK", "EVUTILS_PARSE_INPUT_EMPTY", "EVUTILS_PARSE_OUTPUT_FULL",
     "EVUTILS_PARSE_ERROR", "EVUTILS_PARSE_INCOMPLETE", "EVUTILS_PARSE_WINDOW_DONE", "EVUTILS_PARSE_WARNING",
     "_T_DTYPE", "_X_DTYPE", "_Y_DTYPE", "_P_DTYPE", "_ID_DTYPE"
@@ -196,6 +196,32 @@ def triggers_view(tr: TriggerSoABuffers) -> TriggerArray:
     n = tr.size
     return TriggerArray(tr.t[:n].view(np.int64), tr.p[:n], tr.id[:n])
 
+def _handle_parse_warning(loc: "int | str", strict: bool, fmt: "str | None" = None) -> None:
+    """Raise (strict) or warn (default) on an ``EVUTILS_PARSE_WARNING`` -- a
+    malformed packet the parser skipped over.
+
+    Single source of truth for the strict-vs-warn decision, shared by every
+    parser binding (``parse_step``, ``decode_all_soa``, the EVT delta_t parser
+    and the CSV reader).
+
+    ``loc`` is the location descriptor appended to the message: an int word
+    offset (rendered as ``"near word N"``) for the binary parsers, or a ready
+    string (e.g. CSV's malformed-row count) for text formats. ``fmt`` prefixes
+    the format name and switches the strict exception to :class:`NativeError`
+    (the EVT decoder path); without it a bare ``RuntimeError`` is raised.
+    """
+    where = f"near word {loc}" if isinstance(loc, int) else str(loc)
+    if strict:
+        if fmt:
+            raise NativeError(f"{fmt} malformed packet {where} (strict mode)")
+        raise RuntimeError(f"malformed packet {where} (strict mode)")
+    import warnings
+    if fmt:
+        warnings.warn(f"{fmt} malformed packets ignored {where}")
+    else:
+        warnings.warn(f"Malformed packets ignored {where}")
+
+
 def parse_step(words: "np.ndarray", offset: int, make_input: "Callable", parser: "Callable", events: "EventArray", triggers: "TriggerArray", *, tail_pad: int = 0, word_dtype: "np.dtype | None" = None, strict: bool = False) -> tuple[int, int]:
     n_words = len(words)
     if offset >= n_words: return 0, n_words
@@ -205,10 +231,7 @@ def parse_step(words: "np.ndarray", offset: int, make_input: "Callable", parser:
         res = parser.parse_chunk_soa(inp, events, triggers)
         consumed = inp.consumed(res)
         if res.status == EVUTILS_PARSE_WARNING:
-            if strict:
-                raise RuntimeError(f"malformed packet near word {offset + consumed} (strict mode)")
-            import warnings
-            warnings.warn(f"Malformed packets ignored near word {offset + consumed}")
+            _handle_parse_warning(offset + consumed, strict)
             if consumed > 0:
                 offset += consumed
                 inp = make_input(words[offset:])
@@ -260,10 +283,7 @@ def decode_all_soa(words: "np.ndarray", start_offset: int, make_input: "Callable
             res = parser.parse_chunk_soa(inp, ev, tr)
             consumed = inp.consumed(res)
             if res.status == EVUTILS_PARSE_WARNING:
-                if strict:
-                    raise RuntimeError(f"malformed packet near word {offset + consumed} (strict mode)")
-                import warnings
-                warnings.warn(f"Malformed packets ignored near word {offset + consumed}")
+                _handle_parse_warning(offset + consumed, strict)
                 if consumed > 0:
                     offset += consumed
                     inp = make_input(words[offset:])

@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import pytest
 
@@ -257,6 +259,44 @@ def test_CSV_short_line_does_not_crash(tmp_path: Any) -> None:
     assert len(out) == 3
     assert out['t'][0] == 10 and out['t'][2] == 30
     assert out['x'][2] == 5 and out['p'][2] == 0
+
+
+def test_CSV_short_line_warns(tmp_path: Any) -> None:
+    """A short row (missing a mapped column) surfaces a malformed-row warning,
+    matching the binary parsers' malformed-packet warning."""
+    from evutils.io import EventReader
+    p = tmp_path / "short_warn.csv"
+    p.write_text("t,x,y,p\n10,1,2,1\n20,3\n30,5,6,0\n")
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        with EventReader(p, mode="all") as r:
+            out = r.read()
+    assert len(out) == 3
+    msgs = [str(w.message) for w in caught]
+    assert any("malformed" in m.lower() and "CSV row" in m for m in msgs), msgs
+
+
+def test_CSV_short_line_strict_raises(tmp_path: Any) -> None:
+    """strict=True turns a malformed CSV row into an error, like the binary
+    formats."""
+    from evutils.io import EventReader
+    p = tmp_path / "short_strict.csv"
+    p.write_text("t,x,y,p\n10,1,2,1\n20,3\n30,5,6,0\n")
+    with pytest.raises(RuntimeError, match="malformed"):
+        with EventReader(p, mode="all", strict=True) as r:
+            r.read()
+
+
+def test_CSV_wellformed_no_warning(tmp_path: Any) -> None:
+    """Clean rows (incl. extra trailing columns) emit no malformed warning."""
+    from evutils.io import EventReader
+    p = tmp_path / "clean.csv"
+    p.write_text("t,x,y,p\n10,1,2,1,999\n20,3,4,0\n")
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        with EventReader(p, mode="all") as r:
+            r.read()
+    assert not any("malformed" in str(w.message).lower() for w in caught)
 
 
 def test_CSV_negative_and_extreme_values(tmp_path: Any) -> None:

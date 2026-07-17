@@ -27,6 +27,7 @@ def _bind_csv(handle: CDLL) -> None:
             c_int,             # int max_csv_cols
             c_size_t,          # size_t max_events
             POINTER(c_size_t), # size_t *events_parsed
+            POINTER(c_size_t), # size_t *malformed
         ]
         handle.evutils_read_csv.restype = ParserResult
 

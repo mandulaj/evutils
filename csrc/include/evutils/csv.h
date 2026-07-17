@@ -16,7 +16,8 @@ parser_result_t evutils_read_csv(
     int *col_mapping,
     int max_csv_cols,
     size_t max_events,
-    size_t *events_parsed
+    size_t *events_parsed,
+    size_t *malformed
 );
 
 int evutils_write_csv(
