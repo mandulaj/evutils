@@ -14,10 +14,12 @@ def _refractory_period_jit(t, x, y, p, delta: int):
     code Numba turns into tight machine code.
     """
     n = len(t)
+    if n == 0:
+        return t, x, y, p
     width = int(x.max()) + 1
     height = int(y.max()) + 1
-    # Init to -delta so the first event at each pixel is always kept.
-    last = np.zeros((width, height), dtype=np.int64) - delta
+    # Init to t[0] - delta - 1 so the first event at each pixel is always kept, even if t[0] is 0.
+    last = np.full((width, height), t[0] - delta - 1, dtype=np.int64)
     keep = np.zeros(n, dtype=np.bool_)
 
     for i in range(n):
