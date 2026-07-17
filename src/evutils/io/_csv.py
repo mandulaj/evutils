@@ -69,15 +69,16 @@ class EventDecoder_Csv(EventDecoder):
         # Check if the first line is a header
         # If we find a header, it will take precendence over the order parameter
 
-        if "t" in first_line or "x" in first_line or "y" in first_line or "p" in first_line:
+        cols = [c.strip() for c in first_line.split(self._delimiter)]
+        if "t" in cols or "x" in cols or "y" in cols or "p" in cols:
             # Header found
             have_header = True
 
         if have_header:
             # We expect a header:
-            if "t" in first_line and "x" in first_line and "y" in first_line and "p" in first_line:
+            if "t" in cols and "x" in cols and "y" in cols and "p" in cols:
                 # Header found
-                order = [c.strip() for c in first_line.split(self._delimiter)]
+                order = cols
 
                 if self._order is not None and order != self._order:
                     warnings.warn(f"Header order {order} in file takes precedence over requested order {self._order}")

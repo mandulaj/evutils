@@ -88,6 +88,20 @@ int evutils_read_csv(
             break;
         }
 
+        // Zero-fill any missing columns for short rows to prevent stale data leaks
+        while (csv_col < max_csv_cols) {
+            int dest_col = col_mapping[csv_col];
+            if (dest_col != -1) {
+                void *dest = out_arrays[dest_col];
+                switch (array_types[dest_col]) {
+                    case 2: ((uint16_t *)dest)[n_parsed] = 0; break;
+                    case 8: ((int64_t  *)dest)[n_parsed] = 0; break;
+                    case 1: ((uint8_t  *)dest)[n_parsed] = 0; break;
+                }
+            }
+            csv_col++;
+        }
+
         cursor = line_end + 1;  /* past the '\n'; a trailing '\r' sits before it */
         n_parsed++;
     }
