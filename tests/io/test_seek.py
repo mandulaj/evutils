@@ -16,7 +16,7 @@ from evutils.types import Event_dtype
 
 # (format, extension). HDF5 needs the optional h5py dependency.
 FORMATS = [
-    ("evt3", "raw"), ("evt2", "raw"), ("evt21", "raw"),
+    ("evt3", "raw"), ("evt4", "raw"), ("evt2", "raw"), ("evt21", "raw"),
     ("dat", "dat"), ("csv", "csv"), ("npz", "npz"), ("hdf5", "hdf5"),
 ]
 
@@ -33,13 +33,17 @@ def _ramp(n: int = N, dt: int = DT):
     return ev
 
 
-def _write(path, fmt, ev):
-    if fmt in ("evt3", "evt2", "evt21"):
+def _write(path, fmt, ev, tr=None):
+    if fmt in ("evt3", "evt4", "evt2", "evt21"):
         with EventWriter(path, format=fmt) as w:
             w.write(ev)
+            if tr is not None:
+                w.write_triggers(tr)
     else:  # dispatched by extension; needs geometry for evt/hdf5-style writers
         with EventWriter(path, width=1280, height=720) as w:
             w.write(ev)
+            if tr is not None:
+                w.write_triggers(tr)
 
 
 @pytest.fixture(params=FORMATS, ids=[f[0] for f in FORMATS])
@@ -240,3 +244,50 @@ def test_metavision_index_matches_built_index():
     assert int(ca.t[0]) == int(cb.t[0]) >= T
     assert int(ca.x[0]) == int(cb.x[0])
     assert int(ca.y[0]) == int(cb.y[0])
+
+
+
+def test_seek_with_normalize_ts(tmp_path):
+    fmt, ext = "evt3", "raw"
+    ev = _ramp()
+    ev["t"] += 100_000 # start at 100k
+    p = tmp_path / f"ramp_norm_{fmt}.{ext}"
+    _write(p, fmt, ev)
+
+    T = 5_000_000
+    with EventReader(p, n_events=3000, normalize_ts=True) as r:
+        r.read() # Anchor first_ts so normalize_ts knows the start of the file
+        landed = r.seek(t=T)
+        c = r.read()
+    
+    # EventReader.seek() expects/returns absolute timestamps
+    assert landed == T
+    # EventReader.read() yields normalized timestamps (T - 100_000)
+    assert int(c.t[0]) >= T - 100_000
+
+def test_repeated_seek_past_wrap(tmp_path):
+    fmt, ext = "evt3", "raw"
+    ev = _ramp()
+    p = tmp_path / f"ramp_wrap_{fmt}.{ext}"
+    _write(p, fmt, ev)
+
+    T1 = 17_000_000 # Past EVT3 wrap (16.7M)
+    T2 = 18_000_000
+    with EventReader(p, n_events=3000) as r:
+        r.seek(t=T1)
+        r.seek(t=T2)
+        r.seek(t=T1)
+        c = r.read()
+    assert int(c.t[0]) >= T1
+
+def test_seek_past_eof(tmp_path):
+    fmt, ext = "evt3", "raw"
+    ev = _ramp()
+    p = tmp_path / f"ramp_eof_{fmt}.{ext}"
+    _write(p, fmt, ev)
+
+    with EventReader(p, n_events=3000) as r:
+        r.seek(t=100_000_000) # Far past end
+        c = r.read()
+    assert len(c) == 0
+
