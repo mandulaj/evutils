@@ -391,3 +391,29 @@ def test_EVT_corrupted_header_no_end(tmp_path: Any) -> None:
     with EventReader(p) as r:
         n = len(r.read())
     assert n == 0, f"header with no '% end' and no payload decoded {n} events, expected 0"
+
+
+@pytest.mark.parametrize("ext,fmt", [(".evt2", "evt2"), (".evt21", "evt21"), (".evt4", "evt4")])
+def test_writer_extension_selects_evt_format(tmp_path, ext, fmt):
+    """Writing to .evt2/.evt21/.evt4 must pick the matching EVT variant from the
+    extension alone (no format= kwarg) and round-trip losslessly."""
+    from evutils.io import EventReader, EventWriter
+    from evutils.types import Event_dtype
+
+    ev = np.zeros(5000, dtype=Event_dtype)
+    ev["t"] = np.arange(5000, dtype=np.int64) * 50
+    ev["x"] = np.arange(5000) % 1280
+    ev["y"] = np.arange(5000) % 720
+    ev["p"] = np.arange(5000) % 2
+
+    p = tmp_path / f"roundtrip{ext}"
+    with EventWriter(str(p)) as w:
+        w.write(ev)
+
+    with EventReader(str(p)) as r:
+        out = r.read_all()
+        assert r._file_decoder._format == fmt   # header written as the right variant
+    assert np.array_equal(np.asarray(out.t), ev["t"])
+    assert np.array_equal(np.asarray(out.x), ev["x"])
+    assert np.array_equal(np.asarray(out.y), ev["y"])
+    assert np.array_equal(np.asarray(out.p), ev["p"])
