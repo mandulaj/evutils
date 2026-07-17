@@ -535,9 +535,9 @@
 <span class="sd">    max_time: int, default=1_000_000_000_000</span>
 <span class="sd">        Maximum timestamp to read</span>
 <span class="sd">    width: int or None</span>
-<span class="sd">        Width of the frame, by default infered from the file</span>
+<span class="sd">        Width of the frame, by default inferred from the file</span>
 <span class="sd">    height: int or None</span>
-<span class="sd">        Height of the frame, by default infered from the file</span>
+<span class="sd">        Height of the frame, by default inferred from the file</span>
 <span class="sd">    ext_trigger: bool, default=False</span>
 <span class="sd">        Whether to read external trigger events, by default False</span>
 <span class="sd">    async_read: bool, default=False</span>
@@ -585,6 +585,13 @@
 <span class="sd">        dead air and resumes immediately instead of blocking on one long</span>
 <span class="sd">        sleep. ``None`` disables the skip (strict real time). Ignored when</span>
 <span class="sd">        ``real_time=False``.</span>
+<span class="sd">    index: str or bool, default=&quot;auto&quot;</span>
+<span class="sd">        Seek-index policy for random access (:meth:`seek`). ``&quot;auto&quot;``/``True``/</span>
+<span class="sd">        ``False`` all build an exact in-memory index lazily on the first seek</span>
+<span class="sd">        (``False`` additionally never touches a sidecar). ``&quot;metavision&quot;`` reads</span>
+<span class="sd">        a Metavision ``.tmp_index`` sidecar instead -- fast, but approximate near</span>
+<span class="sd">        large event gaps. Only EVT formats use an index; others seek by record</span>
+<span class="sd">        math or ``searchsorted``.</span>
 <span class="sd">    strict: bool, default=False</span>
 <span class="sd">        Corrupt-packet policy. When False (default), a malformed packet is</span>
 <span class="sd">        skipped with a :class:`UserWarning` and decoding resumes -- a robust</span>
@@ -670,7 +677,7 @@
         <span class="c1"># (a malformed packet) instead of skipping it. Default is robust</span>
         <span class="c1"># (warn + skip + resume), like Metavision&#39;s UNRELIABLE decoder.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span><span class="o">.</span><span class="n">_strict</span> <span class="o">=</span> <span class="n">strict</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_external_triggers</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span><span class="p">,</span> <span class="s1">&#39;SUPPORTS_EXT_TRIGGERS&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_external_triggers</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span><span class="o">.</span><span class="n">SUPPORTS_EXT_TRIGGERS</span><span class="p">:</span>
             <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> does not support reading external triggers.&quot;</span><span class="p">)</span>
 
@@ -836,10 +843,9 @@
         <span class="c1">#   &quot;metavision&quot;      -&gt; read a Metavision `.tmp_index` sidecar when</span>
         <span class="c1">#                        present (fast, but approximate near large event</span>
         <span class="c1">#                        gaps), else fall back to the built index.</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span><span class="p">,</span> <span class="s2">&quot;_use_sidecar&quot;</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span><span class="o">.</span><span class="n">_use_sidecar</span> <span class="o">=</span> <span class="p">(</span><span class="n">index</span> <span class="o">==</span> <span class="s2">&quot;metavision&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span><span class="o">.</span><span class="n">_raw_path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span><span class="o">.</span><span class="n">_use_sidecar</span> <span class="o">=</span> <span class="p">(</span><span class="n">index</span> <span class="o">==</span> <span class="s2">&quot;metavision&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span><span class="o">.</span><span class="n">_raw_path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_name</span><span class="p">)</span>
 
 <div class="viewcode-block" id="EventReader.init">
 <a class="viewcode-back" href="../../../autoapi/evutils/io/index.html#evutils.io.EventReader.init">[docs]</a>
@@ -885,17 +891,15 @@
         <span class="c1"># A seek may have staged the boundary-chunk remainder (the events from</span>
         <span class="c1"># the exact target onward, already wrap-corrected); drain it first so</span>
         <span class="c1"># the native parse_step path does not skip past it.</span>
-        <span class="n">take_pending</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">dec</span><span class="p">,</span> <span class="s2">&quot;take_pending&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">take_pending</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">pend</span> <span class="o">=</span> <span class="n">take_pending</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">pend</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pend</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
-                    <span class="n">pend_ev</span><span class="p">,</span> <span class="n">pend_tr</span> <span class="o">=</span> <span class="n">pend</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">pend_ev</span><span class="p">,</span> <span class="n">pend_tr</span> <span class="o">=</span> <span class="n">pend</span><span class="p">,</span> <span class="kc">None</span>
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pend_ev</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="p">(</span><span class="n">pend_tr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">pend_tr</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
-                    <span class="n">acc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pend_ev</span><span class="p">,</span> <span class="n">pend_tr</span><span class="p">)</span>
-                    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pend_ev</span><span class="p">))</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pend_ev</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">1</span>
+        <span class="n">pend</span> <span class="o">=</span> <span class="n">dec</span><span class="o">.</span><span class="n">take_pending</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">pend</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pend</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                <span class="n">pend_ev</span><span class="p">,</span> <span class="n">pend_tr</span> <span class="o">=</span> <span class="n">pend</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">pend_ev</span><span class="p">,</span> <span class="n">pend_tr</span> <span class="o">=</span> <span class="n">pend</span><span class="p">,</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pend_ev</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="p">(</span><span class="n">pend_tr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">pend_tr</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="n">acc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pend_ev</span><span class="p">,</span> <span class="n">pend_tr</span><span class="p">)</span>
+                <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pend_ev</span><span class="p">))</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pend_ev</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">1</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_native_fill</span><span class="p">:</span>
             <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">dec</span><span class="o">.</span><span class="n">is_eof</span><span class="p">():</span>
@@ -1358,11 +1362,11 @@
             <span class="n">n</span> <span class="o">=</span> <span class="n">n_events</span> <span class="k">if</span> <span class="n">n_events</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_events</span>
             <span class="c1"># Exact-capacity native decoders (EVT2/DAT/AER) decode straight into</span>
             <span class="c1"># a fresh output buffer via parse_step.</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_native_fill</span> <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">dec</span><span class="p">,</span> <span class="s2">&quot;_exact_window&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_native_fill</span> <span class="ow">and</span> <span class="n">dec</span><span class="o">.</span><span class="n">_exact_window</span><span class="p">:</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_n_events_fast</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
             <span class="c1"># Decoders whose read_chunk already returns independent, bounded</span>
             <span class="c1"># chunks (NPZ/CSV) can hand that out directly.</span>
-            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">dec</span><span class="p">,</span> <span class="s2">&quot;_independent_windows&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">dec</span><span class="o">.</span><span class="n">_independent_windows</span><span class="p">:</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_n_events_readchunk</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
 
         <span class="c1"># Fast path: pure delta_t streaming with a native-fill decoder, no</span>
@@ -1376,7 +1380,7 @@
             <span class="n">dt</span> <span class="o">=</span> <span class="n">delta_t</span> <span class="k">if</span> <span class="n">delta_t</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delta_t</span>
             <span class="c1"># Prefer the dedicated C delta_t parser (one GIL-free call per window,</span>
             <span class="c1"># no boundary search or overshoot carry) when the format has one.</span>
-            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span><span class="p">,</span> <span class="s2">&quot;_has_delta_t_parser&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span><span class="o">.</span><span class="n">_has_delta_t_parser</span><span class="p">:</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_delta_t_c</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_delta_t_fast</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
 
@@ -1634,7 +1638,7 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;seek() requires exactly one of t= or n=.&quot;</span><span class="p">)</span>
 
         <span class="n">dec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">dec</span><span class="p">,</span> <span class="s2">&quot;SUPPORTS_SEEK&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">dec</span><span class="o">.</span><span class="n">SUPPORTS_SEEK</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dec</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> does not support seeking.&quot;</span>
             <span class="p">)</span>

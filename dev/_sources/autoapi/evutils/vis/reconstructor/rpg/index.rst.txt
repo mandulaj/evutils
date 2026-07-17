@@ -50,7 +50,7 @@ Module Contents
    :rtype: None
 
 
-.. py:class:: RPG_Reconstructor(height: int, width: int, args: dict | None = None)
+.. py:class:: RPG_Reconstructor(width: int, height: int, args: dict | None = None)
 
    Bases: :py:obj:`evutils.vis.reconstructor._base.Reconstructor`
 
@@ -60,10 +60,10 @@ Module Contents
 
    Reconstructor using the E2VID model from RPG.
 
-   :param height: Height of the frame
-   :type height: int
    :param width: Width of the frame
    :type width: int
+   :param height: Height of the frame
+   :type height: int
    :param args: Additional arguments for the RPG E2Vid reconstructor, by default {}
    :type args: dict, optional
 

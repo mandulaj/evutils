@@ -79,9 +79,9 @@ Package Contents
    :type normalize_ts: bool, default=False
    :param max_time: Maximum timestamp to read
    :type max_time: int, default=1_000_000_000_000
-   :param width: Width of the frame, by default infered from the file
+   :param width: Width of the frame, by default inferred from the file
    :type width: int or None
-   :param height: Height of the frame, by default infered from the file
+   :param height: Height of the frame, by default inferred from the file
    :type height: int or None
    :param ext_trigger: Whether to read external trigger events, by default False
    :type ext_trigger: bool, default=False
@@ -130,6 +130,13 @@ Package Contents
                    sleep. ``None`` disables the skip (strict real time). Ignored when
                    ``real_time=False``.
    :type max_gap: float or None, default=1.0
+   :param index: Seek-index policy for random access (:meth:`seek`). ``"auto"``/``True``/
+                 ``False`` all build an exact in-memory index lazily on the first seek
+                 (``False`` additionally never touches a sidecar). ``"metavision"`` reads
+                 a Metavision ``.tmp_index`` sidecar instead -- fast, but approximate near
+                 large event gaps. Only EVT formats use an index; others seek by record
+                 math or ``searchsorted``.
+   :type index: str or bool, default="auto"
    :param strict: Corrupt-packet policy. When False (default), a malformed packet is
                   skipped with a :class:`UserWarning` and decoding resumes -- a robust
                   decoder (like Metavision's UNRELIABLE mode). When True, a malformed

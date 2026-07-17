@@ -653,6 +653,20 @@ size=&quot;8.0, 12.0&quot;;
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="evutils.io.common.EventDecoder.take_pending">
+<span class="sig-name descname"><span class="pre">take_pending</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../../types/index.html#evutils.types.EventArray" title="evutils.types.EventArray"><span class="pre">EventArray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="../../../../_modules/evutils/io/common.html#EventDecoder.take_pending"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.common.EventDecoder.take_pending" title="Link to this definition">#</a></dt>
+<dd><p>Pop any boundary-chunk remainder staged by <a class="reference internal" href="#evutils.io.common.EventDecoder.seek" title="evutils.io.common.EventDecoder.seek"><code class="xref py py-meth docutils literal notranslate"><span class="pre">seek()</span></code></a>.</p>
+<p>Only decoders whose <a class="reference internal" href="#evutils.io.common.EventDecoder.seek" title="evutils.io.common.EventDecoder.seek"><code class="xref py py-meth docutils literal notranslate"><span class="pre">seek()</span></code></a> lands mid-chunk (EVT) stage a
+remainder; the base returns <code class="docutils literal notranslate"><span class="pre">None</span></code> so the EventReader can call this
+unconditionally.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="../../types/index.html#evutils.types.EventArray" title="evutils.types.EventArray">EventArray</a> | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="evutils.io.common.EventDecoder.read_all">
 <span class="sig-name descname"><span class="pre">read_all</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../../types/index.html#evutils.types.EventArray" title="evutils.types.EventArray"><span class="pre">EventArray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../../types/index.html#evutils.types.EventArray" title="evutils.types.EventArray"><span class="pre">EventArray</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="../../types/index.html#evutils.types.TriggerArray" title="evutils.types.TriggerArray"><span class="pre">TriggerArray</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../_modules/evutils/io/common.html#EventDecoder.read_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.common.EventDecoder.read_all" title="Link to this definition">#</a></dt>
 <dd><p>Decode and return every remaining event at once.</p>
@@ -958,6 +972,7 @@ closed by the <a class="reference internal" href="../index.html#evutils.io.Event
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.common.EventDecoder.init"><code class="docutils literal notranslate"><span class="pre">EventDecoder.init()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.common.EventDecoder.read_chunk"><code class="docutils literal notranslate"><span class="pre">EventDecoder.read_chunk()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.common.EventDecoder.reset"><code class="docutils literal notranslate"><span class="pre">EventDecoder.reset()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.common.EventDecoder.take_pending"><code class="docutils literal notranslate"><span class="pre">EventDecoder.take_pending()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.common.EventDecoder.read_all"><code class="docutils literal notranslate"><span class="pre">EventDecoder.read_all()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.common.EventDecoder.close"><code class="docutils literal notranslate"><span class="pre">EventDecoder.close()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.common.EventDecoder.tell"><code class="docutils literal notranslate"><span class="pre">EventDecoder.tell()</span></code></a></li>

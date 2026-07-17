@@ -628,7 +628,7 @@ Wrappers for various dataset loaders -->
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">evutils.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventReader</span>
 
 
-<span class="n">ev_file</span> <span class="o">=</span> <span class="n">EventReader</span><span class="p">(</span><span class="s2">&quot;raw_file.raw&quot;</span><span class="p">,</span> <span class="n">delta_t</span><span class="o">=</span><span class="mf">10e3</span><span class="p">)</span>
+<span class="n">ev_file</span> <span class="o">=</span> <span class="n">EventReader</span><span class="p">(</span><span class="s2">&quot;raw_file.raw&quot;</span><span class="p">,</span> <span class="n">delta_t</span><span class="o">=</span><span class="mi">10_000</span><span class="p">)</span>
 
 <span class="n">events</span> <span class="o">=</span> <span class="n">ev_file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 
@@ -642,9 +642,10 @@ index (forward or backward) and keep reading in the configured window mode:</p>
     <span class="n">r</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">1_000_000</span><span class="p">)</span>   <span class="c1"># or jump to the 1,000,000th event</span>
 </pre></div>
 </div>
-<p>Seeking uses an index (a Metavision <code class="docutils literal notranslate"><span class="pre">.tmp_index</span></code> sidecar when present, else one
-built in memory) or exact record math, and falls back to iterate-and-skip on
-non-seekable streams.</p>
+<p>Seeking uses an index or exact record math, and falls back to iterate-and-skip
+on non-seekable streams. For EVT the index is built in memory on the first seek
+(exact) by default; pass <code class="docutils literal notranslate"><span class="pre">EventReader(...,</span> <span class="pre">index=&quot;metavision&quot;)</span></code> to instead read
+a Metavision <code class="docutils literal notranslate"><span class="pre">.tmp_index</span></code> sidecar (fast, but approximate near large event gaps).</p>
 </section>
 <section id="dense">
 <h4><code class="docutils literal notranslate"><span class="pre">dense</span></code><a class="headerlink" href="#dense" title="Link to this heading">#</a></h4>
@@ -690,10 +691,10 @@ input type, so you get back whichever form you passed in.</p></li>
 </section>
 <section id="vis">
 <h4><code class="docutils literal notranslate"><span class="pre">vis</span></code><a class="headerlink" href="#vis" title="Link to this heading">#</a></h4>
-<p>The <code class="docutils literal notranslate"><span class="pre">vis</span></code> moduels provides several methods for visualizing the events (for example as histograms), but also provides a streamlined interface for more complex visualization techneques, such as using the <a class="reference external" href="https://github.com/uzh-rpg/rpg_e2vid">E2Vid</a> reconstructor.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">vis</span></code> modules provides several methods for visualizing the events (for example as histograms), but also provides a streamlined interface for more complex visualization techniques, such as using the <a class="reference external" href="https://github.com/uzh-rpg/rpg_e2vid">E2Vid</a> reconstructor.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">evutils.vis.reconstructor</span><span class="w"> </span><span class="kn">import</span> <span class="n">RPG_Reconstructor</span>
 
-<span class="n">reconstructor</span> <span class="o">=</span> <span class="n">RPG_Reconstructor</span><span class="p">(</span><span class="mi">1280</span><span class="p">,</span> <span class="mi">720</span><span class="p">)</span>
+<span class="n">reconstructor</span> <span class="o">=</span> <span class="n">RPG_Reconstructor</span><span class="p">(</span><span class="mi">1280</span><span class="p">,</span> <span class="mi">720</span><span class="p">)</span>  <span class="c1"># (width, height)</span>
 
 <span class="n">img</span> <span class="o">=</span> <span class="n">reconstructor</span><span class="o">.</span><span class="n">gen_frame</span><span class="p">(</span><span class="n">events</span><span class="p">)</span>
 

@@ -619,8 +619,8 @@ The file_decoder is chosen automatically based on the file format or can be supp
 <li><p><strong>start_ts</strong> (<em>int</em><em>, </em><em>default=0</em>) – Start timestamp offset for the events, by default 0 (start of the file)</p></li>
 <li><p><strong>normalize_ts</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Normalize timestamps to start from zero</p></li>
 <li><p><strong>max_time</strong> (<em>int</em><em>, </em><em>default=1_000_000_000_000</em>) – Maximum timestamp to read</p></li>
-<li><p><strong>width</strong> (<em>int</em><em> or </em><em>None</em>) – Width of the frame, by default infered from the file</p></li>
-<li><p><strong>height</strong> (<em>int</em><em> or </em><em>None</em>) – Height of the frame, by default infered from the file</p></li>
+<li><p><strong>width</strong> (<em>int</em><em> or </em><em>None</em>) – Width of the frame, by default inferred from the file</p></li>
+<li><p><strong>height</strong> (<em>int</em><em> or </em><em>None</em>) – Height of the frame, by default inferred from the file</p></li>
 <li><p><strong>ext_trigger</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Whether to read external trigger events, by default False</p></li>
 <li><p><strong>async_read</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Decode ahead in a background thread while iterating: the next window
 is parsed while the caller processes the current one (the native
@@ -661,6 +661,12 @@ late-starting stream, or a pause mid-recording), the pacer skips the
 dead air and resumes immediately instead of blocking on one long
 sleep. <code class="docutils literal notranslate"><span class="pre">None</span></code> disables the skip (strict real time). Ignored when
 <code class="docutils literal notranslate"><span class="pre">real_time=False</span></code>.</p></li>
+<li><p><strong>index</strong> (<em>str</em><em> or </em><em>bool</em><em>, </em><em>default=&quot;auto&quot;</em>) – Seek-index policy for random access (<a class="reference internal" href="#evutils.io.EventReader.seek" title="evutils.io.EventReader.seek"><code class="xref py py-meth docutils literal notranslate"><span class="pre">seek()</span></code></a>). <code class="docutils literal notranslate"><span class="pre">&quot;auto&quot;</span></code>/<code class="docutils literal notranslate"><span class="pre">True</span></code>/
+<code class="docutils literal notranslate"><span class="pre">False</span></code> all build an exact in-memory index lazily on the first seek
+(<code class="docutils literal notranslate"><span class="pre">False</span></code> additionally never touches a sidecar). <code class="docutils literal notranslate"><span class="pre">&quot;metavision&quot;</span></code> reads
+a Metavision <code class="docutils literal notranslate"><span class="pre">.tmp_index</span></code> sidecar instead – fast, but approximate near
+large event gaps. Only EVT formats use an index; others seek by record
+math or <code class="docutils literal notranslate"><span class="pre">searchsorted</span></code>.</p></li>
 <li><p><strong>strict</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Corrupt-packet policy. When False (default), a malformed packet is
 skipped with a <code class="xref py py-class docutils literal notranslate"><span class="pre">UserWarning</span></code> and decoding resumes – a robust
 decoder (like Metavision’s UNRELIABLE mode). When True, a malformed
@@ -668,7 +674,6 @@ packet raises instead (a SAFE decoder). Warnings can be captured with
 <code class="xref py py-func docutils literal notranslate"><span class="pre">warnings.catch_warnings()</span></code>.</p></li>
 <li><p><strong>file_decoder</strong> (<em>ev_decoders.EventDecoder</em><em> or </em><em>type</em><em>[</em><em>ev_decoders.EventDecoder</em><em>] or </em><em>None</em><em>, </em><em>default=None</em>) – File decoder to use, by default None - automatic</p></li>
 <li><p><strong>**kwargs</strong> – Additional arguments to pass to the file decoder</p></li>
-<li><p><strong>index</strong> (<em>str</em><em> | </em><em>bool</em>)</p></li>
 <li><p><strong>batch_mode</strong> (<em>bool</em>)</p></li>
 </ul>
 </dd>

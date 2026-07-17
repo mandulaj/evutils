@@ -519,6 +519,19 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
+    <span class="c1"># ------------------------------------------------------------------ #</span>
+    <span class="c1"># Capability contract</span>
+    <span class="c1">#</span>
+    <span class="c1"># These class attributes declare which optional fast paths / features a</span>
+    <span class="c1"># decoder supports. They all default to the conservative value here so a</span>
+    <span class="c1"># decoder that does not override one degrades to the safe (correct, maybe</span>
+    <span class="c1"># slower) path, and so the EventReader can read them directly instead of</span>
+    <span class="c1"># probing with getattr(..., default) -- a missing attribute then surfaces</span>
+    <span class="c1"># as a loud AttributeError rather than silently selecting the slow path.</span>
+    <span class="c1"># Subclasses override the ones they implement.</span>
+    <span class="c1"># ------------------------------------------------------------------ #</span>
+
+    <span class="c1">#: Decoder can decode external trigger packets alongside CD events.</span>
     <span class="n">SUPPORTS_EXT_TRIGGERS</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="c1">#: Whether this decoder implements timestamp / event-index random access via</span>
@@ -526,6 +539,24 @@
     <span class="c1">#: EventReader additionally requires the underlying ByteSource to be</span>
     <span class="c1">#: seekable before delegating a real (non-linear) seek here.</span>
     <span class="n">SUPPORTS_SEEK</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="c1">#: Parser emits exactly one event per input record, so an output buffer</span>
+    <span class="c1">#: fills to precisely its capacity -- enables EventReader&#39;s zero-copy</span>
+    <span class="c1">#: n_events fast path. False for vectorised formats (EVT3/2.1/4).</span>
+    <span class="n">_exact_window</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="c1">#: read_chunk already returns slices of at most ``n_events`` events, so the</span>
+    <span class="c1">#: reader can hand them straight through without re-accumulating (NPZ/HDF5).</span>
+    <span class="n">_independent_windows</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="c1">#: A dedicated C delta_t parser exists (one GIL-free call decodes a whole</span>
+    <span class="c1">#: time window). EVT3 overrides this as a property.</span>
+    <span class="n">_has_delta_t_parser</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="c1">#: Seek-index wiring, injected by EventReader from its ``index=`` option.</span>
+    <span class="c1">#: Only EVT consults them; harmless defaults for every other decoder.</span>
+    <span class="n">_use_sidecar</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">_raw_path</span><span class="p">:</span> <span class="s2">&quot;str | None&quot;</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="s2">&quot;io.BufferedIOBase | str | bytes&quot;</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span> <span class="n">read_external_triggers</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the decoder.</span>
@@ -599,6 +630,18 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Reset the file pointer to the beginning of the file.&quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+
+<div class="viewcode-block" id="EventDecoder.take_pending">
+<a class="viewcode-back" href="../../../autoapi/evutils/io/decoders/index.html#evutils.io.common.EventDecoder.take_pending">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">take_pending</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;EventArray | None&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pop any boundary-chunk remainder staged by :meth:`seek`.</span>
+
+<span class="sd">        Only decoders whose :meth:`seek` lands mid-chunk (EVT) stage a</span>
+<span class="sd">        remainder; the base returns ``None`` so the EventReader can call this</span>
+<span class="sd">        unconditionally.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
 
 
 <div class="viewcode-block" id="EventDecoder.read_all">

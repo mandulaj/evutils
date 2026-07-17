@@ -103,6 +103,16 @@ Module Contents
 
 
 
+   .. py:method:: take_pending() -> EventArray | None
+
+      Pop any boundary-chunk remainder staged by :meth:`seek`.
+
+      Only decoders whose :meth:`seek` lands mid-chunk (EVT) stage a
+      remainder; the base returns ``None`` so the EventReader can call this
+      unconditionally.
+
+
+
    .. py:method:: read_all() -> EventArray | tuple[EventArray, TriggerArray]
 
       Decode and return every remaining event at once.
