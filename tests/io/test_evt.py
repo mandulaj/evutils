@@ -13,13 +13,13 @@ import numpy as np
 
 from typing import Any
 
-def test_RAW_writer_import() -> None:
+def test_RAW_writer_import(tmp_path: Any) -> None:
     '''
     Testing if the RAW writer can be imported
     '''
     from evutils.io import EventWriter
     assert EventWriter is not None
-    test_writer = EventWriter("test.raw")
+    test_writer = EventWriter(str(tmp_path / "test.raw"))
     assert test_writer is not None
     test_writer.close()
 
