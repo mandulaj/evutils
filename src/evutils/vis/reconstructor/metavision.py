@@ -22,17 +22,17 @@ try:
         
         Parameters
         ----------
-        height : int
-            Height of the frame
         width : int
             Width of the frame
+        height : int
+            Height of the frame
         args : dict, optional
             Additional arguments for the Metavision reconstructor, by default {}
 
         """
 
-        def __init__(self, height: int, width: int, args: "dict | None" = None) -> None:
-            super().__init__(height, width, args if args is not None else {})
+        def __init__(self, width: int, height: int, args: "dict | None" = None) -> None:
+            super().__init__(width, height, args if args is not None else {})
 
             self.model = EventToVideoLightningModel.load_from_checkpoint("models/e2v.ckpt")
             self.model.eval().to(self.device)
@@ -78,16 +78,16 @@ except ImportError:
 
         Parameters
         ----------
-        height : int
-            Height of the frame
         width : int
             Width of the frame
+        height : int
+            Height of the frame
         args : dict, optional
             Additional arguments for the Metavision reconstructor, by default {}
 
         """
 
-        def __init__(self, height: int, width: int, args: "dict | None" = None) -> None:
+        def __init__(self, width: int, height: int, args: "dict | None" = None) -> None:
             raise ImportError("Please install metavision_core_ml to use this class")
         
     

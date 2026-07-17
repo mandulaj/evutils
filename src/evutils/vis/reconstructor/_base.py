@@ -43,10 +43,10 @@ class Reconstructor():
 
     Parameters
     ----------
-    height : int
-        Height of the frame
     width : int
         Width of the frame
+    height : int
+        Height of the frame
     args : dict, optional
         Additional arguments for the reconstructor, by default {}
 
@@ -55,7 +55,7 @@ class Reconstructor():
     DEFAULT_ARGS = {
         'device': "auto"
     }
-    def __init__(self, height: int, width: int, args: "dict | None" = None) -> None:
+    def __init__(self, width: int, height: int, args: "dict | None" = None) -> None:
         if args is None: args = {}
         self.args = {**Reconstructor.DEFAULT_ARGS, **args}
         

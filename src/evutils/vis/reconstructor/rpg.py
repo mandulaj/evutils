@@ -37,10 +37,10 @@ class RPG_Reconstructor(Reconstructor):
 
     Parameters
     ----------
-    height : int
-        Height of the frame
     width : int
         Width of the frame
+    height : int
+        Height of the frame
     args : dict, optional
         Additional arguments for the RPG E2Vid reconstructor, by default {}
 
@@ -77,11 +77,11 @@ class RPG_Reconstructor(Reconstructor):
         "model_url": "http://rpg.ifi.uzh.ch/data/E2VID/models/E2VID.pth.tar"
     }
 
-    def __init__(self, height: int, width: int, args: "dict | None" = None) -> None:
+    def __init__(self, width: int, height: int, args: "dict | None" = None) -> None:
         if args is None: args = {}
         args = {**RPG_Reconstructor.DEFAULT_ARGS, **args}
 
-        super().__init__(height, width, args)
+        super().__init__(width, height, args)
 
         # Check local module path and download model if not present
         if not os.path.exists(args['model_path']):
