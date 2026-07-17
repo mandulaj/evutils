@@ -50,9 +50,23 @@ from ._npz import EventEncoder_Npz
 _WRITER_MAPPING[".npz"] = EventEncoder_Npz
 
 from ._evt import EventEncoder_EVT
+
+def _evt_encoder_for(fmt: str) -> Type[EventEncoder]:
+    """EventEncoder_EVT preconfigured for ``fmt``; an explicit ``format=``
+    kwarg from the caller still wins."""
+    class _Encoder(EventEncoder_EVT):
+        def __init__(self, *args, format: str = fmt, **kwargs):  # noqa: A002
+            super().__init__(*args, format=format, **kwargs)
+    _Encoder.__name__ = f"EventEncoder_EVT_{fmt}"
+    _Encoder.__qualname__ = _Encoder.__name__
+    return _Encoder
+
 _WRITER_MAPPING[".raw"] = EventEncoder_EVT
 _WRITER_MAPPING[".evt"] = EventEncoder_EVT
 _WRITER_MAPPING[".evt3"] = EventEncoder_EVT
+_WRITER_MAPPING[".evt2"] = _evt_encoder_for("evt2")
+_WRITER_MAPPING[".evt21"] = _evt_encoder_for("evt21")
+_WRITER_MAPPING[".evt4"] = _evt_encoder_for("evt4")
 
 from ._aer import EventEncoder_AER
 _WRITER_MAPPING[".aer"] = EventEncoder_AER
