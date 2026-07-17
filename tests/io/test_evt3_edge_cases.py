@@ -11,40 +11,65 @@ These are correctness gaps, not known bugs.
 import pytest
 
 
-@pytest.mark.skip(reason="TODO: exercise incomplete vector continuation branch")
 def test_incomplete_vector_continuation() -> None:
-    """A VECT_BASE_X / VECT_12 group whose follow-up word is NOT the expected
-    continuation type.
+    import numpy as np
+    from evutils.io._native_evt import Evt3Parser, Evt3Input
+    from evutils.io._native_core import EventSoABuffers, TriggerSoABuffers, parse_step
 
-    In ``EVT3_parse_vector_12_12_8_soa`` the two nested ``if
-    (EVT3_get_packet_type(*current) == EVT3_VECT_12 / EVT3_VECT_8)`` checks
-    (evt3.c ~225 / ~229) only ever take the "present" side with real data, so
-    the "absent" side is never covered.
+    # VECT_BASE_X (type 3) followed by the FIRST VECT_12 (type 4).
+    # Normally a second VECT_12 follows. Here, we interrupt with EVT_ADDR_X (type 2).
+    words = np.array([
+        (0x3 << 12) | 0x0,
+        (0x4 << 12) | 0xFFF,
+        (0x2 << 12) | 200,
+    ], dtype=np.uint16)
 
-    How to test: hand-craft a uint16 EVT3 word stream (not a full recording) with
-    a VECT_BASE_X followed by a single VECT_12 word and then a NON-VECT word
-    (e.g. an EVT_ADDR_X), so the 2nd/3rd continuation is missing. Feed it through
-    the low-level SOA parse step (see evutils.io._native_evt / _native_core
-    parse_step) and assert the decoded event count matches only the bits present
-    in the first vector word.
-    """
+    parser = Evt3Parser()
+    ev = EventSoABuffers(100)
+    ev.c.capacity = 100
+    tr = TriggerSoABuffers(100)
 
+    parse_step(words, 0, Evt3Input, parser, ev, tr, tail_pad=4, word_dtype=np.uint16)
 
-@pytest.mark.skip(reason="TODO: exercise output-buffer-full early exit")
+    # 12 events from the first vector word + 1 from the EVT_ADDR_X word = 13 events.
+    # The interruption aborts the continuation gracefully.
+    assert ev.size == 13
+
 def test_output_buffer_full_stops_mid_chunk() -> None:
-    """Main loop guard ``n_events_read < events_capacity_offset`` (and the
-    trigger equivalent) tripping before the input is consumed.
+    import numpy as np
+    from evutils.io._native_evt import Evt3Parser, Evt3Input
+    from evutils.io._native_core import EventSoABuffers, TriggerSoABuffers, parse_step
 
-    Normal runs size the output buffers generously, so the loop always exits on
-    end-of-input, never on capacity — leaving the capacity guards at ~83%
-    (evt3.c ~297 / ~322). This is the "small event array" case.
+    # VECT_BASE_X + 6 full blocks of (VECT_12, VECT_12, VECT_8).
+    # Each full block emits 32 events. 6 blocks = 192 events.
+    words = [(0x3 << 12) | 0x0]
+    block = [
+        (0x4 << 12) | 0xFFF,
+        (0x4 << 12) | 0xFFF,
+        (0x5 << 12) | 0xFF,
+    ]
+    words.extend(block * 6)
+    words = np.array(words, dtype=np.uint16)
 
-    How to test: drive ``EVT3_parse_chunk_soa`` with a small event buffer
-    (capacity just above the 64-slot vector headroom) and enough input to
-    overflow it. Assert the parser returns with ``current`` short of ``end`` and
-    ``event_buffer.size`` at the cap, then that a second call resumes from
-    ``current`` and drains the rest with no lost/duplicated events.
-    """
+    parser = Evt3Parser()
+    # Create an event buffer with a capacity of 100.
+    # events_capacity_offset is 100 - 64 = 36.
+    ev = EventSoABuffers(100)
+    ev.c.capacity = 100
+    tr = TriggerSoABuffers(100)
+
+    # First parse: should stop after 2 blocks (64 events) because 64 >= 36.
+    appended, off = parse_step(words, 0, Evt3Input, parser, ev, tr, tail_pad=4, word_dtype=np.uint16)
+    assert appended == 64
+    assert off == 7 # 1 VECT_BASE_X + 2 blocks * 3 words = 7 words consumed
+    assert ev.size == 64
+
+    # "Drain" the buffer and resume from `off`
+    ev.reset()
+    appended2, off2 = parse_step(words, off, Evt3Input, parser, ev, tr, tail_pad=4, word_dtype=np.uint16)
+    assert appended2 == 64 # 2 more blocks
+    assert off2 == 13 # 7 + 2 * 3 = 13
+    assert ev.size == 64
 
 
 @pytest.mark.skip(reason="Measurement note, not a runtime test — see docstring")
