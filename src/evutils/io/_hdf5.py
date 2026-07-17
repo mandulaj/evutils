@@ -240,24 +240,29 @@ class EventDecoder_HDF5(EventDecoder):
             self._t_cache = t
         return self._t_cache
 
-    def seek(self, t: int | None = None, n: int | None = None) -> int:
+    def seek(self, t: int | None = None, n: int | None = None) -> tuple["SeekResult", "EventArray", "TriggerArray | None"]:
         """Seek to an absolute timestamp (µs) or event index. See base class.
 
         Index seek sets the event position directly; time seek does a
         ``searchsorted`` over the (lazily cached) timestamp column, so it is
         exact regardless of ``t_offset`` / ``ms_to_idx`` anchoring.
         """
+        from .common import SeekResult
         if not self._is_initialized:
             self.init()
         axis, val = self._seek_axis(t, n)
-        if axis == "n":
-            idx = val
-        else:
+
+        if axis == "t":
             idx = int(np.searchsorted(self._all_t(), val, side="left"))
+        else:
+            idx = val
+
         idx = max(0, min(idx, self._n))
         self._pos = idx
         self._eof = idx >= self._n
-        return int(self._all_t()[idx]) if idx < self._n else val
+        
+        landed_ts = int(self._all_t()[idx]) if idx < self._n else val
+        return SeekResult(ts=landed_ts, index=idx, eof=self._eof), _EMPTY_EVENTS, None
 
     def reset(self) -> None:
         """Reset the reader to the beginning of the file."""

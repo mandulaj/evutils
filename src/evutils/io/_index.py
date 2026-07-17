@@ -31,94 +31,146 @@ from pathlib import Path
 import numpy as np
 
 
+from typing import Protocol, TYPE_CHECKING
+if TYPE_CHECKING:
+    import numpy as np
+
+class SeekIndex(Protocol):
+    """Monotonic (timestamp, cumulative-count) -> word-offset bookmarks."""
+
+    @property
+    def n_events(self) -> int | None:
+        """Total event count of the indexed stream (None if not fully indexed)."""
+        ...
+
+    def bookmark_for_time(self, t: int) -> tuple[int, int, int]:
+        """Return (word_offset, cum_count, ts) for the last bookmark whose timestamp is <= t."""
+        ...
+
+    def bookmark_for_event(self, n: int) -> tuple[int, int, int]:
+        """Return (word_offset, cum_count, ts) for the last bookmark whose cumulative count is <= n."""
+        ...
+
 @dataclass
-class SeekIndex:
-    """Monotonic (timestamp, cumulative-count) -> word-offset bookmarks.
-
-    Attributes
-    ----------
-    ts : np.ndarray[int64]
-        Absolute timestamp (µs, raw-stream timeline) of the first event at each
-        bookmark's ``word_offset``.
-    word_offset : np.ndarray[int64]
-        Word offset into the decoder payload where decoding may resume (a point
-        from which the decoder re-establishes an absolute time base).
-    cum_count : np.ndarray[int64]
-        Number of events before each bookmark (cumulative from the start).
-    n_events : int
-        Total event count of the indexed stream.
-    """
-
+class StaticSeekIndex:
+    """A fully built, read-only seek index."""
     ts: np.ndarray
     word_offset: np.ndarray
     cum_count: np.ndarray
     n_events: int
 
-    def bookmark_for_time(self, t: int) -> int:
-        """Index of the last bookmark whose timestamp is ``<= t`` (>= 0)."""
+    def bookmark_for_time(self, t: int) -> tuple[int, int, int]:
+        if len(self.ts) == 0:
+            return 0, 0, 0
         i = int(np.searchsorted(self.ts, t, side="right")) - 1
-        return max(i, 0)
+        i = max(i, 0)
+        return int(self.word_offset[i]), int(self.cum_count[i]), int(self.ts[i])
 
-    def bookmark_for_event(self, n: int) -> int:
-        """Index of the last bookmark whose cumulative count is ``<= n`` (>= 0)."""
+    def bookmark_for_event(self, n: int) -> tuple[int, int, int]:
+        if len(self.cum_count) == 0:
+            return 0, 0, 0
         i = int(np.searchsorted(self.cum_count, n, side="right")) - 1
-        return max(i, 0)
+        i = max(i, 0)
+        return int(self.word_offset[i]), int(self.cum_count[i]), int(self.ts[i])
 
     def __len__(self) -> int:
         return len(self.ts)
 
+class IncrementalSeekIndex:
+    """A seek index that builds itself by decoding words on demand."""
+    def __init__(self, words: np.ndarray, start_offset: int, input_cls: type, parser_cls: type,
+                 tail_pad: int, word_dtype: np.dtype, chunk_cap: int = 65_536):
+        self._words = words
+        self._start_offset = start_offset
+        self._input_cls = input_cls
+        self._parser = parser_cls()
+        self._tail_pad = tail_pad
+        self._word_dtype = word_dtype
+        
+        cap = max(int(chunk_cap), 128)
+        from ._native_core import EventSoABuffers, TriggerSoABuffers
+        self._ev = EventSoABuffers(cap)
+        self._tr = TriggerSoABuffers(max(cap // 16, 1))
 
-def build_seek_index(*, words, start_offset, input_cls, parser_cls,
-                     tail_pad, word_dtype, chunk_cap: int = 65_536) -> SeekIndex:
-    """Build a :class:`SeekIndex` by decoding ``words`` sequentially.
+        self._ts_list: list[int] = []
+        self._off_list: list[int] = []
+        self._cum_list: list[int] = []
+        
+        self._cum = 0
+        self._off = int(start_offset)
+        self._is_eof = False
 
-    Records one bookmark per parse step: the word offset it started at, the
-    absolute timestamp of that step's first event, and the cumulative count so
-    far. ``chunk_cap`` bounds events per step, hence the forward-decode work
-    after a seek lands on a bookmark.
-    """
-    from ._native_core import (
-        EventSoABuffers,
-        TriggerSoABuffers,
-        events_view,
-        parse_step,
-    )
+        self._ts_arr = np.empty(0, dtype=np.int64)
+        self._off_arr = np.empty(0, dtype=np.int64)
+        self._cum_arr = np.empty(0, dtype=np.int64)
+        self._arrs_stale = False
 
-    parser = parser_cls()
-    cap = max(int(chunk_cap), 128)
-    ev = EventSoABuffers(cap)
-    tr = TriggerSoABuffers(max(cap // 16, 1))
+    @property
+    def n_events(self) -> int | None:
+        return self._cum if self._is_eof else None
 
-    ts_list: list[int] = []
-    off_list: list[int] = []
-    cum_list: list[int] = []
-    cum = 0
-    off = int(start_offset)
-    n = len(words)
+    def _update_arrs(self):
+        if self._arrs_stale:
+            self._ts_arr = np.asarray(self._ts_list, dtype=np.int64)
+            self._off_arr = np.asarray(self._off_list, dtype=np.int64)
+            self._cum_arr = np.asarray(self._cum_list, dtype=np.int64)
+            self._arrs_stale = False
 
-    while off < n:
-        boff = off
-        ev.reset()
-        tr.reset()
-        appended, off = parse_step(
-            words, off, input_cls, parser, ev, tr,
-            tail_pad=tail_pad, word_dtype=word_dtype,
-        )
-        if appended == 0:
-            if off <= boff:
-                break  # no progress -> only sub-padding tail remains
-            continue
-        ts_list.append(int(events_view(ev).t[0]))
-        off_list.append(boff)
-        cum_list.append(cum)
-        cum += appended
+    def _build_until(self, target_t: int | None = None, target_n: int | None = None) -> None:
+        if self._is_eof:
+            return
+        if target_t is not None and len(self._ts_list) > 0 and self._ts_list[-1] >= target_t:
+            return
+        if target_n is not None and self._cum >= target_n:
+            return
 
-    return SeekIndex(
-        ts=np.asarray(ts_list, dtype=np.int64),
-        word_offset=np.asarray(off_list, dtype=np.int64),
-        cum_count=np.asarray(cum_list, dtype=np.int64),
-        n_events=cum,
-    )
+        from ._native_core import events_view, parse_step
+        n_words = len(self._words)
+        while self._off < n_words:
+            boff = self._off
+            self._ev.reset()
+            self._tr.reset()
+            appended, self._off = parse_step(
+                self._words, self._off, self._input_cls, self._parser, self._ev, self._tr,
+                tail_pad=self._tail_pad, word_dtype=self._word_dtype,
+            )
+            if appended == 0:
+                if self._off <= boff:
+                    self._is_eof = True
+                    break
+                continue
+            
+            ts_first = int(events_view(self._ev).t[0])
+            self._ts_list.append(ts_first)
+            self._off_list.append(boff)
+            self._cum_list.append(self._cum)
+            self._cum += appended
+            self._arrs_stale = True
+
+            if target_t is not None and ts_first >= target_t:
+                break
+            if target_n is not None and self._cum >= target_n:
+                break
+        else:
+            self._is_eof = True
+
+    def bookmark_for_time(self, t: int) -> tuple[int, int, int]:
+        self._build_until(target_t=t)
+        self._update_arrs()
+        if len(self._ts_arr) == 0:
+            return self._start_offset, 0, 0
+        i = int(np.searchsorted(self._ts_arr, t, side="right")) - 1
+        i = max(i, 0)
+        return int(self._off_arr[i]), int(self._cum_arr[i]), int(self._ts_arr[i])
+
+    def bookmark_for_event(self, n: int) -> tuple[int, int, int]:
+        self._build_until(target_n=n)
+        self._update_arrs()
+        if len(self._cum_arr) == 0:
+            return self._start_offset, 0, 0
+        i = int(np.searchsorted(self._cum_arr, n, side="right")) - 1
+        i = max(i, 0)
+        return int(self._off_arr[i]), int(self._cum_arr[i]), int(self._ts_arr[i])
 
 
 # --------------------------------------------------------------------------- #
@@ -205,7 +257,7 @@ def read_metavision_index(index_path: "str | Path", raw_path: "str | Path",
     word_offset = (byte_off - int(payload_off)) // int(word_size)
     cum_count = np.cumsum(recs["count"].astype(np.int64)) - recs["count"].astype(np.int64)
 
-    return SeekIndex(
+    return StaticSeekIndex(
         ts=ts,
         word_offset=word_offset,
         cum_count=cum_count,

@@ -243,7 +243,8 @@ class EventDecoder_Npz(EventDecoder):
         self._pos = idx
         self._eof = idx >= self._n
 
-    def seek(self, t: int | None = None, n: int | None = None) -> int:
+    def seek(self, t: int | None = None, n: int | None = None) -> tuple["SeekResult", "EventArray", "TriggerArray | None"]:
+        from .common import SeekResult
         if not self._is_initialized:
             self.init()
         axis, val = self._seek_axis(t, n)
@@ -259,9 +260,9 @@ class EventDecoder_Npz(EventDecoder):
         else:
             idx = val
         idx = max(0, min(idx, self._n))
-        landed = self._ts_at(idx)
+        landed_ts = self._ts_at(idx)
         self._seek_to_index(idx)
-        return landed if landed is not None else val
+        return SeekResult(ts=landed_ts if landed_ts is not None else val, index=idx, eof=self._eof), _EMPTY_EVENTS, None
 
     def reset(self) -> None:
         """Reset the reader to the beginning of the archive."""

@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "evutils/csv.h"
+
 /* Parse whitespace-delimited integer rows (CSV/TXT event files) into the
  * caller's per-column output arrays.
  *
@@ -10,7 +12,6 @@
  *   col_mapping[j]  output column that CSV column j feeds, or -1 to skip it
  *   max_csv_cols    length of col_mapping
  *   max_events      stop after this many rows
- *   bytes_consumed  (out) bytes fully consumed (whole rows only)
  *   events_parsed   (out) rows parsed
  *
  * Strategy: locate each line end with memchr (SIMD-accelerated in glibc), then
@@ -19,7 +20,7 @@
  * A line with no '\n' before the buffer end is a chunk-boundary fragment: stop
  * without consuming it so the Python driver re-feeds it in the next block.
  */
-int evutils_read_csv(
+parser_result_t evutils_read_csv(
     const char *buffer, size_t buffer_len,
     char delimiter,
     void **out_arrays,
@@ -27,7 +28,6 @@ int evutils_read_csv(
     int *col_mapping,
     int max_csv_cols,
     size_t max_events,
-    size_t *bytes_consumed,
     size_t *events_parsed
 ) {
     const char *cursor = buffer;
@@ -106,9 +106,18 @@ int evutils_read_csv(
         n_parsed++;
     }
 
-    *bytes_consumed = (size_t)(cursor - buffer);
     *events_parsed = n_parsed;
-    return 0;
+    parser_result_t res;
+    res.current = cursor;
+    if (cursor == buffer_end) {
+        res.status = EVUTILS_PARSE_INPUT_EMPTY;
+    } else if (n_parsed == max_events) {
+        res.status = EVUTILS_PARSE_OUTPUT_FULL;
+    } else {
+        // fragment reached
+        res.status = EVUTILS_PARSE_INPUT_EMPTY;
+    }
+    return res;
 }
 
 

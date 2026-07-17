@@ -215,7 +215,7 @@ class EventDecoder_Dat(EventDecoder):
         self._eof = True
         return out
 
-    def seek(self, t: int | None = None, n: int | None = None) -> int:
+    def seek(self, t: int | None = None, n: int | None = None) -> tuple["SeekResult", "EventArray", "TriggerArray | None"]:
         """Seek to an absolute timestamp (µs) or event index. See base class.
 
         Fixed 8-byte records: event ``k`` lives at word offset ``2k`` and its
@@ -223,6 +223,7 @@ class EventDecoder_Dat(EventDecoder):
         ``searchsorted`` over those words; index seek is direct. Assumes the
         raw 32-bit timestamps are non-decreasing (no wrap).
         """
+        from .common import SeekResult
         if not self._is_initialized:
             self.init()
         axis, val = self._seek_axis(t, n)
@@ -261,7 +262,8 @@ class EventDecoder_Dat(EventDecoder):
         else:
             wrap_offset = max(0, int(np.searchsorted(self._wrap_indices, idx, side="right")) - 1) * (1 << 32)
             
-        return int(ts_view[idx]) + wrap_offset if idx < n_events else val
+        landed_ts = int(ts_view[idx]) + wrap_offset if idx < n_events else val
+        return SeekResult(ts=landed_ts, index=idx, eof=self._eof), _EMPTY_EVENTS, None
 
     def reset(self) -> None:
         """Reset the DAT reader to the beginning.

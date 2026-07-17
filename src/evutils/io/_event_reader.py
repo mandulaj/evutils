@@ -12,6 +12,8 @@ from typing import TYPE_CHECKING, Any, Optional
 import numpy as np
 
 from ..types import EventArray, TriggerArray
+
+_EMPTY_EVENTS = EventArray.empty()
 from . import decoders as ev_decoders
 from ._native_core import (EVUTILS_PARSE_OUTPUT_FULL,
                            EVUTILS_PARSE_WINDOW_DONE, EventSoABuffers,
@@ -343,10 +345,7 @@ class EventReader():
         # Seeking (see seek()). ``_anchored`` decouples the "first timestamp"
         # anchoring from ``_n_read_events == 0`` so a post-seek read keeps the
         # sought ``_current_ts`` instead of re-anchoring to the stream start.
-        # ``_seeked`` forces the accumulator path (the zero-copy fast paths and
-        # the EVT delta_t C parser bypass parse_step's seek correction).
         self._anchored = False
-        self._seeked = False
         self._index_opt = index
         # ``index`` selects the seek index source for formats that use one (EVT):
         #   "auto"/True/False -> build an exact index in memory, lazily on the
@@ -396,18 +395,6 @@ class EventReader():
 
         """
         dec = self._file_decoder
-        # A seek may have staged the boundary-chunk remainder (the events from
-        # the exact target onward, already wrap-corrected); drain it first so
-        # the native parse_step path does not skip past it.
-        pend = dec.take_pending()
-        if pend is not None:
-            if isinstance(pend, tuple):
-                pend_ev, pend_tr = pend
-            else:
-                pend_ev, pend_tr = pend, None
-            if len(pend_ev) > 0 or (pend_tr is not None and len(pend_tr) > 0):
-                acc.append(pend_ev, pend_tr)
-                return int(len(pend_ev)) if len(pend_ev) > 0 else 1
         if self._native_fill:
             while True:
                 if dec.is_eof():
@@ -861,7 +848,6 @@ class EventReader():
         # staging accumulator (and its per-window copy).
         if (self._mode == "n_events" and delta_t is None
                 and not self._read_external_triggers
-                and not self._seeked
                 and (self._buffer is None or len(self._buffer) == 0)):
             dec = self._file_decoder
             n = n_events if n_events is not None else self._n_events
@@ -880,7 +866,6 @@ class EventReader():
         if (self._mode == "delta_t" and n_events is None
                 and self._native_fill
                 and not self._read_external_triggers
-                and not self._seeked
                 and (self._buffer is None or len(self._buffer) == 0)):
             dt = delta_t if delta_t is not None else self._delta_t
             # Prefer the dedicated C delta_t parser (one GIL-free call per window,
@@ -1079,7 +1064,6 @@ class EventReader():
         self._n_read_events = 0
         self._eof = False
         self._anchored = False
-        self._seeked = False
         self._pace_anchor = None
         self._dt_carry = None
         self._dt_est = self._step
@@ -1149,8 +1133,23 @@ class EventReader():
             else:
                 n = self._n_read_events + n
 
-        # Tear down staging state (mirrors reset(), but the decoder position is
-        # set by the seek itself rather than rewound to the start).
+        # Make normalize_ts evaluate _first_ts from the very start of the stream before seeking
+        if not self._anchored:
+            seekable = getattr(self._source, "seekable", lambda: True)()
+            if seekable:
+                try:
+                    res, _, _ = dec.seek(n=0)
+                    self._first_ts = res.ts
+                except (io.UnsupportedOperation, OSError):
+                    pass
+            if not hasattr(self, "_first_ts"):
+                dec.reset()
+                chunk = dec.read_chunk()
+                if isinstance(chunk, tuple):
+                    chunk = chunk[0]
+                self._first_ts = int(chunk.t[0]) if len(chunk) > 0 else 0
+                dec.reset()
+
         self._eof = False
         self._pace_anchor = None
         self._dt_carry = None
@@ -1159,21 +1158,29 @@ class EventReader():
         if self._buffer is not None:
             self._buffer.reset()
 
-        try:
-            landed = dec.seek(t=t, n=n)
-        except (io.UnsupportedOperation, OSError):
-            landed = self._seek_linear(t, n)
+        seekable = getattr(self._source, "seekable", lambda: True)()
+        
+        if seekable:
+            try:
+                res, rem_ev, rem_tr = dec.seek(t=t, n=n)
+            except (io.UnsupportedOperation, OSError):
+                res, rem_ev, rem_tr = self._seek_linear(t, n)
+        else:
+            res, rem_ev, rem_tr = self._seek_linear(t, n)
 
-        self._seeked = True
-        self._n_read_events = int(n) if n is not None else 0
-        if not self._anchored:
-            self._first_ts = landed
-        self._current_ts = landed
+        if len(rem_ev) > 0 or (rem_tr is not None and len(rem_tr) > 0):
+            if self._buffer is None:
+                self._buffer = EventAccumulator(self._acc_capacity)
+            self._buffer.append(rem_ev, rem_tr)
+
+        self._n_read_events = res.index if res.index >= 0 else (int(n) if n is not None else 0)
+        self._current_ts = res.ts
         self._anchored = True
-        return landed
+        return res.ts
 
-    def _seek_linear(self, t: int | None, n: int | None) -> int:
+    def _seek_linear(self, t: int | None, n: int | None) -> tuple["SeekResult", "EventArray", "TriggerArray | None"]:
         """Fallback seek for non-seekable sources: iterate and drop to target."""
+        from .common import SeekResult
         dec = self._file_decoder
         axis = "t" if t is not None else "n"
         target = t if t is not None else n
@@ -1186,11 +1193,18 @@ class EventReader():
         else:
             seen = self._n_read_events
 
-        landed = target
+        landed_ts = target
+        idx = target if axis == "n" else -1
+        rem_ev = _EMPTY_EVENTS
+        rem_tr = None
+
         while True:
             chunk = dec.read_chunk()
             if isinstance(chunk, tuple):
-                chunk = chunk[0]
+                chunk, tr_chunk = chunk
+            else:
+                tr_chunk = None
+                
             if len(chunk) == 0:
                 self._eof = True
                 break
@@ -1201,15 +1215,19 @@ class EventReader():
                 k = max(0, min(target - seen, len(chunk)))
                 hit = target < seen + len(chunk)
             if hit:
-                remainder = chunk[k:].copy()
-                if len(remainder):
-                    if self._buffer is None:
-                        self._buffer = EventAccumulator(self._acc_capacity)
-                    self._buffer.append(remainder, None)
-                    landed = int(remainder.t[0])
+                rem_ev = chunk[k:].copy()
+                if tr_chunk is not None:
+                    if axis == "t":
+                        tr_k = int(np.searchsorted(tr_chunk.t, target, side="left"))
+                    else:
+                        tr_k = 0
+                    rem_tr = tr_chunk[tr_k:].copy()
+                
+                landed_ts = int(rem_ev.t[0]) if len(rem_ev) > 0 else target
+                idx = seen + k
                 break
             seen += len(chunk)
-        return landed
+        return SeekResult(ts=landed_ts, index=idx, eof=self._eof), rem_ev, rem_tr
 
     def __enter__(self) -> "EventReader":
         return self

@@ -10,6 +10,8 @@ import numpy as np
 from ..types import Event_dtype, EventArray, TriggerArray
 from .common import EventDecoder, EventEncoder
 
+_EMPTY_EVENTS = EventArray.empty()
+
 class EventDecoder_Csv(EventDecoder):
     """A reader for CSV files with events.
 
@@ -152,7 +154,6 @@ class EventDecoder_Csv(EventDecoder):
             if len(self._buffer) == 0:
                 break
 
-            bytes_consumed = ctypes.c_size_t(0)
             events_parsed = ctypes.c_size_t(0)
 
             cur_out_ptrs = (ctypes.c_void_p * 4)(
@@ -164,15 +165,16 @@ class EventDecoder_Csv(EventDecoder):
 
             c_buf = (ctypes.c_char * len(self._buffer)).from_buffer(self._buffer)
 
-            lib().evutils_read_csv(
+            res = lib().evutils_read_csv(
                 c_buf, len(self._buffer), delimiter, cur_out_ptrs, array_types,
                 col_mapping, len(self._col_mapping), chunk_size - events_parsed_total,
-                ctypes.byref(bytes_consumed), ctypes.byref(events_parsed)
+                ctypes.byref(events_parsed)
             )
+            
+            consumed = (res.current - ctypes.addressof(c_buf)) if res.current is not None else 0
             
             del c_buf # Release memory view so buffer can be resized
 
-            consumed = bytes_consumed.value
             parsed = events_parsed.value
 
             if consumed == 0:
@@ -270,8 +272,9 @@ class EventDecoder_Csv(EventDecoder):
                 remaining = 0
         return pos
 
-    def seek(self, t: int | None = None, n: int | None = None) -> int:
+    def seek(self, t: int | None = None, n: int | None = None) -> tuple["SeekResult", "EventArray", "TriggerArray | None"]:
         """Seek to an absolute timestamp (µs) or event index. See base class."""
+        from .common import SeekResult
         if not self._is_initialized:
             self.init()
         axis, val = self._seek_axis(t, n)
@@ -279,6 +282,7 @@ class EventDecoder_Csv(EventDecoder):
 
         if axis == "n":
             pos = self._seek_line_index(val)
+            idx = val
         else:
             lo, hi = self._data_start, size
             while lo < hi:
@@ -290,13 +294,19 @@ class EventDecoder_Csv(EventDecoder):
                 else:
                     lo = mid + 1
             pos = self._line_start_at_or_after(lo)
+            idx = -1
 
         self._fd.seek(pos)
         self._buffer = bytearray()
         self._eof = False
-        landed = self._parse_line_t(pos) if pos < size else None
+        landed_ts = self._parse_line_t(pos) if pos < size else None
         self._fd.seek(pos)  # _parse_line_t moved the cursor
-        return landed if landed is not None else val
+        
+        # If pos >= size, we are at EOF.
+        if pos >= size:
+            self._eof = True
+            
+        return SeekResult(ts=landed_ts if landed_ts is not None else val, index=idx, eof=self._eof), _EMPTY_EVENTS, None
 
     def reset(self) -> None:
         """Reset the CSV reader to the beginning of the file."""

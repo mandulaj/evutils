@@ -494,16 +494,6 @@ class EventDecoder_EVT(EventDecoder):
             self._eof = True
         return appended
 
-    def take_pending(self) -> "EventArray | None":
-        """Pop the boundary-chunk remainder staged by :meth:`seek` (or ``None``).
-
-        Lets the EventReader's accumulator path drain the exact-landing
-        remainder that would otherwise only be served by :meth:`read_chunk`.
-        """
-        p = self._pending
-        self._pending = None
-        return p
-
     @property
     def _has_delta_t_parser(self) -> bool:
         """True when a dedicated C delta_t parser exists for this format, so the
@@ -667,7 +657,6 @@ class EventDecoder_EVT(EventDecoder):
         """
         self._offset = self._start_offset
         self._eof = False
-        self._pending = None
         self._seek_correction = 0
         if self._parser is not None:
             self._parser.reset()
@@ -682,7 +671,7 @@ class EventDecoder_EVT(EventDecoder):
         counts match this decoder exactly -- required for event-index seeks.
         """
         from ._index import (
-            build_seek_index,
+            IncrementalSeekIndex,
             metavision_index_path,
             read_metavision_index,
         )
@@ -699,7 +688,7 @@ class EventDecoder_EVT(EventDecoder):
             )
             self._index_is_ours = False
         if idx is None:
-            idx = build_seek_index(
+            idx = IncrementalSeekIndex(
                 words=self._words, start_offset=self._start_offset,
                 input_cls=self._input_cls, parser_cls=type(self._parser),
                 tail_pad=self._tail_pad, word_dtype=self._word_dtype,
@@ -730,32 +719,35 @@ class EventDecoder_EVT(EventDecoder):
         return (events_view(ev) if ev.size > 0 else _EMPTY_EVENTS,
                 triggers_view(tr) if tr.size > 0 else TriggerArray.empty())
 
-    def seek(self, t: int | None = None, n: int | None = None) -> int:
+    def seek(self, t: int | None = None, n: int | None = None) -> tuple["SeekResult", "EventArray", "TriggerArray | None"]:
         """Seek to an absolute timestamp (µs) or event index. See base class.
 
         Jumps to the nearest index bookmark at/before the target, restores the
         TIME_HIGH wrap accumulation, then decodes forward to land exactly on the
         target (staging the boundary chunk's remainder for the next read).
         """
+        from .common import SeekResult
         if not self._is_initialized:
             self.init()
         axis, val = self._seek_axis(t, n)
 
         index = self._ensure_index(need_counts=(axis == "n"))
-        self._pending = None
+        
         if index.n_events == 0 or self._words is None:
             self._offset = len(self._words) if self._words is not None else 0
             self._eof = True
             self._seek_correction = 0
-            return val
+            idx = val if axis == "n" else 0
+            return SeekResult(ts=val, index=idx, eof=True), _EMPTY_EVENTS, None
 
-        i = index.bookmark_for_time(val) if axis == "t" else index.bookmark_for_event(val)
-        self._offset = int(index.word_offset[i])
+        word_off, cum, base_ts = (index.bookmark_for_time(val) if axis == "t" 
+                                  else index.bookmark_for_event(val))
+        
+        self._offset = word_off
         self._parser.reset()
         self._seek_correction = 0
         self._eof = False
-        base_ts = int(index.ts[i])
-        seen = int(index.cum_count[i])
+        seen = cum
 
         correction: int | None = None
         while True:
@@ -764,7 +756,8 @@ class EventDecoder_EVT(EventDecoder):
                 # Target is at/after the end of the stream.
                 self._seek_correction = correction or 0
                 self._eof = True
-                return val
+                idx = val if axis == "n" else seen
+                return SeekResult(ts=val, index=idx, eof=True), _EMPTY_EVENTS, None
             if correction is None:
                 if len(raw_ev) > 0:
                     period = self._WRAP_PERIOD.get(self._format or "", 1 << 24)
@@ -795,16 +788,17 @@ class EventDecoder_EVT(EventDecoder):
                     # Best effort for event index: keep all triggers from this chunk
                     tr_k = 0
                 
-                self._pending = (
-                    EventArray(
-                        t_corr[k:].copy(), raw_ev.x[k:].copy(),
-                        raw_ev.y[k:].copy(), raw_ev.p[k:].copy(),
-                    ),
-                    TriggerArray(
-                        tr_t_corr[tr_k:].copy(), raw_tr.p[tr_k:].copy(), raw_tr.id[tr_k:].copy()
-                    ) if len(raw_tr) > 0 else TriggerArray.empty()
+                rem_ev = EventArray(
+                    t_corr[k:].copy(), raw_ev.x[k:].copy(),
+                    raw_ev.y[k:].copy(), raw_ev.p[k:].copy(),
                 )
-                return int(t_corr[k]) if k < len(raw_ev) else val
+                rem_tr = TriggerArray(
+                    tr_t_corr[tr_k:].copy(), raw_tr.p[tr_k:].copy(), raw_tr.id[tr_k:].copy()
+                ) if len(raw_tr) > 0 else TriggerArray.empty()
+                
+                idx = seen + k
+                landed_ts = int(t_corr[k]) if k < len(raw_ev) else val
+                return SeekResult(ts=landed_ts, index=idx, eof=False), rem_ev, rem_tr
             seen += len(raw_ev)
 
     def tell(self) -> int:
@@ -833,6 +827,7 @@ class EventDecoder_EVT(EventDecoder):
         # can be closed without BufferError.
         self._words = None
         self._buf = None
+        self._index = None
 
 # --------------------------------------------------------------------------- #
 # Encoders (EVT3 / EVT2 / EVT2.1 writers)

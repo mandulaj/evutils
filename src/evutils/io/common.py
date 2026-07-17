@@ -13,6 +13,14 @@ if TYPE_CHECKING:
 
 import numpy as np
 
+from typing import NamedTuple
+
+class SeekResult(NamedTuple):
+    """Result of a seek operation: the exact landing timestamp, event index, and EOF status."""
+    ts: int
+    index: int
+    eof: bool
+
 class EventDecoder(ABC):
     """ABC for reading chunks of events from a IO source object.
 
@@ -134,15 +142,6 @@ class EventDecoder(ABC):
         """Reset the file pointer to the beginning of the file."""
         raise NotImplementedError
 
-    def take_pending(self) -> "EventArray | None":
-        """Pop any boundary-chunk remainder staged by :meth:`seek`.
-
-        Only decoders whose :meth:`seek` lands mid-chunk (EVT) stage a
-        remainder; the base returns ``None`` so the EventReader can call this
-        unconditionally.
-        """
-        return None
-
     def read_all(self) -> 'EventArray | tuple[EventArray, TriggerArray]':
         """Decode and return every remaining event at once.
 
@@ -243,33 +242,19 @@ class EventDecoder(ABC):
             return "t", int(t)
         return "n", int(n)  # type: ignore[arg-type]
 
-    def seek(self, t: int | None = None, n: int | None = None) -> int:
+    def seek(self, t: int | None = None, n: int | None = None) -> tuple[SeekResult, "EventArray", "TriggerArray | None"]:
         """Reposition the decoder to an absolute timestamp or event index.
 
         Exactly one of ``t`` (microseconds) or ``n`` (0-based event index) must
         be given. After a successful seek the next :meth:`read_chunk` /
         :meth:`read_all` yields events starting at the first event whose
-        timestamp is ``>= t`` (time seek) or at event ``n`` (index seek).
+        timestamp is >= ``t`` (or the exact event at index ``n``).
 
         Parameters
         ----------
         t : int, optional
-            Absolute target timestamp in microseconds.
+            Target timestamp in microseconds.
         n : int, optional
-            Absolute target event index (0-based).
-
-        Returns
-        -------
-        int
-            The absolute timestamp of the first event that will be read next
-            (the landed position). Equals the stream's last timestamp + 1 style
-            EOF sentinel handling is left to the caller; an empty tail simply
-            means the target is at/after the end.
-
-        Raises
-        ------
-        NotImplementedError
-            If this decoder does not support seeking (``SUPPORTS_SEEK`` is
             False).
         ValueError
             If neither or both of ``t``/``n`` are provided.

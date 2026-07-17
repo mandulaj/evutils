@@ -6,24 +6,29 @@ shared library handle; the Python-side chunking logic lives in
 """
 from __future__ import annotations
 import ctypes
-from ctypes import POINTER, c_void_p, c_int, c_char_p, c_size_t, c_char
+from ctypes import POINTER, c_void_p, c_int, c_char_p, c_size_t, c_char, Structure, CDLL
 from ._native_core import register_bindings
 
-def _bind_csv(handle: ctypes.CDLL) -> None:
+class ParserResult(Structure):
+    _fields_ = [
+        ("current", c_void_p),
+        ("status", c_int)
+    ]
+
+def _bind_csv(handle: CDLL) -> None:
     if hasattr(handle, "evutils_read_csv"):
         handle.evutils_read_csv.argtypes = [
-            c_char_p,          # buffer
-            c_size_t,          # buffer_len
-            c_char,            # delimiter
-            POINTER(c_void_p), # out_arrays
-            POINTER(c_int),    # array_types
-            POINTER(c_int),    # col_mapping
-            c_int,             # max_csv_cols
-            c_size_t,          # max_events
-            POINTER(c_size_t), # bytes_consumed
-            POINTER(c_size_t), # events_parsed
+            c_char_p,          # const char *buffer
+            c_size_t,          # size_t buffer_len
+            c_char,            # char delimiter
+            POINTER(c_void_p), # void **out_arrays
+            POINTER(c_int),    # int *array_types
+            POINTER(c_int),    # int *col_mapping
+            c_int,             # int max_csv_cols
+            c_size_t,          # size_t max_events
+            POINTER(c_size_t), # size_t *events_parsed
         ]
-        handle.evutils_read_csv.restype = c_int
+        handle.evutils_read_csv.restype = ParserResult
 
     if hasattr(handle, "evutils_write_csv"):
         handle.evutils_write_csv.argtypes = [
