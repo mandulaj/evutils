@@ -743,6 +743,7 @@ class EventDecoder_EVT(EventDecoder):
         i = index.bookmark_for_time(val) if axis == "t" else index.bookmark_for_event(val)
         self._offset = int(index.word_offset[i])
         self._parser.reset()
+        self._seek_correction = 0
         self._eof = False
         base_ts = int(index.ts[i])
         seen = int(index.cum_count[i])
