@@ -30,6 +30,19 @@ class EventDecoder(ABC):
 
     """
 
+    # ------------------------------------------------------------------ #
+    # Capability contract
+    #
+    # These class attributes declare which optional fast paths / features a
+    # decoder supports. They all default to the conservative value here so a
+    # decoder that does not override one degrades to the safe (correct, maybe
+    # slower) path, and so the EventReader can read them directly instead of
+    # probing with getattr(..., default) -- a missing attribute then surfaces
+    # as a loud AttributeError rather than silently selecting the slow path.
+    # Subclasses override the ones they implement.
+    # ------------------------------------------------------------------ #
+
+    #: Decoder can decode external trigger packets alongside CD events.
     SUPPORTS_EXT_TRIGGERS = False
 
     #: Whether this decoder implements timestamp / event-index random access via
@@ -37,6 +50,24 @@ class EventDecoder(ABC):
     #: EventReader additionally requires the underlying ByteSource to be
     #: seekable before delegating a real (non-linear) seek here.
     SUPPORTS_SEEK = False
+
+    #: Parser emits exactly one event per input record, so an output buffer
+    #: fills to precisely its capacity -- enables EventReader's zero-copy
+    #: n_events fast path. False for vectorised formats (EVT3/2.1/4).
+    _exact_window = False
+
+    #: read_chunk already returns slices of at most ``n_events`` events, so the
+    #: reader can hand them straight through without re-accumulating (NPZ/HDF5).
+    _independent_windows = False
+
+    #: A dedicated C delta_t parser exists (one GIL-free call decodes a whole
+    #: time window). EVT3 overrides this as a property.
+    _has_delta_t_parser = False
+
+    #: Seek-index wiring, injected by EventReader from its ``index=`` option.
+    #: Only EVT consults them; harmless defaults for every other decoder.
+    _use_sidecar = False
+    _raw_path: "str | None" = None
 
     def __init__(self, source: "io.BufferedIOBase | str | bytes", chunk_size: int = 10000, read_external_triggers: bool = False):
         """Initialize the decoder.
@@ -102,6 +133,15 @@ class EventDecoder(ABC):
     def reset(self) -> None:
         """Reset the file pointer to the beginning of the file."""
         raise NotImplementedError
+
+    def take_pending(self) -> "EventArray | None":
+        """Pop any boundary-chunk remainder staged by :meth:`seek`.
+
+        Only decoders whose :meth:`seek` lands mid-chunk (EVT) stage a
+        remainder; the base returns ``None`` so the EventReader can call this
+        unconditionally.
+        """
+        return None
 
     def read_all(self) -> 'EventArray | tuple[EventArray, TriggerArray]':
         """Decode and return every remaining event at once.

@@ -46,9 +46,9 @@ class EventReader():
     max_time: int, default=1_000_000_000_000
         Maximum timestamp to read
     width: int or None
-        Width of the frame, by default infered from the file
+        Width of the frame, by default inferred from the file
     height: int or None
-        Height of the frame, by default infered from the file
+        Height of the frame, by default inferred from the file
     ext_trigger: bool, default=False
         Whether to read external trigger events, by default False
     async_read: bool, default=False
@@ -96,6 +96,13 @@ class EventReader():
         dead air and resumes immediately instead of blocking on one long
         sleep. ``None`` disables the skip (strict real time). Ignored when
         ``real_time=False``.
+    index: str or bool, default="auto"
+        Seek-index policy for random access (:meth:`seek`). ``"auto"``/``True``/
+        ``False`` all build an exact in-memory index lazily on the first seek
+        (``False`` additionally never touches a sidecar). ``"metavision"`` reads
+        a Metavision ``.tmp_index`` sidecar instead -- fast, but approximate near
+        large event gaps. Only EVT formats use an index; others seek by record
+        math or ``searchsorted``.
     strict: bool, default=False
         Corrupt-packet policy. When False (default), a malformed packet is
         skipped with a :class:`UserWarning` and decoding resumes -- a robust
@@ -181,7 +188,7 @@ class EventReader():
         # (a malformed packet) instead of skipping it. Default is robust
         # (warn + skip + resume), like Metavision's UNRELIABLE decoder.
         self._file_decoder._strict = strict
-        if self._read_external_triggers and not getattr(self._file_decoder, 'SUPPORTS_EXT_TRIGGERS', False):
+        if self._read_external_triggers and not self._file_decoder.SUPPORTS_EXT_TRIGGERS:
             import warnings
             warnings.warn(f"{self._file_decoder.__class__.__name__} does not support reading external triggers.")
 
@@ -347,10 +354,9 @@ class EventReader():
         #   "metavision"      -> read a Metavision `.tmp_index` sidecar when
         #                        present (fast, but approximate near large event
         #                        gaps), else fall back to the built index.
-        if hasattr(self._file_decoder, "_use_sidecar"):
-            self._file_decoder._use_sidecar = (index == "metavision")
-            if self._file_name is not None:
-                self._file_decoder._raw_path = str(self._file_name)
+        self._file_decoder._use_sidecar = (index == "metavision")
+        if self._file_name is not None:
+            self._file_decoder._raw_path = str(self._file_name)
 
     def init(self) -> None:
         """Initialize the reader, can be used explicitly or implicitly by the read method."""
@@ -393,17 +399,15 @@ class EventReader():
         # A seek may have staged the boundary-chunk remainder (the events from
         # the exact target onward, already wrap-corrected); drain it first so
         # the native parse_step path does not skip past it.
-        take_pending = getattr(dec, "take_pending", None)
-        if take_pending is not None:
-            pend = take_pending()
-            if pend is not None:
-                if isinstance(pend, tuple):
-                    pend_ev, pend_tr = pend
-                else:
-                    pend_ev, pend_tr = pend, None
-                if len(pend_ev) > 0 or (pend_tr is not None and len(pend_tr) > 0):
-                    acc.append(pend_ev, pend_tr)
-                    return int(len(pend_ev)) if len(pend_ev) > 0 else 1
+        pend = dec.take_pending()
+        if pend is not None:
+            if isinstance(pend, tuple):
+                pend_ev, pend_tr = pend
+            else:
+                pend_ev, pend_tr = pend, None
+            if len(pend_ev) > 0 or (pend_tr is not None and len(pend_tr) > 0):
+                acc.append(pend_ev, pend_tr)
+                return int(len(pend_ev)) if len(pend_ev) > 0 else 1
         if self._native_fill:
             while True:
                 if dec.is_eof():
@@ -863,11 +867,11 @@ class EventReader():
             n = n_events if n_events is not None else self._n_events
             # Exact-capacity native decoders (EVT2/DAT/AER) decode straight into
             # a fresh output buffer via parse_step.
-            if self._native_fill and getattr(dec, "_exact_window", False):
+            if self._native_fill and dec._exact_window:
                 return self._read_n_events_fast(n)
             # Decoders whose read_chunk already returns independent, bounded
             # chunks (NPZ/CSV) can hand that out directly.
-            if getattr(dec, "_independent_windows", False):
+            if dec._independent_windows:
                 return self._read_n_events_readchunk(n)
 
         # Fast path: pure delta_t streaming with a native-fill decoder, no
@@ -881,7 +885,7 @@ class EventReader():
             dt = delta_t if delta_t is not None else self._delta_t
             # Prefer the dedicated C delta_t parser (one GIL-free call per window,
             # no boundary search or overshoot carry) when the format has one.
-            if getattr(self._file_decoder, "_has_delta_t_parser", False):
+            if self._file_decoder._has_delta_t_parser:
                 return self._read_delta_t_c(dt)
             return self._read_delta_t_fast(dt)
 
@@ -1131,7 +1135,7 @@ class EventReader():
             raise ValueError("seek() requires exactly one of t= or n=.")
 
         dec = self._file_decoder
-        if not getattr(dec, "SUPPORTS_SEEK", False):
+        if not dec.SUPPORTS_SEEK:
             raise NotImplementedError(
                 f"{dec.__class__.__name__} does not support seeking."
             )
