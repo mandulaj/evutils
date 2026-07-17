@@ -103,6 +103,7 @@ def test_only_one_active_iterator(raw_file: Any) -> None:
         with pytest.raises(RuntimeError, match="asynchronous iterator is active"):
             iter(r)
         it.close()
+        r.seek(n=0)
         assert sum(len(c) for c in r) > 0  # a new iterator is fine now
 
 
