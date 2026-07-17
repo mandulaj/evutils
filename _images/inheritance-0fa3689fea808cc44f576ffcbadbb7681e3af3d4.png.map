@@ -1,0 +1,4 @@
+<map id="inheritancec6aa21ab82" name="inheritancec6aa21ab82">
+<area shape="rect" id="node1" href="transforms/index.html#evutils.transforms.transforms.TimeNormalize" target="_top" title="Shifts timestamps so the earliest event lands at ``start_ts``." alt="" coords="140,5,263,31"/>
+<area shape="rect" id="node2" href="transforms/index.html#evutils.transforms.transforms.Transform" target="_top" title="Base class for all evutils transforms." alt="" coords="5,5,92,31"/>
+</map>

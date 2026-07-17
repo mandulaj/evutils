@@ -1,0 +1,4 @@
+<map id="inheritance55e1803013" name="inheritance55e1803013">
+<area shape="rect" id="node1" href="transforms/index.html#evutils.transforms.transforms.TimeSkew" target="_top" title="Rescales timestamps by an affine map ``t&#39; = t * coefficient + offset``." alt="" coords="140,5,229,31"/>
+<area shape="rect" id="node2" href="transforms/index.html#evutils.transforms.transforms.Transform" target="_top" title="Base class for all evutils transforms." alt="" coords="5,5,92,31"/>
+</map>

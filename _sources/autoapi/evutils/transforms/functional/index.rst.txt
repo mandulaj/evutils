@@ -1,0 +1,193 @@
+:py:mod:`evutils.transforms.functional`
+=======================================
+
+.. py:module:: evutils.transforms.functional
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   evutils.transforms.functional.drop_random_events
+   evutils.transforms.functional.drop_event
+   evutils.transforms.functional.drop_by_time
+   evutils.transforms.functional.flip_lr
+   evutils.transforms.functional.spatial_jitter
+   evutils.transforms.functional.time_skew
+   evutils.transforms.functional.time_jitter
+   evutils.transforms.functional.normalize_ts
+   evutils.transforms.functional.refractory_period
+
+
+Package Contents
+----------------
+
+.. py:function:: drop_random_events(events, drop_rate: float = 0.1, seed: int | None = None)
+
+   Drops a percentage of events randomly.
+
+   :param events: Array of events to drop from.
+   :type events: np.ndarray or EventArray
+   :param drop_rate: Percentage of events to drop, by default 0.1 (10%).
+   :type drop_rate: float, optional
+
+   :returns: Array of events with the specified percentage dropped.
+   :rtype: np.ndarray or EventArray
+
+
+.. py:function:: drop_event(events, p=0.1, seed: int | None = None)
+
+   Randomly drop each event independently with probability ``p``.
+
+   The tonic-compatible name for :func:`drop_random_events`. Unlike tonic's
+   ``drop_event_numpy`` (which drops exactly ``round(p * n)`` events via
+   shuffle), this drops *independently*, which is O(N) rather than O(N log N).
+   (sampling without replacement) this uses an independent Bernoulli mask per
+   event, which is what keeps the kernel JIT-friendly. The expected number of
+   dropped events is the same; the exact count is binomially distributed.
+
+   :param events: Events to drop from.
+   :type events: np.ndarray or EventArray
+   :param p: Drop probability in ``[0, 1)``. A ``(lo, hi)`` tuple is sampled uniformly
+             per call. Defaults to ``0.1``.
+   :type p: float or tuple of float, optional
+   :param seed: Seed for the kernel's random number generator (numba's per-thread
+                legacy ``np.random`` state). ``None`` leaves the state unseeded.
+   :type seed: int, optional
+
+   :returns: Events that survived the drop, in their original container type.
+   :rtype: np.ndarray or EventArray
+
+
+.. py:function:: drop_by_time(events, duration_ratio=0.2, seed: int | None = None)
+
+   Drop every event inside one randomly-placed time window.
+
+   The window length is ``duration_ratio`` of the recording span (``[t.min(), t.max()]``,
+   following tonic), positioned uniformly at random within it.
+
+   :param events: Events to drop from.
+   :type events: np.ndarray or EventArray
+   :param duration_ratio: Window length as a fraction of the span, in ``[0, 1)``. A ``(lo, hi)``
+                          tuple is sampled uniformly per call. Defaults to ``0.2``.
+   :type duration_ratio: float or tuple of float, optional
+   :param seed: Seed for the random number generator. Defaults to None.
+   :type seed: int, optional
+
+   :returns: Events outside the dropped window, in their original container type.
+   :rtype: np.ndarray or EventArray
+
+
+.. py:function:: flip_lr(events, sensor_size)
+
+   Flip events horizontally: ``x' = width - 1 - x``.
+
+   :param events: Events to flip.
+   :type events: np.ndarray or EventArray
+   :param sensor_size: ``(W, H, P)`` sensor size; only the width ``W`` is used.
+   :type sensor_size: tuple
+
+   :returns: Horizontally flipped events, in their original container type.
+   :rtype: np.ndarray or EventArray
+
+
+.. py:function:: spatial_jitter(events, sensor_size, var_x=1.0, var_y=1.0, sigma_xy=0.0, clip_outliers=False)
+
+   Jitter event coordinates with a 2D Gaussian.
+
+   :param events: Events to jitter.
+   :type events: np.ndarray or EventArray
+   :param sensor_size: ``(W, H, P)`` sensor size, used for clipping.
+   :type sensor_size: tuple
+   :param var_x: Variances of the jitter in x and y. Default ``1.0``.
+   :type var_x: float, optional
+   :param var_y: Variances of the jitter in x and y. Default ``1.0``.
+   :type var_y: float, optional
+   :param sigma_xy: Off-diagonal covariance (diagonal skew). Default ``0.0``.
+   :type sigma_xy: float, optional
+   :param clip_outliers: Drop events jittered outside the sensor instead of casting them back
+                         (which would wrap the unsigned coordinate). Default ``False``.
+   :type clip_outliers: bool, optional
+
+   :returns: Jittered events, in their original container type.
+   :rtype: np.ndarray or EventArray
+
+
+.. py:function:: time_skew(events, coefficient, offset=0.0)
+
+   Rescale (and shift) all timestamps by a linear map.
+
+   :param events: Events to skew.
+   :type events: np.ndarray or EventArray
+   :param coefficient: Multiplier applied to every timestamp (e.g. ``2.0`` doubles all gaps).
+   :type coefficient: float
+   :param offset: Added after multiplication. Default ``0.0``.
+   :type offset: float, optional
+
+   :returns: Events with rewritten timestamps, in their original container type.
+   :rtype: np.ndarray or EventArray
+
+
+.. py:function:: time_jitter(events, std=1.0, clip_negative=True, sort_timestamps=False)
+
+   Add Gaussian noise to each timestamp.
+
+   :param events: Events to jitter.
+   :type events: np.ndarray or EventArray
+   :param std: Standard deviation of the timestamp noise. Default ``1.0``.
+   :type std: float, optional
+   :param clip_negative: Drop events whose jittered timestamp is negative. Default ``True``.
+   :type clip_negative: bool, optional
+   :param sort_timestamps: Re-sort events by timestamp after jittering. Default ``False``.
+   :type sort_timestamps: bool, optional
+
+   :returns: Jittered events, in their original container type.
+   :rtype: np.ndarray or EventArray
+
+
+.. py:function:: normalize_ts(events, start_ts=0)
+
+   Shift timestamps so the earliest event lands at ``start_ts``.
+
+   Pure and stateless: each call normalizes the batch it is handed on its own.
+   For chunk-by-chunk streams use ``EventReader(normalize_ts=True)``, which
+   latches the offset from the first chunk and applies it across the whole
+   stream (so the timeline stays continuous instead of resetting per chunk).
+
+   :param events: Events to normalize.
+   :type events: np.ndarray or EventArray
+   :param start_ts: Timestamp assigned to the earliest event. Default ``0``.
+   :type start_ts: int, optional
+
+   :returns: Events with shifted timestamps, in their original container type. The
+             input is not modified.
+   :rtype: np.ndarray or EventArray
+
+   .. rubric:: Examples
+
+   >>> import numpy as np
+   >>> from evutils.transforms.functional import normalize_ts
+   >>> events = np.array(
+   ...     [(0, 0, 100, 1), (1, 1, 200, 1), (2, 2, 300, 0)],
+   ...     dtype=[('x', 'u2'), ('y', 'u2'), ('t', 'i8'), ('p', 'i1')]
+   ... )
+   >>> normalize_ts(events)['t']
+   array([  0, 100, 200])
+
+
+.. py:function:: refractory_period(events, delta)
+
+   Enforce a per-pixel refractory period.
+
+   :param events: Events to filter. Must be sorted by timestamp.
+   :type events: np.ndarray or EventArray
+   :param delta: Refractory period in the same time unit as the timestamps. Events at a
+                 pixel that fire within ``delta`` of that pixel's previous event are
+                 dropped.
+   :type delta: int
+
+   :returns: Filtered events, in their original container type.
+   :rtype: np.ndarray or EventArray
+
+

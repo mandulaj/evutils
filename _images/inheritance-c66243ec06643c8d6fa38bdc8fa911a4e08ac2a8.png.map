@@ -1,0 +1,4 @@
+<map id="inheritancede4e8b1c4f" name="inheritancede4e8b1c4f">
+<area shape="rect" id="node1" href="#evutils.transforms.transforms.SpatialJitter" target="_top" title="Adds correlated Gaussian noise to event coordinates." alt="" coords="140,5,239,31"/>
+<area shape="rect" id="node2" href="#evutils.transforms.transforms.Transform" target="_top" title="Base class for all evutils transforms." alt="" coords="5,5,92,31"/>
+</map>

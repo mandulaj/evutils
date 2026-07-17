@@ -1,0 +1,54 @@
+:py:mod:`evutils.transforms.compose`
+====================================
+
+.. py:module:: evutils.transforms.compose
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   evutils.transforms.compose.Compose
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   evutils.transforms.compose.unwrap_events
+   evutils.transforms.compose.repack_events
+
+
+Module Contents
+---------------
+
+.. py:function:: unwrap_events(events: Union[numpy.ndarray, evutils.types.SoaArray])
+
+   Unwraps events into a tuple of (t, x, y, p) arrays.
+
+
+.. py:function:: repack_events(original_events: Union[numpy.ndarray, evutils.types.SoaArray], t: numpy.ndarray, x: numpy.ndarray, y: numpy.ndarray, p: numpy.ndarray) -> Union[numpy.ndarray, evutils.types.SoaArray]
+
+   Repacks raw arrays back into the user's original format.
+
+
+.. py:class:: Compose(transforms: Iterable[Callable])
+
+   Composes several transforms together.
+
+   Groups contiguous blocks of evutils `Transform` objects to execute them purely in
+   C-space via Numba JIT without intermediate unpacking/repacking overhead.
+   Freely accepts standard Callables (e.g. PyTorch/Tonic transforms).
+
+
+   .. py:attribute:: transforms
+
+
+   .. py:method:: __call__(events, target=None)
+
+
+   .. py:method:: __repr__()
+
+

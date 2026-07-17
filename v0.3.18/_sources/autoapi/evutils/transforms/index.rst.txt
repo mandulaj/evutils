@@ -1,0 +1,373 @@
+:py:mod:`evutils.transforms`
+============================
+
+.. py:module:: evutils.transforms
+
+.. autoapi-nested-parse::
+
+   Data augmentation transforms for events.
+
+   torchvision/tonic-style transformations for event streams: random and
+   deterministic operations for augmenting data during training (drops, spatial
+   flips, jitter, time skew, refractory filtering, ...).
+
+   Each transform pairs a Numba-JIT ``functional`` kernel (dispatched over both
+   plain structured arrays and :class:`~evutils.types.EventArray`) with a
+   composable :class:`Transform` class. :class:`Compose` unwraps/rewraps events
+   only once around each contiguous block of JIT transforms.
+
+
+
+Submodules
+----------
+
+.. toctree::
+   :hidden:
+   :maxdepth: 1
+
+   /autoapi/evutils/transforms/compose/index
+   /autoapi/evutils/transforms/functional/index
+   /autoapi/evutils/transforms/transforms/index
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 0
+
+   * - :py:mod:`compose <evutils.transforms.compose>`
+     - 
+   * - :py:mod:`functional <evutils.transforms.functional>`
+     - 
+   * - :py:mod:`transforms <evutils.transforms.transforms>`
+     - 
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   evutils.transforms.DropRandomEvents
+   evutils.transforms.drop_random_events
+   evutils.transforms.drop_event
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   evutils.transforms.Compose
+   evutils.transforms.Transform
+   evutils.transforms.DropEvent
+   evutils.transforms.DropEventByTime
+   evutils.transforms.RandomFlipLR
+   evutils.transforms.SpatialJitter
+   evutils.transforms.TimeSkew
+   evutils.transforms.TimeNormalize
+   evutils.transforms.TimeJitter
+   evutils.transforms.RefractoryPeriod
+
+
+Package Contents
+----------------
+
+.. py:class:: Compose(transforms: Iterable[Callable])
+
+   Composes several transforms together.
+
+   Groups contiguous blocks of evutils `Transform` objects to execute them purely in
+   C-space via Numba JIT without intermediate unpacking/repacking overhead.
+   Freely accepts standard Callables (e.g. PyTorch/Tonic transforms).
+
+
+   .. py:attribute:: transforms
+
+
+   .. py:method:: __call__(events, target=None)
+
+
+   .. py:method:: __repr__()
+
+
+.. py:class:: Transform
+
+   Base class for all evutils transforms.
+
+   Transforms should implement the `_forward_jit` method to allow zero-overhead
+   composition inside a `Compose` pipeline.
+
+
+   .. py:method:: bind_context(events)
+
+      Capture per-call context (currently ``sensor_size``) from ``events``.
+
+      Called by :meth:`__call__` and by :class:`Compose` before ``_forward_jit``
+      so a transform can fall back to the container's ``sensor_size`` metadata
+      when it was not given one explicitly. Stored transiently, not persisted.
+
+
+
+   .. py:method:: __call__(events: Union[numpy.ndarray, evutils.types.SoaArray], target=None)
+
+      Applies the transform in a standalone manner.
+
+
+
+.. py:class:: DropEvent(p: Union[float, tuple] = 0.1, seed: int | None = None)
+
+   Bases: :py:obj:`Transform`
+
+   .. autoapi-inheritance-diagram:: evutils.transforms.DropEvent
+      :parts: 1
+
+
+   Randomly drops each event with probability ``p``.
+
+   Tonic-compatible replacement for ``DropRandomEvents`` (kept as an alias).
+   Uses an independent Bernoulli mask per event, so the number dropped is
+   binomially distributed around ``p * n`` rather than exactly ``p * n``.
+
+   :param p: Drop probability in ``[0, 1)``. A ``(lo, hi)`` tuple is sampled uniformly
+             per call. Defaults to ``0.1``.
+   :type p: float or tuple of float, optional
+
+
+   .. py:attribute:: p
+      :value: 0.1
+
+
+
+   .. py:attribute:: seed
+      :value: None
+
+
+
+   .. py:method:: __repr__()
+
+
+.. py:data:: DropRandomEvents
+
+.. py:class:: DropEventByTime(duration_ratio: Union[float, tuple] = 0.2, seed: int | None = None)
+
+   Bases: :py:obj:`Transform`
+
+   .. autoapi-inheritance-diagram:: evutils.transforms.DropEventByTime
+      :parts: 1
+
+
+   Drops every event inside one randomly-placed time window.
+
+   :param duration_ratio: Window length as a fraction of the recording span, in ``[0, 1)``. A
+                          ``(lo, hi)`` tuple is sampled uniformly per call. Defaults to ``0.2``.
+   :type duration_ratio: float or tuple of float, optional
+
+
+   .. py:attribute:: duration_ratio
+      :value: 0.2
+
+
+
+   .. py:attribute:: seed
+      :value: None
+
+
+
+   .. py:method:: __repr__()
+
+
+.. py:class:: RandomFlipLR(sensor_size: tuple = None, p: float = 0.5)
+
+   Bases: :py:obj:`Transform`
+
+   .. autoapi-inheritance-diagram:: evutils.transforms.RandomFlipLR
+      :parts: 1
+
+
+   Flips events horizontally (``x' = width - 1 - x``) with probability ``p``.
+
+   :param sensor_size: ``(W, H)`` (or ``(W, H, P)``) sensor size; only the width ``W`` is used.
+                       If omitted, it is taken from the events' ``sensor_size`` metadata.
+   :type sensor_size: tuple, optional
+   :param p: Probability of performing the flip. Defaults to ``0.5``.
+   :type p: float, optional
+
+
+   .. py:attribute:: sensor_size
+      :value: None
+
+
+
+   .. py:attribute:: p
+      :value: 0.5
+
+
+
+   .. py:method:: __repr__()
+
+
+.. py:class:: SpatialJitter(sensor_size: tuple = None, var_x: float = 1.0, var_y: float = 1.0, sigma_xy: float = 0.0, clip_outliers: bool = False)
+
+   Bases: :py:obj:`Transform`
+
+   .. autoapi-inheritance-diagram:: evutils.transforms.SpatialJitter
+      :parts: 1
+
+
+   Adds correlated Gaussian noise to event coordinates.
+
+   :param sensor_size: ``(W, H)`` (or ``(W, H, P)``) sensor size, used for clipping. Only needed
+                       when ``clip_outliers`` is True; if omitted, taken from the events'
+                       ``sensor_size`` metadata.
+   :type sensor_size: tuple, optional
+   :param var_x: Variances of the jitter in x and y. Default ``1.0``.
+   :type var_x: float, optional
+   :param var_y: Variances of the jitter in x and y. Default ``1.0``.
+   :type var_y: float, optional
+   :param sigma_xy: Off-diagonal covariance. Default ``0.0``.
+   :type sigma_xy: float, optional
+   :param clip_outliers: Drop events jittered outside the sensor. Default ``False``.
+   :type clip_outliers: bool, optional
+
+
+   .. py:attribute:: sensor_size
+      :value: None
+
+
+
+   .. py:attribute:: var_x
+      :value: 1.0
+
+
+
+   .. py:attribute:: var_y
+      :value: 1.0
+
+
+
+   .. py:attribute:: sigma_xy
+      :value: 0.0
+
+
+
+   .. py:attribute:: clip_outliers
+      :value: False
+
+
+
+   .. py:method:: __repr__()
+
+
+.. py:class:: TimeSkew(coefficient: Union[float, tuple], offset: Union[float, tuple] = 0)
+
+   Bases: :py:obj:`Transform`
+
+   .. autoapi-inheritance-diagram:: evutils.transforms.TimeSkew
+      :parts: 1
+
+
+   Rescales timestamps by an affine map ``t' = t * coefficient + offset``.
+
+   :param coefficient: Multiplier applied to every timestamp. A ``(lo, hi)`` tuple is sampled
+                       uniformly per call.
+   :type coefficient: float or tuple of float
+   :param offset: Added after multiplication. Default ``0``.
+   :type offset: float or tuple of float, optional
+
+
+   .. py:attribute:: coefficient
+
+
+   .. py:attribute:: offset
+      :value: 0
+
+
+
+   .. py:method:: __repr__()
+
+
+.. py:class:: TimeNormalize(start_ts: int = 0)
+
+   Bases: :py:obj:`Transform`
+
+   .. autoapi-inheritance-diagram:: evutils.transforms.TimeNormalize
+      :parts: 1
+
+
+   Shifts timestamps so the earliest event lands at ``start_ts``.
+
+   Stateless: each call normalizes the batch it is given on its own. For a
+   chunk-by-chunk stream use ``EventReader(normalize_ts=True)``, which latches
+   the offset from the first chunk across the whole stream; dropping this
+   transform into a ``Compose`` over sequential chunks would instead reset each
+   chunk to ``start_ts`` independently.
+
+   :param start_ts: Timestamp assigned to the earliest event. Default ``0``.
+   :type start_ts: int, optional
+
+
+   .. py:attribute:: start_ts
+      :value: 0
+
+
+
+   .. py:method:: __repr__()
+
+
+.. py:class:: TimeJitter(std: float, clip_negative: bool = True, sort_timestamps: bool = False)
+
+   Bases: :py:obj:`Transform`
+
+   .. autoapi-inheritance-diagram:: evutils.transforms.TimeJitter
+      :parts: 1
+
+
+   Adds Gaussian noise to each timestamp.
+
+   :param std: Standard deviation of the timestamp noise.
+   :type std: float
+   :param clip_negative: Drop events with negative jittered timestamps. Default ``True``.
+   :type clip_negative: bool, optional
+   :param sort_timestamps: Re-sort by timestamp after jittering. Default ``False``.
+   :type sort_timestamps: bool, optional
+
+
+   .. py:attribute:: std
+
+
+   .. py:attribute:: clip_negative
+      :value: True
+
+
+
+   .. py:attribute:: sort_timestamps
+      :value: False
+
+
+
+   .. py:method:: __repr__()
+
+
+.. py:class:: RefractoryPeriod(delta: Union[int, tuple])
+
+   Bases: :py:obj:`Transform`
+
+   .. autoapi-inheritance-diagram:: evutils.transforms.RefractoryPeriod
+      :parts: 1
+
+
+   Enforces a per-pixel refractory period.
+
+   :param delta: Refractory period in timestamp units. A ``(lo, hi)`` tuple is sampled
+                 uniformly per call. Events must be sorted by timestamp.
+   :type delta: int or tuple of int
+
+
+   .. py:attribute:: delta
+
+
+   .. py:method:: __repr__()
+
+
+.. py:data:: drop_random_events
+
+.. py:data:: drop_event
+

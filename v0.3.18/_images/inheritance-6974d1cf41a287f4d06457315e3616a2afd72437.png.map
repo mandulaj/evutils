@@ -1,0 +1,4 @@
+<map id="inheritancefb33b522fe" name="inheritancefb33b522fe">
+<area shape="rect" id="node1" href="#evutils.transforms.transforms.DropEvent" target="_top" title="Randomly drops each event with probability ``p``." alt="" coords="140,5,231,31"/>
+<area shape="rect" id="node2" href="#evutils.transforms.transforms.Transform" target="_top" title="Base class for all evutils transforms." alt="" coords="5,5,92,31"/>
+</map>
