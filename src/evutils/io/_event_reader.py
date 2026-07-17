@@ -1133,22 +1133,16 @@ class EventReader():
             else:
                 n = self._n_read_events + n
 
-        # Make normalize_ts evaluate _first_ts from the very start of the stream before seeking
-        if not self._anchored:
-            seekable = getattr(self._source, "seekable", lambda: True)()
-            if seekable:
-                try:
-                    res, _, _ = dec.seek(n=0)
-                    self._first_ts = res.ts
-                except (io.UnsupportedOperation, OSError):
-                    pass
-            if not hasattr(self, "_first_ts"):
-                dec.reset()
-                chunk = dec.read_chunk()
-                if isinstance(chunk, tuple):
-                    chunk = chunk[0]
-                self._first_ts = int(chunk.t[0]) if len(chunk) > 0 else 0
-                dec.reset()
+        # Anchor the normalization origin (_first_ts) on the stream's *first*
+        # event before the cursor moves, so normalize_ts is call-order
+        # independent (seek-then-read == read-then-seek). Peeking rewinds the
+        # decoder, so it is skipped on non-seekable sources (and when
+        # normalization is off) -- there the origin falls back to the seek
+        # landing point below.
+        first_ts: int | None = None
+        seekable = getattr(self._source, "seekable", lambda: True)()
+        if not self._anchored and self._normalize_ts and seekable:
+            first_ts = self._peek_stream_first_ts()
 
         self._eof = False
         self._pace_anchor = None
@@ -1158,8 +1152,6 @@ class EventReader():
         if self._buffer is not None:
             self._buffer.reset()
 
-        seekable = getattr(self._source, "seekable", lambda: True)()
-        
         if seekable:
             try:
                 res, rem_ev, rem_tr = dec.seek(t=t, n=n)
@@ -1173,10 +1165,34 @@ class EventReader():
                 self._buffer = EventAccumulator(self._acc_capacity)
             self._buffer.append(rem_ev, rem_tr)
 
+        if not self._anchored:
+            self._first_ts = first_ts if first_ts is not None else res.ts
         self._n_read_events = res.index if res.index >= 0 else (int(n) if n is not None else 0)
         self._current_ts = res.ts
         self._anchored = True
         return res.ts
+
+    def _peek_stream_first_ts(self) -> int | None:
+        """Timestamp of the stream's very first event, leaving the decoder
+        rewound to the start.
+
+        Used to anchor the ``normalize_ts`` origin before a seek moves the
+        cursor. Only called before any read on a seekable source (rewinding a
+        non-seekable decoder would lose data). Returns ``None`` for an empty
+        stream.
+        """
+        dec = self._file_decoder
+        dec.reset()
+        first: int | None
+        if self._native_fill:
+            first = self._peek_first_ts()
+        else:
+            chunk = dec.read_chunk()
+            if isinstance(chunk, tuple):
+                chunk = chunk[0]
+            first = int(chunk.t[0]) if len(chunk) > 0 else None
+        dec.reset()
+        return first
 
     def _seek_linear(self, t: int | None, n: int | None) -> tuple["SeekResult", "EventArray", "TriggerArray | None"]:
         """Fallback seek for non-seekable sources: iterate and drop to target."""

@@ -77,16 +77,35 @@ class StaticSeekIndex:
         return len(self.ts)
 
 class IncrementalSeekIndex:
-    """A seek index that builds itself by decoding words on demand."""
+    """A seek index that builds itself by decoding words on demand.
+
+    Bookmarks are aligned to TIME_HIGH words: each segment boundary is the
+    first TIME_HIGH at/after the previous boundary plus ``stride_words``. This
+    is what makes the seek-time wrap correction sound -- a parser reset at a
+    bookmark re-establishes its absolute time base *before* decoding any
+    event, so ``bookmark_ts - first_decoded_ts`` is an exact multiple of the
+    format's wrap period. A bookmark at an arbitrary parse-step boundary does
+    NOT have that property (events decoded before the next TIME_HIGH carry
+    only their low timestamp bits, and the snap lands a whole wrap period
+    off).
+
+    ``time_high`` is the ``(type-shift, type-code)`` descriptor of the
+    format's TIME_HIGH word. Without it (no descriptor known) the index
+    degrades to a single bookmark at ``start_offset`` -- correct, just no
+    mid-file acceleration.
+    """
     def __init__(self, words: np.ndarray, start_offset: int, input_cls: type, parser_cls: type,
-                 tail_pad: int, word_dtype: np.dtype, chunk_cap: int = 65_536):
+                 tail_pad: int, word_dtype: np.dtype, chunk_cap: int = 65_536,
+                 time_high: "tuple[int, int] | None" = None, stride_words: int = 1 << 16):
         self._words = words
         self._start_offset = start_offset
         self._input_cls = input_cls
         self._parser = parser_cls()
         self._tail_pad = tail_pad
         self._word_dtype = word_dtype
-        
+        self._time_high = time_high
+        self._stride = max(int(stride_words), 64)
+
         cap = max(int(chunk_cap), 128)
         from ._native_core import EventSoABuffers, TriggerSoABuffers
         self._ev = EventSoABuffers(cap)
@@ -95,7 +114,7 @@ class IncrementalSeekIndex:
         self._ts_list: list[int] = []
         self._off_list: list[int] = []
         self._cum_list: list[int] = []
-        
+
         self._cum = 0
         self._off = int(start_offset)
         self._is_eof = False
@@ -116,6 +135,29 @@ class IncrementalSeekIndex:
             self._cum_arr = np.asarray(self._cum_list, dtype=np.int64)
             self._arrs_stale = False
 
+    def _next_time_high(self, start: int) -> int:
+        """Word offset of the first TIME_HIGH at/after ``start`` (or n_words).
+
+        Vectorized block scan, same shape as the decoder's
+        ``_find_first_time_high``.
+        """
+        n = len(self._words)
+        if self._time_high is None:
+            return n
+        shift, code = self._time_high
+        start = min(max(start, 0), n)
+        block = 1 << 16
+        while start < n:
+            stop = min(start + block, n)
+            seg = self._words[start:stop]
+            hits = ((seg >> shift) & 0xF) == code
+            i = int(np.argmax(hits))
+            if hits[i]:
+                return start + i
+            start = stop
+            block = min(block * 4, 1 << 24)
+        return n
+
     def _build_until(self, target_t: int | None = None, target_n: int | None = None) -> None:
         if self._is_eof:
             return
@@ -125,34 +167,72 @@ class IncrementalSeekIndex:
             return
 
         from ._native_core import events_view, parse_step
-        n_words = len(self._words)
+        words = self._words
+        n_words = len(words)
         while self._off < n_words:
-            boff = self._off
-            self._ev.reset()
-            self._tr.reset()
-            appended, self._off = parse_step(
-                self._words, self._off, self._input_cls, self._parser, self._ev, self._tr,
-                tail_pad=self._tail_pad, word_dtype=self._word_dtype,
-            )
-            if appended == 0:
-                if self._off <= boff:
-                    self._is_eof = True
-                    break
-                continue
-            
-            ts_first = int(events_view(self._ev).t[0])
-            self._ts_list.append(ts_first)
-            self._off_list.append(boff)
-            self._cum_list.append(self._cum)
-            self._cum += appended
-            self._arrs_stale = True
+            seg_start = self._off
+            seg_end = self._next_time_high(seg_start + self._stride)
+            first_ts: int | None = None
+            cum0 = self._cum
 
-            if target_t is not None and ts_first >= target_t:
+            # Decode the whole segment [seg_start, seg_end); parser state is
+            # continuous across segments, only the *bookmark offsets* are
+            # TIME_HIGH-aligned.
+            while self._off < n_words and self._off < seg_end:
+                final = seg_end >= n_words
+                self._ev.reset()
+                self._tr.reset()
+                appended, new_off = parse_step(
+                    words if final else words[:seg_end], self._off,
+                    self._input_cls, self._parser, self._ev, self._tr,
+                    tail_pad=self._tail_pad if final else 0,
+                    word_dtype=self._word_dtype,
+                )
+                if appended == 0 and new_off <= self._off:
+                    self._is_eof = True  # zero progress on full input
+                    break
+                if (not final and self._tail_pad and appended == 0
+                        and new_off >= seg_end):
+                    # Look-ahead formats (EVT3) stall a few words short of the
+                    # sliced boundary and parse_step would skip that residue.
+                    # Flush it through a zero-padded scratch copy: counts and
+                    # timestamps stay exact (only decoder x/y state, which the
+                    # index never records, can be perturbed by the pad words).
+                    tail = words[self._off:seg_end]
+                    if len(tail):
+                        scratch = np.zeros(len(tail) + self._tail_pad,
+                                           dtype=self._word_dtype)
+                        scratch[:len(tail)] = tail
+                        self._ev.reset()
+                        self._tr.reset()
+                        parse_step(scratch, 0, self._input_cls, self._parser,
+                                   self._ev, self._tr, tail_pad=0,
+                                   word_dtype=self._word_dtype)
+                        appended = self._ev.size
+                        if appended and first_ts is None:
+                            first_ts = int(events_view(self._ev).t[0])
+                        self._cum += appended
+                    self._off = seg_end
+                    break
+                if appended:
+                    if first_ts is None:
+                        first_ts = int(events_view(self._ev).t[0])
+                    self._cum += appended
+                self._off = new_off
+
+            if first_ts is not None:
+                self._ts_list.append(first_ts)
+                self._off_list.append(seg_start)
+                self._cum_list.append(cum0)
+                self._arrs_stale = True
+
+            if self._is_eof or self._off >= n_words:
+                self._is_eof = True
+                break
+            if target_t is not None and first_ts is not None and first_ts >= target_t:
                 break
             if target_n is not None and self._cum >= target_n:
                 break
-        else:
-            self._is_eof = True
 
     def bookmark_for_time(self, t: int) -> tuple[int, int, int]:
         self._build_until(target_t=t)

@@ -214,7 +214,6 @@ class EventDecoder_EVT(EventDecoder):
         self._index = None                       # SeekIndex, lazily obtained
         self._index_is_ours: bool = False        # built in-memory (exact counts)
         self._seek_correction: int = 0           # TIME_HIGH wrap correction, added to decoded ts
-        self._pending: "EventArray | None" = None  # remainder of the boundary chunk after a seek
         #: Full path to the raw file and whether to try a Metavision sidecar
         #: index (set by EventReader from its ``index=`` option). Off by default:
         #: the exact in-memory index is built lazily on the first seek instead.
@@ -520,9 +519,16 @@ class EventDecoder_EVT(EventDecoder):
             self._eof = True
             return 0, EVUTILS_PARSE_WINDOW_DONE
         before = events.size
+        # A post-seek parser.reset() loses the TIME_HIGH wrap accumulation: the
+        # C parser decodes in the raw (low) timeline while the caller's end_ts
+        # lives in the corrected absolute one. Translate the boundary into the
+        # raw timeline for the C call, then shift the decoded slice back
+        # (mirrors parse_step's correction).
+        corr = self._seek_correction
+        raw_end_ts = end_ts - corr
         inp = self._input_cls(words[self._offset:])
         while True:
-            res = self._parser.parse_delta_t_soa(inp, events, triggers, end_ts)
+            res = self._parser.parse_delta_t_soa(inp, events, triggers, raw_end_ts)
             consumed = inp.consumed(res)
             if res.status == EVUTILS_PARSE_WARNING:
                 if self._strict:
@@ -546,28 +552,28 @@ class EventDecoder_EVT(EventDecoder):
                     scratch = np.zeros(len(tail) + self._tail_pad, dtype=self._word_dtype)
                     scratch[: len(tail)] = tail
                     self._parser.parse_delta_t_soa(
-                        self._input_cls(scratch), events, triggers, end_ts)
+                        self._input_cls(scratch), events, triggers, raw_end_ts)
             self._offset = len(words)
             self._eof = True
-            return events.size - before, status
+            return self._apply_dt_correction(events, before, corr), status
         self._offset += consumed
         if self._offset >= len(words):
             self._eof = True
-        return events.size - before, status
+        return self._apply_dt_correction(events, before, corr), status
+
+    @staticmethod
+    def _apply_dt_correction(events: EventSoABuffers, before: int, corr: int) -> int:
+        """Shift the slice appended since ``before`` by the seek wrap correction
+        and return the appended count."""
+        appended = events.size - before
+        if appended and corr:
+            events_view(events).t[before:before + appended] += corr
+        return appended
 
     def read_chunk(self, delta_t_hint: int | None = None,
                    n_events_hint: int | None = None) -> 'EventArray | tuple[EventArray, TriggerArray]':
         if not self._is_initialized:
             self.init()
-
-        # A prior seek() may have left the remainder of the boundary chunk (the
-        # events from the exact target onward) staged here; hand it out first.
-        if self._pending is not None:
-            out = self._pending
-            self._pending = None
-            if self.read_external_triggers:
-                return out, TriggerArray.empty()
-            return out
 
         # Nothing left: signal EOF with an empty array (never a stale buffer).
         if self._words is None or self._offset >= len(self._words):
@@ -625,10 +631,9 @@ class EventDecoder_EVT(EventDecoder):
             self.init()
 
         # decode_all_soa is an events-only fast path; with external triggers
-        # requested, or with a staged post-seek remainder, fall back to the
-        # chunked base implementation (which carries triggers / the pending
-        # chunk and applies the seek correction via read_chunk).
-        if self.read_external_triggers or self._pending is not None:
+        # requested, fall back to the chunked base implementation (which
+        # carries triggers and applies the seek correction via read_chunk).
+        if self.read_external_triggers:
             return super().read_all()
 
         if self._words is None or self._offset >= len(self._words):
@@ -692,6 +697,10 @@ class EventDecoder_EVT(EventDecoder):
                 words=self._words, start_offset=self._start_offset,
                 input_cls=self._input_cls, parser_cls=type(self._parser),
                 tail_pad=self._tail_pad, word_dtype=self._word_dtype,
+                # TIME_HIGH-aligned bookmarks: a reset parser at a bookmark must
+                # re-establish its time base before its first event, else the
+                # seek-time wrap-correction snap is invalid (see _index.py).
+                time_high=self._TIME_HIGH_TYPE.get(self._format or ""),
             )
             self._index_is_ours = True
         self._index = idx
@@ -724,7 +733,7 @@ class EventDecoder_EVT(EventDecoder):
 
         Jumps to the nearest index bookmark at/before the target, restores the
         TIME_HIGH wrap accumulation, then decodes forward to land exactly on the
-        target (staging the boundary chunk's remainder for the next read).
+        target (returning the boundary chunk's remainder to the caller).
         """
         from .common import SeekResult
         if not self._is_initialized:
