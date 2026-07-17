@@ -235,14 +235,20 @@ class EventDecoder_Npz(EventDecoder):
         if not self._is_initialized:
             self.init()
         axis, val = self._seek_axis(t, n)
+
+        # Close existing streams to prevent zipfile re-entry bugs on the same member
+        for fp in self._streams.values():
+            fp.close()
+        self._streams.clear()
+
         if axis == "t":
             ts = self._load_all_t()
             idx = int(np.searchsorted(ts, val, side="left"))
         else:
             idx = val
         idx = max(0, min(idx, self._n))
-        self._seek_to_index(idx)
         landed = self._ts_at(idx)
+        self._seek_to_index(idx)
         return landed if landed is not None else val
 
     def reset(self) -> None:
