@@ -109,7 +109,7 @@ Supported formats (see the [formats documentation](https://mandulaj.github.io/ev
 from evutils.io import EventReader
 
 
-ev_file = EventReader("raw_file.raw", delta_t=10e3)
+ev_file = EventReader("raw_file.raw", delta_t=10_000)
 
 events = ev_file.read()
 
@@ -125,9 +125,10 @@ with EventReader("raw_file.raw", delta_t=10_000) as r:
     r.seek(n=1_000_000)   # or jump to the 1,000,000th event
 ```
 
-Seeking uses an index (a Metavision `.tmp_index` sidecar when present, else one
-built in memory) or exact record math, and falls back to iterate-and-skip on
-non-seekable streams.
+Seeking uses an index or exact record math, and falls back to iterate-and-skip
+on non-seekable streams. For EVT the index is built in memory on the first seek
+(exact) by default; pass `EventReader(..., index="metavision")` to instead read
+a Metavision `.tmp_index` sidecar (fast, but approximate near large event gaps).
 
 #### `dense`
 
@@ -173,13 +174,13 @@ transform exchanges:
 
 #### `vis`
 
-The `vis` moduels provides several methods for visualizing the events (for example as histograms), but also provides a streamlined interface for more complex visualization techneques, such as using the [E2Vid](https://github.com/uzh-rpg/rpg_e2vid) reconstructor.
+The `vis` modules provides several methods for visualizing the events (for example as histograms), but also provides a streamlined interface for more complex visualization techniques, such as using the [E2Vid](https://github.com/uzh-rpg/rpg_e2vid) reconstructor.
 
 
 ```python
 from evutils.vis.reconstructor import RPG_Reconstructor
 
-reconstructor = RPG_Reconstructor(1280, 720)
+reconstructor = RPG_Reconstructor(1280, 720)  # (width, height)
 
 img = reconstructor.gen_frame(events)
 
