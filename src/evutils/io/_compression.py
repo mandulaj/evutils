@@ -37,8 +37,9 @@ def strip_compression_suffix(name: str) -> str:
     Names without a compression suffix are returned unchanged.
     """
     p = Path(name)
-    if p.suffix.lower() in COMPRESSION_SUFFIXES:
-        return str(p.with_suffix(""))
+    suffix = p.suffix
+    if suffix.lower() in COMPRESSION_SUFFIXES:
+        return name[:-len(suffix)]
     return name
 
 def _open_zstd(path: "str | Path", mode: str) -> "io.BufferedIOBase":
