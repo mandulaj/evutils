@@ -521,7 +521,7 @@
 <span class="n">Trigger_dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">([(</span><span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;p&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)])</span>
 
 <div class="viewcode-block" id="Event">
-<a class="viewcode-back" href="../../autoapi/evutils/types/index.html#evutils.types.Event">[docs]</a>
+<a class="viewcode-back" href="../../autoapi/evutils/types/index.html#evutils.Event">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Event</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">Structure</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Ctypes structure representing an event.</span>
 
@@ -544,7 +544,7 @@
 
 
 <div class="viewcode-block" id="is_monotonically_increasing">
-<a class="viewcode-back" href="../../autoapi/evutils/types/index.html#evutils.types.is_monotonically_increasing">[docs]</a>
+<a class="viewcode-back" href="../../autoapi/evutils/types/index.html#evutils.is_monotonically_increasing">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">is_monotonically_increasing</span><span class="p">(</span><span class="n">events</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Checks if the event ts is monotonically increasing.</span>
 
@@ -712,7 +712,7 @@
         <span class="k">return</span> <span class="n">aos</span>
 
 <div class="viewcode-block" id="EventArray">
-<a class="viewcode-back" href="../../autoapi/evutils/types/index.html#evutils.types.EventArray">[docs]</a>
+<a class="viewcode-back" href="../../autoapi/evutils/types/index.html#evutils.EventArray">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">EventArray</span><span class="p">(</span><span class="n">SoaArray</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A container for storing event data in a struct-of-arrays (SoA) layout.</span>
 
@@ -769,7 +769,7 @@
 
 
 <div class="viewcode-block" id="TriggerArray">
-<a class="viewcode-back" href="../../autoapi/evutils/types/index.html#evutils.types.TriggerArray">[docs]</a>
+<a class="viewcode-back" href="../../autoapi/evutils/types/index.html#evutils.TriggerArray">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">TriggerArray</span><span class="p">(</span><span class="n">SoaArray</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A container for storing trigger data in a struct-of-arrays (SoA) layout.</span>
 
@@ -807,7 +807,7 @@
 
 
 <div class="viewcode-block" id="DataBatch">
-<a class="viewcode-back" href="../../autoapi/evutils/types/index.html#evutils.types.DataBatch">[docs]</a>
+<a class="viewcode-back" href="../../autoapi/evutils/types/index.html#evutils.DataBatch">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">DataBatch</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A single batch of multiplexed data containing events, triggers, and potentially other modalities.&quot;&quot;&quot;</span>

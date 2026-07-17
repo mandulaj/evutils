@@ -557,10 +557,13 @@
 <h2>Classes<a class="headerlink" href="#classes" title="Link to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#evutils.io.common.EventDecoder" title="evutils.io.common.EventDecoder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EventDecoder</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#evutils.io.common.SeekResult" title="evutils.io.common.SeekResult"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SeekResult</span></code></a></p></td>
+<td><p>Result of a seek operation: the exact landing timestamp, event index, and EOF status.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#evutils.io.common.EventDecoder" title="evutils.io.common.EventDecoder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EventDecoder</span></code></a></p></td>
 <td><p>ABC for reading chunks of events from a IO source object.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#evutils.io.common.EventEncoder" title="evutils.io.common.EventEncoder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EventEncoder</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#evutils.io.common.EventEncoder" title="evutils.io.common.EventEncoder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EventEncoder</span></code></a></p></td>
 <td><p>ABC for writing chunks of events to a io object.</p></td>
 </tr>
 </tbody>
@@ -569,6 +572,36 @@
 </section>
 <section id="module-contents">
 <h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="evutils.io.common.SeekResult">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.io.common.</span></span><span class="sig-name descname"><span class="pre">SeekResult</span></span><a class="reference internal" href="../../../../_modules/evutils/io/common.html#SeekResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.common.SeekResult" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">NamedTuple</span></code></p>
+digraph inheritanced5b26c979d {
+bgcolor=transparent;
+rankdir=LR;
+size=&quot;8.0, 12.0&quot;;
+  &quot;NamedTuple&quot; [fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;];
+  &quot;SeekResult&quot; [URL=&quot;#evutils.io.common.SeekResult&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Result of a seek operation: the exact landing timestamp, event index, and EOF status.&quot;];
+  &quot;NamedTuple&quot; -&gt; &quot;SeekResult&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
+}
+<p>Result of a seek operation: the exact landing timestamp, event index, and EOF status.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.io.common.SeekResult.ts">
+<span class="sig-name descname"><span class="pre">ts</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#evutils.io.common.SeekResult.ts" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.io.common.SeekResult.index">
+<span class="sig-name descname"><span class="pre">index</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#evutils.io.common.SeekResult.index" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.io.common.SeekResult.eof">
+<span class="sig-name descname"><span class="pre">eof</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#evutils.io.common.SeekResult.eof" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="evutils.io.common.EventDecoder">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.io.common.</span></span><span class="sig-name descname"><span class="pre">EventDecoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">io.BufferedIOBase</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_external_triggers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/evutils/io/common.html#EventDecoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.common.EventDecoder" title="Link to this definition">#</a></dt>
@@ -623,7 +656,7 @@ size=&quot;8.0, 12.0&quot;;
 
 <dl class="py method">
 <dt class="sig sig-object py" id="evutils.io.common.EventDecoder.read_chunk">
-<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">read_chunk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">delta_t_hint</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_events_hint</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../../types/index.html#evutils.types.EventArray" title="evutils.types.EventArray"><span class="pre">EventArray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../../types/index.html#evutils.types.EventArray" title="evutils.types.EventArray"><span class="pre">EventArray</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="../../types/index.html#evutils.types.TriggerArray" title="evutils.types.TriggerArray"><span class="pre">TriggerArray</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../_modules/evutils/io/common.html#EventDecoder.read_chunk"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.common.EventDecoder.read_chunk" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">read_chunk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">delta_t_hint</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_events_hint</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../../index.html#evutils.EventArray" title="evutils.EventArray"><span class="pre">EventArray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../../index.html#evutils.EventArray" title="evutils.EventArray"><span class="pre">EventArray</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="../../index.html#evutils.TriggerArray" title="evutils.TriggerArray"><span class="pre">TriggerArray</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../_modules/evutils/io/common.html#EventDecoder.read_chunk"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.common.EventDecoder.read_chunk" title="Link to this definition">#</a></dt>
 <dd><p>Read a chunk of events.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -636,7 +669,7 @@ size=&quot;8.0, 12.0&quot;;
 <dd class="field-even"><p>Chunk of events read from the source. Optionally returns triggers if <cite>read_external_triggers</cite> is True.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="../../types/index.html#evutils.types.EventArray" title="evutils.types.EventArray">EventArray</a> or tuple of (<a class="reference internal" href="../../types/index.html#evutils.types.EventArray" title="evutils.types.EventArray">EventArray</a>, <a class="reference internal" href="../../types/index.html#evutils.types.TriggerArray" title="evutils.types.TriggerArray">TriggerArray</a>)</p>
+<dd class="field-odd"><p><a class="reference internal" href="../../index.html#evutils.EventArray" title="evutils.EventArray">EventArray</a> or tuple of (<a class="reference internal" href="../../index.html#evutils.EventArray" title="evutils.EventArray">EventArray</a>, <a class="reference internal" href="../../index.html#evutils.TriggerArray" title="evutils.TriggerArray">TriggerArray</a>)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -653,22 +686,8 @@ size=&quot;8.0, 12.0&quot;;
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="evutils.io.common.EventDecoder.take_pending">
-<span class="sig-name descname"><span class="pre">take_pending</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../../types/index.html#evutils.types.EventArray" title="evutils.types.EventArray"><span class="pre">EventArray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="../../../../_modules/evutils/io/common.html#EventDecoder.take_pending"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.common.EventDecoder.take_pending" title="Link to this definition">#</a></dt>
-<dd><p>Pop any boundary-chunk remainder staged by <a class="reference internal" href="#evutils.io.common.EventDecoder.seek" title="evutils.io.common.EventDecoder.seek"><code class="xref py py-meth docutils literal notranslate"><span class="pre">seek()</span></code></a>.</p>
-<p>Only decoders whose <a class="reference internal" href="#evutils.io.common.EventDecoder.seek" title="evutils.io.common.EventDecoder.seek"><code class="xref py py-meth docutils literal notranslate"><span class="pre">seek()</span></code></a> lands mid-chunk (EVT) stage a
-remainder; the base returns <code class="docutils literal notranslate"><span class="pre">None</span></code> so the EventReader can call this
-unconditionally.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="../../types/index.html#evutils.types.EventArray" title="evutils.types.EventArray">EventArray</a> | None</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="evutils.io.common.EventDecoder.read_all">
-<span class="sig-name descname"><span class="pre">read_all</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../../types/index.html#evutils.types.EventArray" title="evutils.types.EventArray"><span class="pre">EventArray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../../types/index.html#evutils.types.EventArray" title="evutils.types.EventArray"><span class="pre">EventArray</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="../../types/index.html#evutils.types.TriggerArray" title="evutils.types.TriggerArray"><span class="pre">TriggerArray</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../_modules/evutils/io/common.html#EventDecoder.read_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.common.EventDecoder.read_all" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">read_all</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../../index.html#evutils.EventArray" title="evutils.EventArray"><span class="pre">EventArray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../../index.html#evutils.EventArray" title="evutils.EventArray"><span class="pre">EventArray</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="../../index.html#evutils.TriggerArray" title="evutils.TriggerArray"><span class="pre">TriggerArray</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../_modules/evutils/io/common.html#EventDecoder.read_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.common.EventDecoder.read_all" title="Link to this definition">#</a></dt>
 <dd><p>Decode and return every remaining event at once.</p>
 <p>The default implementation drains <a class="reference internal" href="#evutils.io.common.EventDecoder.read_chunk" title="evutils.io.common.EventDecoder.read_chunk"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read_chunk()</span></code></a> and concatenates the
 chunks. SoA-native decoders (EVT/DAT/AER) override this with a
@@ -678,7 +697,7 @@ single-buffer decode that avoids the per-chunk copy entirely.</p>
 <dd class="field-odd"><p>All remaining events.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="../../types/index.html#evutils.types.EventArray" title="evutils.types.EventArray">EventArray</a></p>
+<dd class="field-even"><p><a class="reference internal" href="../../index.html#evutils.EventArray" title="evutils.EventArray">EventArray</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -711,34 +730,22 @@ single-buffer decode that avoids the per-chunk copy entirely.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="evutils.io.common.EventDecoder.seek">
-<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">seek</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="../../../../_modules/evutils/io/common.html#EventDecoder.seek"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.common.EventDecoder.seek" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">seek</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#evutils.io.common.SeekResult" title="evutils.io.common.SeekResult"><span class="pre">SeekResult</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="../../types/index.html#evutils.types.EventArray" title="evutils.types.EventArray"><span class="pre">evutils.types.EventArray</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="../../index.html#evutils.TriggerArray" title="evutils.TriggerArray"><span class="pre">TriggerArray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../_modules/evutils/io/common.html#EventDecoder.seek"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.common.EventDecoder.seek" title="Link to this definition">#</a></dt>
 <dd><p>Reposition the decoder to an absolute timestamp or event index.</p>
 <p>Exactly one of <code class="docutils literal notranslate"><span class="pre">t</span></code> (microseconds) or <code class="docutils literal notranslate"><span class="pre">n</span></code> (0-based event index) must
 be given. After a successful seek the next <a class="reference internal" href="#evutils.io.common.EventDecoder.read_chunk" title="evutils.io.common.EventDecoder.read_chunk"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read_chunk()</span></code></a> /
 <a class="reference internal" href="#evutils.io.common.EventDecoder.read_all" title="evutils.io.common.EventDecoder.read_all"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read_all()</span></code></a> yields events starting at the first event whose
-timestamp is <code class="docutils literal notranslate"><span class="pre">&gt;=</span> <span class="pre">t</span></code> (time seek) or at event <code class="docutils literal notranslate"><span class="pre">n</span></code> (index seek).</p>
+timestamp is &gt;= <code class="docutils literal notranslate"><span class="pre">t</span></code> (or the exact event at index <code class="docutils literal notranslate"><span class="pre">n</span></code>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>t</strong> (<em>int</em><em>, </em><em>optional</em>) – Absolute target timestamp in microseconds.</p></li>
-<li><p><strong>n</strong> (<em>int</em><em>, </em><em>optional</em>) – Absolute target event index (0-based).</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The absolute timestamp of the first event that will be read next
-(the landed position). Equals the stream’s last timestamp + 1 style
-EOF sentinel handling is left to the caller; an empty tail simply
-means the target is at/after the end.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>int</p>
-</dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><ul class="simple">
-<li><p><strong>NotImplementedError</strong> – If this decoder does not support seeking (<code class="docutils literal notranslate"><span class="pre">SUPPORTS_SEEK</span></code> is
-False).</p></li>
+<li><p><strong>t</strong> (<em>int</em><em>, </em><em>optional</em>) – Target timestamp in microseconds.</p></li>
+<li><p><strong>n</strong> (<em>int</em><em>, </em><em>optional</em>) – False).</p></li>
 <li><p><strong>ValueError</strong> – If neither or both of <code class="docutils literal notranslate"><span class="pre">t</span></code>/<code class="docutils literal notranslate"><span class="pre">n</span></code> are provided.</p></li>
 </ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple[<a class="reference internal" href="#evutils.io.common.SeekResult" title="evutils.io.common.SeekResult">SeekResult</a>, <a class="reference internal" href="../../types/index.html#evutils.types.EventArray" title="evutils.types.EventArray">evutils.types.EventArray</a>, <a class="reference internal" href="../../index.html#evutils.TriggerArray" title="evutils.TriggerArray">TriggerArray</a> | None]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -841,13 +848,13 @@ size=&quot;8.0, 12.0&quot;;
 
 <dl class="py method">
 <dt class="sig sig-object py" id="evutils.io.common.EventEncoder.write">
-<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">events</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="../../types/index.html#evutils.types.EventArray" title="evutils.types.EventArray"><span class="pre">EventArray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">triggers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="../../types/index.html#evutils.types.TriggerArray" title="evutils.types.TriggerArray"><span class="pre">TriggerArray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="../../../../_modules/evutils/io/common.html#EventEncoder.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.common.EventEncoder.write" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">events</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="../../index.html#evutils.EventArray" title="evutils.EventArray"><span class="pre">EventArray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">triggers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="../../index.html#evutils.TriggerArray" title="evutils.TriggerArray"><span class="pre">TriggerArray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="../../../../_modules/evutils/io/common.html#EventEncoder.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.common.EventEncoder.write" title="Link to this definition">#</a></dt>
 <dd><p>Write a chunk of events.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>events</strong> (<em>numpy.ndarray</em><em> | </em><a class="reference internal" href="../../types/index.html#evutils.types.EventArray" title="evutils.types.EventArray"><em>EventArray</em></a>)</p></li>
-<li><p><strong>triggers</strong> (<em>numpy.ndarray</em><em> | </em><a class="reference internal" href="../../types/index.html#evutils.types.TriggerArray" title="evutils.types.TriggerArray"><em>TriggerArray</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>events</strong> (<em>numpy.ndarray</em><em> | </em><a class="reference internal" href="../../index.html#evutils.EventArray" title="evutils.EventArray"><em>EventArray</em></a>)</p></li>
+<li><p><strong>triggers</strong> (<em>numpy.ndarray</em><em> | </em><a class="reference internal" href="../../index.html#evutils.TriggerArray" title="evutils.TriggerArray"><em>TriggerArray</em></a><em> | </em><em>None</em>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -965,6 +972,12 @@ closed by the <a class="reference internal" href="../index.html#evutils.io.Event
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#classes">Classes</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.common.SeekResult"><code class="docutils literal notranslate"><span class="pre">SeekResult</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.common.SeekResult.ts"><code class="docutils literal notranslate"><span class="pre">SeekResult.ts</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.common.SeekResult.index"><code class="docutils literal notranslate"><span class="pre">SeekResult.index</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.common.SeekResult.eof"><code class="docutils literal notranslate"><span class="pre">SeekResult.eof</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.common.EventDecoder"><code class="docutils literal notranslate"><span class="pre">EventDecoder</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.common.EventDecoder.SUPPORTS_EXT_TRIGGERS"><code class="docutils literal notranslate"><span class="pre">EventDecoder.SUPPORTS_EXT_TRIGGERS</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.common.EventDecoder.SUPPORTS_SEEK"><code class="docutils literal notranslate"><span class="pre">EventDecoder.SUPPORTS_SEEK</span></code></a></li>
@@ -972,7 +985,6 @@ closed by the <a class="reference internal" href="../index.html#evutils.io.Event
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.common.EventDecoder.init"><code class="docutils literal notranslate"><span class="pre">EventDecoder.init()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.common.EventDecoder.read_chunk"><code class="docutils literal notranslate"><span class="pre">EventDecoder.read_chunk()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.common.EventDecoder.reset"><code class="docutils literal notranslate"><span class="pre">EventDecoder.reset()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.common.EventDecoder.take_pending"><code class="docutils literal notranslate"><span class="pre">EventDecoder.take_pending()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.common.EventDecoder.read_all"><code class="docutils literal notranslate"><span class="pre">EventDecoder.read_all()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.common.EventDecoder.close"><code class="docutils literal notranslate"><span class="pre">EventDecoder.close()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.common.EventDecoder.tell"><code class="docutils literal notranslate"><span class="pre">EventDecoder.tell()</span></code></a></li>

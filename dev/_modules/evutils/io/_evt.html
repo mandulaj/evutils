@@ -989,19 +989,6 @@
         <span class="k">return</span> <span class="n">appended</span></div>
 
 
-<div class="viewcode-block" id="EventDecoder_EVT.take_pending">
-<a class="viewcode-back" href="../../../autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_EVT.take_pending">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">take_pending</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;EventArray | None&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pop the boundary-chunk remainder staged by :meth:`seek` (or ``None``).</span>
-
-<span class="sd">        Lets the EventReader&#39;s accumulator path drain the exact-landing</span>
-<span class="sd">        remainder that would otherwise only be served by :meth:`read_chunk`.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pending</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_pending</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">return</span> <span class="n">p</span></div>
-
-
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_has_delta_t_parser</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;True when a dedicated C delta_t parser exists for this format, so the</span>
@@ -1176,7 +1163,6 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start_offset</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_eof</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_pending</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_seek_correction</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parser</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_parser</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
@@ -1192,7 +1178,7 @@
 <span class="sd">        counts match this decoder exactly -- required for event-index seeks.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">._index</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-            <span class="n">build_seek_index</span><span class="p">,</span>
+            <span class="n">IncrementalSeekIndex</span><span class="p">,</span>
             <span class="n">metavision_index_path</span><span class="p">,</span>
             <span class="n">read_metavision_index</span><span class="p">,</span>
         <span class="p">)</span>
@@ -1209,7 +1195,7 @@
             <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_index_is_ours</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">if</span> <span class="n">idx</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">idx</span> <span class="o">=</span> <span class="n">build_seek_index</span><span class="p">(</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">IncrementalSeekIndex</span><span class="p">(</span>
                 <span class="n">words</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_words</span><span class="p">,</span> <span class="n">start_offset</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_start_offset</span><span class="p">,</span>
                 <span class="n">input_cls</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_input_cls</span><span class="p">,</span> <span class="n">parser_cls</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parser</span><span class="p">),</span>
                 <span class="n">tail_pad</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_tail_pad</span><span class="p">,</span> <span class="n">word_dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_word_dtype</span><span class="p">,</span>
@@ -1242,32 +1228,35 @@
 
 <div class="viewcode-block" id="EventDecoder_EVT.seek">
 <a class="viewcode-back" href="../../../autoapi/evutils/io/decoders/index.html#evutils.io.decoders.EventDecoder_EVT.seek">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">seek</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">seek</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="s2">&quot;SeekResult&quot;</span><span class="p">,</span> <span class="s2">&quot;EventArray&quot;</span><span class="p">,</span> <span class="s2">&quot;TriggerArray | None&quot;</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Seek to an absolute timestamp (µs) or event index. See base class.</span>
 
 <span class="sd">        Jumps to the nearest index bookmark at/before the target, restores the</span>
 <span class="sd">        TIME_HIGH wrap accumulation, then decodes forward to land exactly on the</span>
 <span class="sd">        target (staging the boundary chunk&#39;s remainder for the next read).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">SeekResult</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_initialized</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
         <span class="n">axis</span><span class="p">,</span> <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seek_axis</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
 
         <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_index</span><span class="p">(</span><span class="n">need_counts</span><span class="o">=</span><span class="p">(</span><span class="n">axis</span> <span class="o">==</span> <span class="s2">&quot;n&quot;</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_pending</span> <span class="o">=</span> <span class="kc">None</span>
+        
         <span class="k">if</span> <span class="n">index</span><span class="o">.</span><span class="n">n_events</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_words</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_words</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_words</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mi">0</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_eof</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_seek_correction</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="k">return</span> <span class="n">val</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">val</span> <span class="k">if</span> <span class="n">axis</span> <span class="o">==</span> <span class="s2">&quot;n&quot;</span> <span class="k">else</span> <span class="mi">0</span>
+            <span class="k">return</span> <span class="n">SeekResult</span><span class="p">(</span><span class="n">ts</span><span class="o">=</span><span class="n">val</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">idx</span><span class="p">,</span> <span class="n">eof</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">_EMPTY_EVENTS</span><span class="p">,</span> <span class="kc">None</span>
 
-        <span class="n">i</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">bookmark_for_time</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="k">if</span> <span class="n">axis</span> <span class="o">==</span> <span class="s2">&quot;t&quot;</span> <span class="k">else</span> <span class="n">index</span><span class="o">.</span><span class="n">bookmark_for_event</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">word_offset</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">word_off</span><span class="p">,</span> <span class="n">cum</span><span class="p">,</span> <span class="n">base_ts</span> <span class="o">=</span> <span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">bookmark_for_time</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="k">if</span> <span class="n">axis</span> <span class="o">==</span> <span class="s2">&quot;t&quot;</span> 
+                                  <span class="k">else</span> <span class="n">index</span><span class="o">.</span><span class="n">bookmark_for_event</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span> <span class="o">=</span> <span class="n">word_off</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_parser</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_seek_correction</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_eof</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="n">base_ts</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">ts</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-        <span class="n">seen</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">cum_count</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">seen</span> <span class="o">=</span> <span class="n">cum</span>
 
         <span class="n">correction</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
@@ -1276,7 +1265,8 @@
                 <span class="c1"># Target is at/after the end of the stream.</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_seek_correction</span> <span class="o">=</span> <span class="n">correction</span> <span class="ow">or</span> <span class="mi">0</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_eof</span> <span class="o">=</span> <span class="kc">True</span>
-                <span class="k">return</span> <span class="n">val</span>
+                <span class="n">idx</span> <span class="o">=</span> <span class="n">val</span> <span class="k">if</span> <span class="n">axis</span> <span class="o">==</span> <span class="s2">&quot;n&quot;</span> <span class="k">else</span> <span class="n">seen</span>
+                <span class="k">return</span> <span class="n">SeekResult</span><span class="p">(</span><span class="n">ts</span><span class="o">=</span><span class="n">val</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">idx</span><span class="p">,</span> <span class="n">eof</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">_EMPTY_EVENTS</span><span class="p">,</span> <span class="kc">None</span>
             <span class="k">if</span> <span class="n">correction</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">raw_ev</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">period</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_WRAP_PERIOD</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_format</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">24</span><span class="p">)</span>
@@ -1307,16 +1297,17 @@
                     <span class="c1"># Best effort for event index: keep all triggers from this chunk</span>
                     <span class="n">tr_k</span> <span class="o">=</span> <span class="mi">0</span>
                 
-                <span class="bp">self</span><span class="o">.</span><span class="n">_pending</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="n">EventArray</span><span class="p">(</span>
-                        <span class="n">t_corr</span><span class="p">[</span><span class="n">k</span><span class="p">:]</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">raw_ev</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">k</span><span class="p">:]</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span>
-                        <span class="n">raw_ev</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="n">k</span><span class="p">:]</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">raw_ev</span><span class="o">.</span><span class="n">p</span><span class="p">[</span><span class="n">k</span><span class="p">:]</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span>
-                    <span class="p">),</span>
-                    <span class="n">TriggerArray</span><span class="p">(</span>
-                        <span class="n">tr_t_corr</span><span class="p">[</span><span class="n">tr_k</span><span class="p">:]</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">raw_tr</span><span class="o">.</span><span class="n">p</span><span class="p">[</span><span class="n">tr_k</span><span class="p">:]</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">raw_tr</span><span class="o">.</span><span class="n">id</span><span class="p">[</span><span class="n">tr_k</span><span class="p">:]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-                    <span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">raw_tr</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">TriggerArray</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+                <span class="n">rem_ev</span> <span class="o">=</span> <span class="n">EventArray</span><span class="p">(</span>
+                    <span class="n">t_corr</span><span class="p">[</span><span class="n">k</span><span class="p">:]</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">raw_ev</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">k</span><span class="p">:]</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span>
+                    <span class="n">raw_ev</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="n">k</span><span class="p">:]</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">raw_ev</span><span class="o">.</span><span class="n">p</span><span class="p">[</span><span class="n">k</span><span class="p">:]</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span>
                 <span class="p">)</span>
-                <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">t_corr</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="k">if</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">raw_ev</span><span class="p">)</span> <span class="k">else</span> <span class="n">val</span>
+                <span class="n">rem_tr</span> <span class="o">=</span> <span class="n">TriggerArray</span><span class="p">(</span>
+                    <span class="n">tr_t_corr</span><span class="p">[</span><span class="n">tr_k</span><span class="p">:]</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">raw_tr</span><span class="o">.</span><span class="n">p</span><span class="p">[</span><span class="n">tr_k</span><span class="p">:]</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">raw_tr</span><span class="o">.</span><span class="n">id</span><span class="p">[</span><span class="n">tr_k</span><span class="p">:]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">raw_tr</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">TriggerArray</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+                
+                <span class="n">idx</span> <span class="o">=</span> <span class="n">seen</span> <span class="o">+</span> <span class="n">k</span>
+                <span class="n">landed_ts</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">t_corr</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="k">if</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">raw_ev</span><span class="p">)</span> <span class="k">else</span> <span class="n">val</span>
+                <span class="k">return</span> <span class="n">SeekResult</span><span class="p">(</span><span class="n">ts</span><span class="o">=</span><span class="n">landed_ts</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">idx</span><span class="p">,</span> <span class="n">eof</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span> <span class="n">rem_ev</span><span class="p">,</span> <span class="n">rem_tr</span>
             <span class="n">seen</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">raw_ev</span><span class="p">)</span></div>
 
 
@@ -1350,7 +1341,8 @@
         <span class="c1"># Drop numpy views into the (possibly mmap-backed) storage so the source</span>
         <span class="c1"># can be closed without BufferError.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_words</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_buf</span> <span class="o">=</span> <span class="kc">None</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_buf</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">=</span> <span class="kc">None</span></div>
 </div>
 
 

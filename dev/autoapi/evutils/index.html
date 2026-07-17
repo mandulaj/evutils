@@ -608,6 +608,26 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#evutils.__version__" title="evutils.__version__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__version__</span></code></a></p></td>
 <td><p></p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#evutils.Event_dtype" title="evutils.Event_dtype"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Event_dtype</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#evutils.Trigger_dtype" title="evutils.Trigger_dtype"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Trigger_dtype</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#evutils.EventArray" title="evutils.EventArray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EventArray</span></code></a></p></td>
+<td><p>A container for storing event data in a struct-of-arrays (SoA) layout.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#evutils.TriggerArray" title="evutils.TriggerArray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TriggerArray</span></code></a></p></td>
+<td><p>A container for storing trigger data in a struct-of-arrays (SoA) layout.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -617,6 +637,171 @@
 <dl class="py data">
 <dt class="sig sig-object py" id="evutils.__version__">
 <span class="sig-prename descclassname"><span class="pre">evutils.</span></span><span class="sig-name descname"><span class="pre">__version__</span></span><a class="headerlink" href="#evutils.__version__" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="evutils.EventArray">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.</span></span><span class="sig-name descname"><span class="pre">EventArray</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.ArrayLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.ArrayLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.ArrayLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.ArrayLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/evutils/types.html#EventArray"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.EventArray" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">SoaArray</span></code></p>
+digraph inheritance50a83abec5 {
+bgcolor=transparent;
+rankdir=LR;
+size=&quot;8.0, 12.0&quot;;
+  &quot;EventArray&quot; [URL=&quot;types/index.html#evutils.types.EventArray&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;A container for storing event data in a struct-of-arrays (SoA) layout.&quot;];
+  &quot;SoaArray&quot; -&gt; &quot;EventArray&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
+  &quot;SoaArray&quot; [fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,tooltip=&quot;Abstract base class for struct-of-arrays (SoA) layout.&quot;];
+}
+<p>A container for storing event data in a struct-of-arrays (SoA) layout.</p>
+<p>The four fields <code class="docutils literal notranslate"><span class="pre">t</span></code>, <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code> and <code class="docutils literal notranslate"><span class="pre">p</span></code> are kept as separate
+contiguous numpy arrays. This is the native layout of the C parser and
+avoids the padding of the packed <a class="reference internal" href="#evutils.Event_dtype" title="evutils.Event_dtype"><code class="xref py py-data docutils literal notranslate"><span class="pre">Event_dtype</span></code></a> struct.</p>
+<p>Both attribute access (<code class="docutils literal notranslate"><span class="pre">events.t</span></code>) and key access (<code class="docutils literal notranslate"><span class="pre">events['t']</span></code>) return
+the underlying column, so most code written for structured arrays keeps
+working. <code class="docutils literal notranslate"><span class="pre">np.asarray(events)</span></code> yields the array-of-structures form (see
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">__array__()</span></code>), which lets EventArray flow into code that still expects
+<a class="reference internal" href="#evutils.Event_dtype" title="evutils.Event_dtype"><code class="xref py py-data docutils literal notranslate"><span class="pre">Event_dtype</span></code></a>.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">evutils.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventArray</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">events</span> <span class="o">=</span> <span class="n">EventArray</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">150</span><span class="p">],</span> <span class="n">x</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span> <span class="n">y</span><span class="o">=</span><span class="p">[</span><span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">],</span> <span class="n">p</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">events</span><span class="o">.</span><span class="n">t</span>
+<span class="go">array([100, 150])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">events</span><span class="o">.</span><span class="n">x</span>
+<span class="go">array([10, 20], dtype=uint16)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">events</span><span class="o">.</span><span class="n">y</span>
+<span class="go">array([30, 40], dtype=uint16)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">events</span><span class="o">.</span><span class="n">p</span>
+<span class="go">array([1, 0], dtype=uint8)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">events</span><span class="p">[:</span><span class="mi">10</span><span class="p">]</span>
+<span class="go">EventArray(n=2):</span>
+<span class="go">[(100, 10, 30, 1) (150, 20, 40, 0)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">events</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">np.void((100, 10, 30, 1), dtype=[(&#39;t&#39;, &#39;&lt;i8&#39;), (&#39;x&#39;, &#39;&lt;u2&#39;), (&#39;y&#39;, &#39;&lt;u2&#39;), (&#39;p&#39;, &#39;u1&#39;)])</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>numpy.typing.ArrayLike</em>)</p></li>
+<li><p><strong>x</strong> (<em>numpy.typing.ArrayLike</em>)</p></li>
+<li><p><strong>y</strong> (<em>numpy.typing.ArrayLike</em>)</p></li>
+<li><p><strong>p</strong> (<em>numpy.typing.ArrayLike</em>)</p></li>
+<li><p><strong>metadata</strong> (<em>dict</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.EventArray.__slots__">
+<span class="sig-name descname"><span class="pre">__slots__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['t',</span> <span class="pre">'x',</span> <span class="pre">'y',</span> <span class="pre">'p']</span></span><a class="headerlink" href="#evutils.EventArray.__slots__" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.EventArray.t">
+<span class="sig-name descname"><span class="pre">t</span></span><a class="headerlink" href="#evutils.EventArray.t" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.EventArray.x">
+<span class="sig-name descname"><span class="pre">x</span></span><a class="headerlink" href="#evutils.EventArray.x" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.EventArray.y">
+<span class="sig-name descname"><span class="pre">y</span></span><a class="headerlink" href="#evutils.EventArray.y" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.EventArray.p">
+<span class="sig-name descname"><span class="pre">p</span></span><a class="headerlink" href="#evutils.EventArray.p" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.EventArray.metadata">
+<span class="sig-name descname"><span class="pre">metadata</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#evutils.EventArray.metadata" title="Link to this definition">#</a></dt>
+<dd><p>Optional lightweight, per-array metadata (e.g. <code class="docutils literal notranslate"><span class="pre">sensor_size</span></code>).</p>
+<p>Defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code> and is never part of the AoS/NumPy view. It is
+carried through slicing and <code class="xref py py-meth docutils literal notranslate"><span class="pre">copy()</span></code> (shallow), so a sensor size
+stamped on read survives most event processing. Transforms that change
+the meaning of a field (e.g. spatial cropping) are responsible for
+updating it.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="evutils.TriggerArray">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.</span></span><span class="sig-name descname"><span class="pre">TriggerArray</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.ArrayLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.ArrayLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.ArrayLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/evutils/types.html#TriggerArray"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.TriggerArray" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">SoaArray</span></code></p>
+digraph inheritance5f448646ac {
+bgcolor=transparent;
+rankdir=LR;
+size=&quot;8.0, 12.0&quot;;
+  &quot;SoaArray&quot; [fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,tooltip=&quot;Abstract base class for struct-of-arrays (SoA) layout.&quot;];
+  &quot;TriggerArray&quot; [URL=&quot;types/index.html#evutils.types.TriggerArray&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;A container for storing trigger data in a struct-of-arrays (SoA) layout.&quot;];
+  &quot;SoaArray&quot; -&gt; &quot;TriggerArray&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
+}
+<p>A container for storing trigger data in a struct-of-arrays (SoA) layout.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">evutils.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">TriggerArray</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">triggers</span> <span class="o">=</span> <span class="n">TriggerArray</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="p">[</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">2000</span><span class="p">],</span> <span class="n">p</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="nb">id</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">triggers</span><span class="o">.</span><span class="n">t</span>
+<span class="go">array([1000, 2000])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">triggers</span><span class="o">.</span><span class="n">p</span>
+<span class="go">array([1, 0], dtype=uint8)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">triggers</span><span class="o">.</span><span class="n">id</span>
+<span class="go">array([0, 1], dtype=uint8)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>numpy.typing.ArrayLike</em>)</p></li>
+<li><p><strong>p</strong> (<em>numpy.typing.ArrayLike</em>)</p></li>
+<li><p><strong>id</strong> (<em>numpy.typing.ArrayLike</em>)</p></li>
+<li><p><strong>metadata</strong> (<em>dict</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.TriggerArray.__slots__">
+<span class="sig-name descname"><span class="pre">__slots__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['t',</span> <span class="pre">'p',</span> <span class="pre">'id']</span></span><a class="headerlink" href="#evutils.TriggerArray.__slots__" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.TriggerArray.t">
+<span class="sig-name descname"><span class="pre">t</span></span><a class="headerlink" href="#evutils.TriggerArray.t" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.TriggerArray.p">
+<span class="sig-name descname"><span class="pre">p</span></span><a class="headerlink" href="#evutils.TriggerArray.p" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.TriggerArray.id">
+<span class="sig-name descname"><span class="pre">id</span></span><a class="headerlink" href="#evutils.TriggerArray.id" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.TriggerArray.metadata">
+<span class="sig-name descname"><span class="pre">metadata</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#evutils.TriggerArray.metadata" title="Link to this definition">#</a></dt>
+<dd><p>Optional lightweight, per-array metadata (e.g. <code class="docutils literal notranslate"><span class="pre">sensor_size</span></code>).</p>
+<p>Defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code> and is never part of the AoS/NumPy view. It is
+carried through slicing and <code class="xref py py-meth docutils literal notranslate"><span class="pre">copy()</span></code> (shallow), so a sensor size
+stamped on read survives most event processing. Transforms that change
+the meaning of a field (e.g. spatial cropping) are responsible for
+updating it.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="evutils.Event_dtype">
+<span class="sig-prename descclassname"><span class="pre">evutils.</span></span><span class="sig-name descname"><span class="pre">Event_dtype</span></span><a class="headerlink" href="#evutils.Event_dtype" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="evutils.Trigger_dtype">
+<span class="sig-prename descclassname"><span class="pre">evutils.</span></span><span class="sig-name descname"><span class="pre">Trigger_dtype</span></span><a class="headerlink" href="#evutils.Trigger_dtype" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 </section>
@@ -671,8 +856,28 @@
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submodules">Submodules</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#attributes">Attributes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#classes">Classes</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#package-contents">Package Contents</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.__version__"><code class="docutils literal notranslate"><span class="pre">__version__</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.EventArray"><code class="docutils literal notranslate"><span class="pre">EventArray</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.EventArray.__slots__"><code class="docutils literal notranslate"><span class="pre">EventArray.__slots__</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.EventArray.t"><code class="docutils literal notranslate"><span class="pre">EventArray.t</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.EventArray.x"><code class="docutils literal notranslate"><span class="pre">EventArray.x</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.EventArray.y"><code class="docutils literal notranslate"><span class="pre">EventArray.y</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.EventArray.p"><code class="docutils literal notranslate"><span class="pre">EventArray.p</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.EventArray.metadata"><code class="docutils literal notranslate"><span class="pre">EventArray.metadata</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.TriggerArray"><code class="docutils literal notranslate"><span class="pre">TriggerArray</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.TriggerArray.__slots__"><code class="docutils literal notranslate"><span class="pre">TriggerArray.__slots__</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.TriggerArray.t"><code class="docutils literal notranslate"><span class="pre">TriggerArray.t</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.TriggerArray.p"><code class="docutils literal notranslate"><span class="pre">TriggerArray.p</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.TriggerArray.id"><code class="docutils literal notranslate"><span class="pre">TriggerArray.id</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.TriggerArray.metadata"><code class="docutils literal notranslate"><span class="pre">TriggerArray.metadata</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.Event_dtype"><code class="docutils literal notranslate"><span class="pre">Event_dtype</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.Trigger_dtype"><code class="docutils literal notranslate"><span class="pre">Trigger_dtype</span></code></a></li>
 </ul>
 </li>
 </ul>

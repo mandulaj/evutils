@@ -16,12 +16,36 @@ Classes
 
 .. autoapisummary::
 
+   evutils.io.common.SeekResult
    evutils.io.common.EventDecoder
    evutils.io.common.EventEncoder
 
 
 Module Contents
 ---------------
+
+.. py:class:: SeekResult
+
+   Bases: :py:obj:`NamedTuple`
+
+   .. autoapi-inheritance-diagram:: evutils.io.common.SeekResult
+      :parts: 1
+
+
+   Result of a seek operation: the exact landing timestamp, event index, and EOF status.
+
+
+   .. py:attribute:: ts
+      :type:  int
+
+
+   .. py:attribute:: index
+      :type:  int
+
+
+   .. py:attribute:: eof
+      :type:  bool
+
 
 .. py:class:: EventDecoder(source: io.BufferedIOBase | str | bytes, chunk_size: int = 10000, read_external_triggers: bool = False)
 
@@ -86,16 +110,6 @@ Module Contents
 
 
 
-   .. py:method:: take_pending() -> EventArray | None
-
-      Pop any boundary-chunk remainder staged by :meth:`seek`.
-
-      Only decoders whose :meth:`seek` lands mid-chunk (EVT) stage a
-      remainder; the base returns ``None`` so the EventReader can call this
-      unconditionally.
-
-
-
    .. py:method:: read_all() -> EventArray | tuple[EventArray, TriggerArray]
 
       Decode and return every remaining event at once.
@@ -126,7 +140,7 @@ Module Contents
 
 
 
-   .. py:method:: seek(t: int | None = None, n: int | None = None) -> int
+   .. py:method:: seek(t: int | None = None, n: int | None = None) -> tuple[SeekResult, evutils.types.EventArray, TriggerArray | None]
       :abstractmethod:
 
 
@@ -135,22 +149,13 @@ Module Contents
       Exactly one of ``t`` (microseconds) or ``n`` (0-based event index) must
       be given. After a successful seek the next :meth:`read_chunk` /
       :meth:`read_all` yields events starting at the first event whose
-      timestamp is ``>= t`` (time seek) or at event ``n`` (index seek).
+      timestamp is >= ``t`` (or the exact event at index ``n``).
 
-      :param t: Absolute target timestamp in microseconds.
+      :param t: Target timestamp in microseconds.
       :type t: int, optional
-      :param n: Absolute target event index (0-based).
+      :param n: False).
       :type n: int, optional
-
-      :returns: The absolute timestamp of the first event that will be read next
-                (the landed position). Equals the stream's last timestamp + 1 style
-                EOF sentinel handling is left to the caller; an empty tail simply
-                means the target is at/after the end.
-      :rtype: int
-
-      :raises NotImplementedError: If this decoder does not support seeking (``SUPPORTS_SEEK`` is
-          False).
-      :raises ValueError: If neither or both of ``t``/``n`` are provided.
+      :param ValueError: If neither or both of ``t``/``n`` are provided.
 
 
 
