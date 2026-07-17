@@ -51,9 +51,16 @@ def lazy_njit_unwrapped_events(fn: F) -> F:
         import numpy as np
         
         if isinstance(events, SoaArray):
-            arrays = tuple(getattr(events, f) for f in events._fields)
+            arrays = tuple(getattr(events, f) for f in ("t", "x", "y", "p") if hasattr(events, f))
+            # Just ensure we have exactly 4 fields for these dense kernels
+            if len(arrays) != 4:
+                # If it's a trigger array or something else, fall back to ordered fields
+                arrays = tuple(getattr(events, f) for f in events._fields)
         elif isinstance(events, np.ndarray) and events.dtype.names is not None:
-            arrays = tuple(events[f] for f in events.dtype.names)
+            if set(events.dtype.names).issuperset({"t", "x", "y", "p"}):
+                arrays = tuple(events[f] for f in ("t", "x", "y", "p"))
+            else:
+                arrays = tuple(events[f] for f in events.dtype.names)
         else:
             raise TypeError(f"Unsupported event format: {type(events)}")
             
