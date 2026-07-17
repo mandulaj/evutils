@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Coverage for src/evutils/io/encoders.py: 82%</title>
+    <title>Coverage for src/evutils/io/encoders.py: 86%</title>
     <link rel="icon" sizes="32x32" href="favicon_32_cb_c827f16f.png">
     <link rel="stylesheet" href="style_cb_4667309f.css" type="text/css">
     <script src="coverage_html_cb_dd2e7eb5.js" defer></script>
@@ -12,7 +12,7 @@
     <div class="content">
         <h1>
             <span class="text">Coverage for </span><b>src<span class="sep">/</span>evutils<span class="sep">/</span>io<span class="sep">/</span>encoders.py</b>:
-            <span class="pc_cov">82%</span>
+            <span class="pc_cov">86%</span>
         </h1>
         <aside id="help_panel_wrapper">
             <input id="help_panel_state" type="checkbox">
@@ -54,8 +54,8 @@
             </div>
         </aside>
         <h2>
-            <span class="text">40 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">33<span class="text"> run</span></button>
+            <span class="text">50 statements &nbsp;</span>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">43<span class="text"> run</span></button>
             <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">7<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_c37a3357b71699fa_stream_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.15.1">coverage.py v7.15.1</a>,
-            created at 2026-07-17 15:38 +0000
+            created at 2026-07-17 16:02 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -132,38 +132,52 @@
     <p class="run"><span class="n"><a id="t50" href="#t50">50</a></span><span class="t"><span class="nam">_WRITER_MAPPING</span><span class="op">[</span><span class="str">".npz"</span><span class="op">]</span> <span class="op">=</span> <span class="nam">EventEncoder_Npz</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t51" href="#t51">51</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t52" href="#t52">52</a></span><span class="t"><span class="key">from</span> <span class="op">.</span><span class="nam">_evt</span> <span class="key">import</span> <span class="nam">EventEncoder_EVT</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t53" href="#t53">53</a></span><span class="t"><span class="nam">_WRITER_MAPPING</span><span class="op">[</span><span class="str">".raw"</span><span class="op">]</span> <span class="op">=</span> <span class="nam">EventEncoder_EVT</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t54" href="#t54">54</a></span><span class="t"><span class="nam">_WRITER_MAPPING</span><span class="op">[</span><span class="str">".evt"</span><span class="op">]</span> <span class="op">=</span> <span class="nam">EventEncoder_EVT</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t55" href="#t55">55</a></span><span class="t"><span class="nam">_WRITER_MAPPING</span><span class="op">[</span><span class="str">".evt3"</span><span class="op">]</span> <span class="op">=</span> <span class="nam">EventEncoder_EVT</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t56" href="#t56">56</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t57" href="#t57">57</a></span><span class="t"><span class="key">from</span> <span class="op">.</span><span class="nam">_aer</span> <span class="key">import</span> <span class="nam">EventEncoder_AER</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t58" href="#t58">58</a></span><span class="t"><span class="nam">_WRITER_MAPPING</span><span class="op">[</span><span class="str">".aer"</span><span class="op">]</span> <span class="op">=</span> <span class="nam">EventEncoder_AER</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t59" href="#t59">59</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t60" href="#t60">60</a></span><span class="t"><span class="key">def</span> <span class="nam">get_file_writer</span><span class="op">(</span><span class="nam">file</span><span class="op">:</span> <span class="nam">Path</span><span class="op">)</span> <span class="op">-></span> <span class="nam">Type</span><span class="op">[</span><span class="nam">EventEncoder</span><span class="op">]</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t61" href="#t61">61</a></span><span class="t">    <span class="str">"""Get the appropriate writer for the given file.</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t62" href="#t62">62</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t63" href="#t63">63</a></span><span class="t"><span class="str">    Parameters</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t64" href="#t64">64</a></span><span class="t"><span class="str">    ----------</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t65" href="#t65">65</a></span><span class="t"><span class="str">    file</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t66" href="#t66">66</a></span><span class="t"><span class="str">        File to write</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t67" href="#t67">67</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t68" href="#t68">68</a></span><span class="t"><span class="str">    Returns</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t69" href="#t69">69</a></span><span class="t"><span class="str">    -------</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t70" href="#t70">70</a></span><span class="t"><span class="str">    EventFileWriter</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t71" href="#t71">71</a></span><span class="t"><span class="str">        Writer object for the file</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t72" href="#t72">72</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t73" href="#t73">73</a></span><span class="t"><span class="str">    """</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t74" href="#t74">74</a></span><span class="t">    <span class="nam">ext</span> <span class="op">=</span> <span class="nam">file</span><span class="op">.</span><span class="nam">suffix</span><span class="op">.</span><span class="nam">lower</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t75" href="#t75">75</a></span><span class="t">    <span class="key">if</span> <span class="nam">ext</span> <span class="key">in</span> <span class="nam">_WRITER_MAPPING</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t76" href="#t76">76</a></span><span class="t">        <span class="key">return</span> <span class="nam">_WRITER_MAPPING</span><span class="op">[</span><span class="nam">ext</span><span class="op">]</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t77" href="#t77">77</a></span><span class="t">    <span class="key">if</span> <span class="nam">ext</span> <span class="key">in</span> <span class="nam">_UNAVAILABLE</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t78" href="#t78">78</a></span><span class="t">        <span class="key">raise</span> <span class="nam">ImportError</span><span class="op">(</span><span class="fst">f"</span><span class="fst">File extension </span><span class="op">{</span><span class="nam">ext</span><span class="op">}</span><span class="fst"> is supported, but </span><span class="op">{</span><span class="nam">_UNAVAILABLE</span><span class="op">[</span><span class="nam">ext</span><span class="op">]</span><span class="op">}</span><span class="fst">"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t79" href="#t79">79</a></span><span class="t">    <span class="key">raise</span> <span class="nam">ValueError</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t80" href="#t80">80</a></span><span class="t">        <span class="fst">f"</span><span class="fst">File extension </span><span class="op">{</span><span class="nam">ext</span><span class="op">}</span><span class="fst"> not supported, available extensions: </span><span class="fst">"</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t81" href="#t81">81</a></span><span class="t">        <span class="fst">f"</span><span class="op">{</span><span class="nam">sorted</span><span class="op">(</span><span class="nam">_WRITER_MAPPING</span><span class="op">.</span><span class="nam">keys</span><span class="op">(</span><span class="op">)</span> <span class="op">|</span> <span class="nam">_UNAVAILABLE</span><span class="op">.</span><span class="nam">keys</span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">}</span><span class="fst">"</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t82" href="#t82">82</a></span><span class="t">    <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t83" href="#t83">83</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t84" href="#t84">84</a></span><span class="t"><span class="nam">__all__</span> <span class="op">=</span> <span class="op">[</span><span class="str">"EventEncoder"</span><span class="op">,</span> <span class="str">"EventEncoder_Aedat"</span><span class="op">,</span> <span class="str">"EventEncoder_Bin"</span><span class="op">,</span> <span class="str">"EventEncoder_Csv"</span><span class="op">,</span> <span class="str">"EventEncoder_Dat"</span><span class="op">,</span> <span class="str">"EventEncoder_HDF5"</span><span class="op">,</span> <span class="str">"EventEncoder_Npz"</span><span class="op">,</span> <span class="str">"EventEncoder_EVT"</span><span class="op">,</span> <span class="str">"EventEncoder_AER"</span><span class="op">,</span> <span class="str">"get_file_writer"</span><span class="op">]</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t53" href="#t53">53</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t54" href="#t54">54</a></span><span class="t"><span class="key">def</span> <span class="nam">_evt_encoder_for</span><span class="op">(</span><span class="nam">fmt</span><span class="op">:</span> <span class="nam">str</span><span class="op">)</span> <span class="op">-></span> <span class="nam">Type</span><span class="op">[</span><span class="nam">EventEncoder</span><span class="op">]</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t55" href="#t55">55</a></span><span class="t">    <span class="str">"""EventEncoder_EVT preconfigured for ``fmt``; an explicit ``format=``</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t56" href="#t56">56</a></span><span class="t"><span class="str">    kwarg from the caller still wins."""</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t57" href="#t57">57</a></span><span class="t">    <span class="key">class</span> <span class="nam">_Encoder</span><span class="op">(</span><span class="nam">EventEncoder_EVT</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t58" href="#t58">58</a></span><span class="t">        <span class="key">def</span> <span class="nam">__init__</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="op">*</span><span class="nam">args</span><span class="op">,</span> <span class="nam">format</span><span class="op">:</span> <span class="nam">str</span> <span class="op">=</span> <span class="nam">fmt</span><span class="op">,</span> <span class="op">**</span><span class="nam">kwargs</span><span class="op">)</span><span class="op">:</span>  <span class="com"># noqa: A002</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t59" href="#t59">59</a></span><span class="t">            <span class="nam">super</span><span class="op">(</span><span class="op">)</span><span class="op">.</span><span class="nam">__init__</span><span class="op">(</span><span class="op">*</span><span class="nam">args</span><span class="op">,</span> <span class="nam">format</span><span class="op">=</span><span class="nam">format</span><span class="op">,</span> <span class="op">**</span><span class="nam">kwargs</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t60" href="#t60">60</a></span><span class="t">    <span class="nam">_Encoder</span><span class="op">.</span><span class="nam">__name__</span> <span class="op">=</span> <span class="fst">f"</span><span class="fst">EventEncoder_EVT_</span><span class="op">{</span><span class="nam">fmt</span><span class="op">}</span><span class="fst">"</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t61" href="#t61">61</a></span><span class="t">    <span class="nam">_Encoder</span><span class="op">.</span><span class="nam">__qualname__</span> <span class="op">=</span> <span class="nam">_Encoder</span><span class="op">.</span><span class="nam">__name__</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t62" href="#t62">62</a></span><span class="t">    <span class="key">return</span> <span class="nam">_Encoder</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t63" href="#t63">63</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t64" href="#t64">64</a></span><span class="t"><span class="nam">_WRITER_MAPPING</span><span class="op">[</span><span class="str">".raw"</span><span class="op">]</span> <span class="op">=</span> <span class="nam">EventEncoder_EVT</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t65" href="#t65">65</a></span><span class="t"><span class="nam">_WRITER_MAPPING</span><span class="op">[</span><span class="str">".evt"</span><span class="op">]</span> <span class="op">=</span> <span class="nam">EventEncoder_EVT</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t66" href="#t66">66</a></span><span class="t"><span class="nam">_WRITER_MAPPING</span><span class="op">[</span><span class="str">".evt3"</span><span class="op">]</span> <span class="op">=</span> <span class="nam">EventEncoder_EVT</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t67" href="#t67">67</a></span><span class="t"><span class="nam">_WRITER_MAPPING</span><span class="op">[</span><span class="str">".evt2"</span><span class="op">]</span> <span class="op">=</span> <span class="nam">_evt_encoder_for</span><span class="op">(</span><span class="str">"evt2"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t68" href="#t68">68</a></span><span class="t"><span class="nam">_WRITER_MAPPING</span><span class="op">[</span><span class="str">".evt21"</span><span class="op">]</span> <span class="op">=</span> <span class="nam">_evt_encoder_for</span><span class="op">(</span><span class="str">"evt21"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t69" href="#t69">69</a></span><span class="t"><span class="nam">_WRITER_MAPPING</span><span class="op">[</span><span class="str">".evt4"</span><span class="op">]</span> <span class="op">=</span> <span class="nam">_evt_encoder_for</span><span class="op">(</span><span class="str">"evt4"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t70" href="#t70">70</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t71" href="#t71">71</a></span><span class="t"><span class="key">from</span> <span class="op">.</span><span class="nam">_aer</span> <span class="key">import</span> <span class="nam">EventEncoder_AER</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t72" href="#t72">72</a></span><span class="t"><span class="nam">_WRITER_MAPPING</span><span class="op">[</span><span class="str">".aer"</span><span class="op">]</span> <span class="op">=</span> <span class="nam">EventEncoder_AER</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t73" href="#t73">73</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t74" href="#t74">74</a></span><span class="t"><span class="key">def</span> <span class="nam">get_file_writer</span><span class="op">(</span><span class="nam">file</span><span class="op">:</span> <span class="nam">Path</span><span class="op">)</span> <span class="op">-></span> <span class="nam">Type</span><span class="op">[</span><span class="nam">EventEncoder</span><span class="op">]</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t75" href="#t75">75</a></span><span class="t">    <span class="str">"""Get the appropriate writer for the given file.</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t76" href="#t76">76</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t77" href="#t77">77</a></span><span class="t"><span class="str">    Parameters</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t78" href="#t78">78</a></span><span class="t"><span class="str">    ----------</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t79" href="#t79">79</a></span><span class="t"><span class="str">    file</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t80" href="#t80">80</a></span><span class="t"><span class="str">        File to write</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t81" href="#t81">81</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t82" href="#t82">82</a></span><span class="t"><span class="str">    Returns</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t83" href="#t83">83</a></span><span class="t"><span class="str">    -------</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t84" href="#t84">84</a></span><span class="t"><span class="str">    EventFileWriter</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t85" href="#t85">85</a></span><span class="t"><span class="str">        Writer object for the file</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t86" href="#t86">86</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t87" href="#t87">87</a></span><span class="t"><span class="str">    """</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t88" href="#t88">88</a></span><span class="t">    <span class="nam">ext</span> <span class="op">=</span> <span class="nam">file</span><span class="op">.</span><span class="nam">suffix</span><span class="op">.</span><span class="nam">lower</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t89" href="#t89">89</a></span><span class="t">    <span class="key">if</span> <span class="nam">ext</span> <span class="key">in</span> <span class="nam">_WRITER_MAPPING</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t90" href="#t90">90</a></span><span class="t">        <span class="key">return</span> <span class="nam">_WRITER_MAPPING</span><span class="op">[</span><span class="nam">ext</span><span class="op">]</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t91" href="#t91">91</a></span><span class="t">    <span class="key">if</span> <span class="nam">ext</span> <span class="key">in</span> <span class="nam">_UNAVAILABLE</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t92" href="#t92">92</a></span><span class="t">        <span class="key">raise</span> <span class="nam">ImportError</span><span class="op">(</span><span class="fst">f"</span><span class="fst">File extension </span><span class="op">{</span><span class="nam">ext</span><span class="op">}</span><span class="fst"> is supported, but </span><span class="op">{</span><span class="nam">_UNAVAILABLE</span><span class="op">[</span><span class="nam">ext</span><span class="op">]</span><span class="op">}</span><span class="fst">"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t93" href="#t93">93</a></span><span class="t">    <span class="key">raise</span> <span class="nam">ValueError</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis mis2 show_mis"><span class="n"><a id="t94" href="#t94">94</a></span><span class="t">        <span class="fst">f"</span><span class="fst">File extension </span><span class="op">{</span><span class="nam">ext</span><span class="op">}</span><span class="fst"> not supported, available extensions: </span><span class="fst">"</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis mis2 show_mis"><span class="n"><a id="t95" href="#t95">95</a></span><span class="t">        <span class="fst">f"</span><span class="op">{</span><span class="nam">sorted</span><span class="op">(</span><span class="nam">_WRITER_MAPPING</span><span class="op">.</span><span class="nam">keys</span><span class="op">(</span><span class="op">)</span> <span class="op">|</span> <span class="nam">_UNAVAILABLE</span><span class="op">.</span><span class="nam">keys</span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">}</span><span class="fst">"</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis mis2 show_mis"><span class="n"><a id="t96" href="#t96">96</a></span><span class="t">    <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t97" href="#t97">97</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t98" href="#t98">98</a></span><span class="t"><span class="nam">__all__</span> <span class="op">=</span> <span class="op">[</span><span class="str">"EventEncoder"</span><span class="op">,</span> <span class="str">"EventEncoder_Aedat"</span><span class="op">,</span> <span class="str">"EventEncoder_Bin"</span><span class="op">,</span> <span class="str">"EventEncoder_Csv"</span><span class="op">,</span> <span class="str">"EventEncoder_Dat"</span><span class="op">,</span> <span class="str">"EventEncoder_HDF5"</span><span class="op">,</span> <span class="str">"EventEncoder_Npz"</span><span class="op">,</span> <span class="str">"EventEncoder_EVT"</span><span class="op">,</span> <span class="str">"EventEncoder_AER"</span><span class="op">,</span> <span class="str">"get_file_writer"</span><span class="op">]</span>&nbsp;</span><span class="r"></span></p>
 </main>
 <footer>
     <div class="content">
@@ -173,7 +187,7 @@
             <a class="nav" href="z_c37a3357b71699fa_stream_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.15.1">coverage.py v7.15.1</a>,
-            created at 2026-07-17 15:38 +0000
+            created at 2026-07-17 16:02 +0000
         </p>
     </div>
 </footer>
