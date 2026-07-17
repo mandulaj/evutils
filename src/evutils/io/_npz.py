@@ -211,23 +211,35 @@ class EventDecoder_Npz(EventDecoder):
         if self._aos_dtype is not None:
             with self._zf.open("events.npy") as fp:
                 _read_npy_header(fp)
-                base = fp.tell()
-                fp.seek(base + idx * self._aos_dtype.itemsize)
+                skip_bytes = idx * self._aos_dtype.itemsize
+                while skip_bytes > 0:
+                    chunk = fp.read(min(skip_bytes, 1 << 20))
+                    if not chunk:
+                        break
+                    skip_bytes -= len(chunk)
                 rec = np.frombuffer(_read_exact(fp, self._aos_dtype.itemsize),
                                     dtype=self._aos_dtype)
             return int(rec["t"][0])
         with self._zf.open("t.npy") as fp:
             _read_npy_header(fp)
-            base = fp.tell()
-            fp.seek(base + idx * 8)
+            skip_bytes = idx * 8
+            while skip_bytes > 0:
+                chunk = fp.read(min(skip_bytes, 1 << 20))
+                if not chunk:
+                    break
+                skip_bytes -= len(chunk)
             return int(np.frombuffer(_read_exact(fp, 8), dtype=np.int64)[0])
 
     def _seek_to_index(self, idx: int) -> None:
         """Reposition every member stream so the next read starts at ``idx``."""
         self._open_streams()  # streams sit at their first data byte (headers consumed)
         for name, fp in self._streams.items():
-            base = fp.tell()
-            fp.seek(base + idx * self._itemsize(name))
+            skip_bytes = idx * self._itemsize(name)
+            while skip_bytes > 0:
+                chunk = fp.read(min(skip_bytes, 1 << 20))
+                if not chunk:
+                    break
+                skip_bytes -= len(chunk)
         self._pos = idx
         self._eof = idx >= self._n
 
