@@ -112,7 +112,7 @@ Package Contents
 
 
 
-.. py:class:: DropEvent(p: Union[float, tuple] = 0.1)
+.. py:class:: DropEvent(p: Union[float, tuple] = 0.1, seed: int | None = None)
 
    Bases: :py:obj:`Transform`
 
@@ -136,12 +136,17 @@ Package Contents
 
 
 
+   .. py:attribute:: seed
+      :value: None
+
+
+
    .. py:method:: __repr__()
 
 
 .. py:data:: DropRandomEvents
 
-.. py:class:: DropEventByTime(duration_ratio: Union[float, tuple] = 0.2)
+.. py:class:: DropEventByTime(duration_ratio: Union[float, tuple] = 0.2, seed: int | None = None)
 
    Bases: :py:obj:`Transform`
 
@@ -158,6 +163,11 @@ Package Contents
 
    .. py:attribute:: duration_ratio
       :value: 0.2
+
+
+
+   .. py:attribute:: seed
+      :value: None
 
 
 

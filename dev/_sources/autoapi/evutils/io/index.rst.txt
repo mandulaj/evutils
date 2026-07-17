@@ -56,7 +56,7 @@ Classes
 Package Contents
 ----------------
 
-.. py:class:: EventReader(file: pathlib.Path | str | io.BufferedReader | bytes | evutils.io._source.ByteSource, delta_t: int | None = None, n_events: int | None = None, mode: str = 'auto', start_ts: int = 0, normalize_ts: bool = False, max_time: int = 1000000000000, max_events: int = 10000000, width: int | None = None, height: int | None = None, ext_trigger: bool = False, async_read: bool = False, prefetch_depth: int | None = None, reuse_buffers: bool = False, real_time: bool = False, playback_speed: float = 1.0, max_gap: float | None = 1.0, file_decoder: evutils.io.decoders.EventDecoder | type[evutils.io.decoders.EventDecoder] | None = None, **kwargs)
+.. py:class:: EventReader(file: pathlib.Path | str | io.BufferedReader | bytes | evutils.io._source.ByteSource, delta_t: int | None = None, n_events: int | None = None, mode: str = 'auto', start_ts: int = 0, normalize_ts: bool = False, max_time: int = 1000000000000, max_events: int = 10000000, width: int | None = None, height: int | None = None, ext_trigger: bool = False, async_read: bool = False, prefetch_depth: int | None = None, reuse_buffers: bool = False, real_time: bool = False, playback_speed: float = 1.0, max_gap: float | None = 1.0, index: str | bool = 'auto', strict: bool = False, batch_mode: bool = False, file_decoder: evutils.io.decoders.EventDecoder | type[evutils.io.decoders.EventDecoder] | None = None, **kwargs)
 
    Class for reading and automatically decoding and slicing events from a file or stream.
 
@@ -130,6 +130,12 @@ Package Contents
                    sleep. ``None`` disables the skip (strict real time). Ignored when
                    ``real_time=False``.
    :type max_gap: float or None, default=1.0
+   :param strict: Corrupt-packet policy. When False (default), a malformed packet is
+                  skipped with a :class:`UserWarning` and decoding resumes -- a robust
+                  decoder (like Metavision's UNRELIABLE mode). When True, a malformed
+                  packet raises instead (a SAFE decoder). Warnings can be captured with
+                  :func:`warnings.catch_warnings`.
+   :type strict: bool, default=False
    :param file_decoder: File decoder to use, by default None - automatic
    :type file_decoder: ev_decoders.EventDecoder or type[ev_decoders.EventDecoder] or None, default=None
    :param \*\*kwargs: Additional arguments to pass to the file decoder
@@ -232,6 +238,41 @@ Package Contents
 
       An active asynchronous iterator is cancelled first (its remaining
       buffered chunks are discarded).
+
+
+
+   .. py:method:: seek(t: int | None = None, n: int | None = None, relative: bool = False) -> int
+
+      Reposition the read cursor by timestamp or event index.
+
+      Random access in *event coordinates*: give exactly one of ``t``
+      (absolute microseconds) or ``n`` (absolute 0-based event index). With
+      ``relative=True`` the value is added to the current cursor instead
+      (``whence=CUR``). Seeks work both forward and backward. After a seek the
+      next :meth:`read` / iteration continues in the reader's configured
+      ``delta_t`` / ``n_events`` mode, re-anchored at the new point.
+
+      A seekable source uses the decoder's index / binary search (fast); a
+      non-seekable one falls back to iterating and dropping events up to the
+      target (backward requires restarting the stream).
+
+      :param t: Target timestamp in microseconds.
+      :type t: int, optional
+      :param n: Target event index (0-based).
+      :type n: int, optional
+      :param relative: Interpret ``t`` / ``n`` relative to the current cursor.
+      :type relative: bool, optional
+
+      :returns: The absolute timestamp of the first event that will be read next.
+      :rtype: int
+
+      :raises NotImplementedError: If the decoder does not support seeking.
+      :raises ValueError: If neither or both of ``t`` / ``n`` are given.
+
+      .. rubric:: Examples
+
+      >>> reader = EventReader(b"% format EVT3;height=720;width=1280\n% end\n", delta_t=10000)
+      >>> _ = reader.seek(t=0)
 
 
 

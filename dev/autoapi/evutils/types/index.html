@@ -579,6 +579,9 @@ together with small helpers for checking event arrays.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#evutils.types.TriggerArray" title="evutils.types.TriggerArray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TriggerArray</span></code></a></p></td>
 <td><p>A container for storing trigger data in a struct-of-arrays (SoA) layout.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#evutils.types.DataBatch" title="evutils.types.DataBatch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataBatch</span></code></a></p></td>
+<td><p>A single batch of multiplexed data containing events, triggers, and potentially other modalities.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -806,6 +809,22 @@ updating it.</p>
 
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="evutils.types.DataBatch">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.types.</span></span><span class="sig-name descname"><span class="pre">DataBatch</span></span><a class="reference internal" href="../../../_modules/evutils/types.html#DataBatch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.types.DataBatch" title="Link to this definition">#</a></dt>
+<dd><p>A single batch of multiplexed data containing events, triggers, and potentially other modalities.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.types.DataBatch.events">
+<span class="sig-name descname"><span class="pre">events</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#evutils.types.EventArray" title="evutils.types.EventArray"><span class="pre">EventArray</span></a></span><a class="headerlink" href="#evutils.types.DataBatch.events" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.types.DataBatch.triggers">
+<span class="sig-name descname"><span class="pre">triggers</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#evutils.types.TriggerArray" title="evutils.types.TriggerArray"><span class="pre">TriggerArray</span></a></span><a class="headerlink" href="#evutils.types.DataBatch.triggers" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </section>
 </section>
 
@@ -879,6 +898,11 @@ updating it.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.types.TriggerArray.p"><code class="docutils literal notranslate"><span class="pre">TriggerArray.p</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.types.TriggerArray.id"><code class="docutils literal notranslate"><span class="pre">TriggerArray.id</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.types.TriggerArray.metadata"><code class="docutils literal notranslate"><span class="pre">TriggerArray.metadata</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.types.DataBatch"><code class="docutils literal notranslate"><span class="pre">DataBatch</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.types.DataBatch.events"><code class="docutils literal notranslate"><span class="pre">DataBatch.events</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.types.DataBatch.triggers"><code class="docutils literal notranslate"><span class="pre">DataBatch.triggers</span></code></a></li>
 </ul>
 </li>
 </ul>

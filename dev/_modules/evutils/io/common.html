@@ -521,6 +521,12 @@
 
     <span class="n">SUPPORTS_EXT_TRIGGERS</span> <span class="o">=</span> <span class="kc">False</span>
 
+    <span class="c1">#: Whether this decoder implements timestamp / event-index random access via</span>
+    <span class="c1">#: :meth:`seek`. Off by default; each seekable format opts in. The</span>
+    <span class="c1">#: EventReader additionally requires the underlying ByteSource to be</span>
+    <span class="c1">#: seekable before delegating a real (non-linear) seek here.</span>
+    <span class="n">SUPPORTS_SEEK</span> <span class="o">=</span> <span class="kc">False</span>
+
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="s2">&quot;io.BufferedIOBase | str | bytes&quot;</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span> <span class="n">read_external_triggers</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the decoder.</span>
 
@@ -544,6 +550,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_chunk_size</span> <span class="o">=</span> <span class="n">chunk_size</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_eof</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># Corrupt-packet policy (see EventReader(strict=...)): when True, a</span>
+        <span class="c1"># malformed packet raises instead of being skipped with a warning.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_strict</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
@@ -626,14 +636,11 @@
                     <span class="n">tr_chunk</span> <span class="o">=</span> <span class="n">TriggerArray</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">ev_chunk</span> <span class="o">=</span> <span class="n">_chunk</span> <span class="c1"># type: ignore</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ev_chunk</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="c1"># The final chunk can carry triggers with no events (trigger</span>
-                <span class="c1"># packets after the last CD event): keep them before stopping.</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_external_triggers</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">tr_chunk</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">trigger_chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tr_chunk</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ev_chunk</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_external_triggers</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">tr_chunk</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
                 <span class="k">break</span>
-            <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ev_chunk</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_external_triggers</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ev_chunk</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ev_chunk</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_external_triggers</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">tr_chunk</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">trigger_chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tr_chunk</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">chunks</span><span class="p">:</span>
@@ -688,6 +695,57 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fd</span><span class="o">.</span><span class="n">tell</span><span class="p">())</span></div>
+
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_seek_axis</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;tuple[str, int]&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate the (t, n) pair and return the chosen axis and value.</span>
+
+<span class="sd">        Returns ``(&quot;t&quot;, value)`` or ``(&quot;n&quot;, value)``; raises ``ValueError`` if</span>
+<span class="sd">        neither or both were given.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">t</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="n">n</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;seek() requires exactly one of t= or n=.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;n&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
+
+<div class="viewcode-block" id="EventDecoder.seek">
+<a class="viewcode-back" href="../../../autoapi/evutils/io/decoders/index.html#evutils.io.common.EventDecoder.seek">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">seek</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reposition the decoder to an absolute timestamp or event index.</span>
+
+<span class="sd">        Exactly one of ``t`` (microseconds) or ``n`` (0-based event index) must</span>
+<span class="sd">        be given. After a successful seek the next :meth:`read_chunk` /</span>
+<span class="sd">        :meth:`read_all` yields events starting at the first event whose</span>
+<span class="sd">        timestamp is ``&gt;= t`` (time seek) or at event ``n`` (index seek).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        t : int, optional</span>
+<span class="sd">            Absolute target timestamp in microseconds.</span>
+<span class="sd">        n : int, optional</span>
+<span class="sd">            Absolute target event index (0-based).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            The absolute timestamp of the first event that will be read next</span>
+<span class="sd">            (the landed position). Equals the stream&#39;s last timestamp + 1 style</span>
+<span class="sd">            EOF sentinel handling is left to the caller; an empty tail simply</span>
+<span class="sd">            means the target is at/after the end.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        NotImplementedError</span>
+<span class="sd">            If this decoder does not support seeking (``SUPPORTS_SEEK`` is</span>
+<span class="sd">            False).</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If neither or both of ``t``/``n`` are provided.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> does not support seek().&quot;</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="EventDecoder.set_chunk_size">

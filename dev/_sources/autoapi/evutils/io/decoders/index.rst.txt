@@ -61,6 +61,11 @@ Module Contents
 
 
 
+   .. py:attribute:: SUPPORTS_SEEK
+      :value: False
+
+
+
    .. py:attribute:: read_external_triggers
       :value: False
 
@@ -128,6 +133,34 @@ Module Contents
 
 
 
+   .. py:method:: seek(t: int | None = None, n: int | None = None) -> int
+      :abstractmethod:
+
+
+      Reposition the decoder to an absolute timestamp or event index.
+
+      Exactly one of ``t`` (microseconds) or ``n`` (0-based event index) must
+      be given. After a successful seek the next :meth:`read_chunk` /
+      :meth:`read_all` yields events starting at the first event whose
+      timestamp is ``>= t`` (time seek) or at event ``n`` (index seek).
+
+      :param t: Absolute target timestamp in microseconds.
+      :type t: int, optional
+      :param n: Absolute target event index (0-based).
+      :type n: int, optional
+
+      :returns: The absolute timestamp of the first event that will be read next
+                (the landed position). Equals the stream's last timestamp + 1 style
+                EOF sentinel handling is left to the caller; an empty tail simply
+                means the target is at/after the end.
+      :rtype: int
+
+      :raises NotImplementedError: If this decoder does not support seeking (``SUPPORTS_SEEK`` is
+          False).
+      :raises ValueError: If neither or both of ``t``/``n`` are provided.
+
+
+
    .. py:method:: set_chunk_size(chunk_size: int) -> None
 
       Set the chunk size.
@@ -165,19 +198,31 @@ Module Contents
       :parts: 1
 
 
-   Decode AEDAT 1.0 / 2.0 / 3.1 / 4.0 files into ``EventArray`` chunks.
+   ABC for reading chunks of events from a IO source object.
 
-   The version is detected from the ``#!AER-DATx.y`` header line (a file
-   with a bare ``#`` header, or none at all, is treated as AEDAT 1.0, per
-   the jAER convention).
+   :param readable: source to read events from
+   :param chunk_size: Size of the chunk to read
 
-   :param source: Byte source to read from.
-   :param chunk_size: Maximum number of events produced per :meth:`read_chunk` call
-                      (AEDAT 3.1/4.0 packets are never split, so a chunk can exceed this
-                      by at most one packet's worth).
-   :param layout: AEDAT 2.0 address layout (the 2.0 container does not name the
-                  camera). Ignored for the other versions.
-   :type layout: {"davis", "dvs128"}, default "davis"
+   :raises NotImplementedError: If the method is not implemented in the subclass
+
+
+   .. py:attribute:: SUPPORTS_EXT_TRIGGERS
+      :value: True
+
+
+      Decode AEDAT 1.0 / 2.0 / 3.1 / 4.0 files into ``EventArray`` chunks.
+
+      The version is detected from the ``#!AER-DATx.y`` header line (a file
+      with a bare ``#`` header, or none at all, is treated as AEDAT 1.0, per
+      the jAER convention).
+
+      :param source: Byte source to read from.
+      :param chunk_size: Maximum number of events produced per :meth:`read_chunk` call
+                         (AEDAT 3.1/4.0 packets are never split, so a chunk can exceed this
+                         by at most one packet's worth).
+      :param layout: AEDAT 2.0 address layout (the 2.0 container does not name the
+                     camera). Ignored for the other versions.
+      :type layout: {"davis", "dvs128"}, default "davis"
 
 
    .. py:method:: init() -> None
@@ -186,7 +231,7 @@ Module Contents
 
 
 
-   .. py:method:: read_chunk(delta_t_hint: int | None = None, n_events_hint: int | None = None) -> evutils.types.EventArray
+   .. py:method:: read_chunk(delta_t_hint: int | None = None, n_events_hint: int | None = None) -> EventArray | tuple[EventArray, TriggerArray]
 
       Read a chunk of events.
 
@@ -286,6 +331,11 @@ Module Contents
        https://docs.prophesee.ai/stable/data/file_formats/dat.html
 
 
+   .. py:attribute:: SUPPORTS_SEEK
+      :value: True
+
+
+
    .. py:method:: init() -> None
 
       Initialize the DAT reader.
@@ -318,6 +368,17 @@ Module Contents
    .. py:method:: read_all() -> EventArray | tuple[EventArray, TriggerArray]
 
       Decode the whole remaining payload into one buffer (no per-chunk copy).
+
+
+
+   .. py:method:: seek(t: int | None = None, n: int | None = None) -> int
+
+      Seek to an absolute timestamp (µs) or event index. See base class.
+
+      Fixed 8-byte records: event ``k`` lives at word offset ``2k`` and its
+      timestamp is the even-strided word ``_words[2k]``. Time seek is a
+      ``searchsorted`` over those words; index seek is direct. Assumes the
+      raw 32-bit timestamps are non-decreasing (no wrap).
 
 
 
@@ -366,6 +427,11 @@ Module Contents
    :param chunk_size: Number of events returned per :meth:`read_chunk` call.
 
 
+   .. py:attribute:: SUPPORTS_SEEK
+      :value: True
+
+
+
    .. py:method:: init() -> None
 
       Open the archive and locate the event members.
@@ -383,6 +449,32 @@ Module Contents
 
       :returns: Chunk of events read from the source. Optionally returns triggers if `read_external_triggers` is True.
       :rtype: EventArray or tuple of (EventArray, TriggerArray)
+
+
+
+   .. py:method:: seek(t: int | None = None, n: int | None = None) -> int
+
+      Reposition the decoder to an absolute timestamp or event index.
+
+      Exactly one of ``t`` (microseconds) or ``n`` (0-based event index) must
+      be given. After a successful seek the next :meth:`read_chunk` /
+      :meth:`read_all` yields events starting at the first event whose
+      timestamp is ``>= t`` (time seek) or at event ``n`` (index seek).
+
+      :param t: Absolute target timestamp in microseconds.
+      :type t: int, optional
+      :param n: Absolute target event index (0-based).
+      :type n: int, optional
+
+      :returns: The absolute timestamp of the first event that will be read next
+                (the landed position). Equals the stream's last timestamp + 1 style
+                EOF sentinel handling is left to the caller; an empty tail simply
+                means the target is at/after the end.
+      :rtype: int
+
+      :raises NotImplementedError: If this decoder does not support seeking (``SUPPORTS_SEEK`` is
+          False).
+      :raises ValueError: If neither or both of ``t``/``n`` are provided.
 
 
 
@@ -429,6 +521,11 @@ Module Contents
 
 
 
+   .. py:attribute:: SUPPORTS_SEEK
+      :value: True
+
+
+
    .. py:method:: init() -> None
 
       Initialize the EVT reader.
@@ -450,6 +547,15 @@ Module Contents
 
       :returns: Number of events appended.
       :rtype: int
+
+
+
+   .. py:method:: take_pending() -> EventArray | None
+
+      Pop the boundary-chunk remainder staged by :meth:`seek` (or ``None``).
+
+      Lets the EventReader's accumulator path drain the exact-landing
+      remainder that would otherwise only be served by :meth:`read_chunk`.
 
 
 
@@ -496,6 +602,16 @@ Module Contents
       Reset the EVT reader to the beginning.
 
       :rtype: None
+
+
+
+   .. py:method:: seek(t: int | None = None, n: int | None = None) -> int
+
+      Seek to an absolute timestamp (µs) or event index. See base class.
+
+      Jumps to the nearest index bookmark at/before the target, restores the
+      TIME_HIGH wrap accumulation, then decodes forward to land exactly on the
+      target (staging the boundary chunk's remainder for the next read).
 
 
 

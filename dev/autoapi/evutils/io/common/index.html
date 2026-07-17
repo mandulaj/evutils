@@ -601,6 +601,11 @@ size=&quot;8.0, 12.0&quot;;
 <dd></dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="evutils.io.common.EventDecoder.SUPPORTS_SEEK">
+<span class="sig-name descname"><span class="pre">SUPPORTS_SEEK</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#evutils.io.common.EventDecoder.SUPPORTS_SEEK" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="evutils.io.common.EventDecoder.read_external_triggers">
 <span class="sig-name descname"><span class="pre">read_external_triggers</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#evutils.io.common.EventDecoder.read_external_triggers" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
@@ -686,6 +691,40 @@ single-buffer decode that avoids the per-chunk copy entirely.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="evutils.io.common.EventDecoder.seek">
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">seek</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="../../../../_modules/evutils/io/common.html#EventDecoder.seek"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.common.EventDecoder.seek" title="Link to this definition">#</a></dt>
+<dd><p>Reposition the decoder to an absolute timestamp or event index.</p>
+<p>Exactly one of <code class="docutils literal notranslate"><span class="pre">t</span></code> (microseconds) or <code class="docutils literal notranslate"><span class="pre">n</span></code> (0-based event index) must
+be given. After a successful seek the next <a class="reference internal" href="#evutils.io.common.EventDecoder.read_chunk" title="evutils.io.common.EventDecoder.read_chunk"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read_chunk()</span></code></a> /
+<a class="reference internal" href="#evutils.io.common.EventDecoder.read_all" title="evutils.io.common.EventDecoder.read_all"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read_all()</span></code></a> yields events starting at the first event whose
+timestamp is <code class="docutils literal notranslate"><span class="pre">&gt;=</span> <span class="pre">t</span></code> (time seek) or at event <code class="docutils literal notranslate"><span class="pre">n</span></code> (index seek).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>int</em><em>, </em><em>optional</em>) – Absolute target timestamp in microseconds.</p></li>
+<li><p><strong>n</strong> (<em>int</em><em>, </em><em>optional</em>) – Absolute target event index (0-based).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The absolute timestamp of the first event that will be read next
+(the landed position). Equals the stream’s last timestamp + 1 style
+EOF sentinel handling is left to the caller; an empty tail simply
+means the target is at/after the end.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>NotImplementedError</strong> – If this decoder does not support seeking (<code class="docutils literal notranslate"><span class="pre">SUPPORTS_SEEK</span></code> is
+False).</p></li>
+<li><p><strong>ValueError</strong> – If neither or both of <code class="docutils literal notranslate"><span class="pre">t</span></code>/<code class="docutils literal notranslate"><span class="pre">n</span></code> are provided.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -914,6 +953,7 @@ closed by the <a class="reference internal" href="../index.html#evutils.io.Event
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.common.EventDecoder"><code class="docutils literal notranslate"><span class="pre">EventDecoder</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.common.EventDecoder.SUPPORTS_EXT_TRIGGERS"><code class="docutils literal notranslate"><span class="pre">EventDecoder.SUPPORTS_EXT_TRIGGERS</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.common.EventDecoder.SUPPORTS_SEEK"><code class="docutils literal notranslate"><span class="pre">EventDecoder.SUPPORTS_SEEK</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.common.EventDecoder.read_external_triggers"><code class="docutils literal notranslate"><span class="pre">EventDecoder.read_external_triggers</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.common.EventDecoder.init"><code class="docutils literal notranslate"><span class="pre">EventDecoder.init()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.common.EventDecoder.read_chunk"><code class="docutils literal notranslate"><span class="pre">EventDecoder.read_chunk()</span></code></a></li>
@@ -921,6 +961,7 @@ closed by the <a class="reference internal" href="../index.html#evutils.io.Event
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.common.EventDecoder.read_all"><code class="docutils literal notranslate"><span class="pre">EventDecoder.read_all()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.common.EventDecoder.close"><code class="docutils literal notranslate"><span class="pre">EventDecoder.close()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.common.EventDecoder.tell"><code class="docutils literal notranslate"><span class="pre">EventDecoder.tell()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.common.EventDecoder.seek"><code class="docutils literal notranslate"><span class="pre">EventDecoder.seek()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.common.EventDecoder.set_chunk_size"><code class="docutils literal notranslate"><span class="pre">EventDecoder.set_chunk_size()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.common.EventDecoder.shape"><code class="docutils literal notranslate"><span class="pre">EventDecoder.shape()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.common.EventDecoder.__repr__"><code class="docutils literal notranslate"><span class="pre">EventDecoder.__repr__()</span></code></a></li>

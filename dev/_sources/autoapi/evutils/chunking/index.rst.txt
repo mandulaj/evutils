@@ -24,6 +24,7 @@ Functions
    evutils.chunking.stream_delta_t
    evutils.chunking.stream_n_events
    evutils.chunking.stream_skip_to_time
+   evutils.chunking.stream_skip_to_event
    evutils.chunking.stream_async
    evutils.chunking.stream_paced_playback
 
@@ -128,6 +129,14 @@ Module Contents
 .. py:function:: stream_skip_to_time(stream: Iterator[numpy.ndarray | evutils.types.EventArray], start_ts: int) -> Iterator[numpy.ndarray | evutils.types.EventArray]
 
    Pipeline generator: drops events until start_ts is reached.
+
+
+.. py:function:: stream_skip_to_event(stream: Iterator[numpy.ndarray | evutils.types.EventArray], n: int) -> Iterator[numpy.ndarray | evutils.types.EventArray]
+
+   Pipeline generator: drops the first ``n`` events, then passes through.
+
+   The event-index counterpart of :func:`stream_skip_to_time` -- the linear
+   fallback for seeking by event index on a non-seekable stream.
 
 
 .. py:function:: stream_async(stream: Iterator[numpy.ndarray | evutils.types.EventArray], maxsize: int = 5) -> Iterator[numpy.ndarray | evutils.types.EventArray]

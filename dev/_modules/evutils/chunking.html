@@ -721,7 +721,7 @@
             <span class="n">current_ts</span> <span class="o">+=</span> <span class="n">delta_t</span>
 
     <span class="c1"># Stream finished! Yield whatever is leftover in the buffer</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">acc</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">acc</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="p">(</span><span class="n">has_triggers</span> <span class="ow">and</span> <span class="n">acc</span><span class="o">.</span><span class="n">_tr</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="n">acc</span><span class="o">.</span><span class="n">_tr_start</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">has_triggers</span><span class="p">:</span>
             <span class="k">yield</span> <span class="n">acc</span><span class="o">.</span><span class="n">slice_copy</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">acc</span><span class="p">),</span> <span class="n">acc</span><span class="o">.</span><span class="n">_tr</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="n">acc</span><span class="o">.</span><span class="n">_tr_start</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -753,7 +753,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">yield</span> <span class="n">acc</span><span class="o">.</span><span class="n">slice_copy</span><span class="p">(</span><span class="n">n_events</span><span class="p">,</span> <span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">acc</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">acc</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="p">(</span><span class="n">has_triggers</span> <span class="ow">and</span> <span class="n">acc</span><span class="o">.</span><span class="n">_tr</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="n">acc</span><span class="o">.</span><span class="n">_tr_start</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">has_triggers</span><span class="p">:</span>
             <span class="k">yield</span> <span class="n">acc</span><span class="o">.</span><span class="n">slice_copy</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">acc</span><span class="p">),</span> <span class="n">acc</span><span class="o">.</span><span class="n">_tr</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="n">acc</span><span class="o">.</span><span class="n">_tr_start</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -778,6 +778,32 @@
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">incoming</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
                 <span class="n">tr_idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">incoming</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">t</span><span class="p">,</span> <span class="n">start_ts</span><span class="p">))</span>
                 <span class="k">yield</span> <span class="n">incoming</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">idx</span><span class="p">:],</span> <span class="n">incoming</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">tr_idx</span><span class="p">:]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">incoming</span><span class="p">[</span><span class="n">idx</span><span class="p">:]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">incoming</span></div>
+
+
+<div class="viewcode-block" id="stream_skip_to_event">
+<a class="viewcode-back" href="../../autoapi/evutils/chunking/index.html#evutils.chunking.stream_skip_to_event">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">stream_skip_to_event</span><span class="p">(</span><span class="n">stream</span><span class="p">:</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">EventArray</span><span class="p">],</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">EventArray</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Pipeline generator: drops the first ``n`` events, then passes through.</span>
+
+<span class="sd">    The event-index counterpart of :func:`stream_skip_to_time` -- the linear</span>
+<span class="sd">    fallback for seeking by event index on a non-seekable stream.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">seen</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">skipping</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">for</span> <span class="n">incoming</span> <span class="ow">in</span> <span class="n">stream</span><span class="p">:</span>
+        <span class="n">ev</span> <span class="o">=</span> <span class="n">incoming</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">incoming</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="k">else</span> <span class="n">incoming</span>
+        <span class="k">if</span> <span class="n">skipping</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">seen</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">ev</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">n</span><span class="p">:</span>
+                <span class="n">seen</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ev</span><span class="p">)</span>
+                <span class="k">continue</span>  <span class="c1"># whole chunk is before the target</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">n</span> <span class="o">-</span> <span class="n">seen</span>
+            <span class="n">skipping</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">incoming</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="n">incoming</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">idx</span><span class="p">:],</span> <span class="n">incoming</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">yield</span> <span class="n">incoming</span><span class="p">[</span><span class="n">idx</span><span class="p">:]</span>
         <span class="k">else</span><span class="p">:</span>

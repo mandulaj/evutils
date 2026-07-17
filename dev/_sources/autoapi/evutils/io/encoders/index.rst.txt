@@ -106,7 +106,7 @@ Module Contents
 
 
 
-.. py:class:: EventEncoder_Aedat(writable: io.BufferedIOBase, **kwargs)
+.. py:class:: EventEncoder_Aedat(writable, width: int = 1280, height: int = 720, dt=None, compression: int = 0, **kwargs)
 
    Bases: :py:obj:`evutils.io.common.EventEncoder`
 
@@ -114,31 +114,21 @@ Module Contents
       :parts: 1
 
 
-   An encoder for writing events to AEDAT files.
+   Encoder for AEDAT 4.0 files.
 
-   .. note::
-       Not implemented yet -- constructing this class raises
-       :class:`NotImplementedError`. (Reading AEDAT 1.0--4.0 is supported
-       via :class:`EventDecoder_Aedat`.)
 
-   :param writable: Destination for writing events.
-   :type writable: io.BufferedIOBase
-   :param \*\*kwargs: Additional encoder arguments (``width``, ``height``, ``dt``, ...).
+   .. py:attribute:: SUPPORTS_WRITE_TRIGGERS
+      :value: True
 
-   :raises NotImplementedError: Always, until the format is implemented.
 
 
    .. py:method:: init() -> None
-      :abstractmethod:
-
 
       Initialize the file for writing.
 
 
 
-   .. py:method:: write(events: numpy.ndarray | EventArray, triggers: numpy.ndarray | TriggerArray | None = None) -> int
-      :abstractmethod:
-
+   .. py:method:: write(events, triggers=None) -> int
 
       Write a chunk of events.
 

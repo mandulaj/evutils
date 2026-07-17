@@ -493,7 +493,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">._common</span><span class="w"> </span><span class="kn">import</span> <span class="n">apply_kernel</span><span class="p">,</span> <span class="n">sample_range</span>
 
 <span class="nd">@lazy_njit</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">_drop_random_events_jit</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">drop_rate</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_drop_random_events_jit</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">drop_rate</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Drops a percentage of events randomly using slicing, compiled via Numba.</span>
 <span class="sd">    </span>
@@ -503,19 +503,23 @@
 <span class="sd">        Constituent event arrays.</span>
 <span class="sd">    drop_rate : float</span>
 <span class="sd">        Percentage of events to drop (0 to 1).</span>
+<span class="sd">    seed : int</span>
+<span class="sd">        Seed for the random number generator. If -1, no seed is set.</span>
 <span class="sd">        </span>
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    tuple</span>
 <span class="sd">        (new_t, new_x, new_y, new_p)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">seed</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
     <span class="c1"># Using random.rand to generate a boolean mask is fully supported and highly optimized in Numba</span>
     <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">))</span> <span class="o">&gt;=</span> <span class="n">drop_rate</span>
     <span class="k">return</span> <span class="n">t</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
 
 <div class="viewcode-block" id="drop_random_events">
 <a class="viewcode-back" href="../../../../autoapi/evutils/transforms/index.html#evutils.transforms.functional.drop_random_events">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">drop_random_events</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">drop_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">drop_random_events</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">drop_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Drops a percentage of events randomly.</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
@@ -539,18 +543,19 @@
         <span class="k">return</span> <span class="n">events</span>
         
     <span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="n">unwrap_events</span><span class="p">(</span><span class="n">events</span><span class="p">)</span>
-    <span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="n">_drop_random_events_jit</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">drop_rate</span><span class="p">)</span>
+    <span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="n">_drop_random_events_jit</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">drop_rate</span><span class="p">,</span> <span class="n">seed</span> <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">repack_events</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="drop_event">
 <a class="viewcode-back" href="../../../../autoapi/evutils/transforms/index.html#evutils.transforms.functional.drop_event">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">drop_event</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">drop_event</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Randomly drop each event independently with probability ``p``.</span>
 
 <span class="sd">    The tonic-compatible name for :func:`drop_random_events`. Unlike tonic&#39;s</span>
 <span class="sd">    ``drop_event_numpy`` (which drops exactly ``round(p * n)`` events via</span>
-<span class="sd">    sampling without replacement) this uses an independent Bernoulli mask per</span>
+<span class="sd">    shuffle), this drops *independently*, which is O(N) rather than O(N log N).</span>
+<span class="sd">    (sampling without replacement) this uses an independent Bernoulli mask per</span>
 <span class="sd">    event, which is what keeps the kernel JIT-friendly. The expected number of</span>
 <span class="sd">    dropped events is the same; the exact count is binomially distributed.</span>
 
@@ -576,22 +581,28 @@
 
 
 <span class="nd">@lazy_njit</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">_drop_by_time_jit</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">duration_ratio</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_drop_by_time_jit</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">duration_ratio</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Drop a single contiguous time window covering ``duration_ratio`` of the span.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">seed</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span>
+    <span class="n">t_start</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
     <span class="n">t_end</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
-    <span class="n">drop_duration</span> <span class="o">=</span> <span class="n">t_end</span> <span class="o">*</span> <span class="n">duration_ratio</span>
+    <span class="n">span</span> <span class="o">=</span> <span class="n">t_end</span> <span class="o">-</span> <span class="n">t_start</span>
+    <span class="n">drop_duration</span> <span class="o">=</span> <span class="n">span</span> <span class="o">*</span> <span class="n">duration_ratio</span>
     <span class="n">hi</span> <span class="o">=</span> <span class="n">t_end</span> <span class="o">-</span> <span class="n">drop_duration</span>
     <span class="c1"># np.random.uniform requires low &lt; high; clamp the degenerate case.</span>
-    <span class="n">drop_start</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">hi</span><span class="p">)</span> <span class="k">if</span> <span class="n">hi</span> <span class="o">&gt;</span> <span class="mf">0.0</span> <span class="k">else</span> <span class="mf">0.0</span>
+    <span class="n">drop_start</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">hi</span><span class="p">)</span> <span class="k">if</span> <span class="n">hi</span> <span class="o">&gt;</span> <span class="n">t_start</span> <span class="k">else</span> <span class="n">t_start</span>
     <span class="n">keep</span> <span class="o">=</span> <span class="p">(</span><span class="n">t</span> <span class="o">&lt;</span> <span class="n">drop_start</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">t</span> <span class="o">&gt;</span> <span class="n">drop_start</span> <span class="o">+</span> <span class="n">drop_duration</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">t</span><span class="p">[</span><span class="n">keep</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="n">keep</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">keep</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span>
 
 <div class="viewcode-block" id="drop_by_time">
 <a class="viewcode-back" href="../../../../autoapi/evutils/transforms/functional/index.html#evutils.transforms.functional.drop_by_time">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">drop_by_time</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">duration_ratio</span><span class="o">=</span><span class="mf">0.2</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">drop_by_time</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">duration_ratio</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Drop every event inside one randomly-placed time window.</span>
 
-<span class="sd">    The window length is ``duration_ratio`` of the recording span (``[0, t.max()]``,</span>
+<span class="sd">    The window length is ``duration_ratio`` of the recording span (``[t.min(), t.max()]``,</span>
 <span class="sd">    following tonic), positioned uniformly at random within it.</span>
 
 <span class="sd">    Parameters</span>
@@ -601,18 +612,22 @@
 <span class="sd">    duration_ratio : float or tuple of float, optional</span>
 <span class="sd">        Window length as a fraction of the span, in ``[0, 1)``. A ``(lo, hi)``</span>
 <span class="sd">        tuple is sampled uniformly per call. Defaults to ``0.2``.</span>
+<span class="sd">    seed : int, optional</span>
+<span class="sd">        Seed for the random number generator. Defaults to None.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    np.ndarray or EventArray</span>
 <span class="sd">        Events outside the dropped window, in their original container type.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
     <span class="n">ratio</span> <span class="o">=</span> <span class="n">sample_range</span><span class="p">(</span><span class="n">duration_ratio</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">math</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">ratio</span><span class="p">)</span> <span class="ow">or</span> <span class="n">ratio</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">ratio</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;duration_ratio must be in [0, 1)&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">ratio</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">events</span>
-    <span class="k">return</span> <span class="n">apply_kernel</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">_drop_by_time_jit</span><span class="p">,</span> <span class="n">ratio</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">apply_kernel</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">_drop_by_time_jit</span><span class="p">,</span> <span class="n">ratio</span><span class="p">,</span> <span class="n">seed</span> <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span></div>
 
 </pre></div>
 

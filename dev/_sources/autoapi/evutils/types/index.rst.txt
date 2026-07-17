@@ -30,6 +30,7 @@ Classes
    evutils.types.Event
    evutils.types.EventArray
    evutils.types.TriggerArray
+   evutils.types.DataBatch
 
 
 Functions
@@ -196,5 +197,18 @@ Module Contents
       stamped on read survives most event processing. Transforms that change
       the meaning of a field (e.g. spatial cropping) are responsible for
       updating it.
+
+
+.. py:class:: DataBatch
+
+   A single batch of multiplexed data containing events, triggers, and potentially other modalities.
+
+
+   .. py:attribute:: events
+      :type:  EventArray
+
+
+   .. py:attribute:: triggers
+      :type:  TriggerArray
 
 
