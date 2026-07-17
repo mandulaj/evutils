@@ -58,4 +58,15 @@
   #define EVUTILS_TARGET_CLONES
 #endif
 
+#if defined(_MSC_VER)
+  #define EVUTILS_UNALIGNED __unaligned
+  typedef EVUTILS_UNALIGNED uint16_t unaligned_uint16_t;
+  typedef EVUTILS_UNALIGNED uint32_t unaligned_uint32_t;
+  typedef EVUTILS_UNALIGNED uint64_t unaligned_uint64_t;
+#else
+  typedef uint16_t unaligned_uint16_t __attribute__((aligned(1), may_alias));
+  typedef uint32_t unaligned_uint32_t __attribute__((aligned(1), may_alias));
+  typedef uint64_t unaligned_uint64_t __attribute__((aligned(1), may_alias));
+#endif
+
 #endif /* EVUTILS_COMPAT_H */

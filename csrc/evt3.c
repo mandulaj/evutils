@@ -54,11 +54,7 @@ size_t EVT3_state_size(void) {
 } while (0)
 
 
-#ifdef _MSC_VER
-typedef uint16_t unaligned_uint16_t;
-#else
-typedef uint16_t unaligned_uint16_t __attribute__((aligned(1)));
-#endif
+// EVUTILS_UNALIGNED typedefs are provided in compat.h
 
 __attribute__((always_inline))
 static inline const unaligned_uint16_t * EVT3_parse_vector_12_12_8_soa(
@@ -213,6 +209,8 @@ parser_result_t EVT3_parse_chunk_soa(
                 continue;
                 break;
             case EVT3_VECT_8:
+                status = EVUTILS_PARSE_ERROR;
+                goto parse_end;
             case EVT3_EVT_ADDR_X:
             case EVT3_VECT_BASE_X:
                 status = EVUTILS_PARSE_WARNING;
@@ -356,6 +354,8 @@ parser_result_t EVT3_parse_delta_t_soa(
                 continue;
                 break;
             case EVT3_VECT_8:
+                status = EVUTILS_PARSE_ERROR;
+                goto parse_end_delta;
             case EVT3_EVT_ADDR_X:
             case EVT3_VECT_BASE_X:
                 status = EVUTILS_PARSE_WARNING;
