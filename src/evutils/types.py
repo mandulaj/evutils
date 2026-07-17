@@ -141,7 +141,7 @@ class SoaArray:
                         setattr(self, k, v)
             subset = DynamicSoaArray(**{f: getattr(self, f) for f in fields})
             # x/y are preserved, so a sensor size stays valid on the subset.
-            subset.metadata = self.metadata
+            subset.metadata = self.metadata.copy() if self.metadata is not None else None
             return subset
 
         # When indexing a single element, return a NumPy void record to match AoS behaviour exactly.
@@ -154,7 +154,7 @@ class SoaArray:
         # Otherwise, slice all columns and return a new SoA array
         sliced_args = {f: getattr(self, f)[key] for f in self._fields}
         sliced = self.__class__(**sliced_args)
-        sliced.metadata = self.metadata
+        sliced.metadata = self.metadata.copy() if self.metadata is not None else None
         return sliced
 
     def __len__(self) -> int:
