@@ -114,8 +114,9 @@ parser_result_t evutils_read_csv(
     } else if (n_parsed == max_events) {
         res.status = EVUTILS_PARSE_OUTPUT_FULL;
     } else {
-        // fragment reached
-        res.status = EVUTILS_PARSE_INPUT_EMPTY;
+        /* Trailing partial line (chunk-boundary fragment): unconsumed, the
+         * caller must re-feed it with the next block appended. */
+        res.status = EVUTILS_PARSE_INCOMPLETE;
     }
     return res;
 }
