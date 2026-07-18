@@ -19,9 +19,11 @@ path) still requires an explicit ``file_encoder``. ``.zst`` needs Python 3.14+
 from ._event_reader import EventReader
 from ._event_writer import EventWriter
 from .stream import EventStreamer
+from . import v2
 
 __all__ = [
     "EventReader",
     "EventWriter",
     "EventStreamer",
+    "v2",
 ]
