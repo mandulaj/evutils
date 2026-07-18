@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_c37a3357b71699fa__native_dat_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.15.1">coverage.py v7.15.1</a>,
-            created at 2026-07-17 17:34 +0000
+            created at 2026-07-18 05:24 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -109,24 +109,25 @@
     <p class="run run2"><span class="n"><a id="t27" href="#t27">27</a></span><span class="t">            <span class="nam">c_int</span><span class="op">,</span>             <span class="com"># int max_csv_cols</span>&nbsp;</span><span class="r"></span></p>
     <p class="run run2"><span class="n"><a id="t28" href="#t28">28</a></span><span class="t">            <span class="nam">c_size_t</span><span class="op">,</span>          <span class="com"># size_t max_events</span>&nbsp;</span><span class="r"></span></p>
     <p class="run run2"><span class="n"><a id="t29" href="#t29">29</a></span><span class="t">            <span class="nam">POINTER</span><span class="op">(</span><span class="nam">c_size_t</span><span class="op">)</span><span class="op">,</span> <span class="com"># size_t *events_parsed</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run run2"><span class="n"><a id="t30" href="#t30">30</a></span><span class="t">        <span class="op">]</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t31" href="#t31">31</a></span><span class="t">        <span class="nam">handle</span><span class="op">.</span><span class="nam">evutils_read_csv</span><span class="op">.</span><span class="nam">restype</span> <span class="op">=</span> <span class="nam">ParserResult</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t32" href="#t32">32</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t33" href="#t33">33</a></span><span class="t">    <span class="key">if</span> <span class="nam">hasattr</span><span class="op">(</span><span class="nam">handle</span><span class="op">,</span> <span class="str">"evutils_write_csv"</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t34" href="#t34">34</a></span><span class="t">        <span class="nam">handle</span><span class="op">.</span><span class="nam">evutils_write_csv</span><span class="op">.</span><span class="nam">argtypes</span> <span class="op">=</span> <span class="op">[</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run run2"><span class="n"><a id="t35" href="#t35">35</a></span><span class="t">            <span class="nam">POINTER</span><span class="op">(</span><span class="nam">c_void_p</span><span class="op">)</span><span class="op">,</span> <span class="com"># in_arrays</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run run2"><span class="n"><a id="t36" href="#t36">36</a></span><span class="t">            <span class="nam">POINTER</span><span class="op">(</span><span class="nam">c_int</span><span class="op">)</span><span class="op">,</span>    <span class="com"># array_types</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run run2"><span class="n"><a id="t37" href="#t37">37</a></span><span class="t">            <span class="nam">c_int</span><span class="op">,</span>             <span class="com"># num_columns</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run run2"><span class="n"><a id="t38" href="#t38">38</a></span><span class="t">            <span class="nam">c_char</span><span class="op">,</span>            <span class="com"># delimiter</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run run2"><span class="n"><a id="t39" href="#t39">39</a></span><span class="t">            <span class="nam">c_size_t</span><span class="op">,</span>          <span class="com"># num_events</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run run2"><span class="n"><a id="t40" href="#t40">40</a></span><span class="t">            <span class="nam">c_char_p</span><span class="op">,</span>          <span class="com"># out_buffer</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run run2"><span class="n"><a id="t41" href="#t41">41</a></span><span class="t">            <span class="nam">c_size_t</span><span class="op">,</span>          <span class="com"># out_buffer_len</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run run2"><span class="n"><a id="t42" href="#t42">42</a></span><span class="t">            <span class="nam">POINTER</span><span class="op">(</span><span class="nam">c_size_t</span><span class="op">)</span><span class="op">,</span> <span class="com"># bytes_written</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run run2"><span class="n"><a id="t43" href="#t43">43</a></span><span class="t">            <span class="nam">POINTER</span><span class="op">(</span><span class="nam">c_size_t</span><span class="op">)</span><span class="op">,</span> <span class="com"># events_written</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run run2"><span class="n"><a id="t44" href="#t44">44</a></span><span class="t">        <span class="op">]</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t45" href="#t45">45</a></span><span class="t">        <span class="nam">handle</span><span class="op">.</span><span class="nam">evutils_write_csv</span><span class="op">.</span><span class="nam">restype</span> <span class="op">=</span> <span class="nam">c_int</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t46" href="#t46">46</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t47" href="#t47">47</a></span><span class="t"><span class="nam">register_bindings</span><span class="op">(</span><span class="nam">_bind_csv</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t30" href="#t30">30</a></span><span class="t">            <span class="nam">POINTER</span><span class="op">(</span><span class="nam">c_size_t</span><span class="op">)</span><span class="op">,</span> <span class="com"># size_t *malformed</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t31" href="#t31">31</a></span><span class="t">        <span class="op">]</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t32" href="#t32">32</a></span><span class="t">        <span class="nam">handle</span><span class="op">.</span><span class="nam">evutils_read_csv</span><span class="op">.</span><span class="nam">restype</span> <span class="op">=</span> <span class="nam">ParserResult</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t33" href="#t33">33</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t34" href="#t34">34</a></span><span class="t">    <span class="key">if</span> <span class="nam">hasattr</span><span class="op">(</span><span class="nam">handle</span><span class="op">,</span> <span class="str">"evutils_write_csv"</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t35" href="#t35">35</a></span><span class="t">        <span class="nam">handle</span><span class="op">.</span><span class="nam">evutils_write_csv</span><span class="op">.</span><span class="nam">argtypes</span> <span class="op">=</span> <span class="op">[</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t36" href="#t36">36</a></span><span class="t">            <span class="nam">POINTER</span><span class="op">(</span><span class="nam">c_void_p</span><span class="op">)</span><span class="op">,</span> <span class="com"># in_arrays</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t37" href="#t37">37</a></span><span class="t">            <span class="nam">POINTER</span><span class="op">(</span><span class="nam">c_int</span><span class="op">)</span><span class="op">,</span>    <span class="com"># array_types</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t38" href="#t38">38</a></span><span class="t">            <span class="nam">c_int</span><span class="op">,</span>             <span class="com"># num_columns</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t39" href="#t39">39</a></span><span class="t">            <span class="nam">c_char</span><span class="op">,</span>            <span class="com"># delimiter</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t40" href="#t40">40</a></span><span class="t">            <span class="nam">c_size_t</span><span class="op">,</span>          <span class="com"># num_events</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t41" href="#t41">41</a></span><span class="t">            <span class="nam">c_char_p</span><span class="op">,</span>          <span class="com"># out_buffer</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t42" href="#t42">42</a></span><span class="t">            <span class="nam">c_size_t</span><span class="op">,</span>          <span class="com"># out_buffer_len</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t43" href="#t43">43</a></span><span class="t">            <span class="nam">POINTER</span><span class="op">(</span><span class="nam">c_size_t</span><span class="op">)</span><span class="op">,</span> <span class="com"># bytes_written</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t44" href="#t44">44</a></span><span class="t">            <span class="nam">POINTER</span><span class="op">(</span><span class="nam">c_size_t</span><span class="op">)</span><span class="op">,</span> <span class="com"># events_written</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t45" href="#t45">45</a></span><span class="t">        <span class="op">]</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t46" href="#t46">46</a></span><span class="t">        <span class="nam">handle</span><span class="op">.</span><span class="nam">evutils_write_csv</span><span class="op">.</span><span class="nam">restype</span> <span class="op">=</span> <span class="nam">c_int</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t47" href="#t47">47</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t48" href="#t48">48</a></span><span class="t"><span class="nam">register_bindings</span><span class="op">(</span><span class="nam">_bind_csv</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
 </main>
 <footer>
     <div class="content">
@@ -136,7 +137,7 @@
             <a class="nav" href="z_c37a3357b71699fa__native_dat_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.15.1">coverage.py v7.15.1</a>,
-            created at 2026-07-17 17:34 +0000
+            created at 2026-07-18 05:24 +0000
         </p>
     </div>
 </footer>
