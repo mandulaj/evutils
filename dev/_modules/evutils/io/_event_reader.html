@@ -508,6 +508,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">._prefetch</span><span class="w"> </span><span class="kn">import</span> <span class="n">PrefetchIterator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._source</span><span class="w"> </span><span class="kn">import</span> <span class="n">ByteSource</span><span class="p">,</span> <span class="n">make_source</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.buffer</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventAccumulator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">SeekResult</span>
 
 
 <div class="viewcode-block" id="EventReader">
@@ -597,8 +598,11 @@
 <span class="sd">        ``False`` all build an exact in-memory index lazily on the first seek</span>
 <span class="sd">        (``False`` additionally never touches a sidecar). ``&quot;metavision&quot;`` reads</span>
 <span class="sd">        a Metavision ``.tmp_index`` sidecar instead -- fast, but approximate near</span>
-<span class="sd">        large event gaps. Only EVT formats use an index; others seek by record</span>
-<span class="sd">        math or ``searchsorted``.</span>
+<span class="sd">        large event gaps. ``&quot;persist&quot;`` builds evutils&#39; own exact index on the</span>
+<span class="sd">        first seek and writes it to a ``&lt;raw&gt;.evidx`` sidecar, then loads that</span>
+<span class="sd">        sidecar on subsequent opens instead of rebuilding (exact and reused</span>
+<span class="sd">        across runs). Only EVT formats use an index; others seek by record math</span>
+<span class="sd">        or ``searchsorted``.</span>
 <span class="sd">    strict: bool, default=False</span>
 <span class="sd">        Corrupt-packet policy. When False (default), a malformed packet is</span>
 <span class="sd">        skipped with a :class:`UserWarning` and decoding resumes -- a robust</span>
@@ -826,6 +830,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_pace_anchor</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># (wall time, event ts)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_n_read_events</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># Number of events read (not includeing events stored in buffer)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_seek</span><span class="p">:</span> <span class="s2">&quot;SeekResult | None&quot;</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># result of the most recent seek()</span>
 
         <span class="c1"># Seeking (see seek()). ``_anchored`` decouples the &quot;first timestamp&quot;</span>
         <span class="c1"># anchoring from ``_n_read_events == 0`` so a post-seek read keeps the</span>
@@ -838,7 +843,12 @@
         <span class="c1">#   &quot;metavision&quot;      -&gt; read a Metavision `.tmp_index` sidecar when</span>
         <span class="c1">#                        present (fast, but approximate near large event</span>
         <span class="c1">#                        gaps), else fall back to the built index.</span>
+        <span class="c1">#   &quot;persist&quot;         -&gt; build evutils&#39; own exact index on the first</span>
+        <span class="c1">#                        seek() and save it to a `&lt;raw&gt;.evidx` sidecar;</span>
+        <span class="c1">#                        on open, load a fresh sidecar instead of</span>
+        <span class="c1">#                        rebuilding (exact, and reused across runs).</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span><span class="o">.</span><span class="n">_use_sidecar</span> <span class="o">=</span> <span class="p">(</span><span class="n">index</span> <span class="o">==</span> <span class="s2">&quot;metavision&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span><span class="o">.</span><span class="n">_persist_index</span> <span class="o">=</span> <span class="p">(</span><span class="n">index</span> <span class="o">==</span> <span class="s2">&quot;persist&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span><span class="o">.</span><span class="n">_raw_path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_name</span><span class="p">)</span>
 
@@ -1065,6 +1075,40 @@
             <span class="n">out</span><span class="o">.</span><span class="n">grow</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">size</span> <span class="o">+</span> <span class="n">step</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">capacity</span> <span class="o">*</span> <span class="mf">1.5</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
         <span class="n">out</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">capacity</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">size</span> <span class="o">+</span> <span class="n">step</span>
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">_finalize_delta_t_window</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out</span><span class="p">:</span> <span class="n">EventSoABuffers</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                                 <span class="n">count_cut</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">resume_ts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+                                 <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;EventArray&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Shared bookkeeping after a delta_t window&#39;s events are staged in ``out``.</span>
+
+<span class="sd">        Both delta_t fast paths (the generic ``searchsorted`` one and the</span>
+<span class="sd">        dedicated C one) end identically: advance the window clock -- or, on a</span>
+<span class="sd">        count cutoff, stay in / resume the same time window -- refresh the</span>
+<span class="sd">        window-size estimate and the event counter, then hand out a normalized,</span>
+<span class="sd">        zero-copy view of the window. ``out.c.size`` must already be the window&#39;s</span>
+<span class="sd">        final event count, and ``self._eof`` must already be set by the caller</span>
+<span class="sd">        (it differs: the carry-based path also requires an empty overshoot).</span>
+
+<span class="sd">        ``count_cut`` marks a window cut short by the ``n_events`` safety cap.</span>
+<span class="sd">        ``resume_ts`` (fast path only) is the timestamp to resume mid-window from</span>
+<span class="sd">        on such a cut; ``None`` leaves the clock untouched (C path) or, on a</span>
+<span class="sd">        normal window, advances it by ``delta_t``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">size</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">size</span>
+        <span class="c1"># Track the largest window seen so the next buffer is pre-sized for it.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dt_est</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dt_est</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">count_cut</span><span class="p">:</span>
+            <span class="c1"># Count cutoff: continue the same time window on the next call.</span>
+            <span class="k">if</span> <span class="n">resume_ts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_current_ts</span> <span class="o">=</span> <span class="n">resume_ts</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_current_ts</span> <span class="o">+=</span> <span class="n">delta_t</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_n_read_events</span> <span class="o">+=</span> <span class="n">size</span>
+
+        <span class="n">output</span> <span class="o">=</span> <span class="n">events_view</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_ts</span><span class="p">:</span>
+            <span class="n">output</span><span class="o">.</span><span class="n">t</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_first_ts</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start_ts</span>
+        <span class="k">return</span> <span class="n">output</span>
+
     <span class="k">def</span><span class="w"> </span><span class="nf">_read_delta_t_fast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;np.ndarray | EventArray&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;One ``delta_t`` window, fast path: decode into a fresh buffer, hand out</span>
 <span class="sd">        a zero-copy view of the window, and carry only the small overshoot</span>
@@ -1150,21 +1194,12 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_dt_carry</span> <span class="o">=</span> <span class="n">c</span>
 
         <span class="n">out</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="n">idx</span>
-        <span class="c1"># Track the largest window seen so the next buffer is pre-sized for it.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_dt_est</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dt_est</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">count_cut</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_current_ts</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>  <span class="c1"># count cutoff: resume mid-window</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_current_ts</span> <span class="o">+=</span> <span class="n">delta_t</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_n_read_events</span> <span class="o">+=</span> <span class="n">idx</span>
         <span class="c1"># EOF only once the stream is drained *and* no overshoot remains, else the</span>
         <span class="c1"># final carried events would never be emitted (is_eof() stops iteration).</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_eof</span> <span class="o">=</span> <span class="n">dec</span><span class="o">.</span><span class="n">is_eof</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dt_carry</span> <span class="ow">is</span> <span class="kc">None</span>
-
-        <span class="n">output</span> <span class="o">=</span> <span class="n">events_view</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_ts</span><span class="p">:</span>
-            <span class="n">output</span><span class="o">.</span><span class="n">t</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_first_ts</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start_ts</span>
-        <span class="k">return</span> <span class="n">output</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finalize_delta_t_window</span><span class="p">(</span>
+            <span class="n">out</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">,</span> <span class="n">count_cut</span><span class="p">,</span>
+            <span class="n">resume_ts</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span> <span class="k">if</span> <span class="n">count_cut</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_peek_first_ts</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Timestamp of the stream&#39;s first event, without disturbing later reads.</span>
@@ -1271,20 +1306,10 @@
                 <span class="n">out</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">capacity</span> <span class="o">=</span> <span class="n">new_cap</span>   <span class="c1"># parser-visible cap (recycled slots)</span>
             <span class="c1"># else EVUTILS_PARSE_OK: input drained this call; loop (tail -&gt; EOF).</span>
 
-        <span class="n">size</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">size</span>
-        <span class="n">out</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="n">size</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_dt_est</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dt_est</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
         <span class="c1"># On a normal window advance the clock; on a count-cut stay in the same</span>
         <span class="c1"># time window so the next call continues it (matches the accumulator path).</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">count_cut</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_current_ts</span> <span class="o">+=</span> <span class="n">delta_t</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_n_read_events</span> <span class="o">+=</span> <span class="n">size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_eof</span> <span class="o">=</span> <span class="n">dec</span><span class="o">.</span><span class="n">is_eof</span><span class="p">()</span>
-
-        <span class="n">output</span> <span class="o">=</span> <span class="n">events_view</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_ts</span><span class="p">:</span>
-            <span class="n">output</span><span class="o">.</span><span class="n">t</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_first_ts</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start_ts</span>
-        <span class="k">return</span> <span class="n">output</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finalize_delta_t_window</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">,</span> <span class="n">count_cut</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_flush_dt_carry</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Fold a pending delta_t fast-path overshoot into the accumulator.</span>
@@ -1569,10 +1594,23 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
 
 
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">last_seek</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SeekResult | None&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The :class:`~evutils.io.common.SeekResult` of the most recent</span>
+<span class="sd">        :meth:`seek`, or ``None`` if no seek has been performed.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_seek</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">event_index</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Current 0-based event index: the number of events already read (and,</span>
+<span class="sd">        after a :meth:`seek`, the index the cursor landed on). Complements</span>
+<span class="sd">        :meth:`tell` (byte position) with an unambiguous event-coordinate.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_read_events</span>
+
 <div class="viewcode-block" id="EventReader.seek">
 <a class="viewcode-back" href="../../../autoapi/evutils/io/index.html#evutils.io.EventReader.seek">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">seek</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-             <span class="n">relative</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+             <span class="n">relative</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SeekResult</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Reposition the read cursor by timestamp or event index.</span>
 
 <span class="sd">        Random access in *event coordinates*: give exactly one of ``t``</span>
@@ -1597,8 +1635,12 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        int</span>
-<span class="sd">            The absolute timestamp of the first event that will be read next.</span>
+<span class="sd">        SeekResult</span>
+<span class="sd">            A named tuple ``(ts, index, eof)``: the absolute timestamp of the</span>
+<span class="sd">            first event that will be read next (``ts``, also the tuple&#39;s first</span>
+<span class="sd">            field for backward compatibility), the 0-based event index it landed</span>
+<span class="sd">            on (``index``), and whether the seek ran off the end of the stream</span>
+<span class="sd">            (``eof``). Also stored on :attr:`last_seek`.</span>
 
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
@@ -1673,7 +1715,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_n_read_events</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">index</span> <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">index</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="k">else</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">if</span> <span class="n">n</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_current_ts</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">ts</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_anchored</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="k">return</span> <span class="n">res</span><span class="o">.</span><span class="n">ts</span></div>
+        <span class="c1"># Store the full result and hand it back. SeekResult is a NamedTuple with</span>
+        <span class="c1"># ``ts`` first, so ``== ts``-style int comparisons still need ``.ts`` but</span>
+        <span class="c1"># positional / ``.ts`` access stays source-compatible.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_seek</span> <span class="o">=</span> <span class="n">SeekResult</span><span class="p">(</span><span class="n">ts</span><span class="o">=</span><span class="n">res</span><span class="o">.</span><span class="n">ts</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_read_events</span><span class="p">,</span> <span class="n">eof</span><span class="o">=</span><span class="n">res</span><span class="o">.</span><span class="n">eof</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_seek</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_peek_stream_first_ts</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>

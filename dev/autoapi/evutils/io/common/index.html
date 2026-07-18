@@ -576,15 +576,10 @@
 <dt class="sig sig-object py" id="evutils.io.common.SeekResult">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.io.common.</span></span><span class="sig-name descname"><span class="pre">SeekResult</span></span><a class="reference internal" href="../../../../_modules/evutils/io/common.html#SeekResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.common.SeekResult" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">NamedTuple</span></code></p>
-digraph inheritanced5b26c979d {
-bgcolor=transparent;
-rankdir=LR;
-size=&quot;8.0, 12.0&quot;;
-  &quot;NamedTuple&quot; [fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;];
-  &quot;SeekResult&quot; [URL=&quot;#evutils.io.common.SeekResult&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Result of a seek operation: the exact landing timestamp, event index, and EOF status.&quot;];
-  &quot;NamedTuple&quot; -&gt; &quot;SeekResult&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
-}
-<p>Result of a seek operation: the exact landing timestamp, event index, and EOF status.</p>
+<div class="graphviz"><img src="../../../../_images/inheritance-c40cfaf0a42dd6f69a5a56e5e7b5f22b3864ca86.png" alt="Inheritance diagram of evutils.io.common.SeekResult" usemap="#inheritanced5b26c979d" class="inheritance graphviz" /></div>
+<map id="inheritanced5b26c979d" name="inheritanced5b26c979d">
+<area shape="rect" id="node2" href="#evutils.io.common.SeekResult" target="_top" title="Result of a seek operation: the exact landing timestamp, event index, and EOF status." alt="" coords="156,5,251,31"/>
+</map><p>Result of a seek operation: the exact landing timestamp, event index, and EOF status.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="evutils.io.common.SeekResult.ts">
 <span class="sig-name descname"><span class="pre">ts</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#evutils.io.common.SeekResult.ts" title="Link to this definition">#</a></dt>
@@ -606,15 +601,10 @@ size=&quot;8.0, 12.0&quot;;
 <dt class="sig sig-object py" id="evutils.io.common.EventDecoder">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.io.common.</span></span><span class="sig-name descname"><span class="pre">EventDecoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">io.BufferedIOBase</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_external_triggers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/evutils/io/common.html#EventDecoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.common.EventDecoder" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
-digraph inheritance905a2aa650 {
-bgcolor=transparent;
-rankdir=LR;
-size=&quot;8.0, 12.0&quot;;
-  &quot;ABC&quot; [fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,tooltip=&quot;Helper class that provides a standard way to create an ABC using&quot;];
-  &quot;EventDecoder&quot; [URL=&quot;#evutils.io.common.EventDecoder&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;ABC for reading chunks of events from a IO source object.&quot;];
-  &quot;ABC&quot; -&gt; &quot;EventDecoder&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
-}
-<p>ABC for reading chunks of events from a IO source object.</p>
+<div class="graphviz"><img src="../../../../_images/inheritance-db7306b28bb780557484e9cd9ac8d0a70e2b7ff5.png" alt="Inheritance diagram of evutils.io.common.EventDecoder" usemap="#inheritance905a2aa650" class="inheritance graphviz" /></div>
+<map id="inheritance905a2aa650" name="inheritance905a2aa650">
+<area shape="rect" id="node2" href="#evutils.io.common.EventDecoder" target="_top" title="ABC for reading chunks of events from a IO source object." alt="" coords="125,5,239,31"/>
+</map><p>ABC for reading chunks of events from a IO source object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -808,15 +798,10 @@ timestamp is &gt;= <code class="docutils literal notranslate"><span class="pre">
 <dt class="sig sig-object py" id="evutils.io.common.EventEncoder">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.io.common.</span></span><span class="sig-name descname"><span class="pre">EventEncoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">writable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">io.BufferedIOBase</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1280</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">720</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datetime.datetime</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/evutils/io/common.html#EventEncoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.common.EventEncoder" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
-digraph inheritance4b9244ada3 {
-bgcolor=transparent;
-rankdir=LR;
-size=&quot;8.0, 12.0&quot;;
-  &quot;ABC&quot; [fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,tooltip=&quot;Helper class that provides a standard way to create an ABC using&quot;];
-  &quot;EventEncoder&quot; [URL=&quot;#evutils.io.common.EventEncoder&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;ABC for writing chunks of events to a io object.&quot;];
-  &quot;ABC&quot; -&gt; &quot;EventEncoder&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
-}
-<p>ABC for writing chunks of events to a io object.</p>
+<div class="graphviz"><img src="../../../../_images/inheritance-7a0cbe3e3505ccd1a370dcb12a3d0f1e70ddd7ec.png" alt="Inheritance diagram of evutils.io.common.EventEncoder" usemap="#inheritance4b9244ada3" class="inheritance graphviz" /></div>
+<map id="inheritance4b9244ada3" name="inheritance4b9244ada3">
+<area shape="rect" id="node2" href="#evutils.io.common.EventEncoder" target="_top" title="ABC for writing chunks of events to a io object." alt="" coords="125,5,236,31"/>
+</map><p>ABC for writing chunks of events to a io object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">

@@ -678,8 +678,11 @@ sleep. <code class="docutils literal notranslate"><span class="pre">None</span><
 <code class="docutils literal notranslate"><span class="pre">False</span></code> all build an exact in-memory index lazily on the first seek
 (<code class="docutils literal notranslate"><span class="pre">False</span></code> additionally never touches a sidecar). <code class="docutils literal notranslate"><span class="pre">&quot;metavision&quot;</span></code> reads
 a Metavision <code class="docutils literal notranslate"><span class="pre">.tmp_index</span></code> sidecar instead – fast, but approximate near
-large event gaps. Only EVT formats use an index; others seek by record
-math or <code class="docutils literal notranslate"><span class="pre">searchsorted</span></code>.</p></li>
+large event gaps. <code class="docutils literal notranslate"><span class="pre">&quot;persist&quot;</span></code> builds evutils’ own exact index on the
+first seek and writes it to a <code class="docutils literal notranslate"><span class="pre">&lt;raw&gt;.evidx</span></code> sidecar, then loads that
+sidecar on subsequent opens instead of rebuilding (exact and reused
+across runs). Only EVT formats use an index; others seek by record math
+or <code class="docutils literal notranslate"><span class="pre">searchsorted</span></code>.</p></li>
 <li><p><strong>strict</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Corrupt-packet policy. When False (default), a malformed packet is
 skipped with a <code class="xref py py-class docutils literal notranslate"><span class="pre">UserWarning</span></code> and decoding resumes – a robust
 decoder (like Metavision’s UNRELIABLE mode). When True, a malformed
@@ -805,9 +808,37 @@ buffered chunks are discarded).</p>
 </dl>
 </dd></dl>
 
+<dl class="py property">
+<dt class="sig sig-object py" id="evutils.io.EventReader.last_seek">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">last_seek</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="common/index.html#evutils.io.common.SeekResult" title="evutils.io.common.SeekResult"><span class="pre">SeekResult</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#evutils.io.EventReader.last_seek" title="Link to this definition">#</a></dt>
+<dd><p>The <a class="reference internal" href="common/index.html#evutils.io.common.SeekResult" title="evutils.io.common.SeekResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">SeekResult</span></code></a> of the most recent
+<a class="reference internal" href="#evutils.io.EventReader.seek" title="evutils.io.EventReader.seek"><code class="xref py py-meth docutils literal notranslate"><span class="pre">seek()</span></code></a>, or <code class="docutils literal notranslate"><span class="pre">None</span></code> if no seek has been performed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="common/index.html#evutils.io.common.SeekResult" title="evutils.io.common.SeekResult">SeekResult</a> | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="evutils.io.EventReader.event_index">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">event_index</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#evutils.io.EventReader.event_index" title="Link to this definition">#</a></dt>
+<dd><p>the number of events already read (and,
+after a <a class="reference internal" href="#evutils.io.EventReader.seek" title="evutils.io.EventReader.seek"><code class="xref py py-meth docutils literal notranslate"><span class="pre">seek()</span></code></a>, the index the cursor landed on). Complements
+<a class="reference internal" href="#evutils.io.EventReader.tell" title="evutils.io.EventReader.tell"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tell()</span></code></a> (byte position) with an unambiguous event-coordinate.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Current 0-based event index</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="evutils.io.EventReader.seek">
-<span class="sig-name descname"><span class="pre">seek</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relative</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="../../../_modules/evutils/io/_event_reader.html#EventReader.seek"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.EventReader.seek" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">seek</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relative</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="common/index.html#evutils.io.common.SeekResult" title="evutils.io.common.SeekResult"><span class="pre">evutils.io.common.SeekResult</span></a></span></span><a class="reference internal" href="../../../_modules/evutils/io/_event_reader.html#EventReader.seek"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.EventReader.seek" title="Link to this definition">#</a></dt>
 <dd><p>Reposition the read cursor by timestamp or event index.</p>
 <p>Random access in <em>event coordinates</em>: give exactly one of <code class="docutils literal notranslate"><span class="pre">t</span></code>
 (absolute microseconds) or <code class="docutils literal notranslate"><span class="pre">n</span></code> (absolute 0-based event index). With
@@ -827,10 +858,14 @@ target (backward requires restarting the stream).</p>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The absolute timestamp of the first event that will be read next.</p>
+<dd class="field-even"><p>A named tuple <code class="docutils literal notranslate"><span class="pre">(ts,</span> <span class="pre">index,</span> <span class="pre">eof)</span></code>: the absolute timestamp of the
+first event that will be read next (<code class="docutils literal notranslate"><span class="pre">ts</span></code>, also the tuple’s first
+field for backward compatibility), the 0-based event index it landed
+on (<code class="docutils literal notranslate"><span class="pre">index</span></code>), and whether the seek ran off the end of the stream
+(<code class="docutils literal notranslate"><span class="pre">eof</span></code>). Also stored on <a class="reference internal" href="#evutils.io.EventReader.last_seek" title="evutils.io.EventReader.last_seek"><code class="xref py py-attr docutils literal notranslate"><span class="pre">last_seek</span></code></a>.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>int</p>
+<dd class="field-odd"><p><a class="reference internal" href="common/index.html#evutils.io.common.SeekResult" title="evutils.io.common.SeekResult">SeekResult</a></p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
@@ -1234,6 +1269,8 @@ It performs ZERO slicing or logic; it purely drives the decoder.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventReader.read"><code class="docutils literal notranslate"><span class="pre">EventReader.read()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventReader.read_all"><code class="docutils literal notranslate"><span class="pre">EventReader.read_all()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventReader.reset"><code class="docutils literal notranslate"><span class="pre">EventReader.reset()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventReader.last_seek"><code class="docutils literal notranslate"><span class="pre">EventReader.last_seek</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventReader.event_index"><code class="docutils literal notranslate"><span class="pre">EventReader.event_index</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventReader.seek"><code class="docutils literal notranslate"><span class="pre">EventReader.seek()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventReader.__enter__"><code class="docutils literal notranslate"><span class="pre">EventReader.__enter__()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#evutils.io.EventReader.is_eof"><code class="docutils literal notranslate"><span class="pre">EventReader.is_eof()</span></code></a></li>

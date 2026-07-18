@@ -1,0 +1,4 @@
+<map id="inheritancea7dc90cd15" name="inheritancea7dc90cd15">
+<area shape="rect" id="node1" href="transforms/index.html#evutils.transforms.transforms.RandomFlipLR" target="_top" title="Flips events horizontally (``x&#39; = width &#45; 1 &#45; x``) with probability ``p``." alt="" coords="140,5,256,31"/>
+<area shape="rect" id="node2" href="transforms/index.html#evutils.transforms.transforms.Transform" target="_top" title="Base class for all evutils transforms." alt="" coords="5,5,92,31"/>
+</map>

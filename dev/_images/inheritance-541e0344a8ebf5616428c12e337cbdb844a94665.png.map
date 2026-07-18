@@ -1,0 +1,4 @@
+<map id="inheritancea5c3ecfdf0" name="inheritancea5c3ecfdf0">
+<area shape="rect" id="node1" href="#evutils.transforms.transforms.DropEventByTime" target="_top" title="Drops every event inside one randomly&#45;placed time window." alt="" coords="140,5,280,31"/>
+<area shape="rect" id="node2" href="#evutils.transforms.transforms.Transform" target="_top" title="Base class for all evutils transforms." alt="" coords="5,5,92,31"/>
+</map>

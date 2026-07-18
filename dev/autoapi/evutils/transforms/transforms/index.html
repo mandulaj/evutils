@@ -631,15 +631,11 @@ when it was not given one explicitly. Stored transiently, not persisted.</p>
 <dt class="sig sig-object py" id="evutils.transforms.transforms.DropEvent">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.transforms.transforms.</span></span><span class="sig-name descname"><span class="pre">DropEvent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/evutils/transforms/transforms.html#DropEvent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.transforms.transforms.DropEvent" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#evutils.transforms.transforms.Transform" title="evutils.transforms.transforms.Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transform</span></code></a></p>
-digraph inheritancefb33b522fe {
-bgcolor=transparent;
-rankdir=LR;
-size=&quot;8.0, 12.0&quot;;
-  &quot;DropEvent&quot; [URL=&quot;#evutils.transforms.transforms.DropEvent&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Randomly drops each event with probability ``p``.&quot;];
-  &quot;Transform&quot; -&gt; &quot;DropEvent&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
-  &quot;Transform&quot; [URL=&quot;#evutils.transforms.transforms.Transform&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Base class for all evutils transforms.&quot;];
-}
-<p>Randomly drops each event with probability <code class="docutils literal notranslate"><span class="pre">p</span></code>.</p>
+<div class="graphviz"><img src="../../../../_images/inheritance-6974d1cf41a287f4d06457315e3616a2afd72437.png" alt="Inheritance diagram of evutils.transforms.transforms.DropEvent" usemap="#inheritancefb33b522fe" class="inheritance graphviz" /></div>
+<map id="inheritancefb33b522fe" name="inheritancefb33b522fe">
+<area shape="rect" id="node1" href="#evutils.transforms.transforms.DropEvent" target="_top" title="Randomly drops each event with probability ``p``." alt="" coords="140,5,231,31"/>
+<area shape="rect" id="node2" href="#evutils.transforms.transforms.Transform" target="_top" title="Base class for all evutils transforms." alt="" coords="5,5,92,31"/>
+</map><p>Randomly drops each event with probability <code class="docutils literal notranslate"><span class="pre">p</span></code>.</p>
 <p>Tonic-compatible replacement for <code class="docutils literal notranslate"><span class="pre">DropRandomEvents</span></code> (kept as an alias).
 Uses an independent Bernoulli mask per event, so the number dropped is
 binomially distributed around <code class="docutils literal notranslate"><span class="pre">p</span> <span class="pre">*</span> <span class="pre">n</span></code> rather than exactly <code class="docutils literal notranslate"><span class="pre">p</span> <span class="pre">*</span> <span class="pre">n</span></code>.</p>
@@ -678,15 +674,11 @@ per call. Defaults to <code class="docutils literal notranslate"><span class="pr
 <dt class="sig sig-object py" id="evutils.transforms.transforms.DropEventByTime">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.transforms.transforms.</span></span><span class="sig-name descname"><span class="pre">DropEventByTime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">duration_ratio</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/evutils/transforms/transforms.html#DropEventByTime"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.transforms.transforms.DropEventByTime" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#evutils.transforms.transforms.Transform" title="evutils.transforms.transforms.Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transform</span></code></a></p>
-digraph inheritancea5c3ecfdf0 {
-bgcolor=transparent;
-rankdir=LR;
-size=&quot;8.0, 12.0&quot;;
-  &quot;DropEventByTime&quot; [URL=&quot;#evutils.transforms.transforms.DropEventByTime&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Drops every event inside one randomly-placed time window.&quot;];
-  &quot;Transform&quot; -&gt; &quot;DropEventByTime&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
-  &quot;Transform&quot; [URL=&quot;#evutils.transforms.transforms.Transform&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Base class for all evutils transforms.&quot;];
-}
-<p>Drops every event inside one randomly-placed time window.</p>
+<div class="graphviz"><img src="../../../../_images/inheritance-541e0344a8ebf5616428c12e337cbdb844a94665.png" alt="Inheritance diagram of evutils.transforms.transforms.DropEventByTime" usemap="#inheritancea5c3ecfdf0" class="inheritance graphviz" /></div>
+<map id="inheritancea5c3ecfdf0" name="inheritancea5c3ecfdf0">
+<area shape="rect" id="node1" href="#evutils.transforms.transforms.DropEventByTime" target="_top" title="Drops every event inside one randomly&#45;placed time window." alt="" coords="140,5,280,31"/>
+<area shape="rect" id="node2" href="#evutils.transforms.transforms.Transform" target="_top" title="Base class for all evutils transforms." alt="" coords="5,5,92,31"/>
+</map><p>Drops every event inside one randomly-placed time window.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -717,15 +709,11 @@ size=&quot;8.0, 12.0&quot;;
 <dt class="sig sig-object py" id="evutils.transforms.transforms.RandomFlipLR">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.transforms.transforms.</span></span><span class="sig-name descname"><span class="pre">RandomFlipLR</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sensor_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/evutils/transforms/transforms.html#RandomFlipLR"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.transforms.transforms.RandomFlipLR" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#evutils.transforms.transforms.Transform" title="evutils.transforms.transforms.Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transform</span></code></a></p>
-digraph inheritance27b54aa59b {
-bgcolor=transparent;
-rankdir=LR;
-size=&quot;8.0, 12.0&quot;;
-  &quot;RandomFlipLR&quot; [URL=&quot;#evutils.transforms.transforms.RandomFlipLR&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Flips events horizontally (``x' = width - 1 - x``) with probability ``p``.&quot;];
-  &quot;Transform&quot; -&gt; &quot;RandomFlipLR&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
-  &quot;Transform&quot; [URL=&quot;#evutils.transforms.transforms.Transform&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Base class for all evutils transforms.&quot;];
-}
-<p>Flips events horizontally (<code class="docutils literal notranslate"><span class="pre">x'</span> <span class="pre">=</span> <span class="pre">width</span> <span class="pre">-</span> <span class="pre">1</span> <span class="pre">-</span> <span class="pre">x</span></code>) with probability <code class="docutils literal notranslate"><span class="pre">p</span></code>.</p>
+<div class="graphviz"><img src="../../../../_images/inheritance-c816cebf2f9922eaa8bb1cec3fdf1709d2c444d8.png" alt="Inheritance diagram of evutils.transforms.transforms.RandomFlipLR" usemap="#inheritance27b54aa59b" class="inheritance graphviz" /></div>
+<map id="inheritance27b54aa59b" name="inheritance27b54aa59b">
+<area shape="rect" id="node1" href="#evutils.transforms.transforms.RandomFlipLR" target="_top" title="Flips events horizontally (``x&#39; = width &#45; 1 &#45; x``) with probability ``p``." alt="" coords="140,5,256,31"/>
+<area shape="rect" id="node2" href="#evutils.transforms.transforms.Transform" target="_top" title="Base class for all evutils transforms." alt="" coords="5,5,92,31"/>
+</map><p>Flips events horizontally (<code class="docutils literal notranslate"><span class="pre">x'</span> <span class="pre">=</span> <span class="pre">width</span> <span class="pre">-</span> <span class="pre">1</span> <span class="pre">-</span> <span class="pre">x</span></code>) with probability <code class="docutils literal notranslate"><span class="pre">p</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -756,15 +744,11 @@ If omitted, it is taken from the events’ <code class="docutils literal notrans
 <dt class="sig sig-object py" id="evutils.transforms.transforms.SpatialJitter">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.transforms.transforms.</span></span><span class="sig-name descname"><span class="pre">SpatialJitter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sensor_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_xy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clip_outliers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/evutils/transforms/transforms.html#SpatialJitter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.transforms.transforms.SpatialJitter" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#evutils.transforms.transforms.Transform" title="evutils.transforms.transforms.Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transform</span></code></a></p>
-digraph inheritancede4e8b1c4f {
-bgcolor=transparent;
-rankdir=LR;
-size=&quot;8.0, 12.0&quot;;
-  &quot;SpatialJitter&quot; [URL=&quot;#evutils.transforms.transforms.SpatialJitter&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Adds correlated Gaussian noise to event coordinates.&quot;];
-  &quot;Transform&quot; -&gt; &quot;SpatialJitter&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
-  &quot;Transform&quot; [URL=&quot;#evutils.transforms.transforms.Transform&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Base class for all evutils transforms.&quot;];
-}
-<p>Adds correlated Gaussian noise to event coordinates.</p>
+<div class="graphviz"><img src="../../../../_images/inheritance-c66243ec06643c8d6fa38bdc8fa911a4e08ac2a8.png" alt="Inheritance diagram of evutils.transforms.transforms.SpatialJitter" usemap="#inheritancede4e8b1c4f" class="inheritance graphviz" /></div>
+<map id="inheritancede4e8b1c4f" name="inheritancede4e8b1c4f">
+<area shape="rect" id="node1" href="#evutils.transforms.transforms.SpatialJitter" target="_top" title="Adds correlated Gaussian noise to event coordinates." alt="" coords="140,5,239,31"/>
+<area shape="rect" id="node2" href="#evutils.transforms.transforms.Transform" target="_top" title="Base class for all evutils transforms." alt="" coords="5,5,92,31"/>
+</map><p>Adds correlated Gaussian noise to event coordinates.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -814,15 +798,11 @@ when <code class="docutils literal notranslate"><span class="pre">clip_outliers<
 <dt class="sig sig-object py" id="evutils.transforms.transforms.TimeSkew">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.transforms.transforms.</span></span><span class="sig-name descname"><span class="pre">TimeSkew</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coefficient</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/evutils/transforms/transforms.html#TimeSkew"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.transforms.transforms.TimeSkew" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#evutils.transforms.transforms.Transform" title="evutils.transforms.transforms.Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transform</span></code></a></p>
-digraph inheritancee9e205b5e4 {
-bgcolor=transparent;
-rankdir=LR;
-size=&quot;8.0, 12.0&quot;;
-  &quot;TimeSkew&quot; [URL=&quot;#evutils.transforms.transforms.TimeSkew&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Rescales timestamps by an affine map ``t' = t * coefficient + offset``.&quot;];
-  &quot;Transform&quot; -&gt; &quot;TimeSkew&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
-  &quot;Transform&quot; [URL=&quot;#evutils.transforms.transforms.Transform&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Base class for all evutils transforms.&quot;];
-}
-<p>Rescales timestamps by an affine map <code class="docutils literal notranslate"><span class="pre">t'</span> <span class="pre">=</span> <span class="pre">t</span> <span class="pre">*</span> <span class="pre">coefficient</span> <span class="pre">+</span> <span class="pre">offset</span></code>.</p>
+<div class="graphviz"><img src="../../../../_images/inheritance-b33b1751cc810c1311204370d9d4edac742ec7d1.png" alt="Inheritance diagram of evutils.transforms.transforms.TimeSkew" usemap="#inheritancee9e205b5e4" class="inheritance graphviz" /></div>
+<map id="inheritancee9e205b5e4" name="inheritancee9e205b5e4">
+<area shape="rect" id="node1" href="#evutils.transforms.transforms.TimeSkew" target="_top" title="Rescales timestamps by an affine map ``t&#39; = t * coefficient + offset``." alt="" coords="140,5,229,31"/>
+<area shape="rect" id="node2" href="#evutils.transforms.transforms.Transform" target="_top" title="Base class for all evutils transforms." alt="" coords="5,5,92,31"/>
+</map><p>Rescales timestamps by an affine map <code class="docutils literal notranslate"><span class="pre">t'</span> <span class="pre">=</span> <span class="pre">t</span> <span class="pre">*</span> <span class="pre">coefficient</span> <span class="pre">+</span> <span class="pre">offset</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -853,15 +833,11 @@ uniformly per call.</p></li>
 <dt class="sig sig-object py" id="evutils.transforms.transforms.TimeNormalize">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.transforms.transforms.</span></span><span class="sig-name descname"><span class="pre">TimeNormalize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_ts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/evutils/transforms/transforms.html#TimeNormalize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.transforms.transforms.TimeNormalize" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#evutils.transforms.transforms.Transform" title="evutils.transforms.transforms.Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transform</span></code></a></p>
-digraph inheritancecfb343cb7e {
-bgcolor=transparent;
-rankdir=LR;
-size=&quot;8.0, 12.0&quot;;
-  &quot;TimeNormalize&quot; [URL=&quot;#evutils.transforms.transforms.TimeNormalize&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Shifts timestamps so the earliest event lands at ``start_ts``.&quot;];
-  &quot;Transform&quot; -&gt; &quot;TimeNormalize&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
-  &quot;Transform&quot; [URL=&quot;#evutils.transforms.transforms.Transform&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Base class for all evutils transforms.&quot;];
-}
-<p>Shifts timestamps so the earliest event lands at <code class="docutils literal notranslate"><span class="pre">start_ts</span></code>.</p>
+<div class="graphviz"><img src="../../../../_images/inheritance-b0f6c740adb27ee3648f03a5d1df0741ad6a2f0e.png" alt="Inheritance diagram of evutils.transforms.transforms.TimeNormalize" usemap="#inheritancecfb343cb7e" class="inheritance graphviz" /></div>
+<map id="inheritancecfb343cb7e" name="inheritancecfb343cb7e">
+<area shape="rect" id="node1" href="#evutils.transforms.transforms.TimeNormalize" target="_top" title="Shifts timestamps so the earliest event lands at ``start_ts``." alt="" coords="140,5,263,31"/>
+<area shape="rect" id="node2" href="#evutils.transforms.transforms.Transform" target="_top" title="Base class for all evutils transforms." alt="" coords="5,5,92,31"/>
+</map><p>Shifts timestamps so the earliest event lands at <code class="docutils literal notranslate"><span class="pre">start_ts</span></code>.</p>
 <p>Stateless: each call normalizes the batch it is given on its own. For a
 chunk-by-chunk stream use <code class="docutils literal notranslate"><span class="pre">EventReader(normalize_ts=True)</span></code>, which latches
 the offset from the first chunk across the whole stream; dropping this
@@ -888,15 +864,11 @@ chunk to <code class="docutils literal notranslate"><span class="pre">start_ts</
 <dt class="sig sig-object py" id="evutils.transforms.transforms.TimeJitter">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.transforms.transforms.</span></span><span class="sig-name descname"><span class="pre">TimeJitter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clip_negative</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort_timestamps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/evutils/transforms/transforms.html#TimeJitter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.transforms.transforms.TimeJitter" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#evutils.transforms.transforms.Transform" title="evutils.transforms.transforms.Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transform</span></code></a></p>
-digraph inheritanceae5b1cd67a {
-bgcolor=transparent;
-rankdir=LR;
-size=&quot;8.0, 12.0&quot;;
-  &quot;TimeJitter&quot; [URL=&quot;#evutils.transforms.transforms.TimeJitter&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Adds Gaussian noise to each timestamp.&quot;];
-  &quot;Transform&quot; -&gt; &quot;TimeJitter&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
-  &quot;Transform&quot; [URL=&quot;#evutils.transforms.transforms.Transform&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Base class for all evutils transforms.&quot;];
-}
-<p>Adds Gaussian noise to each timestamp.</p>
+<div class="graphviz"><img src="../../../../_images/inheritance-86e8d5ad875733aa9e89094c82ba31f84fef556d.png" alt="Inheritance diagram of evutils.transforms.transforms.TimeJitter" usemap="#inheritanceae5b1cd67a" class="inheritance graphviz" /></div>
+<map id="inheritanceae5b1cd67a" name="inheritanceae5b1cd67a">
+<area shape="rect" id="node1" href="#evutils.transforms.transforms.TimeJitter" target="_top" title="Adds Gaussian noise to each timestamp." alt="" coords="140,5,227,31"/>
+<area shape="rect" id="node2" href="#evutils.transforms.transforms.Transform" target="_top" title="Base class for all evutils transforms." alt="" coords="5,5,92,31"/>
+</map><p>Adds Gaussian noise to each timestamp.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -932,15 +904,11 @@ size=&quot;8.0, 12.0&quot;;
 <dt class="sig sig-object py" id="evutils.transforms.transforms.RefractoryPeriod">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.transforms.transforms.</span></span><span class="sig-name descname"><span class="pre">RefractoryPeriod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/evutils/transforms/transforms.html#RefractoryPeriod"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.transforms.transforms.RefractoryPeriod" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#evutils.transforms.transforms.Transform" title="evutils.transforms.transforms.Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transform</span></code></a></p>
-digraph inheritance252bc1497f {
-bgcolor=transparent;
-rankdir=LR;
-size=&quot;8.0, 12.0&quot;;
-  &quot;RefractoryPeriod&quot; [URL=&quot;#evutils.transforms.transforms.RefractoryPeriod&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Enforces a per-pixel refractory period.&quot;];
-  &quot;Transform&quot; -&gt; &quot;RefractoryPeriod&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
-  &quot;Transform&quot; [URL=&quot;#evutils.transforms.transforms.Transform&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;Base class for all evutils transforms.&quot;];
-}
-<p>Enforces a per-pixel refractory period.</p>
+<div class="graphviz"><img src="../../../../_images/inheritance-85c5ec6138e0de604e3a1a7cf7eaf2cadc64fa06.png" alt="Inheritance diagram of evutils.transforms.transforms.RefractoryPeriod" usemap="#inheritance252bc1497f" class="inheritance graphviz" /></div>
+<map id="inheritance252bc1497f" name="inheritance252bc1497f">
+<area shape="rect" id="node1" href="#evutils.transforms.transforms.RefractoryPeriod" target="_top" title="Enforces a per&#45;pixel refractory period." alt="" coords="140,5,271,31"/>
+<area shape="rect" id="node2" href="#evutils.transforms.transforms.Transform" target="_top" title="Base class for all evutils transforms." alt="" coords="5,5,92,31"/>
+</map><p>Enforces a per-pixel refractory period.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>delta</strong> (<em>int</em><em> or </em><em>tuple</em><em> of </em><em>int</em>) – Refractory period in timestamp units. A <code class="docutils literal notranslate"><span class="pre">(lo,</span> <span class="pre">hi)</span></code> tuple is sampled

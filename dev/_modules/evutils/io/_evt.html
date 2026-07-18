@@ -531,6 +531,7 @@
     <span class="n">EVUTILS_PARSE_OUTPUT_FULL</span><span class="p">,</span>
     <span class="n">EVUTILS_PARSE_WARNING</span><span class="p">,</span>
     <span class="n">NativeError</span><span class="p">,</span>
+    <span class="n">_handle_parse_warning</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._native_evt</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">Evt2Input</span><span class="p">,</span>
@@ -712,6 +713,10 @@
         <span class="c1">#: the exact in-memory index is built lazily on the first seek instead.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_raw_path</span><span class="p">:</span> <span class="s2">&quot;str | None&quot;</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_use_sidecar</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1">#: Persist evutils&#39; own exact index to a ``&lt;raw&gt;.evidx`` sidecar (built</span>
+        <span class="c1">#: on the first seek, loaded on open when fresh). Set by EventReader from</span>
+        <span class="c1">#: ``index=&quot;persist&quot;``.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_persist_index</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="c1"># ------------------------------------------------------------------ #</span>
     <span class="c1"># Header</span>
@@ -1032,10 +1037,7 @@
             <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parser</span><span class="o">.</span><span class="n">parse_delta_t_soa</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">events</span><span class="p">,</span> <span class="n">triggers</span><span class="p">,</span> <span class="n">raw_end_ts</span><span class="p">)</span>
             <span class="n">consumed</span> <span class="o">=</span> <span class="n">inp</span><span class="o">.</span><span class="n">consumed</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">EVUTILS_PARSE_WARNING</span><span class="p">:</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_strict</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="n">NativeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_format</span><span class="si">}</span><span class="s2"> malformed packet near word </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_offset</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">consumed</span><span class="si">}</span><span class="s2"> (strict mode)&quot;</span><span class="p">)</span>
-                <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
-                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_format</span><span class="si">}</span><span class="s2"> malformed packets ignored near word </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_offset</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">consumed</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">_handle_parse_warning</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_offset</span> <span class="o">+</span> <span class="n">consumed</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_strict</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_format</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">consumed</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span> <span class="o">+=</span> <span class="n">consumed</span>
                     <span class="n">inp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_cls</span><span class="p">(</span><span class="n">words</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_offset</span><span class="p">:])</span>
@@ -1188,8 +1190,11 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">._index</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
             <span class="n">IncrementalSeekIndex</span><span class="p">,</span>
+            <span class="n">evutils_index_path</span><span class="p">,</span>
+            <span class="n">load_seek_index</span><span class="p">,</span>
             <span class="n">metavision_index_path</span><span class="p">,</span>
             <span class="n">read_metavision_index</span><span class="p">,</span>
+            <span class="n">save_seek_index</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">need_counts</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_index_is_ours</span><span class="p">):</span>
@@ -1197,14 +1202,23 @@
 
         <span class="n">word_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_word_dtype</span><span class="p">)</span><span class="o">.</span><span class="n">itemsize</span>
         <span class="n">idx</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_sidecar</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_raw_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">need_counts</span><span class="p">:</span>
+        <span class="c1"># Persist mode: load our own exact `.evidx` sidecar if one is present and</span>
+        <span class="c1"># fresh (it carries evutils cumulative counts, so it satisfies both time</span>
+        <span class="c1"># and event-index seeks).</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_persist_index</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_raw_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">load_seek_index</span><span class="p">(</span>
+                <span class="n">evutils_index_path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_raw_path</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_raw_path</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_index_is_ours</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">idx</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_sidecar</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_raw_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="ow">and</span> <span class="ow">not</span> <span class="n">need_counts</span><span class="p">):</span>
             <span class="n">idx</span> <span class="o">=</span> <span class="n">read_metavision_index</span><span class="p">(</span>
                 <span class="n">metavision_index_path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_raw_path</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_raw_path</span><span class="p">,</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_payload_off</span><span class="p">,</span> <span class="n">word_size</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_index_is_ours</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">if</span> <span class="n">idx</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">idx</span> <span class="o">=</span> <span class="n">IncrementalSeekIndex</span><span class="p">(</span>
+            <span class="n">built</span> <span class="o">=</span> <span class="n">IncrementalSeekIndex</span><span class="p">(</span>
                 <span class="n">words</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_words</span><span class="p">,</span> <span class="n">start_offset</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_start_offset</span><span class="p">,</span>
                 <span class="n">input_cls</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_input_cls</span><span class="p">,</span> <span class="n">parser_cls</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parser</span><span class="p">),</span>
                 <span class="n">tail_pad</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_tail_pad</span><span class="p">,</span> <span class="n">word_dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_word_dtype</span><span class="p">,</span>
@@ -1214,6 +1228,18 @@
                 <span class="n">time_high</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_TIME_HIGH_TYPE</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_format</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
             <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_index_is_ours</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_persist_index</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_raw_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Build the whole exact index now and write the sidecar for next</span>
+                <span class="c1"># time. A failed write (read-only dir, ...) is non-fatal: fall</span>
+                <span class="c1"># back to the freshly built index.</span>
+                <span class="n">idx</span> <span class="o">=</span> <span class="n">built</span><span class="o">.</span><span class="n">to_static</span><span class="p">()</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">save_seek_index</span><span class="p">(</span>
+                        <span class="n">idx</span><span class="p">,</span> <span class="n">evutils_index_path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_raw_path</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_raw_path</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">idx</span> <span class="o">=</span> <span class="n">built</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">=</span> <span class="n">idx</span>
         <span class="k">return</span> <span class="n">idx</span>
 

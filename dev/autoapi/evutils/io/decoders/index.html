@@ -605,15 +605,10 @@ CSV, h5py for HDF5) are not registered; asking for them raises an
 <dt class="sig sig-object py" id="evutils.io.decoders.EventDecoder">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.io.decoders.</span></span><span class="sig-name descname"><span class="pre">EventDecoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">io.BufferedIOBase</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_external_triggers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/evutils/io/common.html#EventDecoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.decoders.EventDecoder" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
-digraph inheritance2e9869ee33 {
-bgcolor=transparent;
-rankdir=LR;
-size=&quot;8.0, 12.0&quot;;
-  &quot;ABC&quot; [fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,tooltip=&quot;Helper class that provides a standard way to create an ABC using&quot;];
-  &quot;EventDecoder&quot; [URL=&quot;../common/index.html#evutils.io.common.EventDecoder&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;ABC for reading chunks of events from a IO source object.&quot;];
-  &quot;ABC&quot; -&gt; &quot;EventDecoder&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
-}
-<p>ABC for reading chunks of events from a IO source object.</p>
+<div class="graphviz"><img src="../../../../_images/inheritance-d516bf51546e994a25d8d2353610633375d2f613.png" alt="Inheritance diagram of evutils.io.decoders.EventDecoder" usemap="#inheritance2e9869ee33" class="inheritance graphviz" /></div>
+<map id="inheritance2e9869ee33" name="inheritance2e9869ee33">
+<area shape="rect" id="node2" href="../common/index.html#evutils.io.common.EventDecoder" target="_top" title="ABC for reading chunks of events from a IO source object." alt="" coords="125,5,239,31"/>
+</map><p>ABC for reading chunks of events from a IO source object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -807,17 +802,10 @@ timestamp is &gt;= <code class="docutils literal notranslate"><span class="pre">
 <dt class="sig sig-object py" id="evutils.io.decoders.EventDecoder_Aedat">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.io.decoders.</span></span><span class="sig-name descname"><span class="pre">EventDecoder_Aedat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">evutils.io._source.ByteSource</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'davis'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/evutils/io/_aedat.html#EventDecoder_Aedat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.decoders.EventDecoder_Aedat" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../common/index.html#evutils.io.common.EventDecoder" title="evutils.io.common.EventDecoder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evutils.io.common.EventDecoder</span></code></a></p>
-digraph inheritanced2af0143db {
-bgcolor=transparent;
-rankdir=LR;
-size=&quot;8.0, 12.0&quot;;
-  &quot;ABC&quot; [fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,tooltip=&quot;Helper class that provides a standard way to create an ABC using&quot;];
-  &quot;EventDecoder&quot; [URL=&quot;../common/index.html#evutils.io.common.EventDecoder&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;ABC for reading chunks of events from a IO source object.&quot;];
-  &quot;ABC&quot; -&gt; &quot;EventDecoder&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
-  &quot;EventDecoder_Aedat&quot; [fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;];
-  &quot;EventDecoder&quot; -&gt; &quot;EventDecoder_Aedat&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
-}
-<p>ABC for reading chunks of events from a IO source object.</p>
+<div class="graphviz"><img src="../../../../_images/inheritance-ffe2adea6fafbf287520a27bd70ce6c94c2e12a0.png" alt="Inheritance diagram of evutils.io.decoders.EventDecoder_Aedat" usemap="#inheritanced2af0143db" class="inheritance graphviz" /></div>
+<map id="inheritanced2af0143db" name="inheritanced2af0143db">
+<area shape="rect" id="node2" href="../common/index.html#evutils.io.common.EventDecoder" target="_top" title="ABC for reading chunks of events from a IO source object." alt="" coords="125,5,239,31"/>
+</map><p>ABC for reading chunks of events from a IO source object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -909,17 +897,10 @@ size=&quot;8.0, 12.0&quot;;
 <dt class="sig sig-object py" id="evutils.io.decoders.EventDecoder_Bin">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.io.decoders.</span></span><span class="sig-name descname"><span class="pre">EventDecoder_Bin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">io.BufferedIOBase</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/evutils/io/_bin.html#EventDecoder_Bin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.decoders.EventDecoder_Bin" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../common/index.html#evutils.io.common.EventDecoder" title="evutils.io.common.EventDecoder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evutils.io.common.EventDecoder</span></code></a></p>
-digraph inheritance0655d02ed5 {
-bgcolor=transparent;
-rankdir=LR;
-size=&quot;8.0, 12.0&quot;;
-  &quot;ABC&quot; [fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,tooltip=&quot;Helper class that provides a standard way to create an ABC using&quot;];
-  &quot;EventDecoder&quot; [URL=&quot;../common/index.html#evutils.io.common.EventDecoder&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;ABC for reading chunks of events from a IO source object.&quot;];
-  &quot;ABC&quot; -&gt; &quot;EventDecoder&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
-  &quot;EventDecoder_Bin&quot; [fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,tooltip=&quot;A decoder for reading events from binary files.&quot;];
-  &quot;EventDecoder&quot; -&gt; &quot;EventDecoder_Bin&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
-}
-<p>A decoder for reading events from binary files.</p>
+<div class="graphviz"><img src="../../../../_images/inheritance-c8717403677e71a1d657ca1ca123d8b5e74636b1.png" alt="Inheritance diagram of evutils.io.decoders.EventDecoder_Bin" usemap="#inheritance0655d02ed5" class="inheritance graphviz" /></div>
+<map id="inheritance0655d02ed5" name="inheritance0655d02ed5">
+<area shape="rect" id="node2" href="../common/index.html#evutils.io.common.EventDecoder" target="_top" title="ABC for reading chunks of events from a IO source object." alt="" coords="125,5,239,31"/>
+</map><p>A decoder for reading events from binary files.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Not implemented yet – constructing this class raises
@@ -981,17 +962,10 @@ size=&quot;8.0, 12.0&quot;;
 <dt class="sig sig-object py" id="evutils.io.decoders.EventDecoder_Dat">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.io.decoders.</span></span><span class="sig-name descname"><span class="pre">EventDecoder_Dat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">evutils.io._source.ByteSource</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/evutils/io/_dat.html#EventDecoder_Dat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.decoders.EventDecoder_Dat" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../common/index.html#evutils.io.common.EventDecoder" title="evutils.io.common.EventDecoder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evutils.io.common.EventDecoder</span></code></a></p>
-digraph inheritance111e12bc12 {
-bgcolor=transparent;
-rankdir=LR;
-size=&quot;8.0, 12.0&quot;;
-  &quot;ABC&quot; [fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,tooltip=&quot;Helper class that provides a standard way to create an ABC using&quot;];
-  &quot;EventDecoder&quot; [URL=&quot;../common/index.html#evutils.io.common.EventDecoder&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;ABC for reading chunks of events from a IO source object.&quot;];
-  &quot;ABC&quot; -&gt; &quot;EventDecoder&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
-  &quot;EventDecoder_Dat&quot; [fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,tooltip=&quot;Decode Prophesee DAT files into ``EventArray`` chunks.&quot;];
-  &quot;EventDecoder&quot; -&gt; &quot;EventDecoder_Dat&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
-}
-<p>Decode Prophesee DAT files into <code class="docutils literal notranslate"><span class="pre">EventArray</span></code> chunks.</p>
+<div class="graphviz"><img src="../../../../_images/inheritance-cb094a5a17d822afb914f9a9d11accc211127d49.png" alt="Inheritance diagram of evutils.io.decoders.EventDecoder_Dat" usemap="#inheritance111e12bc12" class="inheritance graphviz" /></div>
+<map id="inheritance111e12bc12" name="inheritance111e12bc12">
+<area shape="rect" id="node2" href="../common/index.html#evutils.io.common.EventDecoder" target="_top" title="ABC for reading chunks of events from a IO source object." alt="" coords="125,5,239,31"/>
+</map><p>Decode Prophesee DAT files into <code class="docutils literal notranslate"><span class="pre">EventArray</span></code> chunks.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1134,17 +1108,10 @@ raw 32-bit timestamps are non-decreasing (no wrap).</p>
 <dt class="sig sig-object py" id="evutils.io.decoders.EventDecoder_Npz">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.io.decoders.</span></span><span class="sig-name descname"><span class="pre">EventDecoder_Npz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">evutils.io._source.ByteSource</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/evutils/io/_npz.html#EventDecoder_Npz"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.decoders.EventDecoder_Npz" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../common/index.html#evutils.io.common.EventDecoder" title="evutils.io.common.EventDecoder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evutils.io.common.EventDecoder</span></code></a></p>
-digraph inheritanced073b6aca9 {
-bgcolor=transparent;
-rankdir=LR;
-size=&quot;8.0, 12.0&quot;;
-  &quot;ABC&quot; [fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,tooltip=&quot;Helper class that provides a standard way to create an ABC using&quot;];
-  &quot;EventDecoder&quot; [URL=&quot;../common/index.html#evutils.io.common.EventDecoder&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;ABC for reading chunks of events from a IO source object.&quot;];
-  &quot;ABC&quot; -&gt; &quot;EventDecoder&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
-  &quot;EventDecoder_Npz&quot; [fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,tooltip=&quot;Decode events from an ``.npz`` archive, streaming chunk by chunk.&quot;];
-  &quot;EventDecoder&quot; -&gt; &quot;EventDecoder_Npz&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
-}
-<p>Decode events from an <code class="docutils literal notranslate"><span class="pre">.npz</span></code> archive, streaming chunk by chunk.</p>
+<div class="graphviz"><img src="../../../../_images/inheritance-4d07396d48f468b665c651b485310e5b9030e8ca.png" alt="Inheritance diagram of evutils.io.decoders.EventDecoder_Npz" usemap="#inheritanced073b6aca9" class="inheritance graphviz" /></div>
+<map id="inheritanced073b6aca9" name="inheritanced073b6aca9">
+<area shape="rect" id="node2" href="../common/index.html#evutils.io.common.EventDecoder" target="_top" title="ABC for reading chunks of events from a IO source object." alt="" coords="125,5,239,31"/>
+</map><p>Decode events from an <code class="docutils literal notranslate"><span class="pre">.npz</span></code> archive, streaming chunk by chunk.</p>
 <p>The archive members are read through zip streams: only <code class="docutils literal notranslate"><span class="pre">chunk_size</span></code>
 events are held in memory at a time, so arbitrarily large recordings can
 be iterated. Accepts either the four column members <code class="docutils literal notranslate"><span class="pre">t/x/y/p</span></code> or a
@@ -1255,17 +1222,10 @@ timestamp is &gt;= <code class="docutils literal notranslate"><span class="pre">
 <dt class="sig sig-object py" id="evutils.io.decoders.EventDecoder_EVT">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.io.decoders.</span></span><span class="sig-name descname"><span class="pre">EventDecoder_EVT</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">evutils.io._source.ByteSource</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_external_triggers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/evutils/io/_evt.html#EventDecoder_EVT"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.decoders.EventDecoder_EVT" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../common/index.html#evutils.io.common.EventDecoder" title="evutils.io.common.EventDecoder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evutils.io.common.EventDecoder</span></code></a></p>
-digraph inheritance8d6b5e5b1b {
-bgcolor=transparent;
-rankdir=LR;
-size=&quot;8.0, 12.0&quot;;
-  &quot;ABC&quot; [fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,tooltip=&quot;Helper class that provides a standard way to create an ABC using&quot;];
-  &quot;EventDecoder&quot; [URL=&quot;../common/index.html#evutils.io.common.EventDecoder&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;ABC for reading chunks of events from a IO source object.&quot;];
-  &quot;ABC&quot; -&gt; &quot;EventDecoder&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
-  &quot;EventDecoder_EVT&quot; [fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,tooltip=&quot;Decode Prophesee EVT2, EVT2.1, and EVT3 streams into ``EventArray`` chunks.&quot;];
-  &quot;EventDecoder&quot; -&gt; &quot;EventDecoder_EVT&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
-}
-<p>Decode Prophesee EVT2, EVT2.1, and EVT3 streams into <code class="docutils literal notranslate"><span class="pre">EventArray</span></code> chunks.</p>
+<div class="graphviz"><img src="../../../../_images/inheritance-69e23d267201e73755075bdaff6d9620d35b3280.png" alt="Inheritance diagram of evutils.io.decoders.EventDecoder_EVT" usemap="#inheritance8d6b5e5b1b" class="inheritance graphviz" /></div>
+<map id="inheritance8d6b5e5b1b" name="inheritance8d6b5e5b1b">
+<area shape="rect" id="node2" href="../common/index.html#evutils.io.common.EventDecoder" target="_top" title="ABC for reading chunks of events from a IO source object." alt="" coords="125,5,239,31"/>
+</map><p>Decode Prophesee EVT2, EVT2.1, and EVT3 streams into <code class="docutils literal notranslate"><span class="pre">EventArray</span></code> chunks.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1444,17 +1404,10 @@ target (returning the boundary chunk’s remainder to the caller).</p>
 <dt class="sig sig-object py" id="evutils.io.decoders.EventDecoder_AER">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">evutils.io.decoders.</span></span><span class="sig-name descname"><span class="pre">EventDecoder_AER</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">evutils.io._source.ByteSource</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">np.ndarray</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'zero'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_start</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/evutils/io/_aer.html#EventDecoder_AER"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#evutils.io.decoders.EventDecoder_AER" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../common/index.html#evutils.io.common.EventDecoder" title="evutils.io.common.EventDecoder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evutils.io.common.EventDecoder</span></code></a></p>
-digraph inheritance1b914b013c {
-bgcolor=transparent;
-rankdir=LR;
-size=&quot;8.0, 12.0&quot;;
-  &quot;ABC&quot; [fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,tooltip=&quot;Helper class that provides a standard way to create an ABC using&quot;];
-  &quot;EventDecoder&quot; [URL=&quot;../common/index.html#evutils.io.common.EventDecoder&quot;,fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,target=&quot;_top&quot;,tooltip=&quot;ABC for reading chunks of events from a IO source object.&quot;];
-  &quot;ABC&quot; -&gt; &quot;EventDecoder&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
-  &quot;EventDecoder_AER&quot; [fillcolor=white,fontname=&quot;Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans&quot;,fontsize=10,height=0.25,shape=box,style=&quot;setlinewidth(0.5),filled&quot;,tooltip=&quot;Decode raw AER streams into ``EventArray`` chunks. Since AER is designed&quot;];
-  &quot;EventDecoder&quot; -&gt; &quot;EventDecoder_AER&quot; [arrowsize=0.5,style=&quot;setlinewidth(0.5)&quot;];
-}
-<p>Decode raw AER streams into <code class="docutils literal notranslate"><span class="pre">EventArray</span></code> chunks. Since AER is designed
+<div class="graphviz"><img src="../../../../_images/inheritance-82367d48e0b7fd4f1f0daba7863e02824b360b62.png" alt="Inheritance diagram of evutils.io.decoders.EventDecoder_AER" usemap="#inheritance1b914b013c" class="inheritance graphviz" /></div>
+<map id="inheritance1b914b013c" name="inheritance1b914b013c">
+<area shape="rect" id="node2" href="../common/index.html#evutils.io.common.EventDecoder" target="_top" title="ABC for reading chunks of events from a IO source object." alt="" coords="125,5,239,31"/>
+</map><p>Decode raw AER streams into <code class="docutils literal notranslate"><span class="pre">EventArray</span></code> chunks. Since AER is designed
 for real-time streaming, it has no header and no timestamps; see the
 <code class="docutils literal notranslate"><span class="pre">timestamps</span></code> parameter for how the <code class="docutils literal notranslate"><span class="pre">t</span></code> column is generated.</p>
 <dl class="field-list simple">

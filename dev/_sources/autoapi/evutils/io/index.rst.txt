@@ -148,8 +148,11 @@ Package Contents
                  ``False`` all build an exact in-memory index lazily on the first seek
                  (``False`` additionally never touches a sidecar). ``"metavision"`` reads
                  a Metavision ``.tmp_index`` sidecar instead -- fast, but approximate near
-                 large event gaps. Only EVT formats use an index; others seek by record
-                 math or ``searchsorted``.
+                 large event gaps. ``"persist"`` builds evutils' own exact index on the
+                 first seek and writes it to a ``<raw>.evidx`` sidecar, then loads that
+                 sidecar on subsequent opens instead of rebuilding (exact and reused
+                 across runs). Only EVT formats use an index; others seek by record math
+                 or ``searchsorted``.
    :type index: str or bool, default="auto"
    :param strict: Corrupt-packet policy. When False (default), a malformed packet is
                   skipped with a :class:`UserWarning` and decoding resumes -- a robust
@@ -253,7 +256,26 @@ Package Contents
 
 
 
-   .. py:method:: seek(t: int | None = None, n: int | None = None, relative: bool = False) -> int
+   .. py:property:: last_seek
+      :type: SeekResult | None
+
+
+      The :class:`~evutils.io.common.SeekResult` of the most recent
+      :meth:`seek`, or ``None`` if no seek has been performed.
+
+
+   .. py:property:: event_index
+      :type: int
+
+
+      the number of events already read (and,
+      after a :meth:`seek`, the index the cursor landed on). Complements
+      :meth:`tell` (byte position) with an unambiguous event-coordinate.
+
+      :type: Current 0-based event index
+
+
+   .. py:method:: seek(t: int | None = None, n: int | None = None, relative: bool = False) -> evutils.io.common.SeekResult
 
       Reposition the read cursor by timestamp or event index.
 
@@ -275,8 +297,12 @@ Package Contents
       :param relative: Interpret ``t`` / ``n`` relative to the current cursor.
       :type relative: bool, optional
 
-      :returns: The absolute timestamp of the first event that will be read next.
-      :rtype: int
+      :returns: A named tuple ``(ts, index, eof)``: the absolute timestamp of the
+                first event that will be read next (``ts``, also the tuple's first
+                field for backward compatibility), the 0-based event index it landed
+                on (``index``), and whether the seek ran off the end of the stream
+                (``eof``). Also stored on :attr:`last_seek`.
+      :rtype: SeekResult
 
       :raises NotImplementedError: If the decoder does not support seeking.
       :raises ValueError: If neither or both of ``t`` / ``n`` are given.
