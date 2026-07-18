@@ -8,18 +8,30 @@ render loop drives four interchangeable decoder backends, selected with
 Backend packages are imported lazily inside their own setup branch, so a
 backend you do not use (and have not installed) never needs to be importable.
 
+Playback defaults are tuned for *smooth* viewing, not raw throughput: a 33 ms
+delta_t window (~30 fps), real-time pacing on, and the synchronous reader. Large
+windows (e.g. --window 200000) show few, huge frames and look choppy on any
+decoder; async prefetch competes with the numba histogram for the GIL / memory
+bandwidth and adds jitter, so it is off by default. For a decode benchmark,
+turn pacing off and prefetch on: ``--no-real-time --async-read --no-timing``.
+
 Usage examples
 --------------
-evutils async reader (default) on a delta_t window::
+evutils reader, smooth 30 fps playback (default)::
 
     python examples/play.py ./data/fan/evt3_fan.raw
 
-evutils async reader, 100 ms windows, real-time paced at 2x::
+evutils reader, 100 ms windows, real-time paced at 2x::
 
     python examples/play.py ./data/fan/evt3_fan.raw --mode delta_t --window 100000 \\
-        --real-time --playback-speed 2.0 --prefetch-depth 6
+        --playback-speed 2.0
 
-evutils async reader, fixed count windows::
+evutils reader, decode-throughput mode (async prefetch, no pacing)::
+
+    python examples/play.py ./data/fan/evt3_fan.raw --window 200000 \\
+        --async-read --no-real-time
+
+evutils reader, fixed count windows::
 
     python examples/play.py ./data/fan/evt3_fan.raw --mode n_events --window 500000
 
@@ -99,11 +111,13 @@ def build_iterator(args):
     """
     backend = args.backend
 
-    # Flags that only apply to the evutils async reader; warn if set otherwise.
+    # Flags that only apply to the evutils reader; warn if explicitly set
+    # otherwise. (real_time defaults on, so it is not in this list -- only
+    # non-default overrides are worth a note.)
     def _note_ignored_evutils_flags():
         ignored = []
-        if args.real_time:
-            ignored.append("--real-time")
+        if args.async_read:
+            ignored.append("--async-read")
         if args.playback_speed != 1.0:
             ignored.append("--playback-speed")
         if args.prefetch_depth != 2:
@@ -129,7 +143,7 @@ def build_iterator(args):
         it = EventReader(
             args.file,
             normalize_ts=args.normalize_ts,
-            async_read=True,
+            async_read=args.async_read,
             prefetch_depth=args.prefetch_depth,
             reuse_buffers=args.reuse_buffers,
             real_time=args.real_time,
@@ -287,23 +301,32 @@ def main():
     parser.add_argument(
         "--window",
         type=int,
-        default=10000,
+        default=33_000,
         help="window size: microseconds for delta_t, event "
-        "count for n_events (default: 10000)",
+        "count for n_events (default: 33000 = ~30 fps)",
     )
 
-    # evutils async-reader tuning (ignored-with-note for other backends)
+    # evutils reader tuning (ignored-with-note for other backends)
+    parser.add_argument(
+        "--async-read",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        dest="async_read",
+        help="[evutils] decode ahead on a worker thread; raises throughput "
+        "but adds playback jitter (default: off -- smoother for viewing)",
+    )
     parser.add_argument(
         "--prefetch-depth",
         type=int,
         default=2,
-        help="[evutils] windows to decode ahead (default: 2)",
+        help="[evutils] windows to decode ahead when --async-read (default: 2)",
     )
     parser.add_argument(
         "--real-time",
-        action="store_true",
-        default=False,
-        help="[evutils] pace playback to the recording timeline",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="[evutils] pace playback to the recording timeline "
+        "(default: on; use --no-real-time to play as fast as decoded)",
     )
     parser.add_argument(
         "--playback-speed",
