@@ -1,0 +1,170 @@
+:py:mod:`evutils.io.v2`
+=======================
+
+.. py:module:: evutils.io.v2
+
+.. autoapi-nested-parse::
+
+   Decomposed :class:`EventReader` (V2).
+
+   A drop-in reimplementation of :class:`evutils.io.EventReader` (V1) built as a
+   thin facade over a shared :class:`~evutils.io.v2.context.ReadContext`, per-mode
+   :mod:`~evutils.io.v2.strategies`, a :class:`~evutils.io.v2.cursor.SeekCursor`,
+   and a :class:`~evutils.io.v2.pacing.Pacer`. Same public surface and semantics
+   as V1; the monolith is decomposed for maintainability without perf regression.
+
+
+
+Submodules
+----------
+
+.. toctree::
+   :hidden:
+   :maxdepth: 1
+
+   /autoapi/evutils/io/v2/context/index
+   /autoapi/evutils/io/v2/cursor/index
+   /autoapi/evutils/io/v2/pacing/index
+   /autoapi/evutils/io/v2/reader/index
+   /autoapi/evutils/io/v2/strategies/index
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 0
+
+   * - :py:mod:`context <evutils.io.v2.context>`
+     - Shared read state for the decomposed :class:`EventReader` (V2).
+   * - :py:mod:`cursor <evutils.io.v2.cursor>`
+     - Random-access seeking for the decomposed :class:`EventReader` (V2).
+   * - :py:mod:`pacing <evutils.io.v2.pacing>`
+     - Real-time playback pacing for the decomposed :class:`EventReader` (V2).
+   * - :py:mod:`reader <evutils.io.v2.reader>`
+     - Decomposed :class:`EventReader` facade (V2).
+   * - :py:mod:`strategies <evutils.io.v2.strategies>`
+     - Per-mode window strategies for the decomposed :class:`EventReader` (V2).
+
+Classes
+-------
+
+.. autoapisummary::
+
+   evutils.io.v2.EventReader
+
+
+Package Contents
+----------------
+
+.. py:class:: EventReader(file: Path | str | io.BufferedReader | bytes | ByteSource, delta_t: int | None = None, n_events: int | None = None, mode: str = 'auto', start_ts: int = 0, normalize_ts: bool = False, max_time: int = 1000000000000, max_events: int = 10000000, width: int | None = None, height: int | None = None, ext_trigger: bool = False, async_read: bool = False, prefetch_depth: int | None = None, reuse_buffers: bool = False, real_time: bool = False, playback_speed: float = 1.0, max_gap: float | None = 1.0, index: str | bool = 'auto', strict: bool = False, batch_mode: bool = False, file_decoder: evutils.io.decoders.EventDecoder | type[ev_decoders.EventDecoder] | None = None, **kwargs)
+
+   Reads and automatically decodes / slices events from a file or stream.
+
+   Decomposed reimplementation of :class:`evutils.io.EventReader` (V1): same
+   public surface and semantics, but the read modes, seeking, pacing, and
+   buffer recycling live in separate collaborating components instead of one
+   monolith. See the V1 docstring for the full parameter reference.
+
+
+   .. py:attribute:: READING_MODES
+      :value: ['delta_t', 'n_events', 'mixed', 'all', 'auto']
+
+
+
+   .. py:attribute:: DEFAULT_N_EVENTS
+      :value: 1000000
+
+
+
+   .. py:attribute:: DEFAULT_DELTA_T
+      :value: 10000
+
+
+
+   .. py:attribute:: ctx
+
+
+   .. py:method:: init() -> None
+
+      Initialize the reader (implicitly done on first read).
+
+
+
+   .. py:method:: read(delta_t: int | None = None, n_events: int | None = None) -> EventArray | tuple[EventArray, TriggerArray]
+
+      Read one window based on the mode / parameters.
+
+
+
+   .. py:method:: read_all() -> EventArray | tuple[EventArray, TriggerArray]
+
+      Decode and return every remaining event at once.
+
+
+
+   .. py:method:: __iter__() -> Iterator[EventArray]
+
+      Iterate over the windows in the file (optionally async / paced).
+
+
+
+   .. py:method:: seek(t: int | None = None, n: int | None = None, relative: bool = False) -> evutils.io.common.SeekResult
+
+      Reposition the read cursor by timestamp or event index.
+
+
+
+   .. py:property:: last_seek
+      :type: SeekResult | None
+
+
+      The :class:`SeekResult` of the most recent :meth:`seek`, or ``None``.
+
+
+   .. py:property:: event_index
+      :type: int
+
+
+      Current 0-based event index (events read so far / seek landing).
+
+
+   .. py:method:: reset() -> None
+
+      Reset the reader back to the beginning of the file.
+
+
+
+   .. py:method:: is_eof() -> bool
+
+      True once the stream is drained and nothing remains buffered.
+
+
+
+   .. py:method:: close() -> None
+
+      Close the reader and release resources.
+
+
+
+   .. py:method:: shape() -> tuple[int | None, int | None]
+
+      Get the (width, height) of the frame.
+
+
+
+   .. py:method:: tell() -> int
+
+      Current byte position in the file.
+
+
+
+   .. py:method:: __enter__() -> EventReader
+
+
+   .. py:method:: __exit__(exc_type: type[BaseException] | None, exc_value: BaseException | None, traceback: types.TracebackType | None) -> None
+
+
+   .. py:method:: __len__() -> int
+
+
+   .. py:method:: __repr__() -> str
+
+

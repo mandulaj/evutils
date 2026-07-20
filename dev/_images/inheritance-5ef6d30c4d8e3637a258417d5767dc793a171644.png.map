@@ -1,0 +1,5 @@
+<map id="inheritance25a103151b" name="inheritance25a103151b">
+<area shape="rect" id="node1" title="Helper class that provides a standard way to create an ABC using" alt="" coords="5,5,77,31"/>
+<area shape="rect" id="node3" href="#evutils.io.v2.strategies.WindowStrategy" target="_top" title="Produces successive windows over a :class:`ReadContext`." alt="" coords="125,5,255,31"/>
+<area shape="rect" id="node2" href="#evutils.io.v2.strategies.DeltaTStrategy" target="_top" title="One ``delta_t`` window per call, zero&#45;copy." alt="" coords="303,5,423,31"/>
+</map>

@@ -1,0 +1,261 @@
+:py:mod:`evutils.io.v2.context`
+===============================
+
+.. py:module:: evutils.io.v2.context
+
+.. autoapi-nested-parse::
+
+   Shared read state for the decomposed :class:`EventReader` (V2).
+
+   ``ReadContext`` gathers the cross-cutting state that the V1 monolith scattered
+   as ``self._*`` instance attributes onto ``EventReader``. Every strategy, the
+   seek cursor, and the pacer read and mutate this single object, so the coupling
+   that used to be implicit (the ``_dt_carry`` hand-off between the fast paths and
+   the accumulator loop; the ``_anchored`` / ``_first_ts`` sharing; the reuse ring)
+   is now explicit and owned in one place.
+
+   The numeric helpers here are ported verbatim (behaviour-for-behaviour) from the
+   monolith's private methods so the strategies keep bit-for-bit parity with V1.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   evutils.io.v2.context.ReadContext
+
+
+Module Contents
+---------------
+
+.. py:class:: ReadContext
+
+   Mutable cross-cutting state shared by every V2 read component.
+
+   Holds the decoder, the normalization origin, the anchoring flags, the
+   staging accumulator (lazy), the delta_t fast-path carry + reuse ring, and
+   the running event counter -- i.e. exactly the ``self._*`` fields the V1
+   monolith mutated across its read methods.
+
+
+   .. py:attribute:: decoder
+      :type:  evutils.io.common.EventDecoder
+
+
+   .. py:attribute:: normalize_ts
+      :type:  bool
+      :value: False
+
+
+
+   .. py:attribute:: start_ts
+      :type:  int
+      :value: 0
+
+
+
+   .. py:attribute:: first_ts
+      :type:  int
+      :value: 0
+
+
+
+   .. py:attribute:: current_ts
+      :type:  int
+      :value: 0
+
+
+
+   .. py:attribute:: anchored
+      :type:  bool
+      :value: False
+
+
+
+   .. py:attribute:: eof
+      :type:  bool
+      :value: False
+
+
+
+   .. py:attribute:: n_read_events
+      :type:  int
+      :value: 0
+
+
+
+   .. py:attribute:: delta_t
+      :type:  int
+      :value: 10000
+
+
+
+   .. py:attribute:: n_events
+      :type:  int
+      :value: 1000000
+
+
+
+   .. py:attribute:: read_external_triggers
+      :type:  bool
+      :value: False
+
+
+
+   .. py:attribute:: accumulator
+      :type:  EventAccumulator | None
+      :value: None
+
+
+
+   .. py:attribute:: acc_capacity
+      :type:  int
+      :value: 1048576
+
+
+
+   .. py:attribute:: native_fill
+      :type:  bool
+      :value: False
+
+
+
+   .. py:attribute:: step
+      :type:  int
+      :value: 1048576
+
+
+
+   .. py:attribute:: dt_step
+      :type:  int
+      :value: 131072
+
+
+
+   .. py:attribute:: dt_carry
+      :type:  EventSoABuffers | None
+      :value: None
+
+
+
+   .. py:attribute:: dt_est
+      :type:  int
+      :value: 1048576
+
+
+
+   .. py:attribute:: dt_tr
+      :type:  TriggerSoABuffers | None
+      :value: None
+
+
+
+   .. py:attribute:: reuse_buffers
+      :type:  bool
+      :value: False
+
+
+
+   .. py:attribute:: dt_slots
+      :type:  list
+      :value: []
+
+
+
+   .. py:attribute:: dt_slot_i
+      :type:  int
+      :value: 0
+
+
+
+   .. py:attribute:: async_read
+      :type:  bool
+      :value: False
+
+
+
+   .. py:attribute:: prefetch_depth
+      :type:  int | None
+      :value: None
+
+
+
+   .. py:method:: ensure_accumulator() -> evutils.io.buffer.EventAccumulator
+
+      Allocate the staging accumulator on first use and return it.
+
+
+
+   .. py:method:: anchor_first_ts(ts: int) -> None
+
+      Record ``ts`` as the stream's first timestamp / window origin.
+
+      Sets ``first_ts``, resets the window clock to it, and marks the context
+      anchored (mirrors the ``self._first_ts = ...; self._current_ts = ...;
+      self._anchored = True`` triple the monolith repeated).
+
+
+
+   .. py:method:: dt_trigger_sink() -> evutils.io._native_core.TriggerSoABuffers
+
+      Lazily-allocated throwaway trigger sink for the delta_t fast path.
+
+      Reset before every ``parse_step`` so it never fills and stalls the
+      parser on a trigger-dense region. Only used when the caller did not
+      request external triggers, so its contents are always discarded.
+
+
+
+   .. py:method:: grow_out(out: evutils.io._native_core.EventSoABuffers, step: int) -> None
+      :staticmethod:
+
+
+      Ensure ``out`` has room for one more ``step`` events, then cap the SoA
+      capacity the parser sees to ``size + step`` so a single ``parse_step``
+      overshoots the time window by at most one step's worth.
+
+
+
+   .. py:method:: dt_ring_size() -> int
+
+      Number of recycled window buffers needed so no live window is
+      overwritten: the consumer's current window plus one being decoded
+      (sync), plus everything an async prefetch may hold queued.
+
+
+
+   .. py:method:: acquire_window_buffer(need: int) -> evutils.io._native_core.EventSoABuffers
+
+      Decode buffer for one delta_t window, sized for ``need`` events.
+
+      Default: a fresh buffer per window (independent result, safe to keep).
+      With ``reuse_buffers``: cycle the persistent ring -- pages stay warm, no
+      per-window allocation -- and the returned window aliases the slot until
+      the ring wraps back to it.
+
+
+
+   .. py:method:: peek_first_ts() -> int | None
+
+      Timestamp of the stream's first event, without disturbing later reads.
+
+      Decodes a small scratch batch to learn the first timestamp; the caller
+      then :meth:`~decoder.reset`\ s the decoder so the real window-0 decode
+      starts cleanly from the beginning. Returns ``None`` if the stream is
+      empty.
+
+
+
+   .. py:method:: flush_dt_carry() -> None
+
+      Fold a pending delta_t fast-path overshoot into the accumulator.
+
+      The fast paths keep up to one decode step of overshoot in ``dt_carry``;
+      any code path that reads via the accumulator (mixed-mode overrides,
+      ``read_all``) must fold it in first or those events are silently lost.
+      Allocates the accumulator if needed.
+
+
+

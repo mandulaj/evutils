@@ -1,0 +1,1104 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>evutils.io.v2.strategies &#8212; evutils v0.3.18 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../../../../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../../../../_static/documentation_options.js?v=17cf1cbd"></script>
+    <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/evutils/io/v2/strategies';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://mandulaj.github.io/evutils/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'dev';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script defer="defer" src="../../../../_static/pypi-icon.js?v=6c11050f"></script>
+    <link rel="icon" href="../../../../_static/event_hexagon_broken.webp"/>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="../../../../_static/searchtools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../../_static/event_hexagon_broken.webp" class="logo__image only-light" alt=""/>
+    <img src="../../../../_static/event_hexagon_broken.webp" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">EV-Utils</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../formats.html">
+    Supported Formats
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../benchmarks/README.html">
+    Benchmarks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/mandulaj/evutils/tree/dev" title="dev branch" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-tag fa-lg" aria-hidden="true"></i><span class="visually-hidden">dev branch</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/mandulaj/evutils" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/evutils/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-custom fa-lg" data-prefix="fa-custom" data-icon="pypi" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mandulaj.github.io/evutils/coverage/" title="Coverage" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-shield-halved fa-lg" aria-hidden="true"></i><span class="visually-hidden">Coverage</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../formats.html">
+    Supported Formats
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../benchmarks/README.html">
+    Benchmarks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/mandulaj/evutils/tree/dev" title="dev branch" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-tag fa-lg" aria-hidden="true"></i><span class="visually-hidden">dev branch</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/mandulaj/evutils" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/evutils/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-custom fa-lg" data-prefix="fa-custom" data-icon="pypi" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mandulaj.github.io/evutils/coverage/" title="Coverage" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-shield-halved fa-lg" aria-hidden="true"></i><span class="visually-hidden">Coverage</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">evutils.io.v2.strategies</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for evutils.io.v2.strategies</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Per-mode window strategies for the decomposed :class:`EventReader` (V2).</span>
+
+<span class="sd">Each :class:`WindowStrategy` produces the next window from a shared</span>
+<span class="sd">:class:`~evutils.io.v2.context.ReadContext`. The concrete strategies absorb the</span>
+<span class="sd">V1 monolith&#39;s read methods behaviour-for-behaviour (the numeric logic is pinned</span>
+<span class="sd">by tests and ported verbatim):</span>
+
+<span class="sd">* :class:`DeltaTStrategy` -- the two delta_t fast paths (dedicated C parser or</span>
+<span class="sd">  ``searchsorted`` + overshoot carry), sharing the ``_finalize`` tail.</span>
+<span class="sd">* :class:`NEventsStrategy` -- zero-copy native fill, ``read_chunk`` passthrough.</span>
+<span class="sd">* :class:`MixedStrategy` -- the general accumulator while-loop (both cutoffs).</span>
+<span class="sd">* :class:`AllStrategy` -- drain-to-EOF, plus the full-payload ``read_all``.</span>
+
+<span class="sd">``select_strategy`` reproduces the dispatch guards from V1&#39;s ``_read_impl``.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">...types</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventArray</span><span class="p">,</span> <span class="n">TriggerArray</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.._native_core</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span><span class="n">EVUTILS_PARSE_OUTPUT_FULL</span><span class="p">,</span> <span class="n">EVUTILS_PARSE_WINDOW_DONE</span><span class="p">,</span>
+                            <span class="n">EventSoABuffers</span><span class="p">,</span> <span class="n">TriggerSoABuffers</span><span class="p">,</span> <span class="n">events_view</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.context</span><span class="w"> </span><span class="kn">import</span> <span class="n">ReadContext</span>
+
+
+<div class="viewcode-block" id="WindowStrategy">
+<a class="viewcode-back" href="../../../../autoapi/evutils/io/v2/strategies/index.html#evutils.io.v2.strategies.WindowStrategy">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WindowStrategy</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Produces successive windows over a :class:`ReadContext`.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;ReadContext&quot;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span> <span class="o">=</span> <span class="n">ctx</span>
+
+<div class="viewcode-block" id="WindowStrategy.next_window">
+<a class="viewcode-back" href="../../../../autoapi/evutils/io/v2/strategies/index.html#evutils.io.v2.strategies.WindowStrategy.next_window">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">next_window</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">:</span> <span class="s2">&quot;int | None&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">n_events</span><span class="p">:</span> <span class="s2">&quot;int | None&quot;</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;EventArray | tuple[EventArray, TriggerArray]&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Decode and return the next window (empty at EOF).&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+
+<div class="viewcode-block" id="WindowStrategy.reset">
+<a class="viewcode-back" href="../../../../autoapi/evutils/io/v2/strategies/index.html#evutils.io.v2.strategies.WindowStrategy.reset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Hook for strategy-local state reset (context state is reset by the</span>
+<span class="sd">        reader). No strategy keeps state outside the context, so this is a</span>
+<span class="sd">        no-op by default.&quot;&quot;&quot;</span></div>
+</div>
+
+
+
+<span class="c1"># --------------------------------------------------------------------------- #</span>
+<span class="c1"># delta_t</span>
+<span class="c1"># --------------------------------------------------------------------------- #</span>
+<div class="viewcode-block" id="DeltaTStrategy">
+<a class="viewcode-back" href="../../../../autoapi/evutils/io/v2/strategies/index.html#evutils.io.v2.strategies.DeltaTStrategy">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DeltaTStrategy</span><span class="p">(</span><span class="n">WindowStrategy</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;One ``delta_t`` window per call, zero-copy.</span>
+
+<span class="sd">    Picks its sub-path on ``decoder._has_delta_t_parser``: the dedicated C</span>
+<span class="sd">    parser (one GIL-free call per window, no boundary search) when present, else</span>
+<span class="sd">    the generic ``searchsorted`` + overshoot-carry path. Both share</span>
+<span class="sd">    :meth:`_finalize`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="DeltaTStrategy.next_window">
+<a class="viewcode-back" href="../../../../autoapi/evutils/io/v2/strategies/index.html#evutils.io.v2.strategies.DeltaTStrategy.next_window">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">next_window</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">:</span> <span class="s2">&quot;int | None&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">n_events</span><span class="p">:</span> <span class="s2">&quot;int | None&quot;</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;EventArray&quot;</span><span class="p">:</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">delta_t</span> <span class="k">if</span> <span class="n">delta_t</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span><span class="o">.</span><span class="n">delta_t</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">_has_delta_t_parser</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_c</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_fast</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span></div>
+
+
+    <span class="c1"># ---- shared tail (ported from _finalize_delta_t_window) ---------- #</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out</span><span class="p">:</span> <span class="s2">&quot;EventSoABuffers&quot;</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">count_cut</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+                  <span class="n">resume_ts</span><span class="p">:</span> <span class="s2">&quot;int | None&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;EventArray&quot;</span><span class="p">:</span>
+        <span class="n">ctx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span>
+        <span class="n">size</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">size</span>
+        <span class="c1"># Track the largest window seen so the next buffer is pre-sized for it.</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">dt_est</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">dt_est</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">count_cut</span><span class="p">:</span>
+            <span class="c1"># Count cutoff: continue the same time window on the next call.</span>
+            <span class="k">if</span> <span class="n">resume_ts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">ctx</span><span class="o">.</span><span class="n">current_ts</span> <span class="o">=</span> <span class="n">resume_ts</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">current_ts</span> <span class="o">+=</span> <span class="n">delta_t</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">n_read_events</span> <span class="o">+=</span> <span class="n">size</span>
+
+        <span class="n">output</span> <span class="o">=</span> <span class="n">events_view</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">normalize_ts</span><span class="p">:</span>
+            <span class="n">output</span><span class="o">.</span><span class="n">t</span> <span class="o">-=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">first_ts</span> <span class="o">-</span> <span class="n">ctx</span><span class="o">.</span><span class="n">start_ts</span>
+        <span class="k">return</span> <span class="n">output</span>
+
+    <span class="c1"># ---- searchsorted + carry path (ported from _read_delta_t_fast) -- #</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_read_fast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;EventArray&quot;</span><span class="p">:</span>
+        <span class="n">ctx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span>
+        <span class="n">dec</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">decoder</span>
+        <span class="n">step</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">dt_step</span>
+        <span class="n">n_cap</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">n_events</span>
+        <span class="n">tr</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">dt_trigger_sink</span><span class="p">()</span>
+
+        <span class="n">carry</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">dt_carry</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="n">carry</span><span class="o">.</span><span class="n">size</span> <span class="k">if</span> <span class="n">carry</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="n">need</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">dt_est</span> <span class="o">*</span> <span class="mi">5</span> <span class="o">//</span> <span class="mi">4</span> <span class="o">+</span> <span class="n">step</span><span class="p">,</span> <span class="n">k</span> <span class="o">+</span> <span class="n">step</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">acquire_window_buffer</span><span class="p">(</span><span class="n">need</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">k</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">t</span><span class="p">[:</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">carry</span><span class="o">.</span><span class="n">t</span><span class="p">[:</span><span class="n">k</span><span class="p">]</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">x</span><span class="p">[:</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">carry</span><span class="o">.</span><span class="n">x</span><span class="p">[:</span><span class="n">k</span><span class="p">]</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">y</span><span class="p">[:</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">carry</span><span class="o">.</span><span class="n">y</span><span class="p">[:</span><span class="n">k</span><span class="p">]</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">p</span><span class="p">[:</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">carry</span><span class="o">.</span><span class="n">p</span><span class="p">[:</span><span class="n">k</span><span class="p">]</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="n">k</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">dt_carry</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Anchor the stream&#39;s first timestamp / window origin on the very first</span>
+        <span class="c1"># decoded event (only reachable on the first call, when there is no carry).</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ctx</span><span class="o">.</span><span class="n">anchored</span> <span class="ow">and</span> <span class="n">out</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">while</span> <span class="n">out</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">dec</span><span class="o">.</span><span class="n">is_eof</span><span class="p">():</span>
+                <span class="n">ctx</span><span class="o">.</span><span class="n">grow_out</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span>
+                <span class="n">tr</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+                <span class="n">dec</span><span class="o">.</span><span class="n">parse_step</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">tr</span><span class="p">)</span>  <span class="c1"># type: ignore[attr-defined]</span>
+            <span class="k">if</span> <span class="n">out</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">ctx</span><span class="o">.</span><span class="n">eof</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">return</span> <span class="n">EventArray</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">anchor_first_ts</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+        <span class="n">end_ts</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">current_ts</span> <span class="o">+</span> <span class="n">delta_t</span>
+
+        <span class="c1"># Decode until the buffer holds an event at/after the time boundary, the</span>
+        <span class="c1"># count cap is exceeded, or the stream ends.</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">dec</span><span class="o">.</span><span class="n">is_eof</span><span class="p">():</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">size</span>
+            <span class="k">if</span> <span class="n">n</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">t</span><span class="p">[</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span> <span class="o">&gt;=</span> <span class="n">end_ts</span> <span class="ow">or</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="n">n_cap</span><span class="p">):</span>
+                <span class="k">break</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">grow_out</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span>
+            <span class="n">tr</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+            <span class="n">added</span> <span class="o">=</span> <span class="n">dec</span><span class="o">.</span><span class="n">parse_step</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">tr</span><span class="p">)</span>  <span class="c1"># type: ignore[attr-defined]</span>
+            <span class="k">if</span> <span class="n">added</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">dec</span><span class="o">.</span><span class="n">is_eof</span><span class="p">():</span>
+                <span class="k">break</span>
+
+        <span class="n">size</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">size</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">t</span><span class="p">[:</span><span class="n">size</span><span class="p">]</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">end_ts</span><span class="p">))</span> <span class="k">if</span> <span class="n">size</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="n">count_cut</span> <span class="o">=</span> <span class="n">idx</span> <span class="o">&gt;</span> <span class="n">n_cap</span>
+        <span class="k">if</span> <span class="n">count_cut</span><span class="p">:</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">n_cap</span>
+
+        <span class="c1"># Everything from idx on is overshoot: copy it (small) for the next call.</span>
+        <span class="k">if</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="n">size</span><span class="p">:</span>
+            <span class="n">rem</span> <span class="o">=</span> <span class="n">size</span> <span class="o">-</span> <span class="n">idx</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="n">EventSoABuffers</span><span class="p">(</span><span class="n">rem</span><span class="p">)</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">t</span><span class="p">[:</span><span class="n">rem</span><span class="p">]</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">t</span><span class="p">[</span><span class="n">idx</span><span class="p">:</span><span class="n">size</span><span class="p">]</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">x</span><span class="p">[:</span><span class="n">rem</span><span class="p">]</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">idx</span><span class="p">:</span><span class="n">size</span><span class="p">]</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">y</span><span class="p">[:</span><span class="n">rem</span><span class="p">]</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="n">idx</span><span class="p">:</span><span class="n">size</span><span class="p">]</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">p</span><span class="p">[:</span><span class="n">rem</span><span class="p">]</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">p</span><span class="p">[</span><span class="n">idx</span><span class="p">:</span><span class="n">size</span><span class="p">]</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="n">rem</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">dt_carry</span> <span class="o">=</span> <span class="n">c</span>
+
+        <span class="n">out</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="n">idx</span>
+        <span class="c1"># EOF only once the stream is drained *and* no overshoot remains, else the</span>
+        <span class="c1"># final carried events would never be emitted (is_eof() stops iteration).</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">eof</span> <span class="o">=</span> <span class="n">dec</span><span class="o">.</span><span class="n">is_eof</span><span class="p">()</span> <span class="ow">and</span> <span class="n">ctx</span><span class="o">.</span><span class="n">dt_carry</span> <span class="ow">is</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finalize</span><span class="p">(</span>
+            <span class="n">out</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">,</span> <span class="n">count_cut</span><span class="p">,</span>
+            <span class="n">resume_ts</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span> <span class="k">if</span> <span class="n">count_cut</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="c1"># ---- dedicated C parser path (ported from _read_delta_t_c) ------- #</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_read_c</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;EventArray&quot;</span><span class="p">:</span>
+        <span class="n">ctx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span>
+        <span class="n">dec</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">decoder</span>
+        <span class="n">n_cap</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">n_events</span>
+        <span class="n">tr</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">dt_trigger_sink</span><span class="p">()</span>
+
+        <span class="c1"># Anchor the window origin on the first event once, then rewind so the C</span>
+        <span class="c1"># parser redoes window 0 from the start with the right end_ts.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ctx</span><span class="o">.</span><span class="n">anchored</span><span class="p">:</span>
+            <span class="n">first</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">peek_first_ts</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">first</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">ctx</span><span class="o">.</span><span class="n">eof</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">return</span> <span class="n">EventArray</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">anchor_first_ts</span><span class="p">(</span><span class="n">first</span><span class="p">)</span>
+            <span class="n">dec</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">eof</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="n">end_ts</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">current_ts</span> <span class="o">+</span> <span class="n">delta_t</span>
+
+        <span class="n">out</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">acquire_window_buffer</span><span class="p">(</span>
+            <span class="nb">max</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">dt_est</span> <span class="o">*</span> <span class="mi">5</span> <span class="o">//</span> <span class="mi">4</span> <span class="o">+</span> <span class="n">ctx</span><span class="o">.</span><span class="n">dt_step</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">dt_step</span><span class="p">))</span>
+        <span class="c1"># The n_events safety cap (max_events in delta_t mode) is enforced by</span>
+        <span class="c1"># clamping the capacity the C parser sees, so a single C call can never</span>
+        <span class="c1"># decode past it.</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">capacity</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">capacity</span><span class="p">,</span> <span class="n">n_cap</span><span class="p">)</span>
+        <span class="n">count_cut</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">tr</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">status</span> <span class="o">=</span> <span class="n">dec</span><span class="o">.</span><span class="n">parse_step_delta_t</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">tr</span><span class="p">,</span> <span class="n">end_ts</span><span class="p">)</span>  <span class="c1"># type: ignore[attr-defined]</span>
+            <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="n">EVUTILS_PARSE_WINDOW_DONE</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="k">if</span> <span class="n">dec</span><span class="o">.</span><span class="n">is_eof</span><span class="p">():</span>
+                <span class="k">break</span>
+            <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="n">EVUTILS_PARSE_OUTPUT_FULL</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">out</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">capacity</span> <span class="o">&gt;=</span> <span class="n">n_cap</span><span class="p">:</span>
+                    <span class="c1"># Hit the max_events cap: emit what we have and continue</span>
+                    <span class="c1"># this same time window on the next call.</span>
+                    <span class="n">count_cut</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">break</span>
+                <span class="c1"># Window not finished but the buffer filled: grow and continue.</span>
+                <span class="n">new_cap</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">size</span> <span class="o">+</span> <span class="n">ctx</span><span class="o">.</span><span class="n">dt_step</span><span class="p">,</span>
+                                  <span class="nb">int</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">capacity</span> <span class="o">*</span> <span class="mf">1.5</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">n_cap</span><span class="p">)</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">grow</span><span class="p">(</span><span class="n">new_cap</span><span class="p">)</span>          <span class="c1"># realloc only if backing too small</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">capacity</span> <span class="o">=</span> <span class="n">new_cap</span>   <span class="c1"># parser-visible cap (recycled slots)</span>
+            <span class="c1"># else EVUTILS_PARSE_OK: input drained this call; loop (tail -&gt; EOF).</span>
+
+        <span class="c1"># On a normal window advance the clock; on a count-cut stay in the same</span>
+        <span class="c1"># time window so the next call continues it (matches the accumulator path).</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">eof</span> <span class="o">=</span> <span class="n">dec</span><span class="o">.</span><span class="n">is_eof</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finalize</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">,</span> <span class="n">count_cut</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># --------------------------------------------------------------------------- #</span>
+<span class="c1"># n_events</span>
+<span class="c1"># --------------------------------------------------------------------------- #</span>
+<div class="viewcode-block" id="NEventsStrategy">
+<a class="viewcode-back" href="../../../../autoapi/evutils/io/v2/strategies/index.html#evutils.io.v2.strategies.NEventsStrategy">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NEventsStrategy</span><span class="p">(</span><span class="n">WindowStrategy</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Pure ``n_events`` window, zero-copy.</span>
+
+<span class="sd">    Native zero-copy fill for exact-capacity decoders (EVT2/EVT4/DAT), or a</span>
+<span class="sd">    ``read_chunk`` passthrough for decoders whose chunks are already independent</span>
+<span class="sd">    and bounded (NPZ/CSV).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="NEventsStrategy.next_window">
+<a class="viewcode-back" href="../../../../autoapi/evutils/io/v2/strategies/index.html#evutils.io.v2.strategies.NEventsStrategy.next_window">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">next_window</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">:</span> <span class="s2">&quot;int | None&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">n_events</span><span class="p">:</span> <span class="s2">&quot;int | None&quot;</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;EventArray&quot;</span><span class="p">:</span>
+        <span class="n">ctx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span>
+        <span class="n">dec</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">decoder</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">n_events</span> <span class="k">if</span> <span class="n">n_events</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">ctx</span><span class="o">.</span><span class="n">n_events</span>
+        <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">native_fill</span> <span class="ow">and</span> <span class="n">dec</span><span class="o">.</span><span class="n">_exact_window</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_fast</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_readchunk</span><span class="p">(</span><span class="n">n</span><span class="p">)</span></div>
+
+
+    <span class="c1"># ---- zero-copy native fill (ported from _read_n_events_fast) ----- #</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_read_fast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_events</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;EventArray&quot;</span><span class="p">:</span>
+        <span class="n">ctx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span>
+        <span class="n">dec</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">decoder</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">EventSoABuffers</span><span class="p">(</span><span class="n">n_events</span><span class="p">)</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">capacity</span> <span class="o">=</span> <span class="n">n_events</span>
+        <span class="n">tr</span> <span class="o">=</span> <span class="n">TriggerSoABuffers</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">n_events</span> <span class="o">//</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">1024</span><span class="p">))</span>
+        <span class="k">while</span> <span class="n">out</span><span class="o">.</span><span class="n">size</span> <span class="o">&lt;</span> <span class="n">n_events</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">dec</span><span class="o">.</span><span class="n">is_eof</span><span class="p">():</span>
+            <span class="n">tr</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+            <span class="n">before</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">size</span>
+            <span class="n">dec</span><span class="o">.</span><span class="n">parse_step</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">tr</span><span class="p">)</span>  <span class="c1"># type: ignore[attr-defined]</span>
+            <span class="k">if</span> <span class="n">out</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="n">before</span> <span class="ow">and</span> <span class="n">dec</span><span class="o">.</span><span class="n">is_eof</span><span class="p">():</span>
+                <span class="k">break</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">eof</span> <span class="o">=</span> <span class="n">dec</span><span class="o">.</span><span class="n">is_eof</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">out</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">EventArray</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ctx</span><span class="o">.</span><span class="n">anchored</span><span class="p">:</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">anchor_first_ts</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">n_read_events</span> <span class="o">+=</span> <span class="n">out</span><span class="o">.</span><span class="n">size</span>
+
+        <span class="n">output</span> <span class="o">=</span> <span class="n">events_view</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">normalize_ts</span><span class="p">:</span>
+            <span class="n">output</span><span class="o">.</span><span class="n">t</span> <span class="o">-=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">first_ts</span> <span class="o">-</span> <span class="n">ctx</span><span class="o">.</span><span class="n">start_ts</span>
+        <span class="k">return</span> <span class="n">output</span>
+
+    <span class="c1"># ---- read_chunk passthrough (ported from _read_n_events_readchunk) #</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_read_readchunk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_events</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;EventArray&quot;</span><span class="p">:</span>
+        <span class="n">ctx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span>
+        <span class="n">dec</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">decoder</span>
+        <span class="n">chunk</span> <span class="o">=</span> <span class="n">dec</span><span class="o">.</span><span class="n">read_chunk</span><span class="p">(</span><span class="n">n_events_hint</span><span class="o">=</span><span class="n">n_events</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="n">chunk</span> <span class="o">=</span> <span class="n">chunk</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># A full window is exactly n_events; anything short means the stream is</span>
+        <span class="c1"># drained. (Do not use dec.is_eof(): for buffered decoders like CSV it</span>
+        <span class="c1"># signals &quot;input exhausted&quot; while read_chunk still has buffered events.)</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">eof</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">n_events</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">EventArray</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">n_read_events</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">first_ts</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">chunk</span><span class="o">.</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">current_ts</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">first_ts</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">n_read_events</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">normalize_ts</span><span class="p">:</span>
+            <span class="n">chunk</span><span class="o">.</span><span class="n">t</span> <span class="o">-=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">first_ts</span> <span class="o">-</span> <span class="n">ctx</span><span class="o">.</span><span class="n">start_ts</span>  <span class="c1"># chunk is independent</span>
+        <span class="k">return</span> <span class="n">chunk</span></div>
+
+
+
+<span class="c1"># --------------------------------------------------------------------------- #</span>
+<span class="c1"># accumulator loop (mixed + all share this)</span>
+<span class="c1"># --------------------------------------------------------------------------- #</span>
+<div class="viewcode-block" id="accumulator_window">
+<a class="viewcode-back" href="../../../../autoapi/evutils/io/v2/strategies/index.html#evutils.io.v2.strategies.accumulator_window">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">accumulator_window</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;ReadContext&quot;</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">:</span> <span class="s2">&quot;int | None&quot;</span><span class="p">,</span>
+                       <span class="n">n_events</span><span class="p">:</span> <span class="s2">&quot;int | None&quot;</span><span class="p">,</span> <span class="n">drain</span><span class="p">:</span> <span class="nb">bool</span>
+                       <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;EventArray | tuple[EventArray, TriggerArray]&quot;</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The general staging-accumulator window (ported from ``_read_impl`` tail).</span>
+
+<span class="sd">    Both cutoffs (time + count) are evaluated together; whichever falls earlier</span>
+<span class="sd">    wins. ``drain=True`` disables the cutoffs and reads to EOF (&quot;all&quot; mode). Any</span>
+<span class="sd">    pending delta_t fast-path overshoot is folded in first.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">acc</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">ensure_accumulator</span><span class="p">()</span>
+
+    <span class="c1"># If a delta_t fast path ran earlier and left an overshoot carry, fold it in</span>
+    <span class="c1"># first: those events precede anything the decoder emits next.</span>
+    <span class="n">ctx</span><span class="o">.</span><span class="n">flush_dt_carry</span><span class="p">()</span>
+
+    <span class="c1"># Override the parameters if they are specified.</span>
+    <span class="k">if</span> <span class="n">delta_t</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">delta_t</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">delta_t</span>
+    <span class="k">if</span> <span class="n">n_events</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">n_events</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">n_events</span>
+
+    <span class="c1"># Establish the first timestamp once, at the very start of the stream.</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ctx</span><span class="o">.</span><span class="n">anchored</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">acc</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">_pull</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">acc</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">,</span> <span class="n">n_events</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">eof</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">read_external_triggers</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">EventArray</span><span class="o">.</span><span class="n">empty</span><span class="p">(),</span> <span class="n">TriggerArray</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">EventArray</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">anchor_first_ts</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">acc</span><span class="o">.</span><span class="n">t_window</span><span class="p">()[</span><span class="mi">0</span><span class="p">]))</span>
+
+    <span class="n">start_ts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">current_ts</span>
+    <span class="n">end_ts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">start_ts</span> <span class="o">+</span> <span class="n">delta_t</span>  <span class="c1"># Final end_ts if we reach delta_t</span>
+    <span class="n">end_idx</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">acc</span><span class="p">)</span>
+
+    <span class="n">tr_end_idx</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">acc</span><span class="o">.</span><span class="n">_tr</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="n">acc</span><span class="o">.</span><span class="n">_tr_start</span>
+
+    <span class="c1"># Gather events until we hit the n_events count, the delta_t time window, or</span>
+    <span class="c1"># the end of the stream. Both cutoffs are evaluated together.</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">acc</span><span class="o">.</span><span class="n">t_window</span><span class="p">()</span>
+        <span class="n">time_ready</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">drain</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">t</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">end_ts</span>
+        <span class="n">count_ready</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">drain</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">acc</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">n_events</span>
+
+        <span class="k">if</span> <span class="n">time_ready</span> <span class="ow">or</span> <span class="n">count_ready</span><span class="p">:</span>
+            <span class="n">time_idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">end_ts</span><span class="p">))</span> <span class="k">if</span> <span class="n">time_ready</span> <span class="k">else</span> <span class="nb">len</span><span class="p">(</span><span class="n">acc</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">tr_t</span> <span class="o">=</span> <span class="n">acc</span><span class="o">.</span><span class="n">t_window_tr</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">count_ready</span> <span class="ow">and</span> <span class="n">time_idx</span> <span class="o">&gt;</span> <span class="n">n_events</span><span class="p">:</span>
+                <span class="c1"># n_events cutoff comes first</span>
+                <span class="n">end_idx</span> <span class="o">=</span> <span class="n">n_events</span>
+                <span class="n">ctx</span><span class="o">.</span><span class="n">current_ts</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="n">n_events</span><span class="p">])</span>
+                <span class="n">tr_end_idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">tr_t</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">current_ts</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># delta_t cutoff comes first (ties go to the time window)</span>
+                <span class="n">end_idx</span> <span class="o">=</span> <span class="n">time_idx</span>
+                <span class="n">ctx</span><span class="o">.</span><span class="n">current_ts</span> <span class="o">+=</span> <span class="n">delta_t</span>
+                <span class="n">tr_end_idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">tr_t</span><span class="p">,</span> <span class="n">end_ts</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">))</span>
+            <span class="k">break</span>
+
+        <span class="c1"># Not enough buffered yet: pull more from the decoder.</span>
+        <span class="k">if</span> <span class="n">_pull</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">acc</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">,</span> <span class="n">n_events</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">eof</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="c1"># Neither cutoff met, so the whole remaining buffer is the slice.</span>
+            <span class="n">end_idx</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">acc</span><span class="p">)</span>
+            <span class="n">tr_end_idx</span> <span class="o">=</span> <span class="n">acc</span><span class="o">.</span><span class="n">_tr</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="n">acc</span><span class="o">.</span><span class="n">_tr_start</span>
+            <span class="k">break</span>
+
+    <span class="c1"># Copy out the window (independent) and advance past it.</span>
+    <span class="n">output</span><span class="p">,</span> <span class="n">output_tr</span> <span class="o">=</span> <span class="n">acc</span><span class="o">.</span><span class="n">slice_copy</span><span class="p">(</span><span class="n">end_idx</span><span class="p">,</span> <span class="n">tr_end_idx</span><span class="p">)</span>
+    <span class="n">ctx</span><span class="o">.</span><span class="n">n_read_events</span> <span class="o">+=</span> <span class="n">end_idx</span>
+
+    <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">normalize_ts</span><span class="p">:</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">t</span> <span class="o">-=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">first_ts</span> <span class="o">-</span> <span class="n">ctx</span><span class="o">.</span><span class="n">start_ts</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">output_tr</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">output_tr</span><span class="o">.</span><span class="n">t</span> <span class="o">-=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">first_ts</span> <span class="o">-</span> <span class="n">ctx</span><span class="o">.</span><span class="n">start_ts</span>
+
+    <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">read_external_triggers</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">output</span><span class="p">,</span> <span class="n">output_tr</span>
+    <span class="k">return</span> <span class="n">output</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_pull</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;ReadContext&quot;</span><span class="p">,</span> <span class="n">acc</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n_events</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Pull more events into the accumulator (ported from ``_pull``).</span>
+
+<span class="sd">    Returns the number added (0 =&gt; end of stream). Native decoders decode</span>
+<span class="sd">    straight into the accumulator&#39;s storage (no copy); others have their</span>
+<span class="sd">    ``read_chunk`` output appended.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dec</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">decoder</span>
+    <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">native_fill</span><span class="p">:</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">dec</span><span class="o">.</span><span class="n">is_eof</span><span class="p">():</span>
+                <span class="k">return</span> <span class="mi">0</span>
+            <span class="n">ev</span><span class="p">,</span> <span class="n">tr</span> <span class="o">=</span> <span class="n">acc</span><span class="o">.</span><span class="n">prepare</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">step</span><span class="p">)</span>
+            <span class="n">added</span> <span class="o">=</span> <span class="n">dec</span><span class="o">.</span><span class="n">parse_step</span><span class="p">(</span><span class="n">ev</span><span class="p">,</span> <span class="n">tr</span><span class="p">)</span>  <span class="c1"># type: ignore[attr-defined]</span>
+            <span class="k">if</span> <span class="n">added</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">added</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">dec</span><span class="o">.</span><span class="n">is_eof</span><span class="p">():</span>
+                <span class="k">return</span> <span class="mi">0</span>
+            <span class="c1"># else: consumed only state/timing words; step again.</span>
+    <span class="n">chunk</span> <span class="o">=</span> <span class="n">dec</span><span class="o">.</span><span class="n">read_chunk</span><span class="p">(</span><span class="n">delta_t</span><span class="p">,</span> <span class="n">n_events</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+        <span class="n">chunk</span><span class="p">,</span> <span class="n">triggers</span> <span class="o">=</span> <span class="n">chunk</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">triggers</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="p">(</span><span class="n">triggers</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">triggers</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mi">0</span>
+    <span class="n">acc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="n">triggers</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">))</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">1</span>
+
+
+<div class="viewcode-block" id="MixedStrategy">
+<a class="viewcode-back" href="../../../../autoapi/evutils/io/v2/strategies/index.html#evutils.io.v2.strategies.MixedStrategy">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MixedStrategy</span><span class="p">(</span><span class="n">WindowStrategy</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The general accumulator window (both cutoffs). Handles ``mode=&#39;mixed&#39;``</span>
+<span class="sd">    and any per-call override that falls off a fast path.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="MixedStrategy.next_window">
+<a class="viewcode-back" href="../../../../autoapi/evutils/io/v2/strategies/index.html#evutils.io.v2.strategies.MixedStrategy.next_window">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">next_window</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">:</span> <span class="s2">&quot;int | None&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">n_events</span><span class="p">:</span> <span class="s2">&quot;int | None&quot;</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;EventArray | tuple[EventArray, TriggerArray]&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">accumulator_window</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ctx</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">,</span> <span class="n">n_events</span><span class="p">,</span> <span class="n">drain</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="AllStrategy">
+<a class="viewcode-back" href="../../../../autoapi/evutils/io/v2/strategies/index.html#evutils.io.v2.strategies.AllStrategy">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AllStrategy</span><span class="p">(</span><span class="n">WindowStrategy</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Drain-to-EOF (&quot;all&quot; mode). Also owns the full-payload ``read_all``.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="AllStrategy.next_window">
+<a class="viewcode-back" href="../../../../autoapi/evutils/io/v2/strategies/index.html#evutils.io.v2.strategies.AllStrategy.next_window">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">next_window</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">:</span> <span class="s2">&quot;int | None&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">n_events</span><span class="p">:</span> <span class="s2">&quot;int | None&quot;</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;EventArray | tuple[EventArray, TriggerArray]&quot;</span><span class="p">:</span>
+        <span class="c1"># &quot;all&quot; mode with per-call overrides degrades to a windowed read (drain</span>
+        <span class="c1"># is only taken when both overrides are None -- select_strategy enforces</span>
+        <span class="c1"># that, so here drain is always True).</span>
+        <span class="k">return</span> <span class="n">accumulator_window</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ctx</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">,</span> <span class="n">n_events</span><span class="p">,</span> <span class="n">drain</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AllStrategy.read_all">
+<a class="viewcode-back" href="../../../../autoapi/evutils/io/v2/strategies/index.html#evutils.io.v2.strategies.AllStrategy.read_all">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">read_all</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;EventArray | tuple[EventArray, TriggerArray]&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Decode and return every remaining event at once (ported from</span>
+<span class="sd">        ``EventReader.read_all``, minus the batch/sensor wrapping the facade</span>
+<span class="sd">        applies).&quot;&quot;&quot;</span>
+        <span class="n">ctx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span>
+        <span class="c1"># Fold in any delta_t fast-path overshoot so it is prepended below.</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">flush_dt_carry</span><span class="p">()</span>
+
+        <span class="n">_out</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">read_all</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">read_external_triggers</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">_out</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                <span class="n">out</span><span class="p">,</span> <span class="n">out_tr</span> <span class="o">=</span> <span class="n">_out</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">out</span> <span class="o">=</span> <span class="n">_out</span>
+                <span class="n">out_tr</span> <span class="o">=</span> <span class="n">TriggerArray</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">_out</span>  <span class="c1"># type: ignore</span>
+
+        <span class="c1"># Prepend anything already buffered by prior read() calls (rare).</span>
+        <span class="n">acc</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">accumulator</span>
+        <span class="k">if</span> <span class="n">acc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">acc</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">acc</span><span class="o">.</span><span class="n">_tr</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="n">acc</span><span class="o">.</span><span class="n">_tr_start</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="n">buffered</span><span class="p">,</span> <span class="n">buffered_tr</span> <span class="o">=</span> <span class="n">acc</span><span class="o">.</span><span class="n">slice_copy</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">acc</span><span class="p">),</span> <span class="n">acc</span><span class="o">.</span><span class="n">_tr</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="n">acc</span><span class="o">.</span><span class="n">_tr_start</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">out</span> <span class="o">=</span> <span class="n">buffered</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">buffered</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">out</span> <span class="o">=</span> <span class="n">EventArray</span><span class="p">(</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">buffered</span><span class="o">.</span><span class="n">t</span><span class="p">,</span> <span class="n">out</span><span class="o">.</span><span class="n">t</span><span class="p">]),</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">buffered</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">out</span><span class="o">.</span><span class="n">x</span><span class="p">]),</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">buffered</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">out</span><span class="o">.</span><span class="n">y</span><span class="p">]),</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">buffered</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="n">out</span><span class="o">.</span><span class="n">p</span><span class="p">]),</span>
+                <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">read_external_triggers</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">out_tr</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">out_tr</span> <span class="o">=</span> <span class="n">buffered_tr</span>
+                <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">buffered_tr</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">out_tr</span> <span class="o">=</span> <span class="n">TriggerArray</span><span class="p">(</span>
+                        <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">buffered_tr</span><span class="o">.</span><span class="n">t</span><span class="p">,</span> <span class="n">out_tr</span><span class="o">.</span><span class="n">t</span><span class="p">]),</span>
+                        <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">buffered_tr</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="n">out_tr</span><span class="o">.</span><span class="n">p</span><span class="p">]),</span>
+                        <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">buffered_tr</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">out_tr</span><span class="o">.</span><span class="n">id</span><span class="p">]),</span>
+                    <span class="p">)</span>
+
+        <span class="n">ctx</span><span class="o">.</span><span class="n">eof</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">n_read_events</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">normalize_ts</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">shift</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="n">ctx</span><span class="o">.</span><span class="n">start_ts</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">t</span> <span class="o">-=</span> <span class="n">shift</span>
+            <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">read_external_triggers</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">out_tr</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">out_tr</span><span class="o">.</span><span class="n">t</span> <span class="o">-=</span> <span class="n">shift</span>
+
+        <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">read_external_triggers</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">out</span><span class="p">,</span> <span class="n">out_tr</span>
+        <span class="k">return</span> <span class="n">out</span></div>
+</div>
+
+
+
+<span class="c1"># --------------------------------------------------------------------------- #</span>
+<span class="c1"># strategy selection (ported from _read_impl&#39;s dispatch guards)</span>
+<span class="c1"># --------------------------------------------------------------------------- #</span>
+<div class="viewcode-block" id="select_strategy">
+<a class="viewcode-back" href="../../../../autoapi/evutils/io/v2/strategies/index.html#evutils.io.v2.strategies.select_strategy">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">select_strategy</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;ReadContext&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">:</span> <span class="s2">&quot;int | None&quot;</span><span class="p">,</span>
+                    <span class="n">n_events</span><span class="p">:</span> <span class="s2">&quot;int | None&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">WindowStrategy</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Choose the strategy for a single read, reproducing V1&#39;s ``_read_impl``</span>
+<span class="sd">    dispatch (fast paths gated on mode, per-call overrides, triggers, buffer</span>
+<span class="sd">    emptiness, and decoder capabilities).&quot;&quot;&quot;</span>
+    <span class="n">dec</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">decoder</span>
+    <span class="n">acc</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">accumulator</span>
+    <span class="n">buffer_empty</span> <span class="o">=</span> <span class="n">acc</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">acc</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+
+    <span class="c1"># Fast path: pure n_events streaming, no time override, no triggers, nothing</span>
+    <span class="c1"># buffered.</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;n_events&quot;</span> <span class="ow">and</span> <span class="n">delta_t</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="ow">not</span> <span class="n">ctx</span><span class="o">.</span><span class="n">read_external_triggers</span> <span class="ow">and</span> <span class="n">buffer_empty</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">native_fill</span> <span class="ow">and</span> <span class="n">dec</span><span class="o">.</span><span class="n">_exact_window</span><span class="p">)</span> <span class="ow">or</span> <span class="n">dec</span><span class="o">.</span><span class="n">_independent_windows</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">NEventsStrategy</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+
+    <span class="c1"># Fast path: pure delta_t streaming with a native-fill decoder, no triggers,</span>
+    <span class="c1"># nothing buffered.</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;delta_t&quot;</span> <span class="ow">and</span> <span class="n">n_events</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">ctx</span><span class="o">.</span><span class="n">native_fill</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">ctx</span><span class="o">.</span><span class="n">read_external_triggers</span>
+            <span class="ow">and</span> <span class="n">buffer_empty</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">DeltaTStrategy</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+
+    <span class="c1"># &quot;all&quot; mode without per-call overrides drains to EOF.</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span> <span class="ow">and</span> <span class="n">delta_t</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">n_events</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">AllStrategy</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+
+    <span class="c1"># Everything else: the general accumulator loop.</span>
+    <span class="k">return</span> <span class="n">MixedStrategy</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Jakub Mandula.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.20.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

@@ -1,0 +1,180 @@
+:py:mod:`evutils.io.v2.strategies`
+==================================
+
+.. py:module:: evutils.io.v2.strategies
+
+.. autoapi-nested-parse::
+
+   Per-mode window strategies for the decomposed :class:`EventReader` (V2).
+
+   Each :class:`WindowStrategy` produces the next window from a shared
+   :class:`~evutils.io.v2.context.ReadContext`. The concrete strategies absorb the
+   V1 monolith's read methods behaviour-for-behaviour (the numeric logic is pinned
+   by tests and ported verbatim):
+
+   * :class:`DeltaTStrategy` -- the two delta_t fast paths (dedicated C parser or
+     ``searchsorted`` + overshoot carry), sharing the ``_finalize`` tail.
+   * :class:`NEventsStrategy` -- zero-copy native fill, ``read_chunk`` passthrough.
+   * :class:`MixedStrategy` -- the general accumulator while-loop (both cutoffs).
+   * :class:`AllStrategy` -- drain-to-EOF, plus the full-payload ``read_all``.
+
+   ``select_strategy`` reproduces the dispatch guards from V1's ``_read_impl``.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   evutils.io.v2.strategies.WindowStrategy
+   evutils.io.v2.strategies.DeltaTStrategy
+   evutils.io.v2.strategies.NEventsStrategy
+   evutils.io.v2.strategies.MixedStrategy
+   evutils.io.v2.strategies.AllStrategy
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   evutils.io.v2.strategies.accumulator_window
+   evutils.io.v2.strategies.select_strategy
+
+
+Module Contents
+---------------
+
+.. py:class:: WindowStrategy(ctx: evutils.io.v2.context.ReadContext)
+
+   Bases: :py:obj:`abc.ABC`
+
+   .. autoapi-inheritance-diagram:: evutils.io.v2.strategies.WindowStrategy
+      :parts: 1
+
+
+   Produces successive windows over a :class:`ReadContext`.
+
+
+   .. py:attribute:: ctx
+
+
+   .. py:method:: next_window(delta_t: int | None = None, n_events: int | None = None) -> EventArray | tuple[EventArray, TriggerArray]
+      :abstractmethod:
+
+
+      Decode and return the next window (empty at EOF).
+
+
+
+   .. py:method:: reset() -> None
+
+      Hook for strategy-local state reset (context state is reset by the
+      reader). No strategy keeps state outside the context, so this is a
+      no-op by default.
+
+
+
+.. py:class:: DeltaTStrategy(ctx: evutils.io.v2.context.ReadContext)
+
+   Bases: :py:obj:`WindowStrategy`
+
+   .. autoapi-inheritance-diagram:: evutils.io.v2.strategies.DeltaTStrategy
+      :parts: 1
+
+
+   One ``delta_t`` window per call, zero-copy.
+
+   Picks its sub-path on ``decoder._has_delta_t_parser``: the dedicated C
+   parser (one GIL-free call per window, no boundary search) when present, else
+   the generic ``searchsorted`` + overshoot-carry path. Both share
+   :meth:`_finalize`.
+
+
+   .. py:method:: next_window(delta_t: int | None = None, n_events: int | None = None) -> evutils.types.EventArray
+
+      Decode and return the next window (empty at EOF).
+
+
+
+.. py:class:: NEventsStrategy(ctx: evutils.io.v2.context.ReadContext)
+
+   Bases: :py:obj:`WindowStrategy`
+
+   .. autoapi-inheritance-diagram:: evutils.io.v2.strategies.NEventsStrategy
+      :parts: 1
+
+
+   Pure ``n_events`` window, zero-copy.
+
+   Native zero-copy fill for exact-capacity decoders (EVT2/EVT4/DAT), or a
+   ``read_chunk`` passthrough for decoders whose chunks are already independent
+   and bounded (NPZ/CSV).
+
+
+   .. py:method:: next_window(delta_t: int | None = None, n_events: int | None = None) -> evutils.types.EventArray
+
+      Decode and return the next window (empty at EOF).
+
+
+
+.. py:function:: accumulator_window(ctx: evutils.io.v2.context.ReadContext, delta_t: int | None, n_events: int | None, drain: bool) -> EventArray | tuple[EventArray, TriggerArray]
+
+   The general staging-accumulator window (ported from ``_read_impl`` tail).
+
+   Both cutoffs (time + count) are evaluated together; whichever falls earlier
+   wins. ``drain=True`` disables the cutoffs and reads to EOF ("all" mode). Any
+   pending delta_t fast-path overshoot is folded in first.
+
+
+.. py:class:: MixedStrategy(ctx: evutils.io.v2.context.ReadContext)
+
+   Bases: :py:obj:`WindowStrategy`
+
+   .. autoapi-inheritance-diagram:: evutils.io.v2.strategies.MixedStrategy
+      :parts: 1
+
+
+   The general accumulator window (both cutoffs). Handles ``mode='mixed'``
+   and any per-call override that falls off a fast path.
+
+
+   .. py:method:: next_window(delta_t: int | None = None, n_events: int | None = None) -> EventArray | tuple[EventArray, TriggerArray]
+
+      Decode and return the next window (empty at EOF).
+
+
+
+.. py:class:: AllStrategy(ctx: evutils.io.v2.context.ReadContext)
+
+   Bases: :py:obj:`WindowStrategy`
+
+   .. autoapi-inheritance-diagram:: evutils.io.v2.strategies.AllStrategy
+      :parts: 1
+
+
+   Drain-to-EOF ("all" mode). Also owns the full-payload ``read_all``.
+
+
+   .. py:method:: next_window(delta_t: int | None = None, n_events: int | None = None) -> EventArray | tuple[EventArray, TriggerArray]
+
+      Decode and return the next window (empty at EOF).
+
+
+
+   .. py:method:: read_all() -> EventArray | tuple[EventArray, TriggerArray]
+
+      Decode and return every remaining event at once (ported from
+      ``EventReader.read_all``, minus the batch/sensor wrapping the facade
+      applies).
+
+
+
+.. py:function:: select_strategy(ctx: evutils.io.v2.context.ReadContext, mode: str, delta_t: int | None, n_events: int | None) -> WindowStrategy
+
+   Choose the strategy for a single read, reproducing V1's ``_read_impl``
+   dispatch (fast paths gated on mode, per-call overrides, triggers, buffer
+   emptiness, and decoder capabilities).
+
+

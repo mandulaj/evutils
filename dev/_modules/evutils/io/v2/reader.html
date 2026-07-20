@@ -1,0 +1,999 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>evutils.io.v2.reader &#8212; evutils v0.3.18 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../../../../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../../../../_static/documentation_options.js?v=17cf1cbd"></script>
+    <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/evutils/io/v2/reader';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://mandulaj.github.io/evutils/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'dev';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script defer="defer" src="../../../../_static/pypi-icon.js?v=6c11050f"></script>
+    <link rel="icon" href="../../../../_static/event_hexagon_broken.webp"/>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="../../../../_static/searchtools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../../_static/event_hexagon_broken.webp" class="logo__image only-light" alt=""/>
+    <img src="../../../../_static/event_hexagon_broken.webp" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">EV-Utils</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../formats.html">
+    Supported Formats
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../benchmarks/README.html">
+    Benchmarks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/mandulaj/evutils/tree/dev" title="dev branch" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-tag fa-lg" aria-hidden="true"></i><span class="visually-hidden">dev branch</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/mandulaj/evutils" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/evutils/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-custom fa-lg" data-prefix="fa-custom" data-icon="pypi" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mandulaj.github.io/evutils/coverage/" title="Coverage" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-shield-halved fa-lg" aria-hidden="true"></i><span class="visually-hidden">Coverage</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../formats.html">
+    Supported Formats
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../benchmarks/README.html">
+    Benchmarks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/mandulaj/evutils/tree/dev" title="dev branch" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-tag fa-lg" aria-hidden="true"></i><span class="visually-hidden">dev branch</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/mandulaj/evutils" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/evutils/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-custom fa-lg" data-prefix="fa-custom" data-icon="pypi" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mandulaj.github.io/evutils/coverage/" title="Coverage" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-shield-halved fa-lg" aria-hidden="true"></i><span class="visually-hidden">Coverage</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">evutils.io.v2.reader</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for evutils.io.v2.reader</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Decomposed :class:`EventReader` facade (V2).</span>
+
+<span class="sd">A thin facade over :class:`~evutils.io.v2.context.ReadContext`, the per-mode</span>
+<span class="sd">:mod:`~evutils.io.v2.strategies`, the :class:`~evutils.io.v2.cursor.SeekCursor`,</span>
+<span class="sd">and the :class:`~evutils.io.v2.pacing.Pacer`. It parses / validates config and</span>
+<span class="sd">infers the read mode (ported from V1&#39;s ``__init__``), then delegates windowing,</span>
+<span class="sd">seeking, and pacing to those components. The public surface matches V1 exactly.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_types</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Iterator</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">...types</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventArray</span><span class="p">,</span> <span class="n">TriggerArray</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">decoders</span> <span class="k">as</span> <span class="n">ev_decoders</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.._prefetch</span><span class="w"> </span><span class="kn">import</span> <span class="n">PrefetchIterator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.._source</span><span class="w"> </span><span class="kn">import</span> <span class="n">ByteSource</span><span class="p">,</span> <span class="n">make_source</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..common</span><span class="w"> </span><span class="kn">import</span> <span class="n">SeekResult</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.context</span><span class="w"> </span><span class="kn">import</span> <span class="n">ReadContext</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.cursor</span><span class="w"> </span><span class="kn">import</span> <span class="n">SeekCursor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.pacing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pacer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.strategies</span><span class="w"> </span><span class="kn">import</span> <span class="n">AllStrategy</span><span class="p">,</span> <span class="n">select_strategy</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+
+<div class="viewcode-block" id="EventReader">
+<a class="viewcode-back" href="../../../../autoapi/evutils/io/v2/reader/index.html#evutils.io.v2.EventReader">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">EventReader</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Reads and automatically decodes / slices events from a file or stream.</span>
+
+<span class="sd">    Decomposed reimplementation of :class:`evutils.io.EventReader` (V1): same</span>
+<span class="sd">    public surface and semantics, but the read modes, seeking, pacing, and</span>
+<span class="sd">    buffer recycling live in separate collaborating components instead of one</span>
+<span class="sd">    monolith. See the V1 docstring for the full parameter reference.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">READING_MODES</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;delta_t&quot;</span><span class="p">,</span> <span class="s2">&quot;n_events&quot;</span><span class="p">,</span> <span class="s2">&quot;mixed&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="s2">&quot;auto&quot;</span><span class="p">]</span>
+    <span class="n">DEFAULT_N_EVENTS</span> <span class="o">=</span> <span class="mi">1_000_000</span>
+    <span class="n">DEFAULT_DELTA_T</span> <span class="o">=</span> <span class="mi">10_000</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="s2">&quot;Path | str | io.BufferedReader | bytes | ByteSource&quot;</span><span class="p">,</span>
+                 <span class="n">delta_t</span><span class="p">:</span> <span class="s2">&quot;int | None&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">n_events</span><span class="p">:</span> <span class="s2">&quot;int | None&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+                 <span class="n">start_ts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+                 <span class="n">normalize_ts</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                 <span class="n">max_time</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1_000_000_000_000</span><span class="p">,</span>
+                 <span class="n">max_events</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10_000_000</span><span class="p">,</span>
+                 <span class="n">width</span><span class="p">:</span> <span class="s2">&quot;int | None&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="s2">&quot;int | None&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">ext_trigger</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                 <span class="n">async_read</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                 <span class="n">prefetch_depth</span><span class="p">:</span> <span class="s2">&quot;int | None&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">reuse_buffers</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                 <span class="n">real_time</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                 <span class="n">playback_speed</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+                 <span class="n">max_gap</span><span class="p">:</span> <span class="s2">&quot;float | None&quot;</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+                 <span class="n">index</span><span class="p">:</span> <span class="s2">&quot;str | bool&quot;</span> <span class="o">=</span> <span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+                 <span class="n">strict</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                 <span class="n">batch_mode</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                 <span class="n">file_decoder</span><span class="p">:</span> <span class="s2">&quot;ev_decoders.EventDecoder | type[ev_decoders.EventDecoder] | None&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_name</span><span class="p">:</span> <span class="s2">&quot;Path | None&quot;</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">file</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">))</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_read_external_triggers</span> <span class="o">=</span> <span class="n">ext_trigger</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_batch_mode</span> <span class="o">=</span> <span class="n">batch_mode</span>
+
+        <span class="c1"># 1. Normalise the input into a ByteSource.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_source</span><span class="p">:</span> <span class="n">ByteSource</span> <span class="o">=</span> <span class="n">make_source</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+
+        <span class="c1"># 2. Resolve and launch the decoder.</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file_decoder</span><span class="p">,</span> <span class="n">ev_decoders</span><span class="o">.</span><span class="n">EventDecoder</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span> <span class="o">=</span> <span class="n">file_decoder</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">decoder_cls</span> <span class="o">=</span> <span class="n">file_decoder</span> <span class="ow">or</span> <span class="n">ev_decoders</span><span class="o">.</span><span class="n">resolve_decoder_cls</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_source</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span> <span class="o">=</span> <span class="n">decoder_cls</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_source</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span><span class="o">.</span><span class="n">read_external_triggers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_external_triggers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span><span class="o">.</span><span class="n">_strict</span> <span class="o">=</span> <span class="n">strict</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_external_triggers</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span><span class="o">.</span><span class="n">SUPPORTS_EXT_TRIGGERS</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> does not support reading external triggers.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_eof</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_width</span> <span class="o">=</span> <span class="n">width</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_height</span> <span class="o">=</span> <span class="n">height</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_start_ts</span> <span class="o">=</span> <span class="n">start_ts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_first_ts</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current_ts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_first_ts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_ts</span> <span class="o">=</span> <span class="n">normalize_ts</span>
+
+        <span class="c1"># Validate the parameters + infer mode (ported verbatim from V1).</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">EventReader</span><span class="o">.</span><span class="n">READING_MODES</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mode </span><span class="si">{</span><span class="n">mode</span><span class="si">}</span><span class="s2"> not supported. Supported modes are: </span><span class="si">{</span><span class="n">EventReader</span><span class="o">.</span><span class="n">READING_MODES</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">=</span> <span class="n">mode</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;auto&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">delta_t</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">n_events</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">=</span> <span class="s2">&quot;mixed&quot;</span>
+            <span class="k">elif</span> <span class="n">delta_t</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">=</span> <span class="s2">&quot;delta_t&quot;</span>
+                <span class="n">n_events</span> <span class="o">=</span> <span class="n">max_events</span>
+            <span class="k">elif</span> <span class="n">n_events</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">=</span> <span class="s2">&quot;n_events&quot;</span>
+                <span class="n">delta_t</span> <span class="o">=</span> <span class="n">max_time</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">=</span> <span class="s2">&quot;mixed&quot;</span>
+                <span class="n">delta_t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEFAULT_DELTA_T</span>
+                <span class="n">n_events</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEFAULT_N_EVENTS</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;delta_t&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">delta_t</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;delta_t must be specified&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">n_events</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">n_events</span> <span class="o">=</span> <span class="n">max_events</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;n_events&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">n_events</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;n_events must be specified&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">delta_t</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">delta_t</span> <span class="o">=</span> <span class="n">max_time</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;mixed&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">delta_t</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">delta_t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEFAULT_DELTA_T</span>
+            <span class="k">if</span> <span class="n">n_events</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">n_events</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEFAULT_N_EVENTS</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span><span class="p">:</span>
+            <span class="n">delta_t</span> <span class="o">=</span> <span class="n">max_time</span>
+            <span class="n">n_events</span> <span class="o">=</span> <span class="n">max_events</span>
+
+        <span class="k">if</span> <span class="n">delta_t</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">delta_t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEFAULT_DELTA_T</span>
+        <span class="k">if</span> <span class="n">n_events</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">n_events</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEFAULT_N_EVENTS</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">delta_t</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;delta_t must be an integer&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">n_events</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;n_events must be an integer&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">delta_t</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;delta_t must be positive&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">n_events</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;n_events must be positive&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_delta_t</span> <span class="o">=</span> <span class="n">delta_t</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_n_events</span> <span class="o">=</span> <span class="n">n_events</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_events</span> <span class="o">=</span> <span class="n">max_events</span> <span class="k">if</span> <span class="n">max_events</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_events</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_events</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_time</span> <span class="o">=</span> <span class="n">max_time</span> <span class="k">if</span> <span class="n">max_time</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delta_t</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delta_t</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_initialized</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="n">step</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">20</span>
+        <span class="n">acc_capacity</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_events</span><span class="p">,</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">step</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">step</span>
+        <span class="n">native_fill</span> <span class="o">=</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span><span class="p">,</span> <span class="s2">&quot;parse_step&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Async iteration config.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_async_read</span> <span class="o">=</span> <span class="n">async_read</span>
+        <span class="k">if</span> <span class="n">prefetch_depth</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">prefetch_depth</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;prefetch_depth must be &gt;= 1&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_prefetch_depth</span> <span class="o">=</span> <span class="n">prefetch_depth</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_active_prefetch</span><span class="p">:</span> <span class="s2">&quot;PrefetchIterator | None&quot;</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Real-time playback config.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">playback_speed</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">))</span> <span class="ow">or</span> <span class="n">playback_speed</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;playback_speed must be a positive number&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_real_time</span> <span class="o">=</span> <span class="n">real_time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_playback_speed</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">playback_speed</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">max_gap</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">max_gap</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">))</span> <span class="ow">or</span> <span class="n">max_gap</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;max_gap must be a positive number or None&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_gap</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">max_gap</span><span class="p">)</span> <span class="k">if</span> <span class="n">max_gap</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pacer</span> <span class="o">=</span> <span class="n">Pacer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_playback_speed</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_gap</span><span class="p">)</span>
+
+        <span class="c1"># Seek-index wiring (only EVT consults these).</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_index_opt</span> <span class="o">=</span> <span class="n">index</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span><span class="o">.</span><span class="n">_use_sidecar</span> <span class="o">=</span> <span class="p">(</span><span class="n">index</span> <span class="o">==</span> <span class="s2">&quot;metavision&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span><span class="o">.</span><span class="n">_persist_index</span> <span class="o">=</span> <span class="p">(</span><span class="n">index</span> <span class="o">==</span> <span class="s2">&quot;persist&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span><span class="o">.</span><span class="n">_raw_path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_name</span><span class="p">)</span>
+
+        <span class="c1"># Shared cross-cutting read state.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span> <span class="o">=</span> <span class="n">ReadContext</span><span class="p">(</span>
+            <span class="n">decoder</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span><span class="p">,</span>
+            <span class="n">normalize_ts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_normalize_ts</span><span class="p">,</span>
+            <span class="n">start_ts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_start_ts</span><span class="p">,</span>
+            <span class="n">first_ts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_first_ts</span><span class="p">,</span>
+            <span class="n">current_ts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_ts</span><span class="p">,</span>
+            <span class="n">delta_t</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_delta_t</span><span class="p">,</span>
+            <span class="n">n_events</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_events</span><span class="p">,</span>
+            <span class="n">read_external_triggers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_read_external_triggers</span><span class="p">,</span>
+            <span class="n">acc_capacity</span><span class="o">=</span><span class="n">acc_capacity</span><span class="p">,</span>
+            <span class="n">native_fill</span><span class="o">=</span><span class="n">native_fill</span><span class="p">,</span>
+            <span class="n">step</span><span class="o">=</span><span class="n">step</span><span class="p">,</span>
+            <span class="n">dt_est</span><span class="o">=</span><span class="n">step</span><span class="p">,</span>
+            <span class="n">reuse_buffers</span><span class="o">=</span><span class="nb">bool</span><span class="p">(</span><span class="n">reuse_buffers</span><span class="p">),</span>
+            <span class="n">async_read</span><span class="o">=</span><span class="n">async_read</span><span class="p">,</span>
+            <span class="n">prefetch_depth</span><span class="o">=</span><span class="n">prefetch_depth</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cursor</span> <span class="o">=</span> <span class="n">SeekCursor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span><span class="p">)</span>
+
+    <span class="c1"># ------------------------------------------------------------------ #</span>
+    <span class="c1"># Lifecycle</span>
+    <span class="c1"># ------------------------------------------------------------------ #</span>
+<div class="viewcode-block" id="EventReader.init">
+<a class="viewcode-back" href="../../../../autoapi/evutils/io/v2/reader/index.html#evutils.io.v2.EventReader.init">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">init</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the reader (implicitly done on first read).&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_initialized</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_initialized</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_check_no_active_prefetch</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_prefetch</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">&quot;An asynchronous iterator is active on this reader: exhaust or &quot;</span>
+                <span class="s2">&quot;close() it before calling read()/read_all(), or iterate instead.&quot;</span>
+            <span class="p">)</span>
+
+    <span class="c1"># ------------------------------------------------------------------ #</span>
+    <span class="c1"># Reading</span>
+    <span class="c1"># ------------------------------------------------------------------ #</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_attach_sensor_size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out</span><span class="p">:</span> <span class="s2">&quot;EventArray&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;EventArray&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Stamp ``sensor_size=(width, height)`` onto returned events, when known.&quot;&quot;&quot;</span>
+        <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span><span class="o">.</span><span class="n">shape</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">w</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">h</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">out</span>
+        <span class="n">ev</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="k">else</span> <span class="n">out</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ev</span><span class="o">.</span><span class="n">sensor_size</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">w</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">h</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">return</span> <span class="n">out</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_read_impl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">:</span> <span class="s2">&quot;int | None&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">n_events</span><span class="p">:</span> <span class="s2">&quot;int | None&quot;</span> <span class="o">=</span> <span class="kc">None</span>
+                   <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;EventArray | tuple[EventArray, TriggerArray]&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Unguarded body of :meth:`read` (also driven by the prefetch worker).&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_initialized</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+        <span class="n">strat</span> <span class="o">=</span> <span class="n">select_strategy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ctx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">,</span> <span class="n">n_events</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">strat</span><span class="o">.</span><span class="n">next_window</span><span class="p">(</span><span class="n">delta_t</span><span class="p">,</span> <span class="n">n_events</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">:</span> <span class="s2">&quot;int | None&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">n_events</span><span class="p">:</span> <span class="s2">&quot;int | None&quot;</span> <span class="o">=</span> <span class="kc">None</span>
+              <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;EventArray | tuple[EventArray, TriggerArray]&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Thin wrapper stamping sensor_size onto the decoded window.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attach_sensor_size</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_read_impl</span><span class="p">(</span><span class="n">delta_t</span><span class="p">,</span> <span class="n">n_events</span><span class="p">))</span>
+
+<div class="viewcode-block" id="EventReader.read">
+<a class="viewcode-back" href="../../../../autoapi/evutils/io/v2/reader/index.html#evutils.io.v2.EventReader.read">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">:</span> <span class="s2">&quot;int | None&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">n_events</span><span class="p">:</span> <span class="s2">&quot;int | None&quot;</span> <span class="o">=</span> <span class="kc">None</span>
+             <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;EventArray | tuple[EventArray, TriggerArray]&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Read one window based on the mode / parameters.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_no_active_prefetch</span><span class="p">()</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read</span><span class="p">(</span><span class="n">delta_t</span><span class="p">,</span> <span class="n">n_events</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_real_time</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pacer</span><span class="o">.</span><span class="n">pace</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_batch_mode</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">...types</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataBatch</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">DataBatch</span><span class="p">(</span><span class="n">events</span><span class="o">=</span><span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">triggers</span><span class="o">=</span><span class="n">out</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">DataBatch</span><span class="p">(</span><span class="n">events</span><span class="o">=</span><span class="n">out</span><span class="p">,</span> <span class="n">triggers</span><span class="o">=</span><span class="n">TriggerArray</span><span class="o">.</span><span class="n">empty</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">out</span></div>
+
+
+<div class="viewcode-block" id="EventReader.read_all">
+<a class="viewcode-back" href="../../../../autoapi/evutils/io/v2/reader/index.html#evutils.io.v2.EventReader.read_all">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">read_all</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;EventArray | tuple[EventArray, TriggerArray]&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Decode and return every remaining event at once.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_no_active_prefetch</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_initialized</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">AllStrategy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ctx</span><span class="p">)</span><span class="o">.</span><span class="n">read_all</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_attach_sensor_size</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_batch_mode</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">...types</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataBatch</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_external_triggers</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">DataBatch</span><span class="p">(</span><span class="n">events</span><span class="o">=</span><span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">triggers</span><span class="o">=</span><span class="n">out</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">DataBatch</span><span class="p">(</span><span class="n">events</span><span class="o">=</span><span class="n">out</span><span class="p">,</span> <span class="n">triggers</span><span class="o">=</span><span class="n">TriggerArray</span><span class="o">.</span><span class="n">empty</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">out</span></div>
+
+
+    <span class="c1"># ------------------------------------------------------------------ #</span>
+    <span class="c1"># Iteration</span>
+    <span class="c1"># ------------------------------------------------------------------ #</span>
+<div class="viewcode-block" id="EventReader.__iter__">
+<a class="viewcode-back" href="../../../../autoapi/evutils/io/v2/reader/index.html#evutils.io.v2.EventReader.__iter__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Iterator[EventArray]&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Iterate over the windows in the file (optionally async / paced).&quot;&quot;&quot;</span>
+        <span class="n">it</span><span class="p">:</span> <span class="n">Any</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_async_read</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_check_no_active_prefetch</span><span class="p">()</span>
+            <span class="n">kwargs</span><span class="p">:</span> <span class="s2">&quot;dict[str, str | int | float | bool]&quot;</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefetch_depth</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;depth&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefetch_depth</span>
+            <span class="n">it</span> <span class="o">=</span> <span class="n">PrefetchIterator</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_iter_sync</span><span class="p">(),</span>
+                <span class="n">on_finish</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_active_prefetch&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_prefetch</span> <span class="o">=</span> <span class="n">it</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">it</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iter_sync</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_real_time</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pacer</span><span class="o">.</span><span class="n">paced_iter</span><span class="p">(</span><span class="n">it</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">it</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_iter_sync</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Iterator[Any]&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The plain synchronous window generator behind :meth:`__iter__`.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_initialized</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_eof</span><span class="p">():</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_batch_mode</span><span class="p">:</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">...types</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataBatch</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                    <span class="k">yield</span> <span class="n">DataBatch</span><span class="p">(</span><span class="n">events</span><span class="o">=</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">triggers</span><span class="o">=</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">yield</span> <span class="n">DataBatch</span><span class="p">(</span><span class="n">events</span><span class="o">=</span><span class="n">res</span><span class="p">,</span> <span class="n">triggers</span><span class="o">=</span><span class="n">TriggerArray</span><span class="o">.</span><span class="n">empty</span><span class="p">())</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">res</span>
+
+    <span class="c1"># ------------------------------------------------------------------ #</span>
+    <span class="c1"># Seeking</span>
+    <span class="c1"># ------------------------------------------------------------------ #</span>
+<div class="viewcode-block" id="EventReader.seek">
+<a class="viewcode-back" href="../../../../autoapi/evutils/io/v2/reader/index.html#evutils.io.v2.EventReader.seek">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">seek</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="s2">&quot;int | None&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="s2">&quot;int | None&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+             <span class="n">relative</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SeekResult</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reposition the read cursor by timestamp or event index.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cursor</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">relative</span><span class="o">=</span><span class="n">relative</span><span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">last_seek</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SeekResult | None&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The :class:`SeekResult` of the most recent :meth:`seek`, or ``None``.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cursor</span><span class="o">.</span><span class="n">last_seek</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">event_index</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Current 0-based event index (events read so far / seek landing).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span><span class="o">.</span><span class="n">n_read_events</span>
+
+    <span class="c1"># ------------------------------------------------------------------ #</span>
+    <span class="c1"># State / lifecycle</span>
+    <span class="c1"># ------------------------------------------------------------------ #</span>
+<div class="viewcode-block" id="EventReader.reset">
+<a class="viewcode-back" href="../../../../autoapi/evutils/io/v2/reader/index.html#evutils.io.v2.EventReader.reset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reset the reader back to the beginning of the file.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_prefetch</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_prefetch</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">ctx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">n_read_events</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">eof</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">anchored</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">dt_carry</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">dt_est</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">step</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">dt_slot_i</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># keep the recycled slots themselves (warm pages)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pacer</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">accumulator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">accumulator</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="EventReader.is_eof">
+<a class="viewcode-back" href="../../../../autoapi/evutils/io/v2/reader/index.html#evutils.io.v2.EventReader.is_eof">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_eof</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;True once the stream is drained and nothing remains buffered.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_initialized</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+        <span class="n">acc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span><span class="o">.</span><span class="n">accumulator</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span><span class="o">.</span><span class="n">eof</span> <span class="ow">and</span> <span class="p">(</span><span class="n">acc</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">acc</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="EventReader.close">
+<a class="viewcode-back" href="../../../../autoapi/evutils/io/v2/reader/index.html#evutils.io.v2.EventReader.close">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Close the reader and release resources.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_prefetch</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_prefetch</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_source</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="EventReader.shape">
+<a class="viewcode-back" href="../../../../autoapi/evutils/io/v2/reader/index.html#evutils.io.v2.EventReader.shape">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">shape</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;tuple[int | None, int | None]&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the (width, height) of the frame.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_initialized</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_width</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_height</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_width</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_height</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span><span class="o">.</span><span class="n">shape</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="EventReader.tell">
+<a class="viewcode-back" href="../../../../autoapi/evutils/io/v2/reader/index.html#evutils.io.v2.EventReader.tell">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tell</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Current byte position in the file.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_initialized</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_decoder</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="EventReader.__enter__">
+<a class="viewcode-back" href="../../../../autoapi/evutils/io/v2/reader/index.html#evutils.io.v2.EventReader.__enter__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;EventReader&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="EventReader.__exit__">
+<a class="viewcode-back" href="../../../../autoapi/evutils/io/v2/reader/index.html#evutils.io.v2.EventReader.__exit__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">:</span> <span class="s2">&quot;type[BaseException] | None&quot;</span><span class="p">,</span>
+                 <span class="n">exc_value</span><span class="p">:</span> <span class="s2">&quot;BaseException | None&quot;</span><span class="p">,</span>
+                 <span class="n">traceback</span><span class="p">:</span> <span class="s2">&quot;_types.TracebackType | None&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="EventReader.__len__">
+<a class="viewcode-back" href="../../../../autoapi/evutils/io/v2/reader/index.html#evutils.io.v2.EventReader.__len__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span><span class="o">.</span><span class="n">n_read_events</span></div>
+
+
+<div class="viewcode-block" id="EventReader.__repr__">
+<a class="viewcode-back" href="../../../../autoapi/evutils/io/v2/reader/index.html#evutils.io.v2.EventReader.__repr__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">is_initialized_txt</span> <span class="o">=</span> <span class="s2">&quot;initialized&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_initialized</span> <span class="k">else</span> <span class="s2">&quot;not initialized&quot;</span>
+        <span class="n">src</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_name</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="k">return</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(source=</span><span class="si">{</span><span class="n">src</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">is_initialized_txt</span><span class="si">}</span><span class="s2">, &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;delta_t=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_delta_t</span><span class="si">}</span><span class="s2">, n_events=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_events</span><span class="si">}</span><span class="s2">, mode=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_mode</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Jakub Mandula.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.20.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

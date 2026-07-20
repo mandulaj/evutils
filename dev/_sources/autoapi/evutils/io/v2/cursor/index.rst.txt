@@ -1,0 +1,58 @@
+:py:mod:`evutils.io.v2.cursor`
+==============================
+
+.. py:module:: evutils.io.v2.cursor
+
+.. autoapi-nested-parse::
+
+   Random-access seeking for the decomposed :class:`EventReader` (V2).
+
+   ``SeekCursor`` ports the monolith's ``seek`` / ``_seek_linear`` /
+   ``_peek_stream_first_ts``: the decoder's fast-path ``seek()`` (index / binary
+   search) when the source is seekable or the decoder buffers the payload in
+   memory, else a linear iterate-and-drop fallback. On seek it re-anchors the
+   :class:`ReadContext` and resets the active windowing state; the public
+   :class:`~evutils.io.common.SeekResult` contract is unchanged.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   evutils.io.v2.cursor.SeekCursor
+
+
+Module Contents
+---------------
+
+.. py:class:: SeekCursor(reader: evutils.io.v2.reader.EventReader, ctx: evutils.io.v2.context.ReadContext)
+
+   Repositions the read cursor by timestamp or event index over a shared
+   :class:`ReadContext`.
+
+   Holds a back-reference to the owning reader for the byte source, the active
+   prefetch guard, the pacer anchor, and the staging buffer -- all of which a
+   seek must consult or reset.
+
+
+   .. py:attribute:: reader
+
+
+   .. py:attribute:: ctx
+
+
+   .. py:attribute:: last_seek
+      :type:  SeekResult | None
+      :value: None
+
+
+
+   .. py:method:: seek(t: int | None = None, n: int | None = None, relative: bool = False) -> evutils.io.common.SeekResult
+
+      Reposition by timestamp (``t``) or event index (``n``); exactly one
+      must be given. ``relative=True`` adds to the current cursor.
+
+
+

@@ -36,6 +36,7 @@ Submodules
    /autoapi/evutils/io/decoders/index
    /autoapi/evutils/io/encoders/index
    /autoapi/evutils/io/stream/index
+   /autoapi/evutils/io/v2/index
 
 .. list-table::
    :widths: 30 70
@@ -51,6 +52,8 @@ Submodules
      - Encoders module.
    * - :py:mod:`stream <evutils.io.stream>`
      - 
+   * - :py:mod:`v2 <evutils.io.v2>`
+     - Decomposed :class:`EventReader` (V2).
 
 Classes
 -------

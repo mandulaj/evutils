@@ -1,0 +1,68 @@
+:py:mod:`evutils.io.v2.pacing`
+==============================
+
+.. py:module:: evutils.io.v2.pacing
+
+.. autoapi-nested-parse::
+
+   Real-time playback pacing for the decomposed :class:`EventReader` (V2).
+
+   ``Pacer`` reproduces the monolith's ``_pace`` / ``_paced_iter`` behaviour: each
+   chunk is released only once wall-clock time (anchored at the first delivered
+   chunk) reaches the event time it covers, so the stream plays back as if live.
+   ``max_gap`` dead-air skipping is preserved (pinned by ``test_playback.py``).
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   evutils.io.v2.pacing.Pacer
+
+
+Module Contents
+---------------
+
+.. py:class:: Pacer(playback_speed: float = 1.0, max_gap: float | None = 1.0)
+
+   Paces chunk delivery to the recording's own timeline.
+
+   :param playback_speed: Playback rate multiplier (``2.0`` = twice as fast as the recording).
+   :type playback_speed: float
+   :param max_gap: Longest idle stretch, in real seconds, the pacer will sleep through
+                   before skipping the dead air. ``None`` disables the skip (strict real
+                   time).
+   :type max_gap: float or None
+
+
+   .. py:attribute:: playback_speed
+
+
+   .. py:attribute:: max_gap
+
+
+   .. py:method:: reset() -> None
+
+      Drop the wall-clock anchor (re-anchors on the next paced chunk).
+
+
+
+   .. py:method:: pace(out: Any) -> None
+
+      Sleep until ``out``'s last event timestamp aligns with wall-clock
+      playback time (anchored at the first delivered chunk).
+
+      The anchor is absolute, so time the caller spends between chunks is
+      subtracted from the delay automatically; when the target time is already
+      past (slow decode or slow consumer), no delay is added.
+
+
+
+   .. py:method:: paced_iter(it: Iterator[Any]) -> Iterator[Any]
+
+      Wrap an iterator so each chunk is released on the playback clock.
+
+
+
